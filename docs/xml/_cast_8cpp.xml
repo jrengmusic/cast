@@ -1,0 +1,320 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
+  <compounddef id="_cast_8cpp" kind="file" language="C++">
+    <compoundname>Cast.cpp</compoundname>
+    <includes local="no">JuceHeader.h</includes>
+    <includes local="no">jam_tui/jam_tui.h</includes>
+    <includes refid="_driver_8h" local="yes">Driver.h</includes>
+    <includes refid="_help_8h" local="yes">Help.h</includes>
+    <incdepgraph>
+      <node id="1">
+        <label>Cast.cpp</label>
+        <link refid="_cast_8cpp"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+      </node>
+      <node id="4">
+        <label>Driver.h</label>
+        <link refid="_driver_8h"/>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>Help.h</label>
+        <link refid="_help_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>Manifest.h</label>
+        <link refid="_manifest_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>jam_tui/jam_tui.h</label>
+        <link refid="jam__tui_8h.html" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+      </node>
+      <node id="2">
+        <label>JuceHeader.h</label>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="_cast_8cpp_1ab218c2a9e0db70cd71327695075b86fa" prot="public" static="yes" mutable="no">
+        <type>const <ref refid="classjuce_1_1StringArray" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::StringArray</ref></type>
+        <definition>const juce::StringArray bannerText</definition>
+        <argsstring></argsstring>
+        <name>bannerText</name>
+        <initializer>{
+    <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> (<ref refid="classjuce_1_1CharPointer__UTF8" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::CharPointer_UTF8</ref> (&quot;████████████  ████████████  ████████████  ████████████&quot;)),
+    <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> (<ref refid="classjuce_1_1CharPointer__UTF8" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::CharPointer_UTF8</ref> (&quot;████░░░░████  ████░░░░████  ████░░░░████  ░░░░████░░░░&quot;)),
+    <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> (<ref refid="classjuce_1_1CharPointer__UTF8" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::CharPointer_UTF8</ref> (&quot;████    ░░░░  ████    ████  ████    ░░░░      ████    &quot;)),
+    juce::String (<ref refid="classjuce_1_1CharPointer__UTF8" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::CharPointer_UTF8</ref> (&quot;████          ████████████  ████████████      ████    &quot;)),
+    juce::String (<ref refid="classjuce_1_1CharPointer__UTF8" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::CharPointer_UTF8</ref> (&quot;████          ████░░░░████  ░░░░░░░░████      ████    &quot;)),
+    juce::String (<ref refid="classjuce_1_1CharPointer__UTF8" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::CharPointer_UTF8</ref> (&quot;████    ████  ████    ████  ████    ████      ████    &quot;)),
+    juce::String (<ref refid="classjuce_1_1CharPointer__UTF8" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::CharPointer_UTF8</ref> (&quot;████████████  ████    ████  ████████████      ████    &quot;)),
+    juce::String (<ref refid="classjuce_1_1CharPointer__UTF8" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::CharPointer_UTF8</ref> (&quot;░░░░░░░░░░░░  ░░░░    ░░░░  ░░░░░░░░░░░░      ░░░░    &quot;))
+}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Cast.cpp" line="6" column="32" bodyfile="Cast.cpp" bodystart="7" bodyend="16"/>
+        <referencedby refid="_cast_8cpp_1ab78bd14cb03a7f6e70153ef948826a58" compoundref="_cast_8cpp" startline="30" endline="53">paintBanner</referencedby>
+        <referencedby refid="_cast_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" compoundref="_cast_8cpp" startline="55" endline="61">printBanner</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="_cast_8cpp_1a782c9b857b58fc40ac33415dd702c292" prot="public" static="yes" mutable="no">
+        <type>const std::array&lt; <ref refid="classjuce_1_1Colour" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Colour</ref>, 8 &gt;</type>
+        <definition>const std::array&lt;juce::Colour, 8&gt; bannerColours</definition>
+        <argsstring></argsstring>
+        <name>bannerColours</name>
+        <initializer>{
+    <ref refid="classjuce_1_1Colour" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Colour</ref> { 102, 187, 255 },
+    <ref refid="classjuce_1_1Colour" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Colour</ref> { 87, 183, 246 },
+    <ref refid="classjuce_1_1Colour" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Colour</ref> { 73, 180, 238 },
+    <ref refid="classjuce_1_1Colour" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Colour</ref> { 59, 177, 230 },
+    <ref refid="classjuce_1_1Colour" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Colour</ref> { 45, 174, 221 },
+    <ref refid="classjuce_1_1Colour" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Colour</ref> { 31, 171, 213 },
+    <ref refid="classjuce_1_1Colour" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Colour</ref> { 17, 168, 205 },
+    <ref refid="classjuce_1_1Colour" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Colour</ref> { 17, 168, 205 }
+}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Cast.cpp" line="18" column="25" bodyfile="Cast.cpp" bodystart="19" bodyend="28"/>
+        <referencedby refid="_cast_8cpp_1ab78bd14cb03a7f6e70153ef948826a58" compoundref="_cast_8cpp" startline="30" endline="53">paintBanner</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="_cast_8cpp_1ab78bd14cb03a7f6e70153ef948826a58" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void paintBanner</definition>
+        <argsstring>(jam::tui::Graphics &amp;g)</argsstring>
+        <name>paintBanner</name>
+        <param>
+          <type><ref refid="classjam_1_1tui_1_1Graphics" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::tui::Graphics</ref> &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Cast.cpp" line="30" column="13" bodyfile="Cast.cpp" bodystart="30" bodyend="53"/>
+        <references refid="_cast_8cpp_1a782c9b857b58fc40ac33415dd702c292" compoundref="_cast_8cpp" startline="19" endline="28">bannerColours</references>
+        <references refid="_cast_8cpp_1ab218c2a9e0db70cd71327695075b86fa" compoundref="_cast_8cpp" startline="7" endline="16">bannerText</references>
+        <references refid="classjuce_1_1String_1a128e862810bc5e3f16cb70c3c9751867">juce::String::charToString</references>
+        <referencedby refid="_cast_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" compoundref="_cast_8cpp" startline="55" endline="61">printBanner</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="_cast_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void printBanner</definition>
+        <argsstring>()</argsstring>
+        <name>printBanner</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Cast.cpp" line="55" column="13" bodyfile="Cast.cpp" bodystart="55" bodyend="61"/>
+        <references refid="_cast_8cpp_1ab218c2a9e0db70cd71327695075b86fa" compoundref="_cast_8cpp" startline="7" endline="16">bannerText</references>
+        <references refid="_cast_8cpp_1ab78bd14cb03a7f6e70153ef948826a58" compoundref="_cast_8cpp" startline="30" endline="53">paintBanner</references>
+        <referencedby refid="_cast_8cpp_1a0ddf1224851353fc92bfbff6f499fa97" compoundref="_cast_8cpp" startline="75" endline="121">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="_cast_8cpp_1a7beba094c25e9aa5626e49384e647202" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>static int runManifest</definition>
+        <argsstring>(const juce::File &amp;manifest, const juce::String &amp;outputFilter={})</argsstring>
+        <name>runManifest</name>
+        <param>
+          <type>const <ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref> &amp;</type>
+          <declname>manifest</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>outputFilter</declname>
+          <defval>{}</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Cast.cpp" line="63" column="12" bodyfile="Cast.cpp" bodystart="63" bodyend="73"/>
+        <referencedby refid="_cast_8cpp_1a0ddf1224851353fc92bfbff6f499fa97" compoundref="_cast_8cpp" startline="75" endline="121">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="_cast_8cpp_1a0ddf1224851353fc92bfbff6f499fa97" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int main</definition>
+        <argsstring>(int argc, char *argv[])</argsstring>
+        <name>main</name>
+        <param>
+          <type>int</type>
+          <declname>argc</declname>
+        </param>
+        <param>
+          <type>char *</type>
+          <declname>argv</declname>
+          <array>[]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Cast.cpp" line="75" column="5" bodyfile="Cast.cpp" bodystart="75" bodyend="121"/>
+        <references refid="classjuce_1_1File_1a37e88fbc390d78f3d79675974f53fa78">juce::File::existsAsFile</references>
+        <references refid="classjuce_1_1File_1a57b992aacb19e09ee5905cd0f0e9bb31">juce::File::getChildFile</references>
+        <references refid="classjuce_1_1File_1af57a7a6e83fbd4a6b048e7d0010d7279">juce::File::getCurrentWorkingDirectory</references>
+        <references refid="structjam_1_1Instance_1ad5d2bbb58e37d8d260b428b334823140">jam::Instance&lt; Derived &gt;::getInstance</references>
+        <references refid="namespaceBinaryData_1ab470912f6d1c32d1892f7750ab510641">BinaryData::getString</references>
+        <references refid="_cast_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" compoundref="_cast_8cpp" startline="55" endline="61">printBanner</references>
+        <references refid="namespacecast_1a2e870959ec9922fae78db9fcf45db83d" compoundref="_help_8cpp" startline="10" endline="34">cast::printHelp</references>
+        <references refid="_cast_8cpp_1a7beba094c25e9aa5626e49384e647202" compoundref="_cast_8cpp" startline="63" endline="73">runManifest</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#include<sp/>&lt;JuceHeader.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;<ref refid="jam__tui_8h.html" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam_tui/jam_tui.h</ref>&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="_driver_8h" kindref="compound">Driver.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="_help_8h" kindref="compound">Help.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight></codeline>
+<codeline lineno="6" refid="_cast_8cpp_1ab218c2a9e0db70cd71327695075b86fa" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classjuce_1_1StringArray" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::StringArray</ref><sp/><ref refid="_cast_8cpp_1ab218c2a9e0db70cd71327695075b86fa" kindref="member">bannerText</ref></highlight></codeline>
+<codeline lineno="7"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="8"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>(<ref refid="classjuce_1_1CharPointer__UTF8" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::CharPointer_UTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████████████<sp/><sp/>████████████<sp/><sp/>████████████<sp/><sp/>████████████&quot;</highlight><highlight class="normal">)),</highlight></codeline>
+<codeline lineno="9"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>(<ref refid="classjuce_1_1CharPointer__UTF8" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::CharPointer_UTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████░░░░████<sp/><sp/>████░░░░████<sp/><sp/>████░░░░████<sp/><sp/>░░░░████░░░░&quot;</highlight><highlight class="normal">)),</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>(<ref refid="classjuce_1_1CharPointer__UTF8" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::CharPointer_UTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████<sp/><sp/><sp/><sp/>░░░░<sp/><sp/>████<sp/><sp/><sp/><sp/>████<sp/><sp/>████<sp/><sp/><sp/><sp/>░░░░<sp/><sp/><sp/><sp/><sp/><sp/>████<sp/><sp/><sp/><sp/>&quot;</highlight><highlight class="normal">)),</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>(<ref refid="classjuce_1_1CharPointer__UTF8" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::CharPointer_UTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>████████████<sp/><sp/>████████████<sp/><sp/><sp/><sp/><sp/><sp/>████<sp/><sp/><sp/><sp/>&quot;</highlight><highlight class="normal">)),</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>(<ref refid="classjuce_1_1CharPointer__UTF8" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::CharPointer_UTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>████░░░░████<sp/><sp/>░░░░░░░░████<sp/><sp/><sp/><sp/><sp/><sp/>████<sp/><sp/><sp/><sp/>&quot;</highlight><highlight class="normal">)),</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>(<ref refid="classjuce_1_1CharPointer__UTF8" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::CharPointer_UTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████<sp/><sp/><sp/><sp/>████<sp/><sp/>████<sp/><sp/><sp/><sp/>████<sp/><sp/>████<sp/><sp/><sp/><sp/>████<sp/><sp/><sp/><sp/><sp/><sp/>████<sp/><sp/><sp/><sp/>&quot;</highlight><highlight class="normal">)),</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>(<ref refid="classjuce_1_1CharPointer__UTF8" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::CharPointer_UTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████████████<sp/><sp/>████<sp/><sp/><sp/><sp/>████<sp/><sp/>████████████<sp/><sp/><sp/><sp/><sp/><sp/>████<sp/><sp/><sp/><sp/>&quot;</highlight><highlight class="normal">)),</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>(<ref refid="classjuce_1_1CharPointer__UTF8" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::CharPointer_UTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;░░░░░░░░░░░░<sp/><sp/>░░░░<sp/><sp/><sp/><sp/>░░░░<sp/><sp/>░░░░░░░░░░░░<sp/><sp/><sp/><sp/><sp/><sp/>░░░░<sp/><sp/><sp/><sp/>&quot;</highlight><highlight class="normal">))</highlight></codeline>
+<codeline lineno="16"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight></codeline>
+<codeline lineno="18" refid="_cast_8cpp_1a782c9b857b58fc40ac33415dd702c292" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::array&lt;juce::Colour,<sp/>8&gt;<sp/><ref refid="_cast_8cpp_1a782c9b857b58fc40ac33415dd702c292" kindref="member">bannerColours</ref></highlight></codeline>
+<codeline lineno="19"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1Colour" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Colour</ref><sp/>{<sp/>102,<sp/>187,<sp/>255<sp/>},</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1Colour" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Colour</ref><sp/>{<sp/>87,<sp/>183,<sp/>246<sp/>},</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1Colour" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Colour</ref><sp/>{<sp/>73,<sp/>180,<sp/>238<sp/>},</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1Colour" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Colour</ref><sp/>{<sp/>59,<sp/>177,<sp/>230<sp/>},</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1Colour" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Colour</ref><sp/>{<sp/>45,<sp/>174,<sp/>221<sp/>},</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1Colour" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Colour</ref><sp/>{<sp/>31,<sp/>171,<sp/>213<sp/>},</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1Colour" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Colour</ref><sp/>{<sp/>17,<sp/>168,<sp/>205<sp/>},</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1Colour" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Colour</ref><sp/>{<sp/>17,<sp/>168,<sp/>205<sp/>}</highlight></codeline>
+<codeline lineno="28"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight></codeline>
+<codeline lineno="30" refid="_cast_8cpp_1ab78bd14cb03a7f6e70153ef948826a58" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="_cast_8cpp_1ab78bd14cb03a7f6e70153ef948826a58" kindref="member">paintBanner</ref><sp/>(<ref refid="classjam_1_1tui_1_1Graphics" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::tui::Graphics</ref>&amp;<sp/>g)</highlight></codeline>
+<codeline lineno="31"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>row<sp/>{<sp/>0<sp/>};<sp/>row<sp/>&lt;<sp/><ref refid="_cast_8cpp_1ab218c2a9e0db70cd71327695075b86fa" kindref="member">bannerText</ref>.size();<sp/>++row)</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal">&amp;<sp/>line<sp/>{<sp/><ref refid="_cast_8cpp_1ab218c2a9e0db70cd71327695075b86fa" kindref="member">bannerText</ref>[row]<sp/>};</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>col<sp/>{<sp/>0<sp/>};<sp/>col<sp/>&lt;<sp/>line.length();<sp/>++col)</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>glyph<sp/>{<sp/>line[col]<sp/>};</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(glyph<sp/>==<sp/>U</highlight><highlight class="stringliteral">&apos;█&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>g.setColour<sp/>(<ref refid="_cast_8cpp_1a782c9b857b58fc40ac33415dd702c292" kindref="member">bannerColours</ref>.at<sp/>(</highlight><highlight class="keyword">static_cast&lt;</highlight><highlight class="keywordtype">size_t</highlight><highlight class="keyword">&gt;</highlight><highlight class="normal"><sp/>(row)));</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>g.drawCellText<sp/>(<ref refid="classjuce_1_1String_1a128e862810bc5e3f16cb70c3c9751867" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::charToString</ref><sp/>(glyph),<sp/>col,<sp/>row,<sp/>1);</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(glyph<sp/>==<sp/>U</highlight><highlight class="stringliteral">&apos;░&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>priorRow<sp/>{<sp/>row<sp/>==<sp/>0<sp/>?<sp/>0<sp/>:<sp/>row<sp/>-<sp/>1<sp/>};</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>g.setColour<sp/>(<ref refid="_cast_8cpp_1a782c9b857b58fc40ac33415dd702c292" kindref="member">bannerColours</ref>.at<sp/>(</highlight><highlight class="keyword">static_cast&lt;</highlight><highlight class="keywordtype">size_t</highlight><highlight class="keyword">&gt;</highlight><highlight class="normal"><sp/>(priorRow)));</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>g.drawCellText<sp/>(<ref refid="classjuce_1_1String_1a128e862810bc5e3f16cb70c3c9751867" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::charToString</ref><sp/>(glyph),<sp/>col,<sp/>row,<sp/>1);</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="53"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight></codeline>
+<codeline lineno="55" refid="_cast_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="_cast_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" kindref="member">printBanner</ref>()</highlight></codeline>
+<codeline lineno="56"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classjam_1_1tui_1_1Graphics" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::tui::Graphics</ref><sp/>graphics<sp/>{<sp/><ref refid="_cast_8cpp_1ab218c2a9e0db70cd71327695075b86fa" kindref="member">bannerText</ref>[0].length(),<sp/><ref refid="_cast_8cpp_1ab218c2a9e0db70cd71327695075b86fa" kindref="member">bannerText</ref>.size()<sp/>};</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="_cast_8cpp_1ab78bd14cb03a7f6e70153ef948826a58" kindref="member">paintBanner</ref><sp/>(graphics);</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/>printf<sp/>(</highlight><highlight class="stringliteral">&quot;%s\n&quot;</highlight><highlight class="normal">,<sp/>graphics.getLines().joinIntoString<sp/>(</highlight><highlight class="stringliteral">&quot;\n&quot;</highlight><highlight class="normal">).toRawUTF8());</highlight></codeline>
+<codeline lineno="61"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight></codeline>
+<codeline lineno="63" refid="_cast_8cpp_1a7beba094c25e9aa5626e49384e647202" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="_cast_8cpp_1a7beba094c25e9aa5626e49384e647202" kindref="member">runManifest</ref><sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref>&amp;<sp/>manifest,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref>&amp;<sp/>outputFilter<sp/>=<sp/>{})</highlight></codeline>
+<codeline lineno="64"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structcast_1_1_driver" kindref="compound">cast::Driver</ref><sp/>driver;</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>result<sp/>{<sp/>driver.<ref refid="structcast_1_1_driver_1aefe9920e54c929e07422fa05e9c7e9df" kindref="member">run</ref><sp/>(manifest,<sp/>outputFilter)<sp/>};</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(result.wasOk())</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/>fprintf<sp/>(stderr,<sp/></highlight><highlight class="stringliteral">&quot;cast:<sp/>%s\n&quot;</highlight><highlight class="normal">,<sp/>result.getErrorMessage().toRawUTF8());</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="73"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"></highlight></codeline>
+<codeline lineno="75" refid="_cast_8cpp_1a0ddf1224851353fc92bfbff6f499fa97" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="scratch__measure__asymmetric__cascade_8cpp_1a3c04138a5bfe5d72780bb7e82a18e627" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">main</ref><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>argc,<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/>argv[])</highlight></codeline>
+<codeline lineno="76"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1ScopedJuceInitialiser__GUI" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::ScopedJuceInitialiser_GUI</ref><sp/>libraryInitialiser;</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"></highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structjam_1_1Stamp" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Stamp</ref><sp/>stamp;</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structjam_1_1Hyperlink" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Hyperlink</ref><sp/>hyperlink;</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structId_1_1ColourIdMap" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::ColourIdMap</ref><sp/>colourIdMap;</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structjam_1_1Instance_1ad5d2bbb58e37d8d260b428b334823140" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Stamp::getInstance</ref>()-&gt;addIfNotAlreadyThere<sp/>(<ref refid="structjam_1_1Stamp_1_1Entry" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Stamp::Entry</ref><sp/>{});</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(argc<sp/>==<sp/>2<sp/>and<sp/><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>{<sp/>argv[1]<sp/>}<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;--version&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>printf<sp/>(</highlight><highlight class="stringliteral">&quot;cast<sp/>%s<sp/>(&quot;</highlight><highlight class="normal"><sp/>CAST_COMMIT<sp/></highlight><highlight class="stringliteral">&quot;)\n&quot;</highlight><highlight class="normal">,<sp/>ProjectInfo::versionString);</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"></highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(argc<sp/>==<sp/>2<sp/>and<sp/><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>{<sp/>argv[1]<sp/>}<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;--help&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="_cast_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" kindref="member">printBanner</ref>();</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>printf<sp/>(</highlight><highlight class="stringliteral">&quot;\n&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="namespacecast_1a2e870959ec9922fae78db9fcf45db83d" kindref="member">cast::printHelp</ref><sp/>(<ref refid="namespaceBinaryData_1ab470912f6d1c32d1892f7750ab510641" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">BinaryData::getString</ref><sp/>(<ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;SPEC.md&quot;</highlight><highlight class="normal"><sp/>}));</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"></highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(argc<sp/>==<sp/>3)</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="_cast_8cpp_1a7beba094c25e9aa5626e49384e647202" kindref="member">runManifest</ref><sp/>(</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1File_1af57a7a6e83fbd4a6b048e7d0010d7279" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File::getCurrentWorkingDirectory</ref>().getChildFile<sp/>(<ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>{<sp/>argv[1]<sp/>}),</highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>{<sp/>argv[2]<sp/>});</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="105"><highlight class="normal"></highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref><sp/>manifestFile</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(argc<sp/>==<sp/>2)</highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>?<sp/><ref refid="classjuce_1_1File_1af57a7a6e83fbd4a6b048e7d0010d7279" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File::getCurrentWorkingDirectory</ref>().getChildFile<sp/>(<ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>{<sp/>argv[1]<sp/>})</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>:<sp/><ref refid="classjuce_1_1File_1af57a7a6e83fbd4a6b048e7d0010d7279" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File::getCurrentWorkingDirectory</ref>().<ref refid="classjuce_1_1File_1a57b992aacb19e09ee5905cd0f0e9bb31" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">getChildFile</ref><sp/>(</highlight><highlight class="stringliteral">&quot;CAST.md&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/>};</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"></highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(manifestFile.<ref refid="classjuce_1_1File_1a37e88fbc390d78f3d79675974f53fa78" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">existsAsFile</ref>())</highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="_cast_8cpp_1a7beba094c25e9aa5626e49384e647202" kindref="member">runManifest</ref><sp/>(manifestFile);</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"></highlight></codeline>
+<codeline lineno="116"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="_cast_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" kindref="member">printBanner</ref>();</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"><sp/><sp/><sp/><sp/>printf<sp/>(</highlight><highlight class="stringliteral">&quot;\n&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="namespacecast_1a2e870959ec9922fae78db9fcf45db83d" kindref="member">cast::printHelp</ref><sp/>(<ref refid="namespaceBinaryData_1ab470912f6d1c32d1892f7750ab510641" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">BinaryData::getString</ref><sp/>(<ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;SPEC.md&quot;</highlight><highlight class="normal"><sp/>}));</highlight></codeline>
+<codeline lineno="119"><highlight class="normal"><sp/><sp/><sp/><sp/>fprintf<sp/>(stderr,<sp/></highlight><highlight class="stringliteral">&quot;cast:<sp/>no<sp/>CAST.md<sp/>found\n&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="121"><highlight class="normal">}</highlight></codeline>
+    </programlisting>
+    <location file="Cast.cpp"/>
+  </compounddef>
+</doxygen>

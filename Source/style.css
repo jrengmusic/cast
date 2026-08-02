@@ -1,0 +1,54 @@
+/*
+ * style.css — dual-renderer single source of truth for this app's help text
+ * appearance.
+ *
+ * Two consumers read this exact file, unmodified:
+ *   1. Any web browser, opened directly, for visual design preview.
+ *   2. jam_plugin_bootstrap StyleManager, at runtime, parsed into the
+ *      Markdown LookAndFeel colour ids.
+ *
+ * One document, one contract, no generated forks.
+ *
+ * Section index:
+ *   1. :root        — palette customs
+ *   2. .appearance   — LookAndFeel colour id customs
+ */
+:root {
+    /* palette
+     * Named colour customs, named verbatim as authored (no casing
+     * transform). Consumed by both renderers: the browser resolves var()
+     * references directly; the runtime parses this block into its palette
+     * registry, keyed by these same custom-property names.
+     */
+    --white: #FFFFFF;
+    --cyan: #00FFFF;
+    --magenta: #FF00FF;
+    --yellow: #FFFF00;
+}
+
+.appearance {
+    /* appearance
+     * LookAndFeel colour id customs. Each name is an unprefixed,
+     * two-segment custom-property spelling of the colour id (e.g.
+     * --Markdown--textColourId for "Markdown::textColourId"). Values
+     * resolve through var() to a palette colour above. The runtime matches
+     * the custom-property spelling verbatim against the generated
+     * ColourIdMap to resolve the colour id; the browser resolves these as
+     * ordinary CSS variables.
+     */
+    --Markdown--textColourId: var(--white);
+    --Markdown--ruleColourId: var(--white);
+    --Markdown--quoteBarColourId: var(--white);
+    --Markdown--tableLineColourId: var(--white);
+    --Markdown--checkboxColourId: var(--white);
+    --Markdown--syntaxCommentColourId: var(--white);
+    --Markdown--syntaxPunctuationColourId: var(--white);
+    --Markdown--headingColourId: var(--cyan);
+    --Markdown--linkColourId: var(--cyan);
+    --Markdown--syntaxKeywordColourId: var(--cyan);
+    --Markdown--syntaxTypeColourId: var(--cyan);
+    --Markdown--codeTextColourId: var(--magenta);
+    --Markdown--syntaxStringColourId: var(--magenta);
+    --Markdown--tableHeaderColourId: var(--yellow);
+    --Markdown--syntaxNumberColourId: var(--yellow);
+}

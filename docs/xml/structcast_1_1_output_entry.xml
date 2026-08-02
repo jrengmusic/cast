@@ -1,0 +1,92 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
+  <compounddef id="structcast_1_1_output_entry" kind="struct" language="C++" prot="public">
+    <compoundname>cast::OutputEntry</compoundname>
+    <includes refid="_manifest_8h" local="no">Manifest.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structcast_1_1_output_entry_1a981ea1ecffd02a77f9fc2ac5690245f1" prot="public" static="no" mutable="no">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>juce::String cast::OutputEntry::outputPath</definition>
+        <argsstring></argsstring>
+        <name>outputPath</name>
+        <qualifiedname>cast::OutputEntry::outputPath</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Manifest.h" line="9" column="18" bodyfile="Manifest.h" bodystart="9" bodyend="-1"/>
+        <referencedby refid="namespacecast_1ab2a6fe94c4cf573ae90526f622dadb1a" compoundref="_manifest_8cpp" startline="39" endline="63">cast::processOutputs</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="structcast_1_1_output_entry_1a193efb7eeef5a8ca4bbcafc1b14d7fc8" prot="public" static="no" mutable="no">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>juce::String cast::OutputEntry::rootTemplatePath</definition>
+        <argsstring></argsstring>
+        <name>rootTemplatePath</name>
+        <qualifiedname>cast::OutputEntry::rootTemplatePath</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Manifest.h" line="10" column="18" bodyfile="Manifest.h" bodystart="10" bodyend="-1"/>
+        <referencedby refid="namespacecast_1ab2a6fe94c4cf573ae90526f622dadb1a" compoundref="_manifest_8cpp" startline="39" endline="63">cast::processOutputs</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="structcast_1_1_output_entry_1afe276dbea146a91bb13a7fed644af176" prot="public" static="no" mutable="no">
+        <type><ref refid="classjuce_1_1StringArray" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::StringArray</ref></type>
+        <definition>juce::StringArray cast::OutputEntry::inputTables</definition>
+        <argsstring></argsstring>
+        <name>inputTables</name>
+        <qualifiedname>cast::OutputEntry::inputTables</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Manifest.h" line="11" column="23" bodyfile="Manifest.h" bodystart="11" bodyend="-1"/>
+        <referencedby refid="namespacecast_1ab2a6fe94c4cf573ae90526f622dadb1a" compoundref="_manifest_8cpp" startline="39" endline="63">cast::processOutputs</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>cast::OutputEntry</label>
+        <link refid="structcast_1_1_output_entry"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>outputPath</edgelabel>
+          <edgelabel>rootTemplatePath</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>inputTables</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>juce::Array&lt; juce::String &gt;</label>
+        <link refid="classjuce_1_1Array" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml"/>
+      </node>
+      <node id="2">
+        <label>juce::String</label>
+        <link refid="classjuce_1_1String" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml"/>
+      </node>
+      <node id="3">
+        <label>juce::StringArray</label>
+        <link refid="classjuce_1_1StringArray" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>strings</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="Manifest.h" line="7" column="1" bodyfile="Manifest.h" bodystart="8" bodyend="12"/>
+    <listofallmembers>
+      <member refid="structcast_1_1_output_entry_1afe276dbea146a91bb13a7fed644af176" prot="public" virt="non-virtual"><scope>cast::OutputEntry</scope><name>inputTables</name></member>
+      <member refid="structcast_1_1_output_entry_1a981ea1ecffd02a77f9fc2ac5690245f1" prot="public" virt="non-virtual"><scope>cast::OutputEntry</scope><name>outputPath</name></member>
+      <member refid="structcast_1_1_output_entry_1a193efb7eeef5a8ca4bbcafc1b14d7fc8" prot="public" virt="non-virtual"><scope>cast::OutputEntry</scope><name>rootTemplatePath</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

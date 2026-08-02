@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
+  <compounddef id="_help_8h" kind="file" language="C++">
+    <compoundname>Help.h</compoundname>
+    <includes local="no">JuceHeader.h</includes>
+    <includedby refid="_cast_8cpp" local="yes">Cast.cpp</includedby>
+    <includedby refid="_help_8cpp" local="yes">Help.cpp</includedby>
+    <incdepgraph>
+      <node id="1">
+        <label>Help.h</label>
+        <link refid="_help_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>JuceHeader.h</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="2">
+        <label>Cast.cpp</label>
+        <link refid="_cast_8cpp"/>
+      </node>
+      <node id="3">
+        <label>Help.cpp</label>
+        <link refid="_help_8cpp"/>
+      </node>
+      <node id="1">
+        <label>Help.h</label>
+        <link refid="_help_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <innernamespace refid="namespacecast">cast</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;JuceHeader.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespacecast" kindref="compound">cast</ref></highlight></codeline>
+<codeline lineno="5"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="namespacecast_1a2e870959ec9922fae78db9fcf45db83d" kindref="member">printHelp</ref><sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>specText);</highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal">}<sp/></highlight><highlight class="comment">//<sp/>namespace<sp/>cast</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="Help.h"/>
+  </compounddef>
+</doxygen>

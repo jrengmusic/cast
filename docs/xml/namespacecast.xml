@@ -1,0 +1,1553 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
+  <compounddef id="namespacecast" kind="namespace" language="C++">
+    <compoundname>cast</compoundname>
+    <innerclass refid="structcast_1_1_predicate_context" prot="public">cast::PredicateContext</innerclass>
+    <innerclass refid="structcast_1_1_constraints" prot="public">cast::Constraints</innerclass>
+    <innerclass refid="structcast_1_1_driver" prot="public">cast::Driver</innerclass>
+    <innerclass refid="structcast_1_1_output_entry" prot="public">cast::OutputEntry</innerclass>
+    <innerclass refid="structcast_1_1_dispatch_entry" prot="public">cast::DispatchEntry</innerclass>
+    <innerclass refid="structcast_1_1_transform_entry" prot="public">cast::TransformEntry</innerclass>
+    <innerclass refid="structcast_1_1_constraint_entry" prot="public">cast::ConstraintEntry</innerclass>
+    <innerclass refid="structcast_1_1_manifest" prot="public">cast::Manifest</innerclass>
+    <innerclass refid="structcast_1_1_template_engine" prot="public">cast::TemplateEngine</innerclass>
+    <innerclass refid="structcast_1_1_transforms" prot="public">cast::Transforms</innerclass>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="namespacecast_1a54f69242eb732ad6931adc8a6ba9874c" prot="public" static="no">
+        <type><ref refid="classjam_1_1HashMap" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::HashMap</ref>&lt; <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref>, std::variant&lt; <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref>, <ref refid="classjuce_1_1StringArray" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::StringArray</ref> &gt; &gt;</type>
+        <definition>using cast::SubstitutionMap = jam::HashMap&lt;juce::String, std::variant&lt;juce::String, juce::StringArray&gt;&gt;</definition>
+        <argsstring></argsstring>
+        <name>SubstitutionMap</name>
+        <qualifiedname>cast::SubstitutionMap</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Template.h" line="8" column="1" bodyfile="Template.h" bodystart="8" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="namespacecast_1a51b3422dcceb353347be1d8134781475" prot="public" static="no">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref>(*)(const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;)</type>
+        <definition>using cast::TransformFn = juce::String (*) (const juce::String&amp;)</definition>
+        <argsstring></argsstring>
+        <name>TransformFn</name>
+        <qualifiedname>cast::TransformFn</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Transforms.cpp" line="120" column="1" bodyfile="Transforms.cpp" bodystart="120" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="namespacecast_1ab676d052a0f3efb4062591b54ffc1604" prot="public" static="yes" mutable="no">
+        <type>const <ref refid="classjuce_1_1StringArray" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::StringArray</ref></type>
+        <definition>const juce::StringArray cast::perColumnPredicates</definition>
+        <argsstring></argsstring>
+        <name>perColumnPredicates</name>
+        <qualifiedname>cast::perColumnPredicates</qualifiedname>
+        <initializer>{ &quot;unique&quot;, &quot;parity&quot;, &quot;onePerGroup&quot; }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Constraints.cpp" line="202" column="32" bodyfile="Constraints.cpp" bodystart="202" bodyend="202"/>
+        <referencedby refid="namespacecast_1a759a1a85432ec8a895a0f0b88db4fc50" compoundref="_constraints_8cpp" startline="204" endline="229">applyConstraintToTable</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacecast_1a864c9b0890d921f63b9b4ff36c05b61a" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int cast::widthCap</definition>
+        <argsstring></argsstring>
+        <name>widthCap</name>
+        <qualifiedname>cast::widthCap</qualifiedname>
+        <initializer>{ 120 }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Help.cpp" line="7" column="22" bodyfile="Help.cpp" bodystart="7" bodyend="7"/>
+        <referencedby refid="namespacecast_1a2e870959ec9922fae78db9fcf45db83d" compoundref="_help_8cpp" startline="10" endline="34">printHelp</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacecast_1a5a1fa6426a004c80b6ecd43651375c0c" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int cast::documentMargin</definition>
+        <argsstring></argsstring>
+        <name>documentMargin</name>
+        <qualifiedname>cast::documentMargin</qualifiedname>
+        <initializer>{ 2 }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Help.cpp" line="8" column="22" bodyfile="Help.cpp" bodystart="8" bodyend="8"/>
+        <referencedby refid="namespacecast_1a2e870959ec9922fae78db9fcf45db83d" compoundref="_help_8cpp" startline="10" endline="34">printHelp</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacecast_1ab040cec9142af0fbe59fafbb085b5fd5" prot="public" static="yes" mutable="no">
+        <type>const std::array&lt; std::pair&lt; const char *, <ref refid="namespacecast_1a51b3422dcceb353347be1d8134781475" kindref="member">TransformFn</ref> &gt;, 9 &gt;</type>
+        <definition>const std::array&lt;std::pair&lt;const char*, TransformFn&gt;, 9&gt; cast::transforms</definition>
+        <argsstring></argsstring>
+        <name>transforms</name>
+        <qualifiedname>cast::transforms</qualifiedname>
+        <initializer>{{
+    { &quot;toUpper&quot;,        &amp;<ref refid="namespacecast_1aeca076ca60ca6e579abb70d9a802986d" kindref="member">applyToUpper</ref> },
+    { &quot;toTitle&quot;,        &amp;<ref refid="namespacecast_1a371610f8618a28a4e992ad2070725aa2" kindref="member">applyToTitle</ref> },
+    { &quot;toKebab&quot;,        &amp;<ref refid="namespacecast_1a87378c4410de44eb750ddd82173d9ae3" kindref="member">applyToKebab</ref> },
+    { &quot;escapeCpp&quot;,      &amp;<ref refid="namespacecast_1a6029db1158ebbcc740af694bb167119a" kindref="member">applyEscapeCpp</ref> },
+    { &quot;utf8Bytes&quot;,      &amp;<ref refid="namespacecast_1a6600bff8e2ea08a18c48a9a35ad06c8d" kindref="member">applyUtf8Bytes</ref> },
+    { &quot;codepointHex&quot;,   &amp;<ref refid="namespacecast_1aff1f15428351cb1372acdfee3b4c855a" kindref="member">applyCodepointHex</ref> },
+    { &quot;codepointLabel&quot;, &amp;<ref refid="namespacecast_1a9f9d6b033452563c8a192421d3353ec3" kindref="member">applyCodepointLabel</ref> },
+    { &quot;qualifySymbol&quot;,  &amp;<ref refid="namespacecast_1afea0bf10fc0578839bedffafd1005b46" kindref="member">applyQualifySymbol</ref> },
+    { &quot;symbolFromFile&quot;, &amp;<ref refid="namespacecast_1a5ecf5c4061c7d308488889697621d8f6" kindref="member">applySymbolFromFile</ref> }
+}}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Transforms.cpp" line="122" column="25" bodyfile="Transforms.cpp" bodystart="123" bodyend="133"/>
+        <referencedby refid="structcast_1_1_transforms_1ae31e899c4d3411bb40ddd37ef772c9a6" compoundref="_transforms_8cpp" startline="135" endline="147">cast::Transforms::apply</referencedby>
+        <referencedby refid="namespacecast_1af9c76459979a40de521b2e98f1aca50c" compoundref="_driver_8cpp" startline="28" endline="47">buildPerRowMap</referencedby>
+        <referencedby refid="namespacecast_1ae13eaa2eaa01d759e37d39fb786d176e" compoundref="_driver_8cpp" startline="11" endline="26">transformedCell</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespacecast_1a2e5e81d2ec926b9453f3e62f4c833077" prot="public" static="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>static juce::String cast::getCellHazard</definition>
+        <argsstring>(const jam::Document &amp;cell) noexcept</argsstring>
+        <name>getCellHazard</name>
+        <qualifiedname>cast::getCellHazard</qualifiedname>
+        <param>
+          <type>const <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> &amp;</type>
+          <declname>cell</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Cells.h" line="8" column="28" bodyfile="Cells.h" bodystart="8" bodyend="43"/>
+        <references refid="structjam_1_1Markdown_1af28059fba208f1dbc8d5d26bc33f5b38">jam::Markdown::getSchemeLength</references>
+        <references refid="namespaceChars_1ad25dc95dcfa2fcdd64da712695554eda">Chars::greaterThan</references>
+        <references refid="namespaceChars_1a2d8d0aceb8126b8e09a05e539e9ccb74">Chars::lessThan</references>
+        <references refid="namespaceId_1aa354e3aae31f282a0d71120fc65bf8fd">Id::runs</references>
+        <references refid="namespaceId_1a287c150cdfda5a8e2deb30b6d987d638">Id::text</references>
+        <referencedby refid="namespacecast_1af0283369c2e8fb91472669d864822aa4" compoundref="_manifest_8cpp" startline="23" endline="37">checkCellHazard</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a8f6b9c5dfbad8a376306de54c7ccbc16" prot="public" static="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>static int cast::findColumnIndex</definition>
+        <argsstring>(const jam::Document &amp;tableDoc, const juce::String &amp;columnName) noexcept</argsstring>
+        <name>findColumnIndex</name>
+        <qualifiedname>cast::findColumnIndex</qualifiedname>
+        <param>
+          <type>const <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> &amp;</type>
+          <declname>tableDoc</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>columnName</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Cells.h" line="45" column="19" bodyfile="Cells.h" bodystart="45" bodyend="62"/>
+        <references refid="namespaceId_1a8dc6aa4d4e6c5bf2a00d10715897fda6">Id::children</references>
+        <references refid="namespaceId_1a287c150cdfda5a8e2deb30b6d987d638">Id::text</references>
+        <referencedby refid="namespacecast_1a759a1a85432ec8a895a0f0b88db4fc50" compoundref="_constraints_8cpp" startline="204" endline="229">applyConstraintToTable</referencedby>
+        <referencedby refid="namespacecast_1aad7a85a26733279c975c5d958f10f7db" compoundref="_constraints_8cpp" startline="60" endline="79">predicateExistsIn</referencedby>
+        <referencedby refid="namespacecast_1ac1d8a491644d9a1d7b74768a9f70d969" compoundref="_constraints_8cpp" startline="164" endline="186">predicateOnePerGroup</referencedby>
+        <referencedby refid="namespacecast_1a98da53a21918af205d6c05a96a83fe95" compoundref="_constraints_8cpp" startline="123" endline="152">predicateParity</referencedby>
+        <referencedby refid="namespacecast_1acff023defeba748f6d11c9f23473883d" compoundref="_constraints_8cpp" startline="91" endline="108">predicateRange</referencedby>
+        <referencedby refid="namespacecast_1a4cd1a5c43c1541d767a9f107f8204ca0" compoundref="_driver_8cpp" startline="49" endline="64">rowMatchesDispatch</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a7c826b682e8e02a1af14edb003cf61dc" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void cast::extractSections</definition>
+        <argsstring>(const jam::Document &amp;doc, jam::HashMap&lt; juce::String, const jam::Document * &gt; &amp;tables)</argsstring>
+        <name>extractSections</name>
+        <qualifiedname>cast::extractSections</qualifiedname>
+        <param>
+          <type>const <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> &amp;</type>
+          <declname>doc</declname>
+        </param>
+        <param>
+          <type><ref refid="classjam_1_1HashMap" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::HashMap</ref>&lt; <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref>, const <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> * &gt; &amp;</type>
+          <declname>tables</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Cells.h" line="64" column="20" bodyfile="Cells.h" bodystart="64" bodyend="90"/>
+        <references refid="namespaceId_1a8dc6aa4d4e6c5bf2a00d10715897fda6">Id::children</references>
+        <references refid="classjuce_1_1String_1a685452c89fee2e453297a901e16080b6">juce::String::clear</references>
+        <references refid="structjam_1_1Document_1addb59b648e62157728770b864eddb613">jam::Document::get</references>
+        <references refid="structId_1_1BlockType_1a455b6d3512ef505f7c00e4acbe0e6b86aec76fb5149fdd114b7169c166e7e53d6">Id::BlockType::heading</references>
+        <references refid="classjuce_1_1String_1af5084463343819f82187154ccb62ea3a">juce::String::isNotEmpty</references>
+        <references refid="namespaceId_1a59e25243012c02120d5dd634a123f520">Id::level</references>
+        <references refid="structId_1_1BlockType_1a455b6d3512ef505f7c00e4acbe0e6b86aa327ffbc7c3b1151b709b9b27271f217">Id::BlockType::table</references>
+        <references refid="namespaceId_1a287c150cdfda5a8e2deb30b6d987d638">Id::text</references>
+        <references refid="namespaceId_1ab4956db6d5e735af8b4e202830ac73f7">Id::type</references>
+        <referencedby refid="namespacecast_1af7b048cf52b93d8dd10fbd03d6fd8459" compoundref="_driver_8cpp" startline="103" endline="115">loadInputTables</referencedby>
+        <referencedby refid="structcast_1_1_manifest_1a79904e55960a3ae32d0dcbb63f1f3071" compoundref="_manifest_8cpp" startline="237" endline="258">cast::Manifest::parse</referencedby>
+        <referencedby refid="namespacecast_1a0a77a0fbd43b633df60a0467d4d58741" compoundref="_manifest_8cpp" startline="190" endline="235">validateManifest</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a7087b04cb47ea04c7c0bd3ff95183538" prot="public" static="yes" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>static juce::String cast::cellAt</definition>
+        <argsstring>(const jam::Document &amp;doc, int row, int col) noexcept</argsstring>
+        <name>cellAt</name>
+        <qualifiedname>cast::cellAt</qualifiedname>
+        <param>
+          <type>const <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> &amp;</type>
+          <declname>doc</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>row</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>col</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Constraints.cpp" line="21" column="21" bodyfile="Constraints.cpp" bodystart="21" bodyend="27"/>
+        <references refid="namespaceId_1a8dc6aa4d4e6c5bf2a00d10715897fda6">Id::children</references>
+        <references refid="namespaceId_1a287c150cdfda5a8e2deb30b6d987d638">Id::text</references>
+        <referencedby refid="namespacecast_1a759a1a85432ec8a895a0f0b88db4fc50" compoundref="_constraints_8cpp" startline="204" endline="229">applyConstraintToTable</referencedby>
+        <referencedby refid="namespacecast_1afb5474323b662291c5730ca83500e8b5" compoundref="_constraints_8cpp" startline="110" endline="121">columnContainsValue</referencedby>
+        <referencedby refid="namespacecast_1aad7a85a26733279c975c5d958f10f7db" compoundref="_constraints_8cpp" startline="60" endline="79">predicateExistsIn</referencedby>
+        <referencedby refid="namespacecast_1ac1d8a491644d9a1d7b74768a9f70d969" compoundref="_constraints_8cpp" startline="164" endline="186">predicateOnePerGroup</referencedby>
+        <referencedby refid="namespacecast_1a98da53a21918af205d6c05a96a83fe95" compoundref="_constraints_8cpp" startline="123" endline="152">predicateParity</referencedby>
+        <referencedby refid="namespacecast_1acff023defeba748f6d11c9f23473883d" compoundref="_constraints_8cpp" startline="91" endline="108">predicateRange</referencedby>
+        <referencedby refid="namespacecast_1a04bea41a8d44c50020b765e5778b1c94" compoundref="_constraints_8cpp" startline="45" endline="58">predicateUnique</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a0960683cc84837a8c529028be38f8834" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>static juce::String cast::formatError</definition>
+        <argsstring>(const juce::String &amp;f, int r, int c, const juce::String &amp;pred, const juce::String &amp;msg)</argsstring>
+        <name>formatError</name>
+        <qualifiedname>cast::formatError</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>f</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>r</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>c</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>pred</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>msg</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Constraints.cpp" line="29" column="21" bodyfile="Constraints.cpp" bodystart="29" bodyend="33"/>
+        <referencedby refid="namespacecast_1aad7a85a26733279c975c5d958f10f7db" compoundref="_constraints_8cpp" startline="60" endline="79">predicateExistsIn</referencedby>
+        <referencedby refid="namespacecast_1aaf9ff734b2823a6d4b627647d3a4d9a5" compoundref="_constraints_8cpp" startline="154" endline="162">predicateFileExists</referencedby>
+        <referencedby refid="namespacecast_1ab0b4b3a226152df0dc24636f8498837d" compoundref="_constraints_8cpp" startline="35" endline="43">predicateMatches</referencedby>
+        <referencedby refid="namespacecast_1a5362debd352290f94634061bc8e23e55" compoundref="_constraints_8cpp" startline="81" endline="89">predicateOneOf</referencedby>
+        <referencedby refid="namespacecast_1acff023defeba748f6d11c9f23473883d" compoundref="_constraints_8cpp" startline="91" endline="108">predicateRange</referencedby>
+        <referencedby refid="namespacecast_1a04bea41a8d44c50020b765e5778b1c94" compoundref="_constraints_8cpp" startline="45" endline="58">predicateUnique</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1ab0b4b3a226152df0dc24636f8498837d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
+        <definition>static juce::Result cast::predicateMatches</definition>
+        <argsstring>(const PredicateContext &amp;ctx)</argsstring>
+        <name>predicateMatches</name>
+        <qualifiedname>cast::predicateMatches</qualifiedname>
+        <param>
+          <type>const <ref refid="structcast_1_1_predicate_context" kindref="compound">PredicateContext</ref> &amp;</type>
+          <declname>ctx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Constraints.cpp" line="35" column="21" bodyfile="Constraints.cpp" bodystart="35" bodyend="43"/>
+        <references refid="structcast_1_1_predicate_context_1ab763d117dfb0dbe744e4ae75aa3cc0f8" compoundref="_constraints_8cpp" startline="13">cast::PredicateContext::args</references>
+        <references refid="structcast_1_1_predicate_context_1a92045fd9a41aab354fd57fb1b21846a7" compoundref="_constraints_8cpp" startline="15">cast::PredicateContext::columnIndex</references>
+        <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
+        <references refid="namespacecast_1a0960683cc84837a8c529028be38f8834" compoundref="_constraints_8cpp" startline="29" endline="33">formatError</references>
+        <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
+        <references refid="structcast_1_1_predicate_context_1a3a4a8ad78546ed32633f0dcb4e0cf70f" compoundref="_constraints_8cpp" startline="14">cast::PredicateContext::rowIndex</references>
+        <references refid="structcast_1_1_predicate_context_1a5f0e7b5c94acf9a0a756955f1034b68b" compoundref="_constraints_8cpp" startline="18">cast::PredicateContext::sourceFile</references>
+        <references refid="classjuce_1_1String_1a288d9b6ad31a5825d00aa76bfd998ca8">juce::String::toStdString</references>
+        <references refid="structcast_1_1_predicate_context_1a70830c45b9aa201d932ed27b91541459" compoundref="_constraints_8cpp" startline="12">cast::PredicateContext::value</references>
+        <referencedby refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" compoundref="_constraints_8cpp" startline="188" endline="200">buildPredicateMap</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a04bea41a8d44c50020b765e5778b1c94" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
+        <definition>static juce::Result cast::predicateUnique</definition>
+        <argsstring>(const PredicateContext &amp;ctx)</argsstring>
+        <name>predicateUnique</name>
+        <qualifiedname>cast::predicateUnique</qualifiedname>
+        <param>
+          <type>const <ref refid="structcast_1_1_predicate_context" kindref="compound">PredicateContext</ref> &amp;</type>
+          <declname>ctx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Constraints.cpp" line="45" column="21" bodyfile="Constraints.cpp" bodystart="45" bodyend="58"/>
+        <references refid="classjam_1_1Array_1a056773d314babbb130f136a544a1b3e7">jam::Array&lt; typename ElementType &gt;::add</references>
+        <references refid="namespacecast_1a7087b04cb47ea04c7c0bd3ff95183538" compoundref="_constraints_8cpp" startline="21" endline="27">cellAt</references>
+        <references refid="namespaceId_1a8dc6aa4d4e6c5bf2a00d10715897fda6">Id::children</references>
+        <references refid="structcast_1_1_predicate_context_1a92045fd9a41aab354fd57fb1b21846a7" compoundref="_constraints_8cpp" startline="15">cast::PredicateContext::columnIndex</references>
+        <references refid="classjam_1_1Array_1a71e4b2895d311fca484174e0522c5873">jam::Array&lt; typename ElementType &gt;::contains</references>
+        <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
+        <references refid="namespacecast_1a0960683cc84837a8c529028be38f8834" compoundref="_constraints_8cpp" startline="29" endline="33">formatError</references>
+        <references refid="structjam_1_1Document_1addb59b648e62157728770b864eddb613">jam::Document::get</references>
+        <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
+        <references refid="structcast_1_1_predicate_context_1a5f0e7b5c94acf9a0a756955f1034b68b" compoundref="_constraints_8cpp" startline="18">cast::PredicateContext::sourceFile</references>
+        <references refid="structcast_1_1_predicate_context_1a160c7622b2186ed9df7336bd48c1080a" compoundref="_constraints_8cpp" startline="16">cast::PredicateContext::tableDoc</references>
+        <referencedby refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" compoundref="_constraints_8cpp" startline="188" endline="200">buildPredicateMap</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1aad7a85a26733279c975c5d958f10f7db" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
+        <definition>static juce::Result cast::predicateExistsIn</definition>
+        <argsstring>(const PredicateContext &amp;ctx)</argsstring>
+        <name>predicateExistsIn</name>
+        <qualifiedname>cast::predicateExistsIn</qualifiedname>
+        <param>
+          <type>const <ref refid="structcast_1_1_predicate_context" kindref="compound">PredicateContext</ref> &amp;</type>
+          <declname>ctx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Constraints.cpp" line="60" column="21" bodyfile="Constraints.cpp" bodystart="60" bodyend="79"/>
+        <references refid="structcast_1_1_predicate_context_1ab763d117dfb0dbe744e4ae75aa3cc0f8" compoundref="_constraints_8cpp" startline="13">cast::PredicateContext::args</references>
+        <references refid="namespacecast_1a7087b04cb47ea04c7c0bd3ff95183538" compoundref="_constraints_8cpp" startline="21" endline="27">cellAt</references>
+        <references refid="namespaceId_1a8dc6aa4d4e6c5bf2a00d10715897fda6">Id::children</references>
+        <references refid="structcast_1_1_predicate_context_1a92045fd9a41aab354fd57fb1b21846a7" compoundref="_constraints_8cpp" startline="15">cast::PredicateContext::columnIndex</references>
+        <references refid="classjam_1_1HashMap_1aeb3706b7cb8b6a92790644ed3eb240ea">jam::HashMap&lt; typename Key, typename Mapped, typename HashFn, typename KeyEqual, typename AllocatorOrContainer, typename Bucket, typename BucketContainer, bool IsSegmented &gt;::end</references>
+        <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
+        <references refid="classjam_1_1HashMap_1aa8cd30d951846463b373eb6e82d96a3d">jam::HashMap&lt; typename Key, typename Mapped, typename HashFn, typename KeyEqual, typename AllocatorOrContainer, typename Bucket, typename BucketContainer, bool IsSegmented &gt;::find</references>
+        <references refid="namespacecast_1a8f6b9c5dfbad8a376306de54c7ccbc16" compoundref="_cells_8h" startline="45" endline="62">findColumnIndex</references>
+        <references refid="namespacecast_1a0960683cc84837a8c529028be38f8834" compoundref="_constraints_8cpp" startline="29" endline="33">formatError</references>
+        <references refid="classjuce_1_1String_1a5f256315f70d4237e88b407890c22ed4">juce::String::indexOf</references>
+        <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
+        <references refid="structcast_1_1_predicate_context_1a3a4a8ad78546ed32633f0dcb4e0cf70f" compoundref="_constraints_8cpp" startline="14">cast::PredicateContext::rowIndex</references>
+        <references refid="structcast_1_1_predicate_context_1a5f0e7b5c94acf9a0a756955f1034b68b" compoundref="_constraints_8cpp" startline="18">cast::PredicateContext::sourceFile</references>
+        <references refid="classjuce_1_1String_1abdadcd93345db39575b8b40b7e96e987">juce::String::substring</references>
+        <references refid="structcast_1_1_predicate_context_1a552245efe7fc1a5124668902c37d1a09" compoundref="_constraints_8cpp" startline="17">cast::PredicateContext::tables</references>
+        <references refid="structcast_1_1_predicate_context_1a70830c45b9aa201d932ed27b91541459" compoundref="_constraints_8cpp" startline="12">cast::PredicateContext::value</references>
+        <referencedby refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" compoundref="_constraints_8cpp" startline="188" endline="200">buildPredicateMap</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a5362debd352290f94634061bc8e23e55" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
+        <definition>static juce::Result cast::predicateOneOf</definition>
+        <argsstring>(const PredicateContext &amp;ctx)</argsstring>
+        <name>predicateOneOf</name>
+        <qualifiedname>cast::predicateOneOf</qualifiedname>
+        <param>
+          <type>const <ref refid="structcast_1_1_predicate_context" kindref="compound">PredicateContext</ref> &amp;</type>
+          <declname>ctx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Constraints.cpp" line="81" column="21" bodyfile="Constraints.cpp" bodystart="81" bodyend="89"/>
+        <references refid="structcast_1_1_predicate_context_1ab763d117dfb0dbe744e4ae75aa3cc0f8" compoundref="_constraints_8cpp" startline="13">cast::PredicateContext::args</references>
+        <references refid="structcast_1_1_predicate_context_1a92045fd9a41aab354fd57fb1b21846a7" compoundref="_constraints_8cpp" startline="15">cast::PredicateContext::columnIndex</references>
+        <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
+        <references refid="namespacecast_1a0960683cc84837a8c529028be38f8834" compoundref="_constraints_8cpp" startline="29" endline="33">formatError</references>
+        <references refid="classjuce_1_1StringArray_1a9f1df0af6ebd58043c8995e9cb3e3ac5">juce::StringArray::fromTokens</references>
+        <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
+        <references refid="structcast_1_1_predicate_context_1a3a4a8ad78546ed32633f0dcb4e0cf70f" compoundref="_constraints_8cpp" startline="14">cast::PredicateContext::rowIndex</references>
+        <references refid="structcast_1_1_predicate_context_1a5f0e7b5c94acf9a0a756955f1034b68b" compoundref="_constraints_8cpp" startline="18">cast::PredicateContext::sourceFile</references>
+        <references refid="structcast_1_1_predicate_context_1a70830c45b9aa201d932ed27b91541459" compoundref="_constraints_8cpp" startline="12">cast::PredicateContext::value</references>
+        <referencedby refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" compoundref="_constraints_8cpp" startline="188" endline="200">buildPredicateMap</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1acff023defeba748f6d11c9f23473883d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
+        <definition>static juce::Result cast::predicateRange</definition>
+        <argsstring>(const PredicateContext &amp;ctx)</argsstring>
+        <name>predicateRange</name>
+        <qualifiedname>cast::predicateRange</qualifiedname>
+        <param>
+          <type>const <ref refid="structcast_1_1_predicate_context" kindref="compound">PredicateContext</ref> &amp;</type>
+          <declname>ctx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Constraints.cpp" line="91" column="21" bodyfile="Constraints.cpp" bodystart="91" bodyend="108"/>
+        <references refid="structcast_1_1_predicate_context_1ab763d117dfb0dbe744e4ae75aa3cc0f8" compoundref="_constraints_8cpp" startline="13">cast::PredicateContext::args</references>
+        <references refid="namespacecast_1a7087b04cb47ea04c7c0bd3ff95183538" compoundref="_constraints_8cpp" startline="21" endline="27">cellAt</references>
+        <references refid="structcast_1_1_predicate_context_1a92045fd9a41aab354fd57fb1b21846a7" compoundref="_constraints_8cpp" startline="15">cast::PredicateContext::columnIndex</references>
+        <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
+        <references refid="namespacecast_1a8f6b9c5dfbad8a376306de54c7ccbc16" compoundref="_cells_8h" startline="45" endline="62">findColumnIndex</references>
+        <references refid="namespacecast_1a0960683cc84837a8c529028be38f8834" compoundref="_constraints_8cpp" startline="29" endline="33">formatError</references>
+        <references refid="classjuce_1_1String_1a8c57a1e6bb3d6b5e69f74ac7dbabd66f">juce::String::getDoubleValue</references>
+        <references refid="classjuce_1_1String_1a5f256315f70d4237e88b407890c22ed4">juce::String::indexOf</references>
+        <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
+        <references refid="structcast_1_1_predicate_context_1a3a4a8ad78546ed32633f0dcb4e0cf70f" compoundref="_constraints_8cpp" startline="14">cast::PredicateContext::rowIndex</references>
+        <references refid="structcast_1_1_predicate_context_1a5f0e7b5c94acf9a0a756955f1034b68b" compoundref="_constraints_8cpp" startline="18">cast::PredicateContext::sourceFile</references>
+        <references refid="classjuce_1_1String_1abdadcd93345db39575b8b40b7e96e987">juce::String::substring</references>
+        <references refid="structcast_1_1_predicate_context_1a160c7622b2186ed9df7336bd48c1080a" compoundref="_constraints_8cpp" startline="16">cast::PredicateContext::tableDoc</references>
+        <references refid="classjuce_1_1String_1a1680f336545ec14d3b8a63c938eecfb3">juce::String::trim</references>
+        <references refid="structcast_1_1_predicate_context_1a70830c45b9aa201d932ed27b91541459" compoundref="_constraints_8cpp" startline="12">cast::PredicateContext::value</references>
+        <referencedby refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" compoundref="_constraints_8cpp" startline="188" endline="200">buildPredicateMap</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1afb5474323b662291c5730ca83500e8b5" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>static bool cast::columnContainsValue</definition>
+        <argsstring>(const jam::Document &amp;doc, int col, const juce::String &amp;value)</argsstring>
+        <name>columnContainsValue</name>
+        <qualifiedname>cast::columnContainsValue</qualifiedname>
+        <param>
+          <type>const <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> &amp;</type>
+          <declname>doc</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>col</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Constraints.cpp" line="110" column="13" bodyfile="Constraints.cpp" bodystart="110" bodyend="121"/>
+        <references refid="namespacecast_1a7087b04cb47ea04c7c0bd3ff95183538" compoundref="_constraints_8cpp" startline="21" endline="27">cellAt</references>
+        <references refid="namespaceId_1a8dc6aa4d4e6c5bf2a00d10715897fda6">Id::children</references>
+        <references refid="structjam_1_1Document_1addb59b648e62157728770b864eddb613">jam::Document::get</references>
+        <referencedby refid="namespacecast_1a98da53a21918af205d6c05a96a83fe95" compoundref="_constraints_8cpp" startline="123" endline="152">predicateParity</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a98da53a21918af205d6c05a96a83fe95" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
+        <definition>static juce::Result cast::predicateParity</definition>
+        <argsstring>(const PredicateContext &amp;ctx)</argsstring>
+        <name>predicateParity</name>
+        <qualifiedname>cast::predicateParity</qualifiedname>
+        <param>
+          <type>const <ref refid="structcast_1_1_predicate_context" kindref="compound">PredicateContext</ref> &amp;</type>
+          <declname>ctx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Constraints.cpp" line="123" column="21" bodyfile="Constraints.cpp" bodystart="123" bodyend="152"/>
+        <references refid="classjam_1_1Array_1a056773d314babbb130f136a544a1b3e7">jam::Array&lt; typename ElementType &gt;::add</references>
+        <references refid="structcast_1_1_predicate_context_1ab763d117dfb0dbe744e4ae75aa3cc0f8" compoundref="_constraints_8cpp" startline="13">cast::PredicateContext::args</references>
+        <references refid="namespacecast_1a7087b04cb47ea04c7c0bd3ff95183538" compoundref="_constraints_8cpp" startline="21" endline="27">cellAt</references>
+        <references refid="namespaceId_1a8dc6aa4d4e6c5bf2a00d10715897fda6">Id::children</references>
+        <references refid="namespacecast_1afb5474323b662291c5730ca83500e8b5" compoundref="_constraints_8cpp" startline="110" endline="121">columnContainsValue</references>
+        <references refid="structcast_1_1_predicate_context_1a92045fd9a41aab354fd57fb1b21846a7" compoundref="_constraints_8cpp" startline="15">cast::PredicateContext::columnIndex</references>
+        <references refid="classjam_1_1Array_1a71e4b2895d311fca484174e0522c5873">jam::Array&lt; typename ElementType &gt;::contains</references>
+        <references refid="classjam_1_1HashMap_1aeb3706b7cb8b6a92790644ed3eb240ea">jam::HashMap&lt; typename Key, typename Mapped, typename HashFn, typename KeyEqual, typename AllocatorOrContainer, typename Bucket, typename BucketContainer, bool IsSegmented &gt;::end</references>
+        <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
+        <references refid="classjam_1_1HashMap_1aa8cd30d951846463b373eb6e82d96a3d">jam::HashMap&lt; typename Key, typename Mapped, typename HashFn, typename KeyEqual, typename AllocatorOrContainer, typename Bucket, typename BucketContainer, bool IsSegmented &gt;::find</references>
+        <references refid="namespacecast_1a8f6b9c5dfbad8a376306de54c7ccbc16" compoundref="_cells_8h" startline="45" endline="62">findColumnIndex</references>
+        <references refid="structjam_1_1Document_1addb59b648e62157728770b864eddb613">jam::Document::get</references>
+        <references refid="classjuce_1_1String_1a5f256315f70d4237e88b407890c22ed4">juce::String::indexOf</references>
+        <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
+        <references refid="structcast_1_1_predicate_context_1a5f0e7b5c94acf9a0a756955f1034b68b" compoundref="_constraints_8cpp" startline="18">cast::PredicateContext::sourceFile</references>
+        <references refid="classjuce_1_1String_1abdadcd93345db39575b8b40b7e96e987">juce::String::substring</references>
+        <references refid="structcast_1_1_predicate_context_1a160c7622b2186ed9df7336bd48c1080a" compoundref="_constraints_8cpp" startline="16">cast::PredicateContext::tableDoc</references>
+        <references refid="structcast_1_1_predicate_context_1a552245efe7fc1a5124668902c37d1a09" compoundref="_constraints_8cpp" startline="17">cast::PredicateContext::tables</references>
+        <referencedby refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" compoundref="_constraints_8cpp" startline="188" endline="200">buildPredicateMap</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1aaf9ff734b2823a6d4b627647d3a4d9a5" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
+        <definition>static juce::Result cast::predicateFileExists</definition>
+        <argsstring>(const PredicateContext &amp;ctx)</argsstring>
+        <name>predicateFileExists</name>
+        <qualifiedname>cast::predicateFileExists</qualifiedname>
+        <param>
+          <type>const <ref refid="structcast_1_1_predicate_context" kindref="compound">PredicateContext</ref> &amp;</type>
+          <declname>ctx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Constraints.cpp" line="154" column="21" bodyfile="Constraints.cpp" bodystart="154" bodyend="162"/>
+        <references refid="structcast_1_1_predicate_context_1ab763d117dfb0dbe744e4ae75aa3cc0f8" compoundref="_constraints_8cpp" startline="13">cast::PredicateContext::args</references>
+        <references refid="structcast_1_1_predicate_context_1a92045fd9a41aab354fd57fb1b21846a7" compoundref="_constraints_8cpp" startline="15">cast::PredicateContext::columnIndex</references>
+        <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
+        <references refid="namespacecast_1a0960683cc84837a8c529028be38f8834" compoundref="_constraints_8cpp" startline="29" endline="33">formatError</references>
+        <references refid="classjuce_1_1File_1a57b992aacb19e09ee5905cd0f0e9bb31">juce::File::getChildFile</references>
+        <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
+        <references refid="structcast_1_1_predicate_context_1a3a4a8ad78546ed32633f0dcb4e0cf70f" compoundref="_constraints_8cpp" startline="14">cast::PredicateContext::rowIndex</references>
+        <references refid="structcast_1_1_predicate_context_1a5f0e7b5c94acf9a0a756955f1034b68b" compoundref="_constraints_8cpp" startline="18">cast::PredicateContext::sourceFile</references>
+        <references refid="structcast_1_1_predicate_context_1a70830c45b9aa201d932ed27b91541459" compoundref="_constraints_8cpp" startline="12">cast::PredicateContext::value</references>
+        <referencedby refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" compoundref="_constraints_8cpp" startline="188" endline="200">buildPredicateMap</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1ac1d8a491644d9a1d7b74768a9f70d969" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
+        <definition>static juce::Result cast::predicateOnePerGroup</definition>
+        <argsstring>(const PredicateContext &amp;ctx)</argsstring>
+        <name>predicateOnePerGroup</name>
+        <qualifiedname>cast::predicateOnePerGroup</qualifiedname>
+        <param>
+          <type>const <ref refid="structcast_1_1_predicate_context" kindref="compound">PredicateContext</ref> &amp;</type>
+          <declname>ctx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Constraints.cpp" line="164" column="21" bodyfile="Constraints.cpp" bodystart="164" bodyend="186"/>
+        <references refid="classjam_1_1Array_1a354bb4478590969aa901bf29a27730a7">jam::Array&lt; typename ElementType &gt;::addIfNotAlreadyThere</references>
+        <references refid="structcast_1_1_predicate_context_1ab763d117dfb0dbe744e4ae75aa3cc0f8" compoundref="_constraints_8cpp" startline="13">cast::PredicateContext::args</references>
+        <references refid="namespacecast_1a7087b04cb47ea04c7c0bd3ff95183538" compoundref="_constraints_8cpp" startline="21" endline="27">cellAt</references>
+        <references refid="namespaceId_1a8dc6aa4d4e6c5bf2a00d10715897fda6">Id::children</references>
+        <references refid="structcast_1_1_predicate_context_1a92045fd9a41aab354fd57fb1b21846a7" compoundref="_constraints_8cpp" startline="15">cast::PredicateContext::columnIndex</references>
+        <references refid="classjam_1_1HashMap_1aeb3706b7cb8b6a92790644ed3eb240ea">jam::HashMap&lt; typename Key, typename Mapped, typename HashFn, typename KeyEqual, typename AllocatorOrContainer, typename Bucket, typename BucketContainer, bool IsSegmented &gt;::end</references>
+        <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
+        <references refid="classjam_1_1HashMap_1aa8cd30d951846463b373eb6e82d96a3d">jam::HashMap&lt; typename Key, typename Mapped, typename HashFn, typename KeyEqual, typename AllocatorOrContainer, typename Bucket, typename BucketContainer, bool IsSegmented &gt;::find</references>
+        <references refid="namespacecast_1a8f6b9c5dfbad8a376306de54c7ccbc16" compoundref="_cells_8h" startline="45" endline="62">findColumnIndex</references>
+        <references refid="structjam_1_1Document_1addb59b648e62157728770b864eddb613">jam::Document::get</references>
+        <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
+        <references refid="structcast_1_1_predicate_context_1a5f0e7b5c94acf9a0a756955f1034b68b" compoundref="_constraints_8cpp" startline="18">cast::PredicateContext::sourceFile</references>
+        <references refid="structcast_1_1_predicate_context_1a160c7622b2186ed9df7336bd48c1080a" compoundref="_constraints_8cpp" startline="16">cast::PredicateContext::tableDoc</references>
+        <referencedby refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" compoundref="_constraints_8cpp" startline="188" endline="200">buildPredicateMap</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structjam_1_1Function_1_1Map" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Function::Map</ref>&lt; <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref>, <ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref> &gt;</type>
+        <definition>static jam::Function::Map&lt; juce::String, juce::Result &gt; cast::buildPredicateMap</definition>
+        <argsstring>()</argsstring>
+        <name>buildPredicateMap</name>
+        <qualifiedname>cast::buildPredicateMap</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Constraints.cpp" line="188" column="27" bodyfile="Constraints.cpp" bodystart="188" bodyend="200"/>
+        <references refid="structjam_1_1Function_1_1Map_1a4c5333e037712bf4fbed00a9d1dcaf34">jam::Function::Map&lt; typename KeyType, typename ReturnType &gt;::add</references>
+        <references refid="namespacecast_1aad7a85a26733279c975c5d958f10f7db" compoundref="_constraints_8cpp" startline="60" endline="79">predicateExistsIn</references>
+        <references refid="namespacecast_1aaf9ff734b2823a6d4b627647d3a4d9a5" compoundref="_constraints_8cpp" startline="154" endline="162">predicateFileExists</references>
+        <references refid="namespacecast_1ab0b4b3a226152df0dc24636f8498837d" compoundref="_constraints_8cpp" startline="35" endline="43">predicateMatches</references>
+        <references refid="namespacecast_1a5362debd352290f94634061bc8e23e55" compoundref="_constraints_8cpp" startline="81" endline="89">predicateOneOf</references>
+        <references refid="namespacecast_1ac1d8a491644d9a1d7b74768a9f70d969" compoundref="_constraints_8cpp" startline="164" endline="186">predicateOnePerGroup</references>
+        <references refid="namespacecast_1a98da53a21918af205d6c05a96a83fe95" compoundref="_constraints_8cpp" startline="123" endline="152">predicateParity</references>
+        <references refid="namespacecast_1acff023defeba748f6d11c9f23473883d" compoundref="_constraints_8cpp" startline="91" endline="108">predicateRange</references>
+        <references refid="namespacecast_1a04bea41a8d44c50020b765e5778b1c94" compoundref="_constraints_8cpp" startline="45" endline="58">predicateUnique</references>
+        <referencedby refid="structcast_1_1_constraints_1a2f6e37b483238fb62ed50bc594b5688b" compoundref="_constraints_8cpp" startline="231" endline="256">cast::Constraints::validate</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a759a1a85432ec8a895a0f0b88db4fc50" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
+        <definition>static juce::Result cast::applyConstraintToTable</definition>
+        <argsstring>(jam::Function::Map&lt; juce::String, juce::Result &gt; &amp;predicates, const ConstraintEntry &amp;entry, const juce::String &amp;predicateName, const juce::String &amp;predicateArgs, const jam::Document &amp;tableDoc, const jam::HashMap&lt; juce::String, const jam::Document * &gt; &amp;tables, const juce::String &amp;sourceFile)</argsstring>
+        <name>applyConstraintToTable</name>
+        <qualifiedname>cast::applyConstraintToTable</qualifiedname>
+        <param>
+          <type><ref refid="structjam_1_1Function_1_1Map" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Function::Map</ref>&lt; <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref>, <ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref> &gt; &amp;</type>
+          <declname>predicates</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structcast_1_1_constraint_entry" kindref="compound">ConstraintEntry</ref> &amp;</type>
+          <declname>entry</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>predicateName</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>predicateArgs</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> &amp;</type>
+          <declname>tableDoc</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjam_1_1HashMap" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::HashMap</ref>&lt; <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref>, const <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> * &gt; &amp;</type>
+          <declname>tables</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>sourceFile</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Constraints.cpp" line="204" column="21" bodyfile="Constraints.cpp" bodystart="204" bodyend="229"/>
+        <references refid="namespacecast_1a7087b04cb47ea04c7c0bd3ff95183538" compoundref="_constraints_8cpp" startline="21" endline="27">cellAt</references>
+        <references refid="namespaceId_1a8dc6aa4d4e6c5bf2a00d10715897fda6">Id::children</references>
+        <references refid="structcast_1_1_constraint_entry_1aa9392c2a549a9a5ead9d61de23926fe0" compoundref="_manifest_8h" startline="31">cast::ConstraintEntry::columnName</references>
+        <references refid="namespacecast_1a8f6b9c5dfbad8a376306de54c7ccbc16" compoundref="_cells_8h" startline="45" endline="62">findColumnIndex</references>
+        <references refid="structjam_1_1Document_1addb59b648e62157728770b864eddb613">jam::Document::get</references>
+        <references refid="structjam_1_1Function_1_1Map_1a8453a5bf3a0d89b7e854b734d20338a2">jam::Function::Map&lt; typename KeyType, typename ReturnType &gt;::get</references>
+        <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
+        <references refid="namespacecast_1ab676d052a0f3efb4062591b54ffc1604" compoundref="_constraints_8cpp" startline="202" endline="202">perColumnPredicates</references>
+        <referencedby refid="structcast_1_1_constraints_1a2f6e37b483238fb62ed50bc594b5688b" compoundref="_constraints_8cpp" startline="231" endline="256">cast::Constraints::validate</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1ae13eaa2eaa01d759e37d39fb786d176e" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>static juce::String cast::transformedCell</definition>
+        <argsstring>(const juce::String &amp;rawValue, const juce::String &amp;columnName, const jam::Array&lt; TransformEntry &gt; &amp;transforms)</argsstring>
+        <name>transformedCell</name>
+        <qualifiedname>cast::transformedCell</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>rawValue</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>columnName</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjam_1_1Array" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Array</ref>&lt; <ref refid="structcast_1_1_transform_entry" kindref="compound">TransformEntry</ref> &gt; &amp;</type>
+          <declname>transforms</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Driver.cpp" line="11" column="21" bodyfile="Driver.cpp" bodystart="11" bodyend="26"/>
+        <references refid="structcast_1_1_transforms_1ae31e899c4d3411bb40ddd37ef772c9a6" compoundref="_transforms_8cpp" startline="135" endline="147">cast::Transforms::apply</references>
+        <references refid="namespacecast_1ab040cec9142af0fbe59fafbb085b5fd5" compoundref="_transforms_8cpp" startline="123" endline="133">transforms</references>
+        <referencedby refid="namespacecast_1af9c76459979a40de521b2e98f1aca50c" compoundref="_driver_8cpp" startline="28" endline="47">buildPerRowMap</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1af9c76459979a40de521b2e98f1aca50c" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="namespacecast_1a54f69242eb732ad6931adc8a6ba9874c" kindref="member">SubstitutionMap</ref></type>
+        <definition>static SubstitutionMap cast::buildPerRowMap</definition>
+        <argsstring>(const jam::Document &amp;tableDoc, int rowIndex, const jam::Array&lt; TransformEntry &gt; &amp;transforms)</argsstring>
+        <name>buildPerRowMap</name>
+        <qualifiedname>cast::buildPerRowMap</qualifiedname>
+        <param>
+          <type>const <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> &amp;</type>
+          <declname>tableDoc</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>rowIndex</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjam_1_1Array" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Array</ref>&lt; <ref refid="structcast_1_1_transform_entry" kindref="compound">TransformEntry</ref> &gt; &amp;</type>
+          <declname>transforms</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Driver.cpp" line="28" column="24" bodyfile="Driver.cpp" bodystart="28" bodyend="47"/>
+        <references refid="namespaceId_1a8dc6aa4d4e6c5bf2a00d10715897fda6">Id::children</references>
+        <references refid="structjam_1_1Document_1addb59b648e62157728770b864eddb613">jam::Document::get</references>
+        <references refid="classjam_1_1HashMap_1a652692e674a0b76b04df95b4a64394d8">jam::HashMap&lt; typename Key, typename Mapped, typename HashFn, typename KeyEqual, typename AllocatorOrContainer, typename Bucket, typename BucketContainer, bool IsSegmented &gt;::insert</references>
+        <references refid="namespaceId_1a287c150cdfda5a8e2deb30b6d987d638">Id::text</references>
+        <references refid="namespacecast_1ae13eaa2eaa01d759e37d39fb786d176e" compoundref="_driver_8cpp" startline="11" endline="26">transformedCell</references>
+        <references refid="namespacecast_1ab040cec9142af0fbe59fafbb085b5fd5" compoundref="_transforms_8cpp" startline="123" endline="133">transforms</references>
+        <referencedby refid="namespacecast_1affc85748c092c842d2b3459dc6909193" compoundref="_driver_8cpp" startline="66" endline="101">expandFragments</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a4cd1a5c43c1541d767a9f107f8204ca0" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>static bool cast::rowMatchesDispatch</definition>
+        <argsstring>(const jam::Document &amp;tableDoc, int rowIndex, const DispatchEntry &amp;entry)</argsstring>
+        <name>rowMatchesDispatch</name>
+        <qualifiedname>cast::rowMatchesDispatch</qualifiedname>
+        <param>
+          <type>const <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> &amp;</type>
+          <declname>tableDoc</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>rowIndex</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structcast_1_1_dispatch_entry" kindref="compound">DispatchEntry</ref> &amp;</type>
+          <declname>entry</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Driver.cpp" line="49" column="13" bodyfile="Driver.cpp" bodystart="49" bodyend="64"/>
+        <references refid="namespaceId_1a8dc6aa4d4e6c5bf2a00d10715897fda6">Id::children</references>
+        <references refid="structcast_1_1_dispatch_entry_1ad54eff46c7af820265147f21bae872aa" compoundref="_manifest_8h" startline="17">cast::DispatchEntry::columnName</references>
+        <references refid="namespacecast_1a8f6b9c5dfbad8a376306de54c7ccbc16" compoundref="_cells_8h" startline="45" endline="62">findColumnIndex</references>
+        <references refid="structjam_1_1Document_1addb59b648e62157728770b864eddb613">jam::Document::get</references>
+        <references refid="classjuce_1_1String_1a1f0c785b3834720c20a115ff82f138de">juce::String::isEmpty</references>
+        <references refid="structcast_1_1_dispatch_entry_1a34f15a6a26fc203926f47f80d0cb9827" compoundref="_manifest_8h" startline="18">cast::DispatchEntry::matchValue</references>
+        <references refid="namespaceId_1a287c150cdfda5a8e2deb30b6d987d638">Id::text</references>
+        <referencedby refid="namespacecast_1affc85748c092c842d2b3459dc6909193" compoundref="_driver_8cpp" startline="66" endline="101">expandFragments</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1affc85748c092c842d2b3459dc6909193" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
+        <definition>static juce::Result cast::expandFragments</definition>
+        <argsstring>(const OutputEntry &amp;output, const Manifest &amp;manifest, const jam::HashMap&lt; juce::String, const jam::Document * &gt; &amp;tables, const juce::File &amp;dir, jam::HashMap&lt; juce::String, juce::StringArray &gt; &amp;slotResults)</argsstring>
+        <name>expandFragments</name>
+        <qualifiedname>cast::expandFragments</qualifiedname>
+        <param>
+          <type>const <ref refid="structcast_1_1_output_entry" kindref="compound">OutputEntry</ref> &amp;</type>
+          <declname>output</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structcast_1_1_manifest" kindref="compound">Manifest</ref> &amp;</type>
+          <declname>manifest</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjam_1_1HashMap" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::HashMap</ref>&lt; <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref>, const <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> * &gt; &amp;</type>
+          <declname>tables</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref> &amp;</type>
+          <declname>dir</declname>
+        </param>
+        <param>
+          <type><ref refid="classjam_1_1HashMap" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::HashMap</ref>&lt; <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref>, <ref refid="classjuce_1_1StringArray" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::StringArray</ref> &gt; &amp;</type>
+          <declname>slotResults</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Driver.cpp" line="66" column="21" bodyfile="Driver.cpp" bodystart="66" bodyend="101"/>
+        <references refid="namespacecast_1af9c76459979a40de521b2e98f1aca50c" compoundref="_driver_8cpp" startline="28" endline="47">buildPerRowMap</references>
+        <references refid="namespaceId_1a8dc6aa4d4e6c5bf2a00d10715897fda6">Id::children</references>
+        <references refid="structcast_1_1_manifest_1ac8f4985e72e8d48e6b957f7ac701d10d" compoundref="_manifest_8h" startline="38">cast::Manifest::dispatches</references>
+        <references refid="classjam_1_1HashMap_1aeb3706b7cb8b6a92790644ed3eb240ea">jam::HashMap&lt; typename Key, typename Mapped, typename HashFn, typename KeyEqual, typename AllocatorOrContainer, typename Bucket, typename BucketContainer, bool IsSegmented &gt;::end</references>
+        <references refid="structcast_1_1_template_engine_1ae640df68b4e8802ff8f2ac0220b10820" compoundref="_template_8cpp" startline="25" endline="64">cast::TemplateEngine::expand</references>
+        <references refid="classjam_1_1HashMap_1aa8cd30d951846463b373eb6e82d96a3d">jam::HashMap&lt; typename Key, typename Mapped, typename HashFn, typename KeyEqual, typename AllocatorOrContainer, typename Bucket, typename BucketContainer, bool IsSegmented &gt;::find</references>
+        <references refid="classjuce_1_1File_1a57b992aacb19e09ee5905cd0f0e9bb31">juce::File::getChildFile</references>
+        <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
+        <references refid="namespacecast_1a4cd1a5c43c1541d767a9f107f8204ca0" compoundref="_driver_8cpp" startline="49" endline="64">rowMatchesDispatch</references>
+        <references refid="structcast_1_1_manifest_1ad31ec1e7c228a496150e33478f4df2ee" compoundref="_manifest_8h" startline="39">cast::Manifest::transforms</references>
+        <referencedby refid="namespacecast_1ada0bb3ffc05f77a1168fc1b1b2cf8d71" compoundref="_driver_8cpp" startline="141" endline="159">processOutput</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1af7b048cf52b93d8dd10fbd03d6fd8459" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void cast::loadInputTables</definition>
+        <argsstring>(const OutputEntry &amp;output, const juce::File &amp;dir, jam::Array&lt; jam::Document &gt; &amp;parsedDocs, jam::HashMap&lt; juce::String, const jam::Document * &gt; &amp;tables)</argsstring>
+        <name>loadInputTables</name>
+        <qualifiedname>cast::loadInputTables</qualifiedname>
+        <param>
+          <type>const <ref refid="structcast_1_1_output_entry" kindref="compound">OutputEntry</ref> &amp;</type>
+          <declname>output</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref> &amp;</type>
+          <declname>dir</declname>
+        </param>
+        <param>
+          <type><ref refid="classjam_1_1Array" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Array</ref>&lt; <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> &gt; &amp;</type>
+          <declname>parsedDocs</declname>
+        </param>
+        <param>
+          <type><ref refid="classjam_1_1HashMap" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::HashMap</ref>&lt; <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref>, const <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> * &gt; &amp;</type>
+          <declname>tables</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Driver.cpp" line="103" column="13" bodyfile="Driver.cpp" bodystart="103" bodyend="115"/>
+        <references refid="classjam_1_1Array_1a056773d314babbb130f136a544a1b3e7">jam::Array&lt; typename ElementType &gt;::add</references>
+        <references refid="classjam_1_1Array_1ae041fbf1fccd883e03a9f83b515435ed">jam::Array&lt; typename ElementType &gt;::at</references>
+        <references refid="classjam_1_1Array_1a50f098a43f7b660ab94e80d917b6431b">jam::Array&lt; typename ElementType &gt;::ensureStorageAllocated</references>
+        <references refid="namespacecast_1a7c826b682e8e02a1af14edb003cf61dc" compoundref="_cells_8h" startline="64" endline="90">extractSections</references>
+        <references refid="classjuce_1_1File_1a57b992aacb19e09ee5905cd0f0e9bb31">juce::File::getChildFile</references>
+        <references refid="classjuce_1_1File_1aa65d2fa50370357bf93658d6447c296d">juce::File::loadFileAsString</references>
+        <references refid="structjam_1_1Markdown_1ad2eeadd77ac16749f86be26e4aa4858c">jam::Markdown::parse</references>
+        <references refid="classjam_1_1Array_1a73d5c7ab09f285dfc8bead72dec68895">jam::Array&lt; typename ElementType &gt;::size</references>
+        <referencedby refid="namespacecast_1ada0bb3ffc05f77a1168fc1b1b2cf8d71" compoundref="_driver_8cpp" startline="141" endline="159">processOutput</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1ae4eeae32e7c7c3da316b37de2215d8b5" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
+        <definition>static juce::Result cast::renderOutput</definition>
+        <argsstring>(const OutputEntry &amp;output, const jam::HashMap&lt; juce::String, juce::StringArray &gt; &amp;slotResults, const juce::File &amp;dir)</argsstring>
+        <name>renderOutput</name>
+        <qualifiedname>cast::renderOutput</qualifiedname>
+        <param>
+          <type>const <ref refid="structcast_1_1_output_entry" kindref="compound">OutputEntry</ref> &amp;</type>
+          <declname>output</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjam_1_1HashMap" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::HashMap</ref>&lt; <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref>, <ref refid="classjuce_1_1StringArray" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::StringArray</ref> &gt; &amp;</type>
+          <declname>slotResults</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref> &amp;</type>
+          <declname>dir</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Driver.cpp" line="117" column="21" bodyfile="Driver.cpp" bodystart="117" bodyend="139"/>
+        <references refid="structcast_1_1_template_engine_1ae640df68b4e8802ff8f2ac0220b10820" compoundref="_template_8cpp" startline="25" endline="64">cast::TemplateEngine::expand</references>
+        <references refid="classjuce_1_1File_1a57b992aacb19e09ee5905cd0f0e9bb31">juce::File::getChildFile</references>
+        <references refid="classjam_1_1HashMap_1a652692e674a0b76b04df95b4a64394d8">jam::HashMap&lt; typename Key, typename Mapped, typename HashFn, typename KeyEqual, typename AllocatorOrContainer, typename Bucket, typename BucketContainer, bool IsSegmented &gt;::insert</references>
+        <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
+        <referencedby refid="namespacecast_1ada0bb3ffc05f77a1168fc1b1b2cf8d71" compoundref="_driver_8cpp" startline="141" endline="159">processOutput</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1ada0bb3ffc05f77a1168fc1b1b2cf8d71" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
+        <definition>static juce::Result cast::processOutput</definition>
+        <argsstring>(const OutputEntry &amp;output, const Manifest &amp;manifest, const juce::File &amp;dir)</argsstring>
+        <name>processOutput</name>
+        <qualifiedname>cast::processOutput</qualifiedname>
+        <param>
+          <type>const <ref refid="structcast_1_1_output_entry" kindref="compound">OutputEntry</ref> &amp;</type>
+          <declname>output</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structcast_1_1_manifest" kindref="compound">Manifest</ref> &amp;</type>
+          <declname>manifest</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref> &amp;</type>
+          <declname>dir</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Driver.cpp" line="141" column="21" bodyfile="Driver.cpp" bodystart="141" bodyend="159"/>
+        <references refid="structcast_1_1_manifest_1a69fb46287552c3e10f9b0976161df617" compoundref="_manifest_8h" startline="40">cast::Manifest::constraints</references>
+        <references refid="namespacecast_1affc85748c092c842d2b3459dc6909193" compoundref="_driver_8cpp" startline="66" endline="101">expandFragments</references>
+        <references refid="classjuce_1_1File_1a515fa016b189068f365cc875e241e2a1">juce::File::getFullPathName</references>
+        <references refid="namespacecast_1af7b048cf52b93d8dd10fbd03d6fd8459" compoundref="_driver_8cpp" startline="103" endline="115">loadInputTables</references>
+        <references refid="namespacecast_1ae4eeae32e7c7c3da316b37de2215d8b5" compoundref="_driver_8cpp" startline="117" endline="139">renderOutput</references>
+        <references refid="structcast_1_1_constraints_1a2f6e37b483238fb62ed50bc594b5688b" compoundref="_constraints_8cpp" startline="231" endline="256">cast::Constraints::validate</references>
+        <referencedby refid="structcast_1_1_driver_1aefe9920e54c929e07422fa05e9c7e9df" compoundref="_driver_8cpp" startline="161" endline="189">cast::Driver::run</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a2e870959ec9922fae78db9fcf45db83d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void cast::printHelp</definition>
+        <argsstring>(const juce::String &amp;specText)</argsstring>
+        <name>printHelp</name>
+        <qualifiedname>cast::printHelp</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>specText</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Help.cpp" line="10" column="6" bodyfile="Help.cpp" bodystart="10" bodyend="34" declfile="Help.h" declline="7" declcolumn="6"/>
+        <references refid="classjuce_1_1StringArray_1ab0d599cf25b924c397bf2dd4c6c0e4a6">juce::StringArray::addLines</references>
+        <references refid="namespaceId_1a74fd5887840fd8e20b9d16232d98390c">Id::dark</references>
+        <references refid="namespacecast_1a5a1fa6426a004c80b6ecd43651375c0c" compoundref="_help_8cpp" startline="8" endline="8">documentMargin</references>
+        <references refid="structjam_1_1tui_1_1Metrics_1a2a269e29020e4b56ba240b094657316e">jam::tui::Metrics::getBounds</references>
+        <references refid="classjam_1_1StyleCustom_1a61166d75985cc9bfdbe3bd6bcda91474">jam::StyleCustom::getMonoFont</references>
+        <references refid="structjam_1_1Cell_1_1Rectangle_1a840c42ca4c36a43986eb1c931bc5f7d0">jam::Cell::Rectangle::getWidth</references>
+        <references refid="namespacejuce_1a31dc5897289f074362c29fe54016f2dd">juce::jmin</references>
+        <references refid="classjuce_1_1StringArray_1a023d7cf3115d23d25beac528f26690b1">juce::StringArray::joinIntoString</references>
+        <references refid="structjam_1_1Markdown_1ad2eeadd77ac16749f86be26e4aa4858c">jam::Markdown::parse</references>
+        <references refid="classjuce_1_1String_1a8be513249fec0835c416b63631d399dd">juce::String::repeatedString</references>
+        <references refid="classjam_1_1StyleManager_1aab3def73d9373a322e17402cfd61232e">jam::StyleManager::setAppearance</references>
+        <references refid="namespacejam_1_1tui_1a65724b0b9058a5559ad974a4fef01cb8">jam::tui::toAnsiString</references>
+        <references refid="classjuce_1_1String_1a276c7c57f1d1a2fc76a8b47aed0823e7">juce::String::toRawUTF8</references>
+        <references refid="structjam_1_1Cell_1aecd8f8ae6d8912e9b0689382ac96cbb4">jam::Cell::value</references>
+        <references refid="namespacecast_1a864c9b0890d921f63b9b4ff36c05b61a" compoundref="_help_8cpp" startline="7" endline="7">widthCap</references>
+        <referencedby refid="_cast_8cpp_1a0ddf1224851353fc92bfbff6f499fa97" compoundref="_cast_8cpp" startline="75" endline="121">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a0c80ccc6fd84a9a6085867912471ba3d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>static juce::String cast::location</definition>
+        <argsstring>(const juce::String &amp;path, int row, int col)</argsstring>
+        <name>location</name>
+        <qualifiedname>cast::location</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>path</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>row</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>col</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Manifest.cpp" line="10" column="21" bodyfile="Manifest.cpp" bodystart="10" bodyend="13"/>
+        <referencedby refid="namespacecast_1af0283369c2e8fb91472669d864822aa4" compoundref="_manifest_8cpp" startline="23" endline="37">checkCellHazard</referencedby>
+        <referencedby refid="namespacecast_1a891f9a8788c680e208a98771b3de5731" compoundref="_manifest_8cpp" startline="93" endline="122">processTransforms</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a0d0421b975c943cd4be4f50c85eaf313" prot="public" static="yes" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>static juce::String cast::getCellText</definition>
+        <argsstring>(const jam::Document &amp;row, int colIdx) noexcept</argsstring>
+        <name>getCellText</name>
+        <qualifiedname>cast::getCellText</qualifiedname>
+        <param>
+          <type>const <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> &amp;</type>
+          <declname>row</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>colIdx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Manifest.cpp" line="15" column="21" bodyfile="Manifest.cpp" bodystart="15" bodyend="21"/>
+        <references refid="namespaceId_1a8dc6aa4d4e6c5bf2a00d10715897fda6">Id::children</references>
+        <references refid="namespaceId_1a287c150cdfda5a8e2deb30b6d987d638">Id::text</references>
+        <referencedby refid="namespacecast_1a336faaec3c7c5251e03a86c36e4edd50" compoundref="_manifest_8cpp" startline="124" endline="147">processConstraints</referencedby>
+        <referencedby refid="namespacecast_1a352a55ebf31d2c10ae440f34c732fed8" compoundref="_manifest_8cpp" startline="65" endline="91">processDispatch</referencedby>
+        <referencedby refid="namespacecast_1ab2a6fe94c4cf573ae90526f622dadb1a" compoundref="_manifest_8cpp" startline="39" endline="63">processOutputs</referencedby>
+        <referencedby refid="namespacecast_1a891f9a8788c680e208a98771b3de5731" compoundref="_manifest_8cpp" startline="93" endline="122">processTransforms</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1af0283369c2e8fb91472669d864822aa4" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
+        <definition>static juce::Result cast::checkCellHazard</definition>
+        <argsstring>(const jam::Document &amp;row, int colIdx, const juce::String &amp;path, int rowNum)</argsstring>
+        <name>checkCellHazard</name>
+        <qualifiedname>cast::checkCellHazard</qualifiedname>
+        <param>
+          <type>const <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> &amp;</type>
+          <declname>row</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>colIdx</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>path</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>rowNum</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Manifest.cpp" line="23" column="21" bodyfile="Manifest.cpp" bodystart="23" bodyend="37"/>
+        <references refid="namespaceId_1a8dc6aa4d4e6c5bf2a00d10715897fda6">Id::children</references>
+        <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
+        <references refid="namespacecast_1a2e5e81d2ec926b9453f3e62f4c833077" compoundref="_cells_8h" startline="8" endline="43">getCellHazard</references>
+        <references refid="namespacecast_1a0c80ccc6fd84a9a6085867912471ba3d" compoundref="_manifest_8cpp" startline="10" endline="13">location</references>
+        <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
+        <referencedby refid="namespacecast_1a336faaec3c7c5251e03a86c36e4edd50" compoundref="_manifest_8cpp" startline="124" endline="147">processConstraints</referencedby>
+        <referencedby refid="namespacecast_1a352a55ebf31d2c10ae440f34c732fed8" compoundref="_manifest_8cpp" startline="65" endline="91">processDispatch</referencedby>
+        <referencedby refid="namespacecast_1ab2a6fe94c4cf573ae90526f622dadb1a" compoundref="_manifest_8cpp" startline="39" endline="63">processOutputs</referencedby>
+        <referencedby refid="namespacecast_1a891f9a8788c680e208a98771b3de5731" compoundref="_manifest_8cpp" startline="93" endline="122">processTransforms</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1ab2a6fe94c4cf573ae90526f622dadb1a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
+        <definition>static juce::Result cast::processOutputs</definition>
+        <argsstring>(const jam::Document &amp;tableDoc, const juce::String &amp;path, Manifest &amp;result)</argsstring>
+        <name>processOutputs</name>
+        <qualifiedname>cast::processOutputs</qualifiedname>
+        <param>
+          <type>const <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> &amp;</type>
+          <declname>tableDoc</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>path</declname>
+        </param>
+        <param>
+          <type><ref refid="structcast_1_1_manifest" kindref="compound">Manifest</ref> &amp;</type>
+          <declname>result</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Manifest.cpp" line="39" column="21" bodyfile="Manifest.cpp" bodystart="39" bodyend="63"/>
+        <references refid="namespacecast_1af0283369c2e8fb91472669d864822aa4" compoundref="_manifest_8cpp" startline="23" endline="37">checkCellHazard</references>
+        <references refid="namespaceId_1a8dc6aa4d4e6c5bf2a00d10715897fda6">Id::children</references>
+        <references refid="classjuce_1_1StringArray_1a9f1df0af6ebd58043c8995e9cb3e3ac5">juce::StringArray::fromTokens</references>
+        <references refid="structjam_1_1Document_1addb59b648e62157728770b864eddb613">jam::Document::get</references>
+        <references refid="namespacecast_1a0d0421b975c943cd4be4f50c85eaf313" compoundref="_manifest_8cpp" startline="15" endline="21">getCellText</references>
+        <references refid="structcast_1_1_output_entry_1afe276dbea146a91bb13a7fed644af176" compoundref="_manifest_8h" startline="11">cast::OutputEntry::inputTables</references>
+        <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
+        <references refid="structcast_1_1_output_entry_1a981ea1ecffd02a77f9fc2ac5690245f1" compoundref="_manifest_8h" startline="9">cast::OutputEntry::outputPath</references>
+        <references refid="structcast_1_1_manifest_1a383004022b128a892b474d135ee7af50" compoundref="_manifest_8h" startline="37">cast::Manifest::outputs</references>
+        <references refid="structcast_1_1_output_entry_1a193efb7eeef5a8ca4bbcafc1b14d7fc8" compoundref="_manifest_8h" startline="10">cast::OutputEntry::rootTemplatePath</references>
+        <referencedby refid="namespacecast_1ab4947978d9a400884d2a72484d86fea6" compoundref="_manifest_8cpp" startline="149" endline="157">buildSectionDispatch</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a352a55ebf31d2c10ae440f34c732fed8" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
+        <definition>static juce::Result cast::processDispatch</definition>
+        <argsstring>(const jam::Document &amp;tableDoc, const juce::String &amp;path, Manifest &amp;result)</argsstring>
+        <name>processDispatch</name>
+        <qualifiedname>cast::processDispatch</qualifiedname>
+        <param>
+          <type>const <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> &amp;</type>
+          <declname>tableDoc</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>path</declname>
+        </param>
+        <param>
+          <type><ref refid="structcast_1_1_manifest" kindref="compound">Manifest</ref> &amp;</type>
+          <declname>result</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Manifest.cpp" line="65" column="21" bodyfile="Manifest.cpp" bodystart="65" bodyend="91"/>
+        <references refid="namespacecast_1af0283369c2e8fb91472669d864822aa4" compoundref="_manifest_8cpp" startline="23" endline="37">checkCellHazard</references>
+        <references refid="namespaceId_1a8dc6aa4d4e6c5bf2a00d10715897fda6">Id::children</references>
+        <references refid="structcast_1_1_dispatch_entry_1ad54eff46c7af820265147f21bae872aa" compoundref="_manifest_8h" startline="17">cast::DispatchEntry::columnName</references>
+        <references refid="structcast_1_1_manifest_1ac8f4985e72e8d48e6b957f7ac701d10d" compoundref="_manifest_8h" startline="38">cast::Manifest::dispatches</references>
+        <references refid="structcast_1_1_dispatch_entry_1afac636e15b56f3ddac744cc1a09a1756" compoundref="_manifest_8h" startline="19">cast::DispatchEntry::fragmentPath</references>
+        <references refid="structjam_1_1Document_1addb59b648e62157728770b864eddb613">jam::Document::get</references>
+        <references refid="namespacecast_1a0d0421b975c943cd4be4f50c85eaf313" compoundref="_manifest_8cpp" startline="15" endline="21">getCellText</references>
+        <references refid="structcast_1_1_dispatch_entry_1a34f15a6a26fc203926f47f80d0cb9827" compoundref="_manifest_8h" startline="18">cast::DispatchEntry::matchValue</references>
+        <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
+        <references refid="structcast_1_1_dispatch_entry_1aad472450822f9eb0a16cbb679d41d24e" compoundref="_manifest_8h" startline="20">cast::DispatchEntry::slotName</references>
+        <references refid="structcast_1_1_dispatch_entry_1a05ad431f1fcb24766846ec7a9cb00c07" compoundref="_manifest_8h" startline="16">cast::DispatchEntry::tableName</references>
+        <referencedby refid="namespacecast_1ab4947978d9a400884d2a72484d86fea6" compoundref="_manifest_8cpp" startline="149" endline="157">buildSectionDispatch</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a891f9a8788c680e208a98771b3de5731" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
+        <definition>static juce::Result cast::processTransforms</definition>
+        <argsstring>(const jam::Document &amp;tableDoc, const juce::String &amp;path, Manifest &amp;result)</argsstring>
+        <name>processTransforms</name>
+        <qualifiedname>cast::processTransforms</qualifiedname>
+        <param>
+          <type>const <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> &amp;</type>
+          <declname>tableDoc</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>path</declname>
+        </param>
+        <param>
+          <type><ref refid="structcast_1_1_manifest" kindref="compound">Manifest</ref> &amp;</type>
+          <declname>result</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Manifest.cpp" line="93" column="21" bodyfile="Manifest.cpp" bodystart="93" bodyend="122"/>
+        <references refid="structcast_1_1_transforms_1ae31e899c4d3411bb40ddd37ef772c9a6" compoundref="_transforms_8cpp" startline="135" endline="147">cast::Transforms::apply</references>
+        <references refid="namespacecast_1af0283369c2e8fb91472669d864822aa4" compoundref="_manifest_8cpp" startline="23" endline="37">checkCellHazard</references>
+        <references refid="namespaceId_1a8dc6aa4d4e6c5bf2a00d10715897fda6">Id::children</references>
+        <references refid="structcast_1_1_transform_entry_1aa6859472039599ea8a02b3ba0122e279" compoundref="_manifest_8h" startline="25">cast::TransformEntry::columnName</references>
+        <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
+        <references refid="structjam_1_1Document_1addb59b648e62157728770b864eddb613">jam::Document::get</references>
+        <references refid="namespacecast_1a0d0421b975c943cd4be4f50c85eaf313" compoundref="_manifest_8cpp" startline="15" endline="21">getCellText</references>
+        <references refid="namespacecast_1a0c80ccc6fd84a9a6085867912471ba3d" compoundref="_manifest_8cpp" startline="10" endline="13">location</references>
+        <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
+        <references refid="structcast_1_1_transform_entry_1a44f8ae7fee4fc8256d9d460d4a01745a" compoundref="_manifest_8h" startline="26">cast::TransformEntry::transformName</references>
+        <references refid="structcast_1_1_manifest_1ad31ec1e7c228a496150e33478f4df2ee" compoundref="_manifest_8h" startline="39">cast::Manifest::transforms</references>
+        <referencedby refid="namespacecast_1ab4947978d9a400884d2a72484d86fea6" compoundref="_manifest_8cpp" startline="149" endline="157">buildSectionDispatch</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a336faaec3c7c5251e03a86c36e4edd50" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
+        <definition>static juce::Result cast::processConstraints</definition>
+        <argsstring>(const jam::Document &amp;tableDoc, const juce::String &amp;path, Manifest &amp;result)</argsstring>
+        <name>processConstraints</name>
+        <qualifiedname>cast::processConstraints</qualifiedname>
+        <param>
+          <type>const <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> &amp;</type>
+          <declname>tableDoc</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>path</declname>
+        </param>
+        <param>
+          <type><ref refid="structcast_1_1_manifest" kindref="compound">Manifest</ref> &amp;</type>
+          <declname>result</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Manifest.cpp" line="124" column="21" bodyfile="Manifest.cpp" bodystart="124" bodyend="147"/>
+        <references refid="namespacecast_1af0283369c2e8fb91472669d864822aa4" compoundref="_manifest_8cpp" startline="23" endline="37">checkCellHazard</references>
+        <references refid="namespaceId_1a8dc6aa4d4e6c5bf2a00d10715897fda6">Id::children</references>
+        <references refid="structcast_1_1_constraint_entry_1aa9392c2a549a9a5ead9d61de23926fe0" compoundref="_manifest_8h" startline="31">cast::ConstraintEntry::columnName</references>
+        <references refid="structcast_1_1_manifest_1a69fb46287552c3e10f9b0976161df617" compoundref="_manifest_8h" startline="40">cast::Manifest::constraints</references>
+        <references refid="structjam_1_1Document_1addb59b648e62157728770b864eddb613">jam::Document::get</references>
+        <references refid="namespacecast_1a0d0421b975c943cd4be4f50c85eaf313" compoundref="_manifest_8cpp" startline="15" endline="21">getCellText</references>
+        <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
+        <references refid="structcast_1_1_constraint_entry_1a5892568f5c84a7e3b56fc74582f1fa6b" compoundref="_manifest_8h" startline="32">cast::ConstraintEntry::predicate</references>
+        <referencedby refid="namespacecast_1ab4947978d9a400884d2a72484d86fea6" compoundref="_manifest_8cpp" startline="149" endline="157">buildSectionDispatch</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1ab4947978d9a400884d2a72484d86fea6" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structjam_1_1Function_1_1Map" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Function::Map</ref>&lt; <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref>, <ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref> &gt;</type>
+        <definition>static jam::Function::Map&lt; juce::String, juce::Result &gt; cast::buildSectionDispatch</definition>
+        <argsstring>()</argsstring>
+        <name>buildSectionDispatch</name>
+        <qualifiedname>cast::buildSectionDispatch</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Manifest.cpp" line="149" column="27" bodyfile="Manifest.cpp" bodystart="149" bodyend="157"/>
+        <references refid="structjam_1_1Function_1_1Map_1a4c5333e037712bf4fbed00a9d1dcaf34">jam::Function::Map&lt; typename KeyType, typename ReturnType &gt;::add</references>
+        <references refid="namespacecast_1a336faaec3c7c5251e03a86c36e4edd50" compoundref="_manifest_8cpp" startline="124" endline="147">processConstraints</references>
+        <references refid="namespacecast_1a352a55ebf31d2c10ae440f34c732fed8" compoundref="_manifest_8cpp" startline="65" endline="91">processDispatch</references>
+        <references refid="namespacecast_1ab2a6fe94c4cf573ae90526f622dadb1a" compoundref="_manifest_8cpp" startline="39" endline="63">processOutputs</references>
+        <references refid="namespacecast_1a891f9a8788c680e208a98771b3de5731" compoundref="_manifest_8cpp" startline="93" endline="122">processTransforms</references>
+        <referencedby refid="namespacecast_1a9453583ee198134499c4c056fc425562" compoundref="_manifest_8cpp" startline="159" endline="171">processSection</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a9453583ee198134499c4c056fc425562" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
+        <definition>static juce::Result cast::processSection</definition>
+        <argsstring>(const jam::Document &amp;tableDoc, const juce::String &amp;sectionName, const juce::String &amp;path, Manifest &amp;result)</argsstring>
+        <name>processSection</name>
+        <qualifiedname>cast::processSection</qualifiedname>
+        <param>
+          <type>const <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> &amp;</type>
+          <declname>tableDoc</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>sectionName</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>path</declname>
+        </param>
+        <param>
+          <type><ref refid="structcast_1_1_manifest" kindref="compound">Manifest</ref> &amp;</type>
+          <declname>result</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Manifest.cpp" line="159" column="21" bodyfile="Manifest.cpp" bodystart="159" bodyend="171"/>
+        <references refid="namespacecast_1ab4947978d9a400884d2a72484d86fea6" compoundref="_manifest_8cpp" startline="149" endline="157">buildSectionDispatch</references>
+        <references refid="structjam_1_1Function_1_1Map_1a4c650e66d077dc454ba2f9c528e9ce76">jam::Function::Map&lt; typename KeyType, typename ReturnType &gt;::contains</references>
+        <references refid="structjam_1_1Function_1_1Map_1a8453a5bf3a0d89b7e854b734d20338a2">jam::Function::Map&lt; typename KeyType, typename ReturnType &gt;::get</references>
+        <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
+        <referencedby refid="structcast_1_1_manifest_1a79904e55960a3ae32d0dcbb63f1f3071" compoundref="_manifest_8cpp" startline="237" endline="258">cast::Manifest::parse</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a6e26f26c9255dde7e434225c9f7f44a5" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void cast::buildConfigureDepends</definition>
+        <argsstring>(const juce::File &amp;castFile, Manifest &amp;result)</argsstring>
+        <name>buildConfigureDepends</name>
+        <qualifiedname>cast::buildConfigureDepends</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref> &amp;</type>
+          <declname>castFile</declname>
+        </param>
+        <param>
+          <type><ref refid="structcast_1_1_manifest" kindref="compound">Manifest</ref> &amp;</type>
+          <declname>result</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Manifest.cpp" line="173" column="13" bodyfile="Manifest.cpp" bodystart="173" bodyend="188"/>
+        <references refid="classjam_1_1Array_1a056773d314babbb130f136a544a1b3e7">jam::Array&lt; typename ElementType &gt;::add</references>
+        <references refid="structcast_1_1_manifest_1a2d65b99803729bd762e4e5426af24553" compoundref="_manifest_8h" startline="41">cast::Manifest::configureDepends</references>
+        <references refid="structcast_1_1_manifest_1ac8f4985e72e8d48e6b957f7ac701d10d" compoundref="_manifest_8h" startline="38">cast::Manifest::dispatches</references>
+        <references refid="classjuce_1_1File_1a515fa016b189068f365cc875e241e2a1">juce::File::getFullPathName</references>
+        <references refid="classjuce_1_1File_1ab6bec65fbcf19ce10e38cf9d1015770d">juce::File::getParentDirectory</references>
+        <references refid="structcast_1_1_manifest_1a383004022b128a892b474d135ee7af50" compoundref="_manifest_8h" startline="37">cast::Manifest::outputs</references>
+        <referencedby refid="structcast_1_1_manifest_1a79904e55960a3ae32d0dcbb63f1f3071" compoundref="_manifest_8cpp" startline="237" endline="258">cast::Manifest::parse</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a0a77a0fbd43b633df60a0467d4d58741" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
+        <definition>static juce::Result cast::validateManifest</definition>
+        <argsstring>(const juce::File &amp;castFile, const Manifest &amp;result)</argsstring>
+        <name>validateManifest</name>
+        <qualifiedname>cast::validateManifest</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref> &amp;</type>
+          <declname>castFile</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structcast_1_1_manifest" kindref="compound">Manifest</ref> &amp;</type>
+          <declname>result</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Manifest.cpp" line="190" column="21" bodyfile="Manifest.cpp" bodystart="190" bodyend="235"/>
+        <references refid="classjam_1_1Array_1a056773d314babbb130f136a544a1b3e7">jam::Array&lt; typename ElementType &gt;::add</references>
+        <references refid="classjam_1_1Array_1ae041fbf1fccd883e03a9f83b515435ed">jam::Array&lt; typename ElementType &gt;::at</references>
+        <references refid="structcast_1_1_manifest_1ac8f4985e72e8d48e6b957f7ac701d10d" compoundref="_manifest_8h" startline="38">cast::Manifest::dispatches</references>
+        <references refid="classjam_1_1HashMap_1aeb3706b7cb8b6a92790644ed3eb240ea">jam::HashMap&lt; typename Key, typename Mapped, typename HashFn, typename KeyEqual, typename AllocatorOrContainer, typename Bucket, typename BucketContainer, bool IsSegmented &gt;::end</references>
+        <references refid="namespacecast_1a7c826b682e8e02a1af14edb003cf61dc" compoundref="_cells_8h" startline="64" endline="90">extractSections</references>
+        <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
+        <references refid="classjam_1_1HashMap_1aa8cd30d951846463b373eb6e82d96a3d">jam::HashMap&lt; typename Key, typename Mapped, typename HashFn, typename KeyEqual, typename AllocatorOrContainer, typename Bucket, typename BucketContainer, bool IsSegmented &gt;::find</references>
+        <references refid="classjuce_1_1File_1a515fa016b189068f365cc875e241e2a1">juce::File::getFullPathName</references>
+        <references refid="classjuce_1_1File_1ab6bec65fbcf19ce10e38cf9d1015770d">juce::File::getParentDirectory</references>
+        <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
+        <references refid="structcast_1_1_manifest_1a383004022b128a892b474d135ee7af50" compoundref="_manifest_8h" startline="37">cast::Manifest::outputs</references>
+        <references refid="structjam_1_1Markdown_1ad2eeadd77ac16749f86be26e4aa4858c">jam::Markdown::parse</references>
+        <references refid="classjam_1_1Array_1a73d5c7ab09f285dfc8bead72dec68895">jam::Array&lt; typename ElementType &gt;::size</references>
+        <referencedby refid="structcast_1_1_manifest_1a79904e55960a3ae32d0dcbb63f1f3071" compoundref="_manifest_8cpp" startline="237" endline="258">cast::Manifest::parse</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a2a057440a5d9ad3452af58ab4f1db45b" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>static juce::String cast::getHoleValue</definition>
+        <argsstring>(const juce::String &amp;holeName, const SubstitutionMap &amp;values)</argsstring>
+        <name>getHoleValue</name>
+        <qualifiedname>cast::getHoleValue</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>holeName</declname>
+        </param>
+        <param>
+          <type>const <ref refid="namespacecast_1a54f69242eb732ad6931adc8a6ba9874c" kindref="member">SubstitutionMap</ref> &amp;</type>
+          <declname>values</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Template.cpp" line="6" column="21" bodyfile="Template.cpp" bodystart="6" bodyend="23"/>
+        <referencedby refid="structcast_1_1_template_engine_1ae640df68b4e8802ff8f2ac0220b10820" compoundref="_template_8cpp" startline="25" endline="64">cast::TemplateEngine::expand</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1aeca076ca60ca6e579abb70d9a802986d" prot="public" static="yes" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>static juce::String cast::applyToUpper</definition>
+        <argsstring>(const juce::String &amp;input) noexcept</argsstring>
+        <name>applyToUpper</name>
+        <qualifiedname>cast::applyToUpper</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>input</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Transforms.cpp" line="6" column="21" bodyfile="Transforms.cpp" bodystart="6" bodyend="9"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a371610f8618a28a4e992ad2070725aa2" prot="public" static="yes" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>static juce::String cast::applyToTitle</definition>
+        <argsstring>(const juce::String &amp;input) noexcept</argsstring>
+        <name>applyToTitle</name>
+        <qualifiedname>cast::applyToTitle</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>input</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Transforms.cpp" line="11" column="21" bodyfile="Transforms.cpp" bodystart="11" bodyend="14"/>
+        <references refid="structjam_1_1Format_1a09bf6b599fb9a2c6342481f8a10e5d3d">jam::Format::toTitleCase</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a87378c4410de44eb750ddd82173d9ae3" prot="public" static="yes" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>static juce::String cast::applyToKebab</definition>
+        <argsstring>(const juce::String &amp;input) noexcept</argsstring>
+        <name>applyToKebab</name>
+        <qualifiedname>cast::applyToKebab</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>input</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Transforms.cpp" line="16" column="21" bodyfile="Transforms.cpp" bodystart="16" bodyend="19"/>
+        <references refid="structjam_1_1Format_1ab12a6dbfad7dd85aa07eb5c10dd006c5">jam::Format::toKebab</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a5ecf5c4061c7d308488889697621d8f6" prot="public" static="yes" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>static juce::String cast::applySymbolFromFile</definition>
+        <argsstring>(const juce::String &amp;input) noexcept</argsstring>
+        <name>applySymbolFromFile</name>
+        <qualifiedname>cast::applySymbolFromFile</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>input</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Transforms.cpp" line="21" column="21" bodyfile="Transforms.cpp" bodystart="21" bodyend="24"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1afea0bf10fc0578839bedffafd1005b46" prot="public" static="yes" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>static juce::String cast::applyQualifySymbol</definition>
+        <argsstring>(const juce::String &amp;input) noexcept</argsstring>
+        <name>applyQualifySymbol</name>
+        <qualifiedname>cast::applyQualifySymbol</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>input</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Transforms.cpp" line="26" column="21" bodyfile="Transforms.cpp" bodystart="26" bodyend="30"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a5f27fb7dd55ed862809801e09939f591" prot="public" static="yes" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type><ref refid="namespacejuce_1a7e33e94788af96bd19c405301b321541" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::juce_wchar</ref></type>
+        <definition>static juce::juce_wchar cast::parseCodepoint</definition>
+        <argsstring>(const juce::String &amp;input) noexcept</argsstring>
+        <name>parseCodepoint</name>
+        <qualifiedname>cast::parseCodepoint</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>input</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Transforms.cpp" line="32" column="25" bodyfile="Transforms.cpp" bodystart="32" bodyend="37"/>
+        <referencedby refid="namespacecast_1aff1f15428351cb1372acdfee3b4c855a" compoundref="_transforms_8cpp" startline="108" endline="112">applyCodepointHex</referencedby>
+        <referencedby refid="namespacecast_1a9f9d6b033452563c8a192421d3353ec3" compoundref="_transforms_8cpp" startline="114" endline="118">applyCodepointLabel</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1ae9317df5c117df4a9e674e28495aa65d" prot="public" static="yes" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>static juce::String cast::encodeCodepointAsEscapedUtf8</definition>
+        <argsstring>(juce::juce_wchar codepoint) noexcept</argsstring>
+        <name>encodeCodepointAsEscapedUtf8</name>
+        <qualifiedname>cast::encodeCodepointAsEscapedUtf8</qualifiedname>
+        <param>
+          <type><ref refid="namespacejuce_1a7e33e94788af96bd19c405301b321541" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::juce_wchar</ref></type>
+          <declname>codepoint</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Transforms.cpp" line="39" column="21" bodyfile="Transforms.cpp" bodystart="39" bodyend="51"/>
+        <references refid="classjuce_1_1String_1a949625c3152cfe177035772a5ff08559">juce::String::toHexString</references>
+        <references refid="classjuce_1_1CharPointer__UTF8_1af3f9307a86832aa930c2ae354e35a321">juce::CharPointer_UTF8::write</references>
+        <referencedby refid="namespacecast_1a39b9915aa885fb195f1d5305fc9a9b32" compoundref="_transforms_8cpp" startline="75" endline="81">encodeUPlusToken</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a6029db1158ebbcc740af694bb167119a" prot="public" static="yes" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>static juce::String cast::applyEscapeCpp</definition>
+        <argsstring>(const juce::String &amp;input) noexcept</argsstring>
+        <name>applyEscapeCpp</name>
+        <qualifiedname>cast::applyEscapeCpp</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>input</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Transforms.cpp" line="53" column="21" bodyfile="Transforms.cpp" bodystart="53" bodyend="73"/>
+        <references refid="classjuce_1_1String_1a3711aa1a1254297c8aaa473c445c5d4a">juce::String::paddedLeft</references>
+        <references refid="classjuce_1_1String_1a949625c3152cfe177035772a5ff08559">juce::String::toHexString</references>
+        <references refid="classjuce_1_1String_1a1e7124c97cfb142b269080422fcba540">juce::String::toUpperCase</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a39b9915aa885fb195f1d5305fc9a9b32" prot="public" static="yes" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>static juce::String cast::encodeUPlusToken</definition>
+        <argsstring>(const juce::String &amp;token) noexcept</argsstring>
+        <name>encodeUPlusToken</name>
+        <qualifiedname>cast::encodeUPlusToken</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>token</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Transforms.cpp" line="75" column="21" bodyfile="Transforms.cpp" bodystart="75" bodyend="81"/>
+        <references refid="namespacecast_1ae9317df5c117df4a9e674e28495aa65d" compoundref="_transforms_8cpp" startline="39" endline="51">encodeCodepointAsEscapedUtf8</references>
+        <referencedby refid="namespacecast_1a6600bff8e2ea08a18c48a9a35ad06c8d" compoundref="_transforms_8cpp" startline="83" endline="106">applyUtf8Bytes</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a6600bff8e2ea08a18c48a9a35ad06c8d" prot="public" static="yes" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>static juce::String cast::applyUtf8Bytes</definition>
+        <argsstring>(const juce::String &amp;input) noexcept</argsstring>
+        <name>applyUtf8Bytes</name>
+        <qualifiedname>cast::applyUtf8Bytes</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>input</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Transforms.cpp" line="83" column="21" bodyfile="Transforms.cpp" bodystart="83" bodyend="106"/>
+        <references refid="classjuce_1_1String_1a685452c89fee2e453297a901e16080b6">juce::String::clear</references>
+        <references refid="namespacecast_1a39b9915aa885fb195f1d5305fc9a9b32" compoundref="_transforms_8cpp" startline="75" endline="81">encodeUPlusToken</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1aff1f15428351cb1372acdfee3b4c855a" prot="public" static="yes" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>static juce::String cast::applyCodepointHex</definition>
+        <argsstring>(const juce::String &amp;input) noexcept</argsstring>
+        <name>applyCodepointHex</name>
+        <qualifiedname>cast::applyCodepointHex</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>input</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Transforms.cpp" line="108" column="21" bodyfile="Transforms.cpp" bodystart="108" bodyend="112"/>
+        <references refid="classjuce_1_1String_1a3711aa1a1254297c8aaa473c445c5d4a">juce::String::paddedLeft</references>
+        <references refid="namespacecast_1a5f27fb7dd55ed862809801e09939f591" compoundref="_transforms_8cpp" startline="32" endline="37">parseCodepoint</references>
+        <references refid="classjuce_1_1String_1a949625c3152cfe177035772a5ff08559">juce::String::toHexString</references>
+        <references refid="classjuce_1_1String_1a1e7124c97cfb142b269080422fcba540">juce::String::toUpperCase</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a9f9d6b033452563c8a192421d3353ec3" prot="public" static="yes" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>static juce::String cast::applyCodepointLabel</definition>
+        <argsstring>(const juce::String &amp;input) noexcept</argsstring>
+        <name>applyCodepointLabel</name>
+        <qualifiedname>cast::applyCodepointLabel</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>input</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Transforms.cpp" line="114" column="21" bodyfile="Transforms.cpp" bodystart="114" bodyend="118"/>
+        <references refid="classjuce_1_1String_1a3711aa1a1254297c8aaa473c445c5d4a">juce::String::paddedLeft</references>
+        <references refid="namespacecast_1a5f27fb7dd55ed862809801e09939f591" compoundref="_transforms_8cpp" startline="32" endline="37">parseCodepoint</references>
+        <references refid="classjuce_1_1String_1a949625c3152cfe177035772a5ff08559">juce::String::toHexString</references>
+        <references refid="classjuce_1_1String_1a1e7124c97cfb142b269080422fcba540">juce::String::toUpperCase</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="Cells.h" line="5" column="1"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
+  <compounddef id="structcast_1_1_transform_entry" kind="struct" language="C++" prot="public">
+    <compoundname>cast::TransformEntry</compoundname>
+    <includes refid="_manifest_8h" local="no">Manifest.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structcast_1_1_transform_entry_1aa6859472039599ea8a02b3ba0122e279" prot="public" static="no" mutable="no">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>juce::String cast::TransformEntry::columnName</definition>
+        <argsstring></argsstring>
+        <name>columnName</name>
+        <qualifiedname>cast::TransformEntry::columnName</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Manifest.h" line="25" column="18" bodyfile="Manifest.h" bodystart="25" bodyend="-1"/>
+        <referencedby refid="namespacecast_1a891f9a8788c680e208a98771b3de5731" compoundref="_manifest_8cpp" startline="93" endline="122">cast::processTransforms</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="structcast_1_1_transform_entry_1a44f8ae7fee4fc8256d9d460d4a01745a" prot="public" static="no" mutable="no">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>juce::String cast::TransformEntry::transformName</definition>
+        <argsstring></argsstring>
+        <name>transformName</name>
+        <qualifiedname>cast::TransformEntry::transformName</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Manifest.h" line="26" column="18" bodyfile="Manifest.h" bodystart="26" bodyend="-1"/>
+        <referencedby refid="namespacecast_1a891f9a8788c680e208a98771b3de5731" compoundref="_manifest_8cpp" startline="93" endline="122">cast::processTransforms</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>cast::TransformEntry</label>
+        <link refid="structcast_1_1_transform_entry"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>columnName</edgelabel>
+          <edgelabel>transformName</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::String</label>
+        <link refid="classjuce_1_1String" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml"/>
+      </node>
+    </collaborationgraph>
+    <location file="Manifest.h" line="23" column="1" bodyfile="Manifest.h" bodystart="24" bodyend="27"/>
+    <listofallmembers>
+      <member refid="structcast_1_1_transform_entry_1aa6859472039599ea8a02b3ba0122e279" prot="public" virt="non-virtual"><scope>cast::TransformEntry</scope><name>columnName</name></member>
+      <member refid="structcast_1_1_transform_entry_1a44f8ae7fee4fc8256d9d460d4a01745a" prot="public" virt="non-virtual"><scope>cast::TransformEntry</scope><name>transformName</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
+  <compounddef id="structcast_1_1_constraint_entry" kind="struct" language="C++" prot="public">
+    <compoundname>cast::ConstraintEntry</compoundname>
+    <includes refid="_manifest_8h" local="no">Manifest.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structcast_1_1_constraint_entry_1aa9392c2a549a9a5ead9d61de23926fe0" prot="public" static="no" mutable="no">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>juce::String cast::ConstraintEntry::columnName</definition>
+        <argsstring></argsstring>
+        <name>columnName</name>
+        <qualifiedname>cast::ConstraintEntry::columnName</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Manifest.h" line="31" column="18" bodyfile="Manifest.h" bodystart="31" bodyend="-1"/>
+        <referencedby refid="namespacecast_1a759a1a85432ec8a895a0f0b88db4fc50" compoundref="_constraints_8cpp" startline="204" endline="229">cast::applyConstraintToTable</referencedby>
+        <referencedby refid="namespacecast_1a336faaec3c7c5251e03a86c36e4edd50" compoundref="_manifest_8cpp" startline="124" endline="147">cast::processConstraints</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="structcast_1_1_constraint_entry_1a5892568f5c84a7e3b56fc74582f1fa6b" prot="public" static="no" mutable="no">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>juce::String cast::ConstraintEntry::predicate</definition>
+        <argsstring></argsstring>
+        <name>predicate</name>
+        <qualifiedname>cast::ConstraintEntry::predicate</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Manifest.h" line="32" column="18" bodyfile="Manifest.h" bodystart="32" bodyend="-1"/>
+        <referencedby refid="namespacecast_1a336faaec3c7c5251e03a86c36e4edd50" compoundref="_manifest_8cpp" startline="124" endline="147">cast::processConstraints</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>cast::ConstraintEntry</label>
+        <link refid="structcast_1_1_constraint_entry"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>columnName</edgelabel>
+          <edgelabel>predicate</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::String</label>
+        <link refid="classjuce_1_1String" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml"/>
+      </node>
+    </collaborationgraph>
+    <location file="Manifest.h" line="29" column="1" bodyfile="Manifest.h" bodystart="30" bodyend="33"/>
+    <listofallmembers>
+      <member refid="structcast_1_1_constraint_entry_1aa9392c2a549a9a5ead9d61de23926fe0" prot="public" virt="non-virtual"><scope>cast::ConstraintEntry</scope><name>columnName</name></member>
+      <member refid="structcast_1_1_constraint_entry_1a5892568f5c84a7e3b56fc74582f1fa6b" prot="public" virt="non-virtual"><scope>cast::ConstraintEntry</scope><name>predicate</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
+  <compounddef id="structcast_1_1_template_engine" kind="struct" language="C++" prot="public">
+    <compoundname>cast::TemplateEngine</compoundname>
+    <includes refid="_template_8h" local="no">Template.h</includes>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="structcast_1_1_template_engine_1ae640df68b4e8802ff8f2ac0220b10820" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
+        <definition>juce::Result cast::TemplateEngine::expand</definition>
+        <argsstring>(const juce::File &amp;templateFile, const SubstitutionMap &amp;values, juce::String &amp;output)</argsstring>
+        <name>expand</name>
+        <qualifiedname>cast::TemplateEngine::expand</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref> &amp;</type>
+          <declname>templateFile</declname>
+        </param>
+        <param>
+          <type>const <ref refid="namespacecast_1a54f69242eb732ad6931adc8a6ba9874c" kindref="member">SubstitutionMap</ref> &amp;</type>
+          <declname>values</declname>
+        </param>
+        <param>
+          <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>output</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Template.h" line="12" column="25" bodyfile="Template.cpp" bodystart="25" bodyend="64"/>
+        <references refid="classjuce_1_1File_1a37e88fbc390d78f3d79675974f53fa78">juce::File::existsAsFile</references>
+        <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
+        <references refid="classjuce_1_1File_1a515fa016b189068f365cc875e241e2a1">juce::File::getFullPathName</references>
+        <references refid="namespacecast_1a2a057440a5d9ad3452af58ab4f1db45b" compoundref="_template_8cpp" startline="6" endline="23">cast::getHoleValue</references>
+        <references refid="classjuce_1_1File_1aa65d2fa50370357bf93658d6447c296d">juce::File::loadFileAsString</references>
+        <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
+        <references refid="classjuce_1_1String_1aa1dfa74ae0ecc9150a311bb257e43bd1">juce::String::replace</references>
+        <referencedby refid="namespacecast_1affc85748c092c842d2b3459dc6909193" compoundref="_driver_8cpp" startline="66" endline="101">cast::expandFragments</referencedby>
+        <referencedby refid="namespacecast_1ae4eeae32e7c7c3da316b37de2215d8b5" compoundref="_driver_8cpp" startline="117" endline="139">cast::renderOutput</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="Template.h" line="10" column="1" bodyfile="Template.h" bodystart="11" bodyend="15"/>
+    <listofallmembers>
+      <member refid="structcast_1_1_template_engine_1ae640df68b4e8802ff8f2ac0220b10820" prot="public" virt="non-virtual"><scope>cast::TemplateEngine</scope><name>expand</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

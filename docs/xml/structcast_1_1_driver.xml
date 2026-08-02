@@ -1,0 +1,81 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
+  <compounddef id="structcast_1_1_driver" kind="struct" language="C++" prot="public">
+    <compoundname>cast::Driver</compoundname>
+    <includes refid="_driver_8h" local="no">Driver.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structcast_1_1_driver_1a1326abb5a9702be0b74f2af775cbcdaf" prot="public" static="no" mutable="no">
+        <type><ref refid="classjam_1_1Array" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Array</ref>&lt; <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &gt;</type>
+        <definition>jam::Array&lt;juce::String&gt; cast::Driver::configureDepends</definition>
+        <argsstring></argsstring>
+        <name>configureDepends</name>
+        <qualifiedname>cast::Driver::configureDepends</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Driver.h" line="9" column="16" bodyfile="Driver.h" bodystart="9" bodyend="-1"/>
+        <referencedby refid="structcast_1_1_driver_1aefe9920e54c929e07422fa05e9c7e9df" compoundref="_driver_8cpp" startline="161" endline="189">run</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structcast_1_1_driver_1aefe9920e54c929e07422fa05e9c7e9df" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
+        <definition>juce::Result cast::Driver::run</definition>
+        <argsstring>(const juce::File &amp;manifestFile, const juce::String &amp;outputFilter={})</argsstring>
+        <name>run</name>
+        <qualifiedname>cast::Driver::run</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref> &amp;</type>
+          <declname>manifestFile</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>outputFilter</declname>
+          <defval>{}</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Driver.h" line="11" column="18" bodyfile="Driver.cpp" bodystart="161" bodyend="189"/>
+        <references refid="structcast_1_1_driver_1a1326abb5a9702be0b74f2af775cbcdaf" compoundref="_driver_8h" startline="9">configureDepends</references>
+        <references refid="structcast_1_1_manifest_1a2d65b99803729bd762e4e5426af24553" compoundref="_manifest_8h" startline="41">cast::Manifest::configureDepends</references>
+        <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
+        <references refid="classjuce_1_1File_1a515fa016b189068f365cc875e241e2a1">juce::File::getFullPathName</references>
+        <references refid="classjuce_1_1File_1ab6bec65fbcf19ce10e38cf9d1015770d">juce::File::getParentDirectory</references>
+        <references refid="classjuce_1_1String_1af5084463343819f82187154ccb62ea3a">juce::String::isNotEmpty</references>
+        <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
+        <references refid="structcast_1_1_manifest_1a383004022b128a892b474d135ee7af50" compoundref="_manifest_8h" startline="37">cast::Manifest::outputs</references>
+        <references refid="structcast_1_1_manifest_1a79904e55960a3ae32d0dcbb63f1f3071" compoundref="_manifest_8cpp" startline="237" endline="258">cast::Manifest::parse</references>
+        <references refid="namespacecast_1ada0bb3ffc05f77a1168fc1b1b2cf8d71" compoundref="_driver_8cpp" startline="141" endline="159">cast::processOutput</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>cast::Driver</label>
+        <link refid="structcast_1_1_driver"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>configureDepends</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>jam::Array&lt; juce::String &gt;</label>
+        <link refid="classjam_1_1Array" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+      </node>
+    </collaborationgraph>
+    <location file="Driver.h" line="7" column="1" bodyfile="Driver.h" bodystart="8" bodyend="12"/>
+    <listofallmembers>
+      <member refid="structcast_1_1_driver_1a1326abb5a9702be0b74f2af775cbcdaf" prot="public" virt="non-virtual"><scope>cast::Driver</scope><name>configureDepends</name></member>
+      <member refid="structcast_1_1_driver_1aefe9920e54c929e07422fa05e9c7e9df" prot="public" virt="non-virtual"><scope>cast::Driver</scope><name>run</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>
