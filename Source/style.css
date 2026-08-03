@@ -24,6 +24,7 @@
     --cyan: #00FFFF;
     --magenta: #FF00FF;
     --yellow: #FFFF00;
+    --black: #121212;
 }
 
 .appearance {
@@ -51,4 +52,5 @@
     --Markdown--syntaxStringColourId: var(--magenta);
     --Markdown--tableHeaderColourId: var(--yellow);
     --Markdown--syntaxNumberColourId: var(--yellow);
+    --Markdown--codeBackgroundColourId: var(--black);
 }

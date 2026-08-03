@@ -12,7 +12,7 @@ This text is the contract for the `cast` binary. It is also the binary's help pa
 CAST is a dumb engine over three tracked artifact kinds — the single source of truth:
 
 1. **Relations** — GFM tables in markdown files. Rows are tuples, columns are attributes.
-2. **Templates** — opaque text with exactly one construct: `${hole}`.
+2. **Templates** — opaque text with exactly one construct: `@hole@`.
 3. **Manifest** — `CAST.md`, one per framework or product project. The manifest is the
    invocation: argv selects, never defines.
 
@@ -25,6 +25,9 @@ domain knowledge. Engine semantics: **select → project → join**.
 
 - Any `## section` heading followed by a GFM table is a relation named by the heading.
 - Rows are tuples; columns are attributes; shape is free per table.
+- The first column is the row key: a lookup addressing a row by value matches against
+  column 0. Key uniqueness is the author's contract for keyed access; enumeration
+  (projection, whole-column predicates) is position-based and needs no key.
 - Cells flatten to plain strings. Code spans (backticks) unwrap to their content.
 - **Hazard rule (FATAL):** any cell containing `<`, `>`, or a URI scheme outside a code
   span is an error. Wrap such content in backticks.
@@ -33,7 +36,7 @@ domain knowledge. Engine semantics: **select → project → join**.
 
 ## 3. Templates
 
-- Opaque bytes plus one construct: `${hole}`. No conditionals, no loops, no expressions.
+- Opaque bytes plus one construct: `@hole@`. No conditionals, no loops, no expressions.
 - A hole is **scalar** (one cell or one manifest value) or **aggregate** (a table
   projected through fragment templates in authored row order). The manifest decides
   which; the template grammar never grows a second construct.
@@ -89,7 +92,8 @@ The configure-dependency list is derived from the manifest — never hand-mainta
 1. `matches <regex>` — cell matches the pattern.
 2. `unique` — column uniqueness; scope is the declared column set (single table or
    shared registry across tables).
-3. `existsIn <table>.<column>` — FK: cell value exists in the referenced column.
+3. `existsIn <table>.<column>` — FK: cell value keys a row in the referenced table.
+   `<column>` names the target table's key (column 0); resolution is keyed access.
 4. `oneOf a|b|c` — cell is in the closed value set (empty cell permitted when listed).
 5. `range` — numeric cell within the row's declared min/max columns.
 6. `parity <table>.<column>` — key-set equality across tables (e.g. localisation
@@ -100,7 +104,7 @@ The configure-dependency list is derived from the manifest — never hand-mainta
 ## 8. Failure
 
 Every failure is FATAL with a non-zero exit, before any output is written, naming
-`file:row:col` and the rule:
+`file:row (column)` and the rule:
 
     float row 1 (preamp gain): default outside [min, max]
 
@@ -114,6 +118,7 @@ A failing configure run stops before any TU compiles.
   argv never defines behavior).
 - `cast --version` — version + source commit; the same stamp appears in generated
   file banners.
+- `cast --help` — banner + this specification, exit 0.
 - No `CAST.md` found — print this specification and exit non-zero.
 
 ## 10. Integration contract

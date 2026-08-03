@@ -16,8 +16,8 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Manifest.h" line="16" column="18" bodyfile="Manifest.h" bodystart="16" bodyend="-1"/>
-        <referencedby refid="namespacecast_1a352a55ebf31d2c10ae440f34c732fed8" compoundref="_manifest_8cpp" startline="65" endline="91">cast::processDispatch</referencedby>
+        <location file="Manifest.h" line="21" column="18" bodyfile="Manifest.h" bodystart="21" bodyend="-1"/>
+        <referencedby refid="namespacecast_1a810323c94e7b805d0ddeb0a59e7f99e6" compoundref="_manifest_8h" startline="64" endline="87">cast::parseDispatchEntries</referencedby>
       </memberdef>
       <memberdef kind="variable" id="structcast_1_1_dispatch_entry_1ad54eff46c7af820265147f21bae872aa" prot="public" static="no" mutable="no">
         <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
@@ -31,9 +31,9 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Manifest.h" line="17" column="18" bodyfile="Manifest.h" bodystart="17" bodyend="-1"/>
-        <referencedby refid="namespacecast_1a352a55ebf31d2c10ae440f34c732fed8" compoundref="_manifest_8cpp" startline="65" endline="91">cast::processDispatch</referencedby>
-        <referencedby refid="namespacecast_1a4cd1a5c43c1541d767a9f107f8204ca0" compoundref="_driver_8cpp" startline="49" endline="64">cast::rowMatchesDispatch</referencedby>
+        <location file="Manifest.h" line="22" column="18" bodyfile="Manifest.h" bodystart="22" bodyend="-1"/>
+        <referencedby refid="namespacecast_1a810323c94e7b805d0ddeb0a59e7f99e6" compoundref="_manifest_8h" startline="64" endline="87">cast::parseDispatchEntries</referencedby>
+        <referencedby refid="namespacecast_1adda64e57fb89e2e4cb44268b7f1b011b" compoundref="_driver_8h" startline="53" endline="59">cast::rowMatchesDispatch</referencedby>
       </memberdef>
       <memberdef kind="variable" id="structcast_1_1_dispatch_entry_1a34f15a6a26fc203926f47f80d0cb9827" prot="public" static="no" mutable="no">
         <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
@@ -47,9 +47,9 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Manifest.h" line="18" column="18" bodyfile="Manifest.h" bodystart="18" bodyend="-1"/>
-        <referencedby refid="namespacecast_1a352a55ebf31d2c10ae440f34c732fed8" compoundref="_manifest_8cpp" startline="65" endline="91">cast::processDispatch</referencedby>
-        <referencedby refid="namespacecast_1a4cd1a5c43c1541d767a9f107f8204ca0" compoundref="_driver_8cpp" startline="49" endline="64">cast::rowMatchesDispatch</referencedby>
+        <location file="Manifest.h" line="23" column="18" bodyfile="Manifest.h" bodystart="23" bodyend="-1"/>
+        <referencedby refid="namespacecast_1a810323c94e7b805d0ddeb0a59e7f99e6" compoundref="_manifest_8h" startline="64" endline="87">cast::parseDispatchEntries</referencedby>
+        <referencedby refid="namespacecast_1adda64e57fb89e2e4cb44268b7f1b011b" compoundref="_driver_8h" startline="53" endline="59">cast::rowMatchesDispatch</referencedby>
       </memberdef>
       <memberdef kind="variable" id="structcast_1_1_dispatch_entry_1afac636e15b56f3ddac744cc1a09a1756" prot="public" static="no" mutable="no">
         <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
@@ -63,8 +63,8 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Manifest.h" line="19" column="18" bodyfile="Manifest.h" bodystart="19" bodyend="-1"/>
-        <referencedby refid="namespacecast_1a352a55ebf31d2c10ae440f34c732fed8" compoundref="_manifest_8cpp" startline="65" endline="91">cast::processDispatch</referencedby>
+        <location file="Manifest.h" line="24" column="18" bodyfile="Manifest.h" bodystart="24" bodyend="-1"/>
+        <referencedby refid="namespacecast_1a810323c94e7b805d0ddeb0a59e7f99e6" compoundref="_manifest_8h" startline="64" endline="87">cast::parseDispatchEntries</referencedby>
       </memberdef>
       <memberdef kind="variable" id="structcast_1_1_dispatch_entry_1aad472450822f9eb0a16cbb679d41d24e" prot="public" static="no" mutable="no">
         <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
@@ -78,8 +78,8 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Manifest.h" line="20" column="18" bodyfile="Manifest.h" bodystart="20" bodyend="-1"/>
-        <referencedby refid="namespacecast_1a352a55ebf31d2c10ae440f34c732fed8" compoundref="_manifest_8cpp" startline="65" endline="91">cast::processDispatch</referencedby>
+        <location file="Manifest.h" line="25" column="18" bodyfile="Manifest.h" bodystart="25" bodyend="-1"/>
+        <referencedby refid="namespacecast_1a810323c94e7b805d0ddeb0a59e7f99e6" compoundref="_manifest_8h" startline="64" endline="87">cast::parseDispatchEntries</referencedby>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -103,7 +103,7 @@
         <link refid="classjuce_1_1String" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml"/>
       </node>
     </collaborationgraph>
-    <location file="Manifest.h" line="14" column="1" bodyfile="Manifest.h" bodystart="15" bodyend="21"/>
+    <location file="Manifest.h" line="19" column="1" bodyfile="Manifest.h" bodystart="20" bodyend="26"/>
     <listofallmembers>
       <member refid="structcast_1_1_dispatch_entry_1ad54eff46c7af820265147f21bae872aa" prot="public" virt="non-virtual"><scope>cast::DispatchEntry</scope><name>columnName</name></member>
       <member refid="structcast_1_1_dispatch_entry_1afac636e15b56f3ddac744cc1a09a1756" prot="public" virt="non-virtual"><scope>cast::DispatchEntry</scope><name>fragmentPath</name></member>

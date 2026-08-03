@@ -16,11 +16,9 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Manifest.h" line="37" column="19" bodyfile="Manifest.h" bodystart="37" bodyend="-1"/>
-        <referencedby refid="namespacecast_1a6e26f26c9255dde7e434225c9f7f44a5" compoundref="_manifest_8cpp" startline="173" endline="188">cast::buildConfigureDepends</referencedby>
-        <referencedby refid="namespacecast_1ab2a6fe94c4cf573ae90526f622dadb1a" compoundref="_manifest_8cpp" startline="39" endline="63">cast::processOutputs</referencedby>
-        <referencedby refid="structcast_1_1_driver_1aefe9920e54c929e07422fa05e9c7e9df" compoundref="_driver_8cpp" startline="161" endline="189">cast::Driver::run</referencedby>
-        <referencedby refid="namespacecast_1a0a77a0fbd43b633df60a0467d4d58741" compoundref="_manifest_8cpp" startline="190" endline="235">cast::validateManifest</referencedby>
+        <location file="Manifest.h" line="136" column="20" bodyfile="Manifest.h" bodystart="136" bodyend="-1"/>
+        <referencedby refid="structcast_1_1_manifest_1a246728a500ebd33ad078cb53f8f9888c" compoundref="_manifest_8h" startline="142" endline="199">parse</referencedby>
+        <referencedby refid="structcast_1_1_manifest_1a3949cad8dacb0e46161144dfb4a404a8" compoundref="_manifest_8h" startline="201" endline="249">validateManifest</referencedby>
       </memberdef>
       <memberdef kind="variable" id="structcast_1_1_manifest_1ac8f4985e72e8d48e6b957f7ac701d10d" prot="public" static="no" mutable="no">
         <type><ref refid="classjam_1_1Array" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Array</ref>&lt; <ref refid="structcast_1_1_dispatch_entry" kindref="compound">DispatchEntry</ref> &gt;</type>
@@ -34,11 +32,9 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Manifest.h" line="38" column="17" bodyfile="Manifest.h" bodystart="38" bodyend="-1"/>
-        <referencedby refid="namespacecast_1a6e26f26c9255dde7e434225c9f7f44a5" compoundref="_manifest_8cpp" startline="173" endline="188">cast::buildConfigureDepends</referencedby>
-        <referencedby refid="namespacecast_1affc85748c092c842d2b3459dc6909193" compoundref="_driver_8cpp" startline="66" endline="101">cast::expandFragments</referencedby>
-        <referencedby refid="namespacecast_1a352a55ebf31d2c10ae440f34c732fed8" compoundref="_manifest_8cpp" startline="65" endline="91">cast::processDispatch</referencedby>
-        <referencedby refid="namespacecast_1a0a77a0fbd43b633df60a0467d4d58741" compoundref="_manifest_8cpp" startline="190" endline="235">cast::validateManifest</referencedby>
+        <location file="Manifest.h" line="137" column="18" bodyfile="Manifest.h" bodystart="137" bodyend="-1"/>
+        <referencedby refid="structcast_1_1_manifest_1a246728a500ebd33ad078cb53f8f9888c" compoundref="_manifest_8h" startline="142" endline="199">parse</referencedby>
+        <referencedby refid="structcast_1_1_manifest_1a3949cad8dacb0e46161144dfb4a404a8" compoundref="_manifest_8h" startline="201" endline="249">validateManifest</referencedby>
       </memberdef>
       <memberdef kind="variable" id="structcast_1_1_manifest_1ad31ec1e7c228a496150e33478f4df2ee" prot="public" static="no" mutable="no">
         <type><ref refid="classjam_1_1Array" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Array</ref>&lt; <ref refid="structcast_1_1_transform_entry" kindref="compound">TransformEntry</ref> &gt;</type>
@@ -52,9 +48,9 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Manifest.h" line="39" column="16" bodyfile="Manifest.h" bodystart="39" bodyend="-1"/>
-        <referencedby refid="namespacecast_1affc85748c092c842d2b3459dc6909193" compoundref="_driver_8cpp" startline="66" endline="101">cast::expandFragments</referencedby>
-        <referencedby refid="namespacecast_1a891f9a8788c680e208a98771b3de5731" compoundref="_manifest_8cpp" startline="93" endline="122">cast::processTransforms</referencedby>
+        <location file="Manifest.h" line="138" column="17" bodyfile="Manifest.h" bodystart="138" bodyend="-1"/>
+        <referencedby refid="structcast_1_1_manifest_1a246728a500ebd33ad078cb53f8f9888c" compoundref="_manifest_8h" startline="142" endline="199">parse</referencedby>
+        <referencedby refid="structcast_1_1_manifest_1a3949cad8dacb0e46161144dfb4a404a8" compoundref="_manifest_8h" startline="201" endline="249">validateManifest</referencedby>
       </memberdef>
       <memberdef kind="variable" id="structcast_1_1_manifest_1a69fb46287552c3e10f9b0976161df617" prot="public" static="no" mutable="no">
         <type><ref refid="classjam_1_1Array" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Array</ref>&lt; <ref refid="structcast_1_1_constraint_entry" kindref="compound">ConstraintEntry</ref> &gt;</type>
@@ -68,9 +64,8 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Manifest.h" line="40" column="16" bodyfile="Manifest.h" bodystart="40" bodyend="-1"/>
-        <referencedby refid="namespacecast_1a336faaec3c7c5251e03a86c36e4edd50" compoundref="_manifest_8cpp" startline="124" endline="147">cast::processConstraints</referencedby>
-        <referencedby refid="namespacecast_1ada0bb3ffc05f77a1168fc1b1b2cf8d71" compoundref="_driver_8cpp" startline="141" endline="159">cast::processOutput</referencedby>
+        <location file="Manifest.h" line="139" column="16" bodyfile="Manifest.h" bodystart="139" bodyend="-1"/>
+        <referencedby refid="structcast_1_1_manifest_1a246728a500ebd33ad078cb53f8f9888c" compoundref="_manifest_8h" startline="142" endline="199">parse</referencedby>
       </memberdef>
       <memberdef kind="variable" id="structcast_1_1_manifest_1a2d65b99803729bd762e4e5426af24553" prot="public" static="no" mutable="no">
         <type><ref refid="classjam_1_1Array" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Array</ref>&lt; <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &gt;</type>
@@ -84,24 +79,57 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Manifest.h" line="41" column="18" bodyfile="Manifest.h" bodystart="41" bodyend="-1"/>
-        <referencedby refid="namespacecast_1a6e26f26c9255dde7e434225c9f7f44a5" compoundref="_manifest_8cpp" startline="173" endline="188">cast::buildConfigureDepends</referencedby>
-        <referencedby refid="structcast_1_1_driver_1aefe9920e54c929e07422fa05e9c7e9df" compoundref="_driver_8cpp" startline="161" endline="189">cast::Driver::run</referencedby>
+        <location file="Manifest.h" line="140" column="19" bodyfile="Manifest.h" bodystart="140" bodyend="-1"/>
+        <referencedby refid="structcast_1_1_manifest_1a246728a500ebd33ad078cb53f8f9888c" compoundref="_manifest_8h" startline="142" endline="199">parse</referencedby>
       </memberdef>
     </sectiondef>
     <sectiondef kind="public-static-func">
-      <memberdef kind="function" id="structcast_1_1_manifest_1a79904e55960a3ae32d0dcbb63f1f3071" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
-        <definition>juce::Result cast::Manifest::parse</definition>
-        <argsstring>(const juce::File &amp;castFile, Manifest &amp;result)</argsstring>
+      <memberdef kind="function" id="structcast_1_1_manifest_1a246728a500ebd33ad078cb53f8f9888c" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="structcast_1_1_manifest" kindref="compound">Manifest</ref></type>
+        <definition>static Manifest cast::Manifest::parse</definition>
+        <argsstring>(const juce::File &amp;castFile)</argsstring>
         <name>parse</name>
         <qualifiedname>cast::Manifest::parse</qualifiedname>
         <param>
           <type>const <ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref> &amp;</type>
           <declname>castFile</declname>
         </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Manifest.h" line="142" column="21" bodyfile="Manifest.h" bodystart="142" bodyend="199"/>
+        <references refid="classjam_1_1Array_1a056773d314babbb130f136a544a1b3e7">jam::Array&lt; typename ElementType &gt;::add</references>
+        <references refid="structjam_1_1Function_1_1Map_1a4c5333e037712bf4fbed00a9d1dcaf34">jam::Function::Map&lt; typename KeyType, typename ReturnType &gt;::add</references>
+        <references refid="structcast_1_1_manifest_1a2d65b99803729bd762e4e5426af24553" compoundref="_manifest_8h" startline="140">configureDepends</references>
+        <references refid="structcast_1_1_manifest_1a69fb46287552c3e10f9b0976161df617" compoundref="_manifest_8h" startline="139">constraints</references>
+        <references refid="structcast_1_1_manifest_1ac8f4985e72e8d48e6b957f7ac701d10d" compoundref="_manifest_8h" startline="137">dispatches</references>
+        <references refid="classjuce_1_1File_1a515fa016b189068f365cc875e241e2a1">juce::File::getFullPathName</references>
+        <references refid="classjuce_1_1File_1ab6bec65fbcf19ce10e38cf9d1015770d">juce::File::getParentDirectory</references>
+        <references refid="namespacecast_1ab47bf956929596367120b1f17784e2bd" compoundref="_relations_8h" startline="16" endline="40">cast::getRelationTables</references>
+        <references refid="classjuce_1_1File_1aa65d2fa50370357bf93658d6447c296d">juce::File::loadFileAsString</references>
+        <references refid="structcast_1_1_manifest_1a383004022b128a892b474d135ee7af50" compoundref="_manifest_8h" startline="136">outputs</references>
+        <references refid="structjam_1_1Markdown_1ad2eeadd77ac16749f86be26e4aa4858c">jam::Markdown::parse</references>
+        <references refid="namespacecast_1ad96a2e028b99b9506e063254ffb66432" compoundref="_manifest_8h" startline="112" endline="132">cast::parseConstraintEntries</references>
+        <references refid="namespacecast_1a810323c94e7b805d0ddeb0a59e7f99e6" compoundref="_manifest_8h" startline="64" endline="87">cast::parseDispatchEntries</references>
+        <references refid="namespacecast_1a7fb47de7e77e9d6ef20a775b71106d15" compoundref="_manifest_8h" startline="41" endline="62">cast::parseOutputEntries</references>
+        <references refid="namespacecast_1ab18763dd5b22eb4f5788ec5276815917" compoundref="_manifest_8h" startline="89" endline="110">cast::parseTransformEntries</references>
+        <references refid="structcast_1_1_manifest_1ad31ec1e7c228a496150e33478f4df2ee" compoundref="_manifest_8h" startline="138">transforms</references>
+      </memberdef>
+      <memberdef kind="function" id="structcast_1_1_manifest_1a3949cad8dacb0e46161144dfb4a404a8" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
+        <definition>static juce::Result cast::Manifest::validateManifest</definition>
+        <argsstring>(const juce::File &amp;castFile, const Manifest &amp;result)</argsstring>
+        <name>validateManifest</name>
+        <qualifiedname>cast::Manifest::validateManifest</qualifiedname>
         <param>
-          <type><ref refid="structcast_1_1_manifest" kindref="compound">Manifest</ref> &amp;</type>
+          <type>const <ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref> &amp;</type>
+          <declname>castFile</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structcast_1_1_manifest" kindref="compound">Manifest</ref> &amp;</type>
           <declname>result</declname>
         </param>
         <briefdescription>
@@ -110,16 +138,17 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Manifest.h" line="43" column="25" bodyfile="Manifest.cpp" bodystart="237" bodyend="258"/>
-        <references refid="namespacecast_1a6e26f26c9255dde7e434225c9f7f44a5" compoundref="_manifest_8cpp" startline="173" endline="188">cast::buildConfigureDepends</references>
-        <references refid="namespacecast_1a7c826b682e8e02a1af14edb003cf61dc" compoundref="_cells_8h" startline="64" endline="90">cast::extractSections</references>
+        <location file="Manifest.h" line="201" column="25" bodyfile="Manifest.h" bodystart="201" bodyend="249"/>
+        <references refid="structcast_1_1_manifest_1ac8f4985e72e8d48e6b957f7ac701d10d" compoundref="_manifest_8h" startline="137">dispatches</references>
+        <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
         <references refid="classjuce_1_1File_1a515fa016b189068f365cc875e241e2a1">juce::File::getFullPathName</references>
-        <references refid="classjuce_1_1File_1aa65d2fa50370357bf93658d6447c296d">juce::File::loadFileAsString</references>
+        <references refid="classjuce_1_1File_1ab6bec65fbcf19ce10e38cf9d1015770d">juce::File::getParentDirectory</references>
+        <references refid="namespacecast_1ab47bf956929596367120b1f17784e2bd" compoundref="_relations_8h" startline="16" endline="40">cast::getRelationTables</references>
+        <references refid="namespacecast_1a0c80ccc6fd84a9a6085867912471ba3d" compoundref="_relations_8h" startline="71" endline="74">cast::location</references>
         <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
+        <references refid="structcast_1_1_manifest_1a383004022b128a892b474d135ee7af50" compoundref="_manifest_8h" startline="136">outputs</references>
         <references refid="structjam_1_1Markdown_1ad2eeadd77ac16749f86be26e4aa4858c">jam::Markdown::parse</references>
-        <references refid="namespacecast_1a9453583ee198134499c4c056fc425562" compoundref="_manifest_8cpp" startline="159" endline="171">cast::processSection</references>
-        <references refid="namespacecast_1a0a77a0fbd43b633df60a0467d4d58741" compoundref="_manifest_8cpp" startline="190" endline="235">cast::validateManifest</references>
-        <referencedby refid="structcast_1_1_driver_1aefe9920e54c929e07422fa05e9c7e9df" compoundref="_driver_8cpp" startline="161" endline="189">cast::Driver::run</referencedby>
+        <references refid="structcast_1_1_manifest_1ad31ec1e7c228a496150e33478f4df2ee" compoundref="_manifest_8h" startline="138">transforms</references>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -167,14 +196,15 @@
         <link refid="classjam_1_1Array" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
       </node>
     </collaborationgraph>
-    <location file="Manifest.h" line="35" column="1" bodyfile="Manifest.h" bodystart="36" bodyend="44"/>
+    <location file="Manifest.h" line="134" column="1" bodyfile="Manifest.h" bodystart="135" bodyend="250"/>
     <listofallmembers>
       <member refid="structcast_1_1_manifest_1a2d65b99803729bd762e4e5426af24553" prot="public" virt="non-virtual"><scope>cast::Manifest</scope><name>configureDepends</name></member>
       <member refid="structcast_1_1_manifest_1a69fb46287552c3e10f9b0976161df617" prot="public" virt="non-virtual"><scope>cast::Manifest</scope><name>constraints</name></member>
       <member refid="structcast_1_1_manifest_1ac8f4985e72e8d48e6b957f7ac701d10d" prot="public" virt="non-virtual"><scope>cast::Manifest</scope><name>dispatches</name></member>
       <member refid="structcast_1_1_manifest_1a383004022b128a892b474d135ee7af50" prot="public" virt="non-virtual"><scope>cast::Manifest</scope><name>outputs</name></member>
-      <member refid="structcast_1_1_manifest_1a79904e55960a3ae32d0dcbb63f1f3071" prot="public" virt="non-virtual"><scope>cast::Manifest</scope><name>parse</name></member>
+      <member refid="structcast_1_1_manifest_1a246728a500ebd33ad078cb53f8f9888c" prot="public" virt="non-virtual"><scope>cast::Manifest</scope><name>parse</name></member>
       <member refid="structcast_1_1_manifest_1ad31ec1e7c228a496150e33478f4df2ee" prot="public" virt="non-virtual"><scope>cast::Manifest</scope><name>transforms</name></member>
+      <member refid="structcast_1_1_manifest_1a3949cad8dacb0e46161144dfb4a404a8" prot="public" virt="non-virtual"><scope>cast::Manifest</scope><name>validateManifest</name></member>
     </listofallmembers>
   </compounddef>
 </doxygen>

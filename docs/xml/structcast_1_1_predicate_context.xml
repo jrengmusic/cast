@@ -2,6 +2,7 @@
 <doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
   <compounddef id="structcast_1_1_predicate_context" kind="struct" language="C++" prot="public">
     <compoundname>cast::PredicateContext</compoundname>
+    <includes refid="_constraints_8h" local="no">Constraints.h</includes>
     <sectiondef kind="public-attrib">
       <memberdef kind="variable" id="structcast_1_1_predicate_context_1a70830c45b9aa201d932ed27b91541459" prot="public" static="no" mutable="no">
         <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
@@ -15,12 +16,12 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Constraints.cpp" line="12" column="62" bodyfile="Constraints.cpp" bodystart="12" bodyend="-1"/>
-        <referencedby refid="namespacecast_1aad7a85a26733279c975c5d958f10f7db" compoundref="_constraints_8cpp" startline="60" endline="79">cast::predicateExistsIn</referencedby>
-        <referencedby refid="namespacecast_1aaf9ff734b2823a6d4b627647d3a4d9a5" compoundref="_constraints_8cpp" startline="154" endline="162">cast::predicateFileExists</referencedby>
-        <referencedby refid="namespacecast_1ab0b4b3a226152df0dc24636f8498837d" compoundref="_constraints_8cpp" startline="35" endline="43">cast::predicateMatches</referencedby>
-        <referencedby refid="namespacecast_1a5362debd352290f94634061bc8e23e55" compoundref="_constraints_8cpp" startline="81" endline="89">cast::predicateOneOf</referencedby>
-        <referencedby refid="namespacecast_1acff023defeba748f6d11c9f23473883d" compoundref="_constraints_8cpp" startline="91" endline="108">cast::predicateRange</referencedby>
+        <location file="Constraints.h" line="12" column="62" bodyfile="Constraints.h" bodystart="12" bodyend="-1"/>
+        <referencedby refid="namespacecast_1aad7a85a26733279c975c5d958f10f7db" compoundref="_constraints_8h" startline="68" endline="84">cast::predicateExistsIn</referencedby>
+        <referencedby refid="namespacecast_1aaf9ff734b2823a6d4b627647d3a4d9a5" compoundref="_constraints_8h" startline="167" endline="174">cast::predicateFileExists</referencedby>
+        <referencedby refid="namespacecast_1ab0b4b3a226152df0dc24636f8498837d" compoundref="_constraints_8h" startline="41" endline="48">cast::predicateMatches</referencedby>
+        <referencedby refid="namespacecast_1a5362debd352290f94634061bc8e23e55" compoundref="_constraints_8h" startline="86" endline="93">cast::predicateOneOf</referencedby>
+        <referencedby refid="namespacecast_1acff023defeba748f6d11c9f23473883d" compoundref="_constraints_8h" startline="95" endline="110">cast::predicateRange</referencedby>
       </memberdef>
       <memberdef kind="variable" id="structcast_1_1_predicate_context_1ab763d117dfb0dbe744e4ae75aa3cc0f8" prot="public" static="no" mutable="no">
         <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
@@ -34,14 +35,14 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Constraints.cpp" line="13" column="62" bodyfile="Constraints.cpp" bodystart="13" bodyend="-1"/>
-        <referencedby refid="namespacecast_1aad7a85a26733279c975c5d958f10f7db" compoundref="_constraints_8cpp" startline="60" endline="79">cast::predicateExistsIn</referencedby>
-        <referencedby refid="namespacecast_1aaf9ff734b2823a6d4b627647d3a4d9a5" compoundref="_constraints_8cpp" startline="154" endline="162">cast::predicateFileExists</referencedby>
-        <referencedby refid="namespacecast_1ab0b4b3a226152df0dc24636f8498837d" compoundref="_constraints_8cpp" startline="35" endline="43">cast::predicateMatches</referencedby>
-        <referencedby refid="namespacecast_1a5362debd352290f94634061bc8e23e55" compoundref="_constraints_8cpp" startline="81" endline="89">cast::predicateOneOf</referencedby>
-        <referencedby refid="namespacecast_1ac1d8a491644d9a1d7b74768a9f70d969" compoundref="_constraints_8cpp" startline="164" endline="186">cast::predicateOnePerGroup</referencedby>
-        <referencedby refid="namespacecast_1a98da53a21918af205d6c05a96a83fe95" compoundref="_constraints_8cpp" startline="123" endline="152">cast::predicateParity</referencedby>
-        <referencedby refid="namespacecast_1acff023defeba748f6d11c9f23473883d" compoundref="_constraints_8cpp" startline="91" endline="108">cast::predicateRange</referencedby>
+        <location file="Constraints.h" line="13" column="62" bodyfile="Constraints.h" bodystart="13" bodyend="-1"/>
+        <referencedby refid="namespacecast_1aad7a85a26733279c975c5d958f10f7db" compoundref="_constraints_8h" startline="68" endline="84">cast::predicateExistsIn</referencedby>
+        <referencedby refid="namespacecast_1aaf9ff734b2823a6d4b627647d3a4d9a5" compoundref="_constraints_8h" startline="167" endline="174">cast::predicateFileExists</referencedby>
+        <referencedby refid="namespacecast_1ab0b4b3a226152df0dc24636f8498837d" compoundref="_constraints_8h" startline="41" endline="48">cast::predicateMatches</referencedby>
+        <referencedby refid="namespacecast_1a5362debd352290f94634061bc8e23e55" compoundref="_constraints_8h" startline="86" endline="93">cast::predicateOneOf</referencedby>
+        <referencedby refid="namespacecast_1ac1d8a491644d9a1d7b74768a9f70d969" compoundref="_constraints_8h" startline="176" endline="206">cast::predicateOnePerGroup</referencedby>
+        <referencedby refid="namespacecast_1a98da53a21918af205d6c05a96a83fe95" compoundref="_constraints_8h" startline="128" endline="165">cast::predicateParity</referencedby>
+        <referencedby refid="namespacecast_1acff023defeba748f6d11c9f23473883d" compoundref="_constraints_8h" startline="95" endline="110">cast::predicateRange</referencedby>
       </memberdef>
       <memberdef kind="variable" id="structcast_1_1_predicate_context_1a3a4a8ad78546ed32633f0dcb4e0cf70f" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -55,12 +56,12 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Constraints.cpp" line="14" column="62" bodyfile="Constraints.cpp" bodystart="14" bodyend="-1"/>
-        <referencedby refid="namespacecast_1aad7a85a26733279c975c5d958f10f7db" compoundref="_constraints_8cpp" startline="60" endline="79">cast::predicateExistsIn</referencedby>
-        <referencedby refid="namespacecast_1aaf9ff734b2823a6d4b627647d3a4d9a5" compoundref="_constraints_8cpp" startline="154" endline="162">cast::predicateFileExists</referencedby>
-        <referencedby refid="namespacecast_1ab0b4b3a226152df0dc24636f8498837d" compoundref="_constraints_8cpp" startline="35" endline="43">cast::predicateMatches</referencedby>
-        <referencedby refid="namespacecast_1a5362debd352290f94634061bc8e23e55" compoundref="_constraints_8cpp" startline="81" endline="89">cast::predicateOneOf</referencedby>
-        <referencedby refid="namespacecast_1acff023defeba748f6d11c9f23473883d" compoundref="_constraints_8cpp" startline="91" endline="108">cast::predicateRange</referencedby>
+        <location file="Constraints.h" line="14" column="63" bodyfile="Constraints.h" bodystart="14" bodyend="-1"/>
+        <referencedby refid="namespacecast_1aad7a85a26733279c975c5d958f10f7db" compoundref="_constraints_8h" startline="68" endline="84">cast::predicateExistsIn</referencedby>
+        <referencedby refid="namespacecast_1aaf9ff734b2823a6d4b627647d3a4d9a5" compoundref="_constraints_8h" startline="167" endline="174">cast::predicateFileExists</referencedby>
+        <referencedby refid="namespacecast_1ab0b4b3a226152df0dc24636f8498837d" compoundref="_constraints_8h" startline="41" endline="48">cast::predicateMatches</referencedby>
+        <referencedby refid="namespacecast_1a5362debd352290f94634061bc8e23e55" compoundref="_constraints_8h" startline="86" endline="93">cast::predicateOneOf</referencedby>
+        <referencedby refid="namespacecast_1acff023defeba748f6d11c9f23473883d" compoundref="_constraints_8h" startline="95" endline="110">cast::predicateRange</referencedby>
       </memberdef>
       <memberdef kind="variable" id="structcast_1_1_predicate_context_1a92045fd9a41aab354fd57fb1b21846a7" prot="public" static="no" mutable="no">
         <type>int</type>
@@ -74,15 +75,15 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Constraints.cpp" line="15" column="62" bodyfile="Constraints.cpp" bodystart="15" bodyend="-1"/>
-        <referencedby refid="namespacecast_1aad7a85a26733279c975c5d958f10f7db" compoundref="_constraints_8cpp" startline="60" endline="79">cast::predicateExistsIn</referencedby>
-        <referencedby refid="namespacecast_1aaf9ff734b2823a6d4b627647d3a4d9a5" compoundref="_constraints_8cpp" startline="154" endline="162">cast::predicateFileExists</referencedby>
-        <referencedby refid="namespacecast_1ab0b4b3a226152df0dc24636f8498837d" compoundref="_constraints_8cpp" startline="35" endline="43">cast::predicateMatches</referencedby>
-        <referencedby refid="namespacecast_1a5362debd352290f94634061bc8e23e55" compoundref="_constraints_8cpp" startline="81" endline="89">cast::predicateOneOf</referencedby>
-        <referencedby refid="namespacecast_1ac1d8a491644d9a1d7b74768a9f70d969" compoundref="_constraints_8cpp" startline="164" endline="186">cast::predicateOnePerGroup</referencedby>
-        <referencedby refid="namespacecast_1a98da53a21918af205d6c05a96a83fe95" compoundref="_constraints_8cpp" startline="123" endline="152">cast::predicateParity</referencedby>
-        <referencedby refid="namespacecast_1acff023defeba748f6d11c9f23473883d" compoundref="_constraints_8cpp" startline="91" endline="108">cast::predicateRange</referencedby>
-        <referencedby refid="namespacecast_1a04bea41a8d44c50020b765e5778b1c94" compoundref="_constraints_8cpp" startline="45" endline="58">cast::predicateUnique</referencedby>
+        <location file="Constraints.h" line="15" column="63" bodyfile="Constraints.h" bodystart="15" bodyend="-1"/>
+        <referencedby refid="namespacecast_1aad7a85a26733279c975c5d958f10f7db" compoundref="_constraints_8h" startline="68" endline="84">cast::predicateExistsIn</referencedby>
+        <referencedby refid="namespacecast_1aaf9ff734b2823a6d4b627647d3a4d9a5" compoundref="_constraints_8h" startline="167" endline="174">cast::predicateFileExists</referencedby>
+        <referencedby refid="namespacecast_1ab0b4b3a226152df0dc24636f8498837d" compoundref="_constraints_8h" startline="41" endline="48">cast::predicateMatches</referencedby>
+        <referencedby refid="namespacecast_1a5362debd352290f94634061bc8e23e55" compoundref="_constraints_8h" startline="86" endline="93">cast::predicateOneOf</referencedby>
+        <referencedby refid="namespacecast_1ac1d8a491644d9a1d7b74768a9f70d969" compoundref="_constraints_8h" startline="176" endline="206">cast::predicateOnePerGroup</referencedby>
+        <referencedby refid="namespacecast_1a98da53a21918af205d6c05a96a83fe95" compoundref="_constraints_8h" startline="128" endline="165">cast::predicateParity</referencedby>
+        <referencedby refid="namespacecast_1acff023defeba748f6d11c9f23473883d" compoundref="_constraints_8h" startline="95" endline="110">cast::predicateRange</referencedby>
+        <referencedby refid="namespacecast_1a04bea41a8d44c50020b765e5778b1c94" compoundref="_constraints_8h" startline="50" endline="66">cast::predicateUnique</referencedby>
       </memberdef>
       <memberdef kind="variable" id="structcast_1_1_predicate_context_1a160c7622b2186ed9df7336bd48c1080a" prot="public" static="no" mutable="no">
         <type>const <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> &amp;</type>
@@ -96,11 +97,11 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Constraints.cpp" line="16" column="61" bodyfile="Constraints.cpp" bodystart="16" bodyend="-1"/>
-        <referencedby refid="namespacecast_1ac1d8a491644d9a1d7b74768a9f70d969" compoundref="_constraints_8cpp" startline="164" endline="186">cast::predicateOnePerGroup</referencedby>
-        <referencedby refid="namespacecast_1a98da53a21918af205d6c05a96a83fe95" compoundref="_constraints_8cpp" startline="123" endline="152">cast::predicateParity</referencedby>
-        <referencedby refid="namespacecast_1acff023defeba748f6d11c9f23473883d" compoundref="_constraints_8cpp" startline="91" endline="108">cast::predicateRange</referencedby>
-        <referencedby refid="namespacecast_1a04bea41a8d44c50020b765e5778b1c94" compoundref="_constraints_8cpp" startline="45" endline="58">cast::predicateUnique</referencedby>
+        <location file="Constraints.h" line="16" column="61" bodyfile="Constraints.h" bodystart="16" bodyend="-1"/>
+        <referencedby refid="namespacecast_1ac1d8a491644d9a1d7b74768a9f70d969" compoundref="_constraints_8h" startline="176" endline="206">cast::predicateOnePerGroup</referencedby>
+        <referencedby refid="namespacecast_1a98da53a21918af205d6c05a96a83fe95" compoundref="_constraints_8h" startline="128" endline="165">cast::predicateParity</referencedby>
+        <referencedby refid="namespacecast_1acff023defeba748f6d11c9f23473883d" compoundref="_constraints_8h" startline="95" endline="110">cast::predicateRange</referencedby>
+        <referencedby refid="namespacecast_1a04bea41a8d44c50020b765e5778b1c94" compoundref="_constraints_8h" startline="50" endline="66">cast::predicateUnique</referencedby>
       </memberdef>
       <memberdef kind="variable" id="structcast_1_1_predicate_context_1a552245efe7fc1a5124668902c37d1a09" prot="public" static="no" mutable="no">
         <type>const <ref refid="classjam_1_1HashMap" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::HashMap</ref>&lt; <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref>, const <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> * &gt; &amp;</type>
@@ -114,9 +115,23 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Constraints.cpp" line="17" column="24" bodyfile="Constraints.cpp" bodystart="17" bodyend="-1"/>
-        <referencedby refid="namespacecast_1aad7a85a26733279c975c5d958f10f7db" compoundref="_constraints_8cpp" startline="60" endline="79">cast::predicateExistsIn</referencedby>
-        <referencedby refid="namespacecast_1a98da53a21918af205d6c05a96a83fe95" compoundref="_constraints_8cpp" startline="123" endline="152">cast::predicateParity</referencedby>
+        <location file="Constraints.h" line="17" column="24" bodyfile="Constraints.h" bodystart="17" bodyend="-1"/>
+        <referencedby refid="namespacecast_1a98da53a21918af205d6c05a96a83fe95" compoundref="_constraints_8h" startline="128" endline="165">cast::predicateParity</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="structcast_1_1_predicate_context_1a83642aa11744d0dc352915a14ffe77d3" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjam_1_1HashMap" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::HashMap</ref>&lt; <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref>, const <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> * &gt; &amp;</type>
+        <definition>const jam::HashMap&lt;juce::String, const jam::Document*&gt;&amp; cast::PredicateContext::roots</definition>
+        <argsstring></argsstring>
+        <name>roots</name>
+        <qualifiedname>cast::PredicateContext::roots</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Constraints.h" line="18" column="24" bodyfile="Constraints.h" bodystart="18" bodyend="-1"/>
+        <referencedby refid="namespacecast_1aad7a85a26733279c975c5d958f10f7db" compoundref="_constraints_8h" startline="68" endline="84">cast::predicateExistsIn</referencedby>
       </memberdef>
       <memberdef kind="variable" id="structcast_1_1_predicate_context_1a5f0e7b5c94acf9a0a756955f1034b68b" prot="public" static="no" mutable="no">
         <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
@@ -130,15 +145,15 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Constraints.cpp" line="18" column="61" bodyfile="Constraints.cpp" bodystart="18" bodyend="-1"/>
-        <referencedby refid="namespacecast_1aad7a85a26733279c975c5d958f10f7db" compoundref="_constraints_8cpp" startline="60" endline="79">cast::predicateExistsIn</referencedby>
-        <referencedby refid="namespacecast_1aaf9ff734b2823a6d4b627647d3a4d9a5" compoundref="_constraints_8cpp" startline="154" endline="162">cast::predicateFileExists</referencedby>
-        <referencedby refid="namespacecast_1ab0b4b3a226152df0dc24636f8498837d" compoundref="_constraints_8cpp" startline="35" endline="43">cast::predicateMatches</referencedby>
-        <referencedby refid="namespacecast_1a5362debd352290f94634061bc8e23e55" compoundref="_constraints_8cpp" startline="81" endline="89">cast::predicateOneOf</referencedby>
-        <referencedby refid="namespacecast_1ac1d8a491644d9a1d7b74768a9f70d969" compoundref="_constraints_8cpp" startline="164" endline="186">cast::predicateOnePerGroup</referencedby>
-        <referencedby refid="namespacecast_1a98da53a21918af205d6c05a96a83fe95" compoundref="_constraints_8cpp" startline="123" endline="152">cast::predicateParity</referencedby>
-        <referencedby refid="namespacecast_1acff023defeba748f6d11c9f23473883d" compoundref="_constraints_8cpp" startline="91" endline="108">cast::predicateRange</referencedby>
-        <referencedby refid="namespacecast_1a04bea41a8d44c50020b765e5778b1c94" compoundref="_constraints_8cpp" startline="45" endline="58">cast::predicateUnique</referencedby>
+        <location file="Constraints.h" line="19" column="61" bodyfile="Constraints.h" bodystart="19" bodyend="-1"/>
+        <referencedby refid="namespacecast_1aad7a85a26733279c975c5d958f10f7db" compoundref="_constraints_8h" startline="68" endline="84">cast::predicateExistsIn</referencedby>
+        <referencedby refid="namespacecast_1aaf9ff734b2823a6d4b627647d3a4d9a5" compoundref="_constraints_8h" startline="167" endline="174">cast::predicateFileExists</referencedby>
+        <referencedby refid="namespacecast_1ab0b4b3a226152df0dc24636f8498837d" compoundref="_constraints_8h" startline="41" endline="48">cast::predicateMatches</referencedby>
+        <referencedby refid="namespacecast_1a5362debd352290f94634061bc8e23e55" compoundref="_constraints_8h" startline="86" endline="93">cast::predicateOneOf</referencedby>
+        <referencedby refid="namespacecast_1ac1d8a491644d9a1d7b74768a9f70d969" compoundref="_constraints_8h" startline="176" endline="206">cast::predicateOnePerGroup</referencedby>
+        <referencedby refid="namespacecast_1a98da53a21918af205d6c05a96a83fe95" compoundref="_constraints_8h" startline="128" endline="165">cast::predicateParity</referencedby>
+        <referencedby refid="namespacecast_1acff023defeba748f6d11c9f23473883d" compoundref="_constraints_8h" startline="95" endline="110">cast::predicateRange</referencedby>
+        <referencedby refid="namespacecast_1a04bea41a8d44c50020b765e5778b1c94" compoundref="_constraints_8h" startline="50" endline="66">cast::predicateUnique</referencedby>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -158,6 +173,7 @@
           <edgelabel>tableDoc</edgelabel>
         </childnode>
         <childnode refid="7" relation="usage">
+          <edgelabel>roots</edgelabel>
           <edgelabel>tables</edgelabel>
         </childnode>
       </node>
@@ -194,10 +210,11 @@
         <link refid="classjuce_1_1String" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml"/>
       </node>
     </collaborationgraph>
-    <location file="Constraints.cpp" line="10" column="1" bodyfile="Constraints.cpp" bodystart="11" bodyend="19"/>
+    <location file="Constraints.h" line="10" column="1" bodyfile="Constraints.h" bodystart="11" bodyend="20"/>
     <listofallmembers>
       <member refid="structcast_1_1_predicate_context_1ab763d117dfb0dbe744e4ae75aa3cc0f8" prot="public" virt="non-virtual"><scope>cast::PredicateContext</scope><name>args</name></member>
       <member refid="structcast_1_1_predicate_context_1a92045fd9a41aab354fd57fb1b21846a7" prot="public" virt="non-virtual"><scope>cast::PredicateContext</scope><name>columnIndex</name></member>
+      <member refid="structcast_1_1_predicate_context_1a83642aa11744d0dc352915a14ffe77d3" prot="public" virt="non-virtual"><scope>cast::PredicateContext</scope><name>roots</name></member>
       <member refid="structcast_1_1_predicate_context_1a3a4a8ad78546ed32633f0dcb4e0cf70f" prot="public" virt="non-virtual"><scope>cast::PredicateContext</scope><name>rowIndex</name></member>
       <member refid="structcast_1_1_predicate_context_1a5f0e7b5c94acf9a0a756955f1034b68b" prot="public" virt="non-virtual"><scope>cast::PredicateContext</scope><name>sourceFile</name></member>
       <member refid="structcast_1_1_predicate_context_1a160c7622b2186ed9df7336bd48c1080a" prot="public" virt="non-virtual"><scope>cast::PredicateContext</scope><name>tableDoc</name></member>

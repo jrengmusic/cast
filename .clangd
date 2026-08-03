@@ -1,33 +1,10 @@
 CompileFlags:
-  CompilationDatabase: /Users/jreng/Documents/Poems/dev/cast
-  Remove: [--target=*]
+  CompilationDatabase: /Users/jreng/Documents/Poems/dev/cast/Builds/Ninja/Debug/
+  Remove:
+    - -arch
+    - -mmacosx-version-min*
   Add:
-    - -DCAST_COMMIT=\"\"
-    - -DDEBUG=1
-    - -DDONT_SET_USING_JUCE_NAMESPACE=1
-    - -DJUCE_APPLICATION_NAME_STRING=\"cast\"
-    - -DJUCE_APPLICATION_VERSION_STRING=\"0.1.0\"
-    - -DJUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1
-    - -DJUCE_IN_APP_PURCHASES=0
-    - -DJUCE_MODULE_AVAILABLE_jam_core=1
-    - -DJUCE_MODULE_AVAILABLE_jam_data_structures=1
-    - -DJUCE_MODULE_AVAILABLE_jam_graphics=1
-    - -DJUCE_MODULE_AVAILABLE_jam_markdown=1
-    - -DJUCE_MODULE_AVAILABLE_jam_style=1
-    - -DJUCE_MODULE_AVAILABLE_jam_tui=1
-    - -DJUCE_MODULE_AVAILABLE_jam_web=1
-    - -DJUCE_MODULE_AVAILABLE_juce_audio_basics=1
-    - -DJUCE_MODULE_AVAILABLE_juce_audio_processors=1
-    - -DJUCE_MODULE_AVAILABLE_juce_audio_processors_headless=1
-    - -DJUCE_MODULE_AVAILABLE_juce_core=1
-    - -DJUCE_MODULE_AVAILABLE_juce_data_structures=1
-    - -DJUCE_MODULE_AVAILABLE_juce_events=1
-    - -DJUCE_MODULE_AVAILABLE_juce_graphics=1
-    - -DJUCE_MODULE_AVAILABLE_juce_gui_basics=1
-    - -DJUCE_MODULE_AVAILABLE_juce_gui_extra=1
-    - -DJUCE_STANDALONE_APPLICATION=1
-    - -DJUCE_TARGET_HAS_BINARY_DATA=1
-    - -D_DEBUG=1
+    - --target=arm64-apple-darwin
     - -I/Users/jreng/Documents/Poems/dev/../Vulkan/macOS/include
     - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Ninja/Debug/cast_App_artefacts/JuceLibraryCode
     - -I/Users/jreng/Documents/Poems/dev/cast/Source
@@ -46,17 +23,49 @@ CompileFlags:
     - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules/juce_audio_processors_headless/format_types/LV2_SDK/lilv/src
     - -I/Users/jreng/Documents/Poems/dev/cast/../jam/jam_web/.
     - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Ninja/Debug/juce_binarydata_cast_BinaryData/JuceLibraryCode
-    - -g
-    - -std=c++17
-    - -arch
-    - arm64
-    - -mmacosx-version-min=10.13
-    - -Wno-float-equal
-    - -Wno-sign-conversion
-    - -Wno-implicit-float-conversion
-    - -Wno-switch-enum
-    - -Wno-shadow
+    - -DCAST_COMMIT=
+    - -DDEBUG=1
+    - -DDONT_SET_USING_JUCE_NAMESPACE=1
+    - -DJUCE_APPLICATION_NAME_STRING=
+    - -DJUCE_APPLICATION_VERSION_STRING=
+    - -DJUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1
+    - -DJUCE_IN_APP_PURCHASES=0
+    - -DJUCE_IOS=0
+    - -DJUCE_LINUX=0
+    - -DJUCE_MAC=1
+    - -DJUCE_MODULE_AVAILABLE_jam_core=1
+    - -DJUCE_MODULE_AVAILABLE_jam_data_structures=1
+    - -DJUCE_MODULE_AVAILABLE_jam_graphics=1
+    - -DJUCE_MODULE_AVAILABLE_jam_markdown=1
+    - -DJUCE_MODULE_AVAILABLE_jam_style=1
+    - -DJUCE_MODULE_AVAILABLE_jam_tui=1
+    - -DJUCE_MODULE_AVAILABLE_jam_web=1
+    - -DJUCE_MODULE_AVAILABLE_juce_audio_basics=1
+    - -DJUCE_MODULE_AVAILABLE_juce_audio_processors=1
+    - -DJUCE_MODULE_AVAILABLE_juce_audio_processors_headless=1
+    - -DJUCE_MODULE_AVAILABLE_juce_core=1
+    - -DJUCE_MODULE_AVAILABLE_juce_data_structures=1
+    - -DJUCE_MODULE_AVAILABLE_juce_events=1
+    - -DJUCE_MODULE_AVAILABLE_juce_graphics=1
+    - -DJUCE_MODULE_AVAILABLE_juce_gui_basics=1
+    - -DJUCE_MODULE_AVAILABLE_juce_gui_extra=1
+    - -DJUCE_STANDALONE_APPLICATION=1
+    - -DJUCE_TARGET_HAS_BINARY_DATA=1
+    - -DJUCE_WINDOWS=0
+    - -DTARGET_OS_IPHONE=0
+    - -D_DEBUG=1
+    - -D__APPLE__=1
+    - -Wno-deprecated-declarations
     - -Wno-unused-parameter
+
+Index:
+  Background: Build
+
 Diagnostics:
-  MissingIncludes: None
   UnusedIncludes: None
+  MissingIncludes: None
+
+InlayHints:
+  Enabled: Yes
+  ParameterNames: Yes
+  DeducedTypes: Yes

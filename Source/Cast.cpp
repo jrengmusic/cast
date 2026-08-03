@@ -1,72 +1,126 @@
+/**
+ * @file Cast.cpp
+ * @brief `cast` CLI entry point: banner/help rendering and manifest dispatch.
+ */
+
 #include <JuceHeader.h>
 #include <jam_tui/jam_tui.h>
+#include <generated/ColourNames.h>
+#include "generated/Lexicon.h"
+#include "generated/Banner.h"
 #include "Driver.h"
 #include "Help.h"
 
-static const juce::StringArray bannerText
-{
-    juce::String (juce::CharPointer_UTF8 ("████████████  ████████████  ████████████  ████████████")),
-    juce::String (juce::CharPointer_UTF8 ("████░░░░████  ████░░░░████  ████░░░░████  ░░░░████░░░░")),
-    juce::String (juce::CharPointer_UTF8 ("████    ░░░░  ████    ████  ████    ░░░░      ████    ")),
-    juce::String (juce::CharPointer_UTF8 ("████          ████████████  ████████████      ████    ")),
-    juce::String (juce::CharPointer_UTF8 ("████          ████░░░░████  ░░░░░░░░████      ████    ")),
-    juce::String (juce::CharPointer_UTF8 ("████    ████  ████    ████  ████    ████      ████    ")),
-    juce::String (juce::CharPointer_UTF8 ("████████████  ████    ████  ████████████      ████    ")),
-    juce::String (juce::CharPointer_UTF8 ("░░░░░░░░░░░░  ░░░░    ░░░░  ░░░░░░░░░░░░      ░░░░    "))
-};
-
-static const std::array<juce::Colour, 8> bannerColours
-{
-    juce::Colour { 102, 187, 255 },
-    juce::Colour { 87, 183, 246 },
-    juce::Colour { 73, 180, 238 },
-    juce::Colour { 59, 177, 230 },
-    juce::Colour { 45, 174, 221 },
-    juce::Colour { 31, 171, 213 },
-    juce::Colour { 17, 168, 205 },
-    juce::Colour { 17, 168, 205 }
-};
-
+/**
+ * @brief Paints the generated glyph banner into a TUI graphics context.
+ *
+ * Each banner row is colour-keyed by its own name and the prior row's name,
+ * used to blend the solid (`█`) and shaded (`░`) glyph colours between rows.
+ *
+ * @param g The TUI graphics context to paint into.
+ */
 static void paintBanner (jam::tui::Graphics& g)
 {
-    for (int row { 0 }; row < bannerText.size(); ++row)
+    const auto& [firstName, firstText] { *cast::banner.begin() };
+    auto priorName { firstName };
+    int row { 0 };
+
+    for (const auto& [name, text] : cast::banner)
     {
-        const auto& line { bannerText[row] };
+        const juce::Colour rowColour { jam::ColourNames::colours[jam::ColourNames::get (name)] };
+        const juce::Colour priorColour { jam::ColourNames::colours[jam::ColourNames::get (priorName)] };
 
-        for (int col { 0 }; col < line.length(); ++col)
+        const jam::HashMap<juce::juce_wchar, juce::Colour> glyphColours
         {
-            const auto glyph { line[col] };
+            { U'█', rowColour },
+            { U'░', priorColour }
+        };
 
-            if (glyph == U'█')
+        for (int col { 0 }; col < text.length(); ++col)
+        {
+            const auto glyph { text[col] };
+
+            if (glyphColours.contains (glyph))
             {
-                g.setColour (bannerColours.at (static_cast<size_t> (row)));
-                g.drawCellText (juce::String::charToString (glyph), col, row, 1);
-            }
-            else if (glyph == U'░')
-            {
-                const auto priorRow { row == 0 ? 0 : row - 1 };
-                g.setColour (bannerColours.at (static_cast<size_t> (priorRow)));
+                g.setColour (glyphColours.at (glyph));
                 g.drawCellText (juce::String::charToString (glyph), col, row, 1);
             }
         }
+
+        priorName = name;
+        ++row;
     }
 }
 
+/// @brief Renders the generated banner offscreen and prints it to stdout.
 static void printBanner()
 {
-    jam::tui::Graphics graphics { bannerText[0].length(), bannerText.size() };
+    const auto& [firstName, firstText] { *cast::banner.begin() };
+    jam::tui::Graphics graphics { firstText.length(), static_cast<int> (cast::banner.size()) };
     paintBanner (graphics);
 
     printf ("%s\n", graphics.getLines().joinIntoString ("\n").toRawUTF8());
 }
 
+static void printBannerAndHelp()
+{
+    printBanner();
+    printf ("\n");
+    cast::printHelp (BinaryData::getString (Id::specification.toString()));
+}
+
+/**
+ * @brief Derives the CMake configure-dependency file list from a manifest (SPEC §4).
+ *
+ * The manifest itself, every `## outputs` row's template and input tables,
+ * and every `## dispatch` row's fragment template — never hand-maintained.
+ *
+ * @param manifestFile The `CAST.md` manifest to derive dependencies from.
+ * @return The manifest-derived dependency files.
+ */
+static jam::Array<juce::File> getConfigureDepends (const juce::File& manifestFile)
+{
+    jam::Array<juce::File> depends;
+    depends.add (manifestFile);
+
+    const auto dir         { manifestFile.getParentDirectory() };
+    const auto manifestDoc { jam::Markdown::parse (manifestFile.loadFileAsString()) };
+
+    for (const auto& outputKey : manifestDoc.getTableRowKeys (Id::outputs))
+    {
+        depends.add (dir.getChildFile (manifestDoc.getTableValue (Id::outputs, Id::templatePath, outputKey)));
+
+        for (const auto& tablePath : manifestDoc.getTableValues (Id::outputs, Id::tables, outputKey))
+            depends.add (dir.getChildFile (tablePath.trim()));
+    }
+
+    for (const auto& dispatchKey : manifestDoc.getTableRowKeys (Id::dispatch))
+        depends.add (dir.getChildFile (manifestDoc.getTableValue (Id::dispatch, Id::templatePath, dispatchKey)));
+
+    return depends;
+}
+
+/**
+ * @brief Runs cast::Driver::run() and reports the result on stdout/stderr.
+ *
+ * On success, prints the manifest's configure-dependency list
+ * (getConfigureDepends()) to stdout, one path per line, for CMake to consume.
+ *
+ * @param manifest     The `CAST.md` manifest to run.
+ * @param outputFilter When non-empty, restricts regeneration to the named output row.
+ * @return 0 on success; 1 on failure, after printing the SPEC §8 failure to stderr.
+ */
 static int runManifest (const juce::File& manifest, const juce::String& outputFilter = {})
 {
-    cast::Driver driver;
-    const auto result { driver.run (manifest, outputFilter) };
+    const auto result { cast::Driver::run (manifest, outputFilter) };
 
     if (result.wasOk())
+    {
+        for (const auto& path : getConfigureDepends (manifest))
+            printf ("%s\n", path.getFullPathName().toRawUTF8());
+
         return 0;
+    }
 
     fprintf (stderr, "cast: %s\n", result.getErrorMessage().toRawUTF8());
     return 1;
@@ -78,21 +132,19 @@ int main (int argc, char* argv[])
 
     jam::Stamp stamp;
     jam::Hyperlink hyperlink;
-    Id::ColourIdMap colourIdMap;
+    jam::ColourNames colourNames;
 
     jam::Stamp::getInstance()->addIfNotAlreadyThere (jam::Stamp::Entry {});
 
-    if (argc == 2 and juce::String { argv[1] } == "--version")
+    if (argc == 2 and juce::String { argv[1] } == "--" + Id::version.toString())
     {
         printf ("cast %s (" CAST_COMMIT ")\n", ProjectInfo::versionString);
         return 0;
     }
 
-    if (argc == 2 and juce::String { argv[1] } == "--help")
+    if (argc == 2 and juce::String { argv[1] } == "--" + Id::help.toString())
     {
-        printBanner();
-        printf ("\n");
-        cast::printHelp (BinaryData::getString (juce::String { "SPEC.md" }));
+        printBannerAndHelp();
         return 0;
     }
 
@@ -107,15 +159,13 @@ int main (int argc, char* argv[])
     {
         (argc == 2)
             ? juce::File::getCurrentWorkingDirectory().getChildFile (juce::String { argv[1] })
-            : juce::File::getCurrentWorkingDirectory().getChildFile ("CAST.md")
+            : juce::File::getCurrentWorkingDirectory().getChildFile (Id::cast.toString())
     };
 
     if (manifestFile.existsAsFile())
         return runManifest (manifestFile);
 
-    printBanner();
-    printf ("\n");
-    cast::printHelp (BinaryData::getString (juce::String { "SPEC.md" }));
-    fprintf (stderr, "cast: no CAST.md found\n");
+    printBannerAndHelp();
+    fprintf (stderr, "cast: no %s found\n", Id::cast.toString().toRawUTF8());
     return 1;
 }

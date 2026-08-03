@@ -4,12 +4,12 @@
     <compoundname>cast::Transforms</compoundname>
     <includes refid="_transforms_8h" local="no">Transforms.h</includes>
     <sectiondef kind="public-static-func">
-      <memberdef kind="function" id="structcast_1_1_transforms_1ae31e899c4d3411bb40ddd37ef772c9a6" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
-        <definition>juce::Result cast::Transforms::apply</definition>
-        <argsstring>(const juce::String &amp;name, const juce::String &amp;input, juce::String &amp;output)</argsstring>
-        <name>apply</name>
-        <qualifiedname>cast::Transforms::apply</qualifiedname>
+      <memberdef kind="function" id="structcast_1_1_transforms_1a8f205eb5ba5a4a87c4241d3a73a10ede" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>static juce::String cast::Transforms::getTransformed</definition>
+        <argsstring>(const juce::String &amp;name, const juce::String &amp;input)</argsstring>
+        <name>getTransformed</name>
+        <qualifiedname>cast::Transforms::getTransformed</qualifiedname>
         <param>
           <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
           <declname>name</declname>
@@ -18,31 +18,48 @@
           <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
           <declname>input</declname>
         </param>
-        <param>
-          <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
-          <declname>output</declname>
-        </param>
         <briefdescription>
+<para>Applies the named transform to <computeroutput>input</computeroutput>. </para>
         </briefdescription>
         <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername><ref refid="juce__UnityPluginInterface_8h_1a010e50efcb9d6d393b9414f09f368dbc" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">name</ref></parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The transform&apos;s identifier string; must be in the closed vocabulary (SPEC §6). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>input</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The value to transform. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The transformed value. </para>
+</simplesect>
+<simplesect kind="note"><para>Asserts <computeroutput>name</computeroutput> is a known transform. </para>
+</simplesect>
+</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Transforms.h" line="9" column="25" bodyfile="Transforms.cpp" bodystart="135" bodyend="147"/>
-        <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
-        <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
-        <references refid="namespacecast_1ab040cec9142af0fbe59fafbb085b5fd5" compoundref="_transforms_8cpp" startline="123" endline="133">cast::transforms</references>
-        <referencedby refid="namespacecast_1a891f9a8788c680e208a98771b3de5731" compoundref="_manifest_8cpp" startline="93" endline="122">cast::processTransforms</referencedby>
-        <referencedby refid="namespacecast_1ae13eaa2eaa01d759e37d39fb786d176e" compoundref="_driver_8cpp" startline="11" endline="26">cast::transformedCell</referencedby>
+        <location file="Transforms.h" line="165" column="25" bodyfile="Transforms.h" bodystart="165" bodyend="173"/>
+        <references refid="namespacecast_1a5d3e7e391997de80260d26f7013f600f" compoundref="_transforms_8h" startline="141" endline="151">cast::transforms</references>
+        <referencedby refid="namespacecast_1a8e6d82622e7cb90f1aef9b99ab024dc7" compoundref="_driver_8h" startline="26" endline="45">cast::buildPerRowMap</referencedby>
       </memberdef>
     </sectiondef>
     <briefdescription>
+<para>SPEC §6 transform vocabulary lookup. </para>
     </briefdescription>
     <detaileddescription>
     </detaileddescription>
-    <location file="Transforms.h" line="7" column="1" bodyfile="Transforms.h" bodystart="8" bodyend="10"/>
+    <location file="Transforms.h" line="154" column="1" bodyfile="Transforms.h" bodystart="155" bodyend="174"/>
     <listofallmembers>
-      <member refid="structcast_1_1_transforms_1ae31e899c4d3411bb40ddd37ef772c9a6" prot="public" virt="non-virtual"><scope>cast::Transforms</scope><name>apply</name></member>
+      <member refid="structcast_1_1_transforms_1a8f205eb5ba5a4a87c4241d3a73a10ede" prot="public" virt="non-virtual"><scope>cast::Transforms</scope><name>getTransformed</name></member>
     </listofallmembers>
   </compounddef>
 </doxygen>

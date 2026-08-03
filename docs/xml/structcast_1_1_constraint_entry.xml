@@ -16,9 +16,9 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Manifest.h" line="31" column="18" bodyfile="Manifest.h" bodystart="31" bodyend="-1"/>
-        <referencedby refid="namespacecast_1a759a1a85432ec8a895a0f0b88db4fc50" compoundref="_constraints_8cpp" startline="204" endline="229">cast::applyConstraintToTable</referencedby>
-        <referencedby refid="namespacecast_1a336faaec3c7c5251e03a86c36e4edd50" compoundref="_manifest_8cpp" startline="124" endline="147">cast::processConstraints</referencedby>
+        <location file="Manifest.h" line="37" column="18" bodyfile="Manifest.h" bodystart="37" bodyend="-1"/>
+        <referencedby refid="namespacecast_1a1fd7bfaf71e12bd016d17cf8ee879e1c" compoundref="_constraints_8h" startline="224" endline="253">cast::applyConstraintToTable</referencedby>
+        <referencedby refid="namespacecast_1ad96a2e028b99b9506e063254ffb66432" compoundref="_manifest_8h" startline="112" endline="132">cast::parseConstraintEntries</referencedby>
       </memberdef>
       <memberdef kind="variable" id="structcast_1_1_constraint_entry_1a5892568f5c84a7e3b56fc74582f1fa6b" prot="public" static="no" mutable="no">
         <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
@@ -32,8 +32,8 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Manifest.h" line="32" column="18" bodyfile="Manifest.h" bodystart="32" bodyend="-1"/>
-        <referencedby refid="namespacecast_1a336faaec3c7c5251e03a86c36e4edd50" compoundref="_manifest_8cpp" startline="124" endline="147">cast::processConstraints</referencedby>
+        <location file="Manifest.h" line="38" column="18" bodyfile="Manifest.h" bodystart="38" bodyend="-1"/>
+        <referencedby refid="namespacecast_1ad96a2e028b99b9506e063254ffb66432" compoundref="_manifest_8h" startline="112" endline="132">cast::parseConstraintEntries</referencedby>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -54,7 +54,7 @@
         <link refid="classjuce_1_1String" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml"/>
       </node>
     </collaborationgraph>
-    <location file="Manifest.h" line="29" column="1" bodyfile="Manifest.h" bodystart="30" bodyend="33"/>
+    <location file="Manifest.h" line="35" column="1" bodyfile="Manifest.h" bodystart="36" bodyend="39"/>
     <listofallmembers>
       <member refid="structcast_1_1_constraint_entry_1aa9392c2a549a9a5ead9d61de23926fe0" prot="public" virt="non-virtual"><scope>cast::ConstraintEntry</scope><name>columnName</name></member>
       <member refid="structcast_1_1_constraint_entry_1a5892568f5c84a7e3b56fc74582f1fa6b" prot="public" virt="non-virtual"><scope>cast::ConstraintEntry</scope><name>predicate</name></member>

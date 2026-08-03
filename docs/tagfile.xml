@@ -4,6 +4,8 @@
     <name>Cast.cpp</name>
     <path></path>
     <filename>_cast_8cpp.html</filename>
+    <includes id="_lexicon_8h" name="Lexicon.h" local="yes" import="no" module="no" objc="no">generated/Lexicon.h</includes>
+    <includes id="_banner_8h" name="Banner.h" local="yes" import="no" module="no" objc="no">generated/Banner.h</includes>
     <includes id="_driver_8h" name="Driver.h" local="yes" import="no" module="no" objc="no">Driver.h</includes>
     <includes id="_help_8h" name="Help.h" local="yes" import="no" module="no" objc="no">Help.h</includes>
     <member kind="function" static="yes">
@@ -21,6 +23,20 @@
       <arglist>()</arglist>
     </member>
     <member kind="function" static="yes">
+      <type>static void</type>
+      <name>printBannerAndHelp</name>
+      <anchorfile>_cast_8cpp.html</anchorfile>
+      <anchor>a7f683cefdf7f675f09e36661ce8df7cc</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static jam::Array&lt; juce::File &gt;</type>
+      <name>getConfigureDepends</name>
+      <anchorfile>_cast_8cpp.html</anchorfile>
+      <anchor>a1db31476f5693c3e1ca60cbff4135bb0</anchor>
+      <arglist>(const juce::File &amp;manifestFile)</arglist>
+    </member>
+    <member kind="function" static="yes">
       <type>static int</type>
       <name>runManifest</name>
       <anchorfile>_cast_8cpp.html</anchorfile>
@@ -34,69 +50,35 @@
       <anchor>a0ddf1224851353fc92bfbff6f499fa97</anchor>
       <arglist>(int argc, char *argv[])</arglist>
     </member>
-    <member kind="variable" static="yes">
-      <type>static const juce::StringArray</type>
-      <name>bannerText</name>
-      <anchorfile>_cast_8cpp.html</anchorfile>
-      <anchor>ab218c2a9e0db70cd71327695075b86fa</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable" static="yes">
-      <type>static const std::array&lt; juce::Colour, 8 &gt;</type>
-      <name>bannerColours</name>
-      <anchorfile>_cast_8cpp.html</anchorfile>
-      <anchor>a782c9b857b58fc40ac33415dd702c292</anchor>
-      <arglist></arglist>
-    </member>
-  </compound>
-  <compound kind="file">
-    <name>Cells.h</name>
-    <path></path>
-    <filename>_cells_8h.html</filename>
-    <namespace>cast</namespace>
-  </compound>
-  <compound kind="file">
-    <name>Constraints.cpp</name>
-    <path></path>
-    <filename>_constraints_8cpp.html</filename>
-    <includes id="_constraints_8h" name="Constraints.h" local="yes" import="no" module="no" objc="no">Constraints.h</includes>
-    <includes id="_cells_8h" name="Cells.h" local="yes" import="no" module="no" objc="no">Cells.h</includes>
-    <class kind="struct">cast::PredicateContext</class>
-    <namespace>cast</namespace>
   </compound>
   <compound kind="file">
     <name>Constraints.h</name>
     <path></path>
     <filename>_constraints_8h.html</filename>
-    <includes id="_manifest_8h" name="Manifest.h" local="yes" import="no" module="no" objc="no">Manifest.h</includes>
-    <class kind="struct">cast::Constraints</class>
     <namespace>cast</namespace>
-  </compound>
-  <compound kind="file">
-    <name>Driver.cpp</name>
-    <path></path>
-    <filename>_driver_8cpp.html</filename>
-    <includes id="_driver_8h" name="Driver.h" local="yes" import="no" module="no" objc="no">Driver.h</includes>
-    <includes id="_cells_8h" name="Cells.h" local="yes" import="no" module="no" objc="no">Cells.h</includes>
-    <includes id="_constraints_8h" name="Constraints.h" local="yes" import="no" module="no" objc="no">Constraints.h</includes>
-    <includes id="_template_8h" name="Template.h" local="yes" import="no" module="no" objc="no">Template.h</includes>
-    <includes id="_transforms_8h" name="Transforms.h" local="yes" import="no" module="no" objc="no">Transforms.h</includes>
-    <namespace>cast</namespace>
+    <namespace>cast::Constraints</namespace>
   </compound>
   <compound kind="file">
     <name>Driver.h</name>
     <path></path>
     <filename>_driver_8h.html</filename>
-    <includes id="_manifest_8h" name="Manifest.h" local="yes" import="no" module="no" objc="no">Manifest.h</includes>
-    <class kind="struct">cast::Driver</class>
+    <includes id="_constraints_8h" name="Constraints.h" local="yes" import="no" module="no" objc="no">Constraints.h</includes>
+    <includes id="_validation_8h" name="Validation.h" local="yes" import="no" module="no" objc="no">Validation.h</includes>
+    <includes id="_template_8h" name="Template.h" local="yes" import="no" module="no" objc="no">Template.h</includes>
+    <includes id="_transforms_8h" name="Transforms.h" local="yes" import="no" module="no" objc="no">Transforms.h</includes>
+    <namespace>cast</namespace>
+    <namespace>cast::Driver</namespace>
+  </compound>
+  <compound kind="file">
+    <name>Banner.h</name>
+    <path>generated/</path>
+    <filename>_banner_8h.html</filename>
     <namespace>cast</namespace>
   </compound>
   <compound kind="file">
-    <name>Help.cpp</name>
-    <path></path>
-    <filename>_help_8cpp.html</filename>
-    <includes id="_help_8h" name="Help.h" local="yes" import="no" module="no" objc="no">Help.h</includes>
-    <namespace>cast</namespace>
+    <name>Lexicon.h</name>
+    <path>generated/</path>
+    <filename>_lexicon_8h.html</filename>
   </compound>
   <compound kind="file">
     <name>Help.h</name>
@@ -105,44 +87,11 @@
     <namespace>cast</namespace>
   </compound>
   <compound kind="file">
-    <name>Manifest.cpp</name>
-    <path></path>
-    <filename>_manifest_8cpp.html</filename>
-    <includes id="_manifest_8h" name="Manifest.h" local="yes" import="no" module="no" objc="no">Manifest.h</includes>
-    <includes id="_cells_8h" name="Cells.h" local="yes" import="no" module="no" objc="no">Cells.h</includes>
-    <includes id="_transforms_8h" name="Transforms.h" local="yes" import="no" module="no" objc="no">Transforms.h</includes>
-    <namespace>cast</namespace>
-  </compound>
-  <compound kind="file">
-    <name>Manifest.h</name>
-    <path></path>
-    <filename>_manifest_8h.html</filename>
-    <class kind="struct">cast::OutputEntry</class>
-    <class kind="struct">cast::DispatchEntry</class>
-    <class kind="struct">cast::TransformEntry</class>
-    <class kind="struct">cast::ConstraintEntry</class>
-    <class kind="struct">cast::Manifest</class>
-    <namespace>cast</namespace>
-  </compound>
-  <compound kind="file">
-    <name>Template.cpp</name>
-    <path></path>
-    <filename>_template_8cpp.html</filename>
-    <includes id="_template_8h" name="Template.h" local="yes" import="no" module="no" objc="no">Template.h</includes>
-    <namespace>cast</namespace>
-  </compound>
-  <compound kind="file">
     <name>Template.h</name>
     <path></path>
     <filename>_template_8h.html</filename>
+    <includes id="_constraints_8h" name="Constraints.h" local="yes" import="no" module="no" objc="no">Constraints.h</includes>
     <class kind="struct">cast::TemplateEngine</class>
-    <namespace>cast</namespace>
-  </compound>
-  <compound kind="file">
-    <name>Transforms.cpp</name>
-    <path></path>
-    <filename>_transforms_8cpp.html</filename>
-    <includes id="_transforms_8h" name="Transforms.h" local="yes" import="no" module="no" objc="no">Transforms.h</includes>
     <namespace>cast</namespace>
   </compound>
   <compound kind="file">
@@ -152,267 +101,41 @@
     <class kind="struct">cast::Transforms</class>
     <namespace>cast</namespace>
   </compound>
-  <compound kind="struct">
-    <name>cast::ConstraintEntry</name>
-    <filename>structcast_1_1_constraint_entry.html</filename>
-    <member kind="variable">
-      <type>juce::String</type>
-      <name>columnName</name>
-      <anchorfile>structcast_1_1_constraint_entry.html</anchorfile>
-      <anchor>aa9392c2a549a9a5ead9d61de23926fe0</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>juce::String</type>
-      <name>predicate</name>
-      <anchorfile>structcast_1_1_constraint_entry.html</anchorfile>
-      <anchor>a5892568f5c84a7e3b56fc74582f1fa6b</anchor>
-      <arglist></arglist>
-    </member>
-  </compound>
-  <compound kind="struct">
-    <name>cast::Constraints</name>
-    <filename>structcast_1_1_constraints.html</filename>
-    <member kind="function" static="yes">
-      <type>static juce::Result</type>
-      <name>validate</name>
-      <anchorfile>structcast_1_1_constraints.html</anchorfile>
-      <anchor>a2f6e37b483238fb62ed50bc594b5688b</anchor>
-      <arglist>(const jam::Array&lt; ConstraintEntry &gt; &amp;constraints, const jam::HashMap&lt; juce::String, const jam::Document * &gt; &amp;tables, const juce::String &amp;sourceFile)</arglist>
-    </member>
-  </compound>
-  <compound kind="struct">
-    <name>cast::DispatchEntry</name>
-    <filename>structcast_1_1_dispatch_entry.html</filename>
-    <member kind="variable">
-      <type>juce::String</type>
-      <name>tableName</name>
-      <anchorfile>structcast_1_1_dispatch_entry.html</anchorfile>
-      <anchor>a05ad431f1fcb24766846ec7a9cb00c07</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>juce::String</type>
-      <name>columnName</name>
-      <anchorfile>structcast_1_1_dispatch_entry.html</anchorfile>
-      <anchor>ad54eff46c7af820265147f21bae872aa</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>juce::String</type>
-      <name>matchValue</name>
-      <anchorfile>structcast_1_1_dispatch_entry.html</anchorfile>
-      <anchor>a34f15a6a26fc203926f47f80d0cb9827</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>juce::String</type>
-      <name>fragmentPath</name>
-      <anchorfile>structcast_1_1_dispatch_entry.html</anchorfile>
-      <anchor>afac636e15b56f3ddac744cc1a09a1756</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>juce::String</type>
-      <name>slotName</name>
-      <anchorfile>structcast_1_1_dispatch_entry.html</anchorfile>
-      <anchor>aad472450822f9eb0a16cbb679d41d24e</anchor>
-      <arglist></arglist>
-    </member>
-  </compound>
-  <compound kind="struct">
-    <name>cast::Driver</name>
-    <filename>structcast_1_1_driver.html</filename>
-    <member kind="function">
-      <type>juce::Result</type>
-      <name>run</name>
-      <anchorfile>structcast_1_1_driver.html</anchorfile>
-      <anchor>aefe9920e54c929e07422fa05e9c7e9df</anchor>
-      <arglist>(const juce::File &amp;manifestFile, const juce::String &amp;outputFilter={})</arglist>
-    </member>
-    <member kind="variable">
-      <type>jam::Array&lt; juce::String &gt;</type>
-      <name>configureDepends</name>
-      <anchorfile>structcast_1_1_driver.html</anchorfile>
-      <anchor>a1326abb5a9702be0b74f2af775cbcdaf</anchor>
-      <arglist></arglist>
-    </member>
-  </compound>
-  <compound kind="struct">
-    <name>cast::Manifest</name>
-    <filename>structcast_1_1_manifest.html</filename>
-    <member kind="function" static="yes">
-      <type>static juce::Result</type>
-      <name>parse</name>
-      <anchorfile>structcast_1_1_manifest.html</anchorfile>
-      <anchor>a79904e55960a3ae32d0dcbb63f1f3071</anchor>
-      <arglist>(const juce::File &amp;castFile, Manifest &amp;result)</arglist>
-    </member>
-    <member kind="variable">
-      <type>jam::Array&lt; OutputEntry &gt;</type>
-      <name>outputs</name>
-      <anchorfile>structcast_1_1_manifest.html</anchorfile>
-      <anchor>a383004022b128a892b474d135ee7af50</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>jam::Array&lt; DispatchEntry &gt;</type>
-      <name>dispatches</name>
-      <anchorfile>structcast_1_1_manifest.html</anchorfile>
-      <anchor>ac8f4985e72e8d48e6b957f7ac701d10d</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>jam::Array&lt; TransformEntry &gt;</type>
-      <name>transforms</name>
-      <anchorfile>structcast_1_1_manifest.html</anchorfile>
-      <anchor>ad31ec1e7c228a496150e33478f4df2ee</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>jam::Array&lt; ConstraintEntry &gt;</type>
-      <name>constraints</name>
-      <anchorfile>structcast_1_1_manifest.html</anchorfile>
-      <anchor>a69fb46287552c3e10f9b0976161df617</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>jam::Array&lt; juce::String &gt;</type>
-      <name>configureDepends</name>
-      <anchorfile>structcast_1_1_manifest.html</anchorfile>
-      <anchor>a2d65b99803729bd762e4e5426af24553</anchor>
-      <arglist></arglist>
-    </member>
-  </compound>
-  <compound kind="struct">
-    <name>cast::OutputEntry</name>
-    <filename>structcast_1_1_output_entry.html</filename>
-    <member kind="variable">
-      <type>juce::String</type>
-      <name>outputPath</name>
-      <anchorfile>structcast_1_1_output_entry.html</anchorfile>
-      <anchor>a981ea1ecffd02a77f9fc2ac5690245f1</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>juce::String</type>
-      <name>rootTemplatePath</name>
-      <anchorfile>structcast_1_1_output_entry.html</anchorfile>
-      <anchor>a193efb7eeef5a8ca4bbcafc1b14d7fc8</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>juce::StringArray</type>
-      <name>inputTables</name>
-      <anchorfile>structcast_1_1_output_entry.html</anchorfile>
-      <anchor>afe276dbea146a91bb13a7fed644af176</anchor>
-      <arglist></arglist>
-    </member>
-  </compound>
-  <compound kind="struct">
-    <name>cast::PredicateContext</name>
-    <filename>structcast_1_1_predicate_context.html</filename>
-    <member kind="variable">
-      <type>juce::String</type>
-      <name>value</name>
-      <anchorfile>structcast_1_1_predicate_context.html</anchorfile>
-      <anchor>a70830c45b9aa201d932ed27b91541459</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>juce::String</type>
-      <name>args</name>
-      <anchorfile>structcast_1_1_predicate_context.html</anchorfile>
-      <anchor>ab763d117dfb0dbe744e4ae75aa3cc0f8</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>int</type>
-      <name>rowIndex</name>
-      <anchorfile>structcast_1_1_predicate_context.html</anchorfile>
-      <anchor>a3a4a8ad78546ed32633f0dcb4e0cf70f</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>int</type>
-      <name>columnIndex</name>
-      <anchorfile>structcast_1_1_predicate_context.html</anchorfile>
-      <anchor>a92045fd9a41aab354fd57fb1b21846a7</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>const jam::Document &amp;</type>
-      <name>tableDoc</name>
-      <anchorfile>structcast_1_1_predicate_context.html</anchorfile>
-      <anchor>a160c7622b2186ed9df7336bd48c1080a</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>const jam::HashMap&lt; juce::String, const jam::Document * &gt; &amp;</type>
-      <name>tables</name>
-      <anchorfile>structcast_1_1_predicate_context.html</anchorfile>
-      <anchor>a552245efe7fc1a5124668902c37d1a09</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>const juce::String &amp;</type>
-      <name>sourceFile</name>
-      <anchorfile>structcast_1_1_predicate_context.html</anchorfile>
-      <anchor>a5f0e7b5c94acf9a0a756955f1034b68b</anchor>
-      <arglist></arglist>
-    </member>
+  <compound kind="file">
+    <name>Validation.h</name>
+    <path></path>
+    <filename>_validation_8h.html</filename>
+    <includes id="_constraints_8h" name="Constraints.h" local="yes" import="no" module="no" objc="no">Constraints.h</includes>
+    <includes id="_transforms_8h" name="Transforms.h" local="yes" import="no" module="no" objc="no">Transforms.h</includes>
+    <namespace>cast</namespace>
   </compound>
   <compound kind="struct">
     <name>cast::TemplateEngine</name>
     <filename>structcast_1_1_template_engine.html</filename>
     <member kind="function" static="yes">
-      <type>static juce::Result</type>
+      <type>static juce::String</type>
       <name>expand</name>
       <anchorfile>structcast_1_1_template_engine.html</anchorfile>
-      <anchor>ae640df68b4e8802ff8f2ac0220b10820</anchor>
-      <arglist>(const juce::File &amp;templateFile, const SubstitutionMap &amp;values, juce::String &amp;output)</arglist>
-    </member>
-  </compound>
-  <compound kind="struct">
-    <name>cast::TransformEntry</name>
-    <filename>structcast_1_1_transform_entry.html</filename>
-    <member kind="variable">
-      <type>juce::String</type>
-      <name>columnName</name>
-      <anchorfile>structcast_1_1_transform_entry.html</anchorfile>
-      <anchor>aa6859472039599ea8a02b3ba0122e279</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>juce::String</type>
-      <name>transformName</name>
-      <anchorfile>structcast_1_1_transform_entry.html</anchorfile>
-      <anchor>a44f8ae7fee4fc8256d9d460d4a01745a</anchor>
-      <arglist></arglist>
+      <anchor>a17663684abc84ea95042ef3ba089526c</anchor>
+      <arglist>(const juce::File &amp;templateFile, const SubstitutionMap &amp;values)</arglist>
     </member>
   </compound>
   <compound kind="struct">
     <name>cast::Transforms</name>
     <filename>structcast_1_1_transforms.html</filename>
     <member kind="function" static="yes">
-      <type>static juce::Result</type>
-      <name>apply</name>
+      <type>static juce::String</type>
+      <name>getTransformed</name>
       <anchorfile>structcast_1_1_transforms.html</anchorfile>
-      <anchor>ae31e899c4d3411bb40ddd37ef772c9a6</anchor>
-      <arglist>(const juce::String &amp;name, const juce::String &amp;input, juce::String &amp;output)</arglist>
+      <anchor>a8f205eb5ba5a4a87c4241d3a73a10ede</anchor>
+      <arglist>(const juce::String &amp;name, const juce::String &amp;input)</arglist>
     </member>
   </compound>
   <compound kind="namespace">
     <name>cast</name>
     <filename>namespacecast.html</filename>
-    <class kind="struct">cast::PredicateContext</class>
-    <class kind="struct">cast::Constraints</class>
-    <class kind="struct">cast::Driver</class>
-    <class kind="struct">cast::OutputEntry</class>
-    <class kind="struct">cast::DispatchEntry</class>
-    <class kind="struct">cast::TransformEntry</class>
-    <class kind="struct">cast::ConstraintEntry</class>
-    <class kind="struct">cast::Manifest</class>
+    <namespace>cast::Constraints</namespace>
+    <namespace>cast::Driver</namespace>
     <class kind="struct">cast::TemplateEngine</class>
     <class kind="struct">cast::Transforms</class>
     <member kind="typedef">
@@ -431,101 +154,87 @@
     </member>
     <member kind="function" static="yes">
       <type>static juce::String</type>
-      <name>getCellHazard</name>
+      <name>getLocation</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a2e5e81d2ec926b9453f3e62f4c833077</anchor>
-      <arglist>(const jam::Document &amp;cell) noexcept</arglist>
+      <anchor>afb20cc8ccd65bbfce56cc5014cb8cd11</anchor>
+      <arglist>(const juce::String &amp;sourceFile, int rowNumber, const juce::String &amp;columnName)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static int</type>
-      <name>findColumnIndex</name>
+      <name>getRowNumber</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a8f6b9c5dfbad8a376306de54c7ccbc16</anchor>
-      <arglist>(const jam::Document &amp;tableDoc, const juce::String &amp;columnName) noexcept</arglist>
+      <anchor>a7afae2a0181db2bd1cf3bf5d95516bbb</anchor>
+      <arglist>(const jam::Document &amp;root, const juce::String &amp;tableName, const juce::String &amp;rowKey)</arglist>
     </member>
     <member kind="function" static="yes">
-      <type>static void</type>
-      <name>extractSections</name>
+      <type>static juce::StringArray</type>
+      <name>getConstraintTargetTables</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a7c826b682e8e02a1af14edb003cf61dc</anchor>
-      <arglist>(const jam::Document &amp;doc, jam::HashMap&lt; juce::String, const jam::Document * &gt; &amp;tables)</arglist>
+      <anchor>aa9d23644d8f454e84a807e75f6a81efa</anchor>
+      <arglist>(const jam::Document &amp;manifestDoc, const juce::StringArray &amp;constraintKeys)</arglist>
     </member>
     <member kind="function" static="yes">
-      <type>static juce::String</type>
-      <name>cellAt</name>
+      <type>static juce::StringArray</type>
+      <name>getScannedTables</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a7087b04cb47ea04c7c0bd3ff95183538</anchor>
-      <arglist>(const jam::Document &amp;doc, int row, int col) noexcept</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static juce::String</type>
-      <name>formatError</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a0960683cc84837a8c529028be38f8834</anchor>
-      <arglist>(const juce::String &amp;f, int r, int c, const juce::String &amp;pred, const juce::String &amp;msg)</arglist>
+      <anchor>a9c10471453f0bcf1ae622d274f17340a</anchor>
+      <arglist>(const jam::Document &amp;root, const juce::StringArray &amp;dispatchKeys, const juce::StringArray &amp;targetTables)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::Result</type>
       <name>predicateMatches</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>ab0b4b3a226152df0dc24636f8498837d</anchor>
-      <arglist>(const PredicateContext &amp;ctx)</arglist>
+      <anchor>a3479568350d4afa881b7d12ea1cd7792</anchor>
+      <arglist>(const juce::String &amp;value, const juce::String &amp;args, const juce::String &amp;rowKey, const juce::String &amp;columnName, const jam::Document &amp;root, const juce::String &amp;tableName, const jam::Array&lt; jam::Document &gt; &amp;, const juce::File &amp;, const jam::Document &amp;, const juce::String &amp;sourceFile)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::Result</type>
       <name>predicateUnique</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a04bea41a8d44c50020b765e5778b1c94</anchor>
-      <arglist>(const PredicateContext &amp;ctx)</arglist>
+      <anchor>a957c9e9c8ecb2c610568bebc7667f4c1</anchor>
+      <arglist>(const juce::String &amp;, const juce::String &amp;, const juce::String &amp;, const juce::String &amp;columnName, const jam::Document &amp;, const juce::String &amp;, const jam::Array&lt; jam::Document &gt; &amp;roots, const juce::File &amp;, const jam::Document &amp;manifestDoc, const juce::String &amp;)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::Result</type>
       <name>predicateExistsIn</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>aad7a85a26733279c975c5d958f10f7db</anchor>
-      <arglist>(const PredicateContext &amp;ctx)</arglist>
+      <anchor>abf0f319aa75c388eaa1e0eb9c58e996f</anchor>
+      <arglist>(const juce::String &amp;value, const juce::String &amp;args, const juce::String &amp;rowKey, const juce::String &amp;columnName, const jam::Document &amp;root, const juce::String &amp;tableName, const jam::Array&lt; jam::Document &gt; &amp;roots, const juce::File &amp;, const jam::Document &amp;, const juce::String &amp;sourceFile)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::Result</type>
       <name>predicateOneOf</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a5362debd352290f94634061bc8e23e55</anchor>
-      <arglist>(const PredicateContext &amp;ctx)</arglist>
+      <anchor>a0ac52bbb9ccfc9451873aaf14bd9cfb8</anchor>
+      <arglist>(const juce::String &amp;value, const juce::String &amp;args, const juce::String &amp;rowKey, const juce::String &amp;columnName, const jam::Document &amp;root, const juce::String &amp;tableName, const jam::Array&lt; jam::Document &gt; &amp;, const juce::File &amp;, const jam::Document &amp;, const juce::String &amp;sourceFile)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::Result</type>
       <name>predicateRange</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>acff023defeba748f6d11c9f23473883d</anchor>
-      <arglist>(const PredicateContext &amp;ctx)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static bool</type>
-      <name>columnContainsValue</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>afb5474323b662291c5730ca83500e8b5</anchor>
-      <arglist>(const jam::Document &amp;doc, int col, const juce::String &amp;value)</arglist>
+      <anchor>a1eb56cd981aeb18983256abf5812d7bc</anchor>
+      <arglist>(const juce::String &amp;value, const juce::String &amp;args, const juce::String &amp;rowKey, const juce::String &amp;columnName, const jam::Document &amp;root, const juce::String &amp;tableName, const jam::Array&lt; jam::Document &gt; &amp;, const juce::File &amp;, const jam::Document &amp;, const juce::String &amp;sourceFile)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::Result</type>
       <name>predicateParity</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a98da53a21918af205d6c05a96a83fe95</anchor>
-      <arglist>(const PredicateContext &amp;ctx)</arglist>
+      <anchor>aef9d112fece55c723df7aea2e28de346</anchor>
+      <arglist>(const juce::String &amp;, const juce::String &amp;args, const juce::String &amp;, const juce::String &amp;columnName, const jam::Document &amp;, const juce::String &amp;, const jam::Array&lt; jam::Document &gt; &amp;roots, const juce::File &amp;, const jam::Document &amp;manifestDoc, const juce::String &amp;)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::Result</type>
       <name>predicateFileExists</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>aaf9ff734b2823a6d4b627647d3a4d9a5</anchor>
-      <arglist>(const PredicateContext &amp;ctx)</arglist>
+      <anchor>a99a1ce594ab3e4112cd125c6f1e979d9</anchor>
+      <arglist>(const juce::String &amp;value, const juce::String &amp;args, const juce::String &amp;rowKey, const juce::String &amp;columnName, const jam::Document &amp;root, const juce::String &amp;tableName, const jam::Array&lt; jam::Document &gt; &amp;, const juce::File &amp;dir, const jam::Document &amp;, const juce::String &amp;sourceFile)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::Result</type>
       <name>predicateOnePerGroup</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>ac1d8a491644d9a1d7b74768a9f70d969</anchor>
-      <arglist>(const PredicateContext &amp;ctx)</arglist>
+      <anchor>a5f1d3684af79fc45039a7a8d5877e202</anchor>
+      <arglist>(const juce::String &amp;, const juce::String &amp;args, const juce::String &amp;, const juce::String &amp;columnName, const jam::Document &amp;, const juce::String &amp;, const jam::Array&lt; jam::Document &gt; &amp;roots, const juce::File &amp;, const jam::Document &amp;manifestDoc, const juce::String &amp;)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static jam::Function::Map&lt; juce::String, juce::Result &gt;</type>
@@ -535,185 +244,80 @@
       <arglist>()</arglist>
     </member>
     <member kind="function" static="yes">
-      <type>static juce::Result</type>
-      <name>applyConstraintToTable</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a759a1a85432ec8a895a0f0b88db4fc50</anchor>
-      <arglist>(jam::Function::Map&lt; juce::String, juce::Result &gt; &amp;predicates, const ConstraintEntry &amp;entry, const juce::String &amp;predicateName, const juce::String &amp;predicateArgs, const jam::Document &amp;tableDoc, const jam::HashMap&lt; juce::String, const jam::Document * &gt; &amp;tables, const juce::String &amp;sourceFile)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static juce::String</type>
-      <name>transformedCell</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>ae13eaa2eaa01d759e37d39fb786d176e</anchor>
-      <arglist>(const juce::String &amp;rawValue, const juce::String &amp;columnName, const jam::Array&lt; TransformEntry &gt; &amp;transforms)</arglist>
-    </member>
-    <member kind="function" static="yes">
       <type>static SubstitutionMap</type>
       <name>buildPerRowMap</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>af9c76459979a40de521b2e98f1aca50c</anchor>
-      <arglist>(const jam::Document &amp;tableDoc, int rowIndex, const jam::Array&lt; TransformEntry &gt; &amp;transforms)</arglist>
+      <anchor>a8e6d82622e7cb90f1aef9b99ab024dc7</anchor>
+      <arglist>(const jam::Document &amp;root, const juce::String &amp;tableName, const juce::String &amp;rowKey, const jam::Document &amp;manifestDoc)</arglist>
     </member>
     <member kind="function" static="yes">
-      <type>static bool</type>
-      <name>rowMatchesDispatch</name>
+      <type>static juce::String</type>
+      <name>getOutput</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a4cd1a5c43c1541d767a9f107f8204ca0</anchor>
-      <arglist>(const jam::Document &amp;tableDoc, int rowIndex, const DispatchEntry &amp;entry)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static juce::Result</type>
-      <name>expandFragments</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>affc85748c092c842d2b3459dc6909193</anchor>
-      <arglist>(const OutputEntry &amp;output, const Manifest &amp;manifest, const jam::HashMap&lt; juce::String, const jam::Document * &gt; &amp;tables, const juce::File &amp;dir, jam::HashMap&lt; juce::String, juce::StringArray &gt; &amp;slotResults)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>loadInputTables</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>af7b048cf52b93d8dd10fbd03d6fd8459</anchor>
-      <arglist>(const OutputEntry &amp;output, const juce::File &amp;dir, jam::Array&lt; jam::Document &gt; &amp;parsedDocs, jam::HashMap&lt; juce::String, const jam::Document * &gt; &amp;tables)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static juce::Result</type>
-      <name>renderOutput</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>ae4eeae32e7c7c3da316b37de2215d8b5</anchor>
-      <arglist>(const OutputEntry &amp;output, const jam::HashMap&lt; juce::String, juce::StringArray &gt; &amp;slotResults, const juce::File &amp;dir)</arglist>
+      <anchor>a7bbd7fef86ca13e3d456605a1f0eb5f4</anchor>
+      <arglist>(const juce::File &amp;dir, const juce::String &amp;rootTemplatePath, const jam::HashMap&lt; juce::String, juce::StringArray &gt; &amp;slotResults)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::Result</type>
       <name>processOutput</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>ada0bb3ffc05f77a1168fc1b1b2cf8d71</anchor>
-      <arglist>(const OutputEntry &amp;output, const Manifest &amp;manifest, const juce::File &amp;dir)</arglist>
-    </member>
-    <member kind="function">
-      <type>void</type>
-      <name>printHelp</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a2e870959ec9922fae78db9fcf45db83d</anchor>
-      <arglist>(const juce::String &amp;specText)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static juce::String</type>
-      <name>location</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a0c80ccc6fd84a9a6085867912471ba3d</anchor>
-      <arglist>(const juce::String &amp;path, int row, int col)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static juce::String</type>
-      <name>getCellText</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a0d0421b975c943cd4be4f50c85eaf313</anchor>
-      <arglist>(const jam::Document &amp;row, int colIdx) noexcept</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static juce::Result</type>
-      <name>checkCellHazard</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>af0283369c2e8fb91472669d864822aa4</anchor>
-      <arglist>(const jam::Document &amp;row, int colIdx, const juce::String &amp;path, int rowNum)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static juce::Result</type>
-      <name>processOutputs</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>ab2a6fe94c4cf573ae90526f622dadb1a</anchor>
-      <arglist>(const jam::Document &amp;tableDoc, const juce::String &amp;path, Manifest &amp;result)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static juce::Result</type>
-      <name>processDispatch</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a352a55ebf31d2c10ae440f34c732fed8</anchor>
-      <arglist>(const jam::Document &amp;tableDoc, const juce::String &amp;path, Manifest &amp;result)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static juce::Result</type>
-      <name>processTransforms</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a891f9a8788c680e208a98771b3de5731</anchor>
-      <arglist>(const jam::Document &amp;tableDoc, const juce::String &amp;path, Manifest &amp;result)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static juce::Result</type>
-      <name>processConstraints</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a336faaec3c7c5251e03a86c36e4edd50</anchor>
-      <arglist>(const jam::Document &amp;tableDoc, const juce::String &amp;path, Manifest &amp;result)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static jam::Function::Map&lt; juce::String, juce::Result &gt;</type>
-      <name>buildSectionDispatch</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>ab4947978d9a400884d2a72484d86fea6</anchor>
-      <arglist>()</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static juce::Result</type>
-      <name>processSection</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a9453583ee198134499c4c056fc425562</anchor>
-      <arglist>(const jam::Document &amp;tableDoc, const juce::String &amp;sectionName, const juce::String &amp;path, Manifest &amp;result)</arglist>
+      <anchor>adef90352236f733d8ca922a9d323f967</anchor>
+      <arglist>(const jam::Document &amp;manifestDoc, const juce::File &amp;manifestFile, const juce::File &amp;dir, const juce::StringArray &amp;dispatchKeys, const juce::StringArray &amp;constraintKeys, const juce::String &amp;outputKey, bool writeOutputs)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static void</type>
-      <name>buildConfigureDepends</name>
+      <name>printHelp</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a6e26f26c9255dde7e434225c9f7f44a5</anchor>
-      <arglist>(const juce::File &amp;castFile, Manifest &amp;result)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static juce::Result</type>
-      <name>validateManifest</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a0a77a0fbd43b633df60a0467d4d58741</anchor>
-      <arglist>(const juce::File &amp;castFile, const Manifest &amp;result)</arglist>
+      <anchor>af452b934f2fca601c8a4dca14ac46701</anchor>
+      <arglist>(const juce::String &amp;specText)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::String</type>
       <name>getHoleValue</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a2a057440a5d9ad3452af58ab4f1db45b</anchor>
-      <arglist>(const juce::String &amp;holeName, const SubstitutionMap &amp;values)</arglist>
+      <anchor>a7a2cce9676002ffeb8b226db61270248</anchor>
+      <arglist>(const std::variant&lt; juce::String, juce::StringArray &gt; &amp;value)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static juce::Result</type>
+      <name>validateHoles</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>a1bc492d7ad52980b359fa1b34dcc4e07</anchor>
+      <arglist>(const juce::File &amp;templateFile, const juce::String &amp;text)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::String</type>
-      <name>applyToUpper</name>
+      <name>toUpper</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>aeca076ca60ca6e579abb70d9a802986d</anchor>
+      <anchor>afda97cfd45a76c2dd84f199a4279a337</anchor>
       <arglist>(const juce::String &amp;input) noexcept</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::String</type>
-      <name>applyToTitle</name>
+      <name>toTitle</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a371610f8618a28a4e992ad2070725aa2</anchor>
+      <anchor>a21f9b93304933030e052a93163924a32</anchor>
       <arglist>(const juce::String &amp;input) noexcept</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::String</type>
-      <name>applyToKebab</name>
+      <name>toKebab</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a87378c4410de44eb750ddd82173d9ae3</anchor>
+      <anchor>a96f0ba6964cc9fb3d05bfb94a4c24199</anchor>
       <arglist>(const juce::String &amp;input) noexcept</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::String</type>
-      <name>applySymbolFromFile</name>
+      <name>symbolFromFile</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a5ecf5c4061c7d308488889697621d8f6</anchor>
+      <anchor>adb327ef93074cf86a7237a38aa438749</anchor>
       <arglist>(const juce::String &amp;input) noexcept</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::String</type>
-      <name>applyQualifySymbol</name>
+      <name>qualifySymbol</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>afea0bf10fc0578839bedffafd1005b46</anchor>
+      <anchor>a138ed53d479b1eacc02f35ff83b03c36</anchor>
       <arglist>(const juce::String &amp;input) noexcept</arglist>
     </member>
     <member kind="function" static="yes">
@@ -732,9 +336,9 @@
     </member>
     <member kind="function" static="yes">
       <type>static juce::String</type>
-      <name>applyEscapeCpp</name>
+      <name>escapeCpp</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a6029db1158ebbcc740af694bb167119a</anchor>
+      <anchor>aa4156e4c51c1b067d961bdfcb6d2b4ea</anchor>
       <arglist>(const juce::String &amp;input) noexcept</arglist>
     </member>
     <member kind="function" static="yes">
@@ -746,30 +350,72 @@
     </member>
     <member kind="function" static="yes">
       <type>static juce::String</type>
-      <name>applyUtf8Bytes</name>
+      <name>utf8Bytes</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a6600bff8e2ea08a18c48a9a35ad06c8d</anchor>
+      <anchor>a4404a9c79c3e961484d6e8e1fe6ec2d5</anchor>
       <arglist>(const juce::String &amp;input) noexcept</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::String</type>
-      <name>applyCodepointHex</name>
+      <name>codepointHex</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>aff1f15428351cb1372acdfee3b4c855a</anchor>
+      <anchor>a905b20792d61b5991d5029270c82cac7</anchor>
       <arglist>(const juce::String &amp;input) noexcept</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::String</type>
-      <name>applyCodepointLabel</name>
+      <name>codepointLabel</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a9f9d6b033452563c8a192421d3353ec3</anchor>
+      <anchor>a20db922e27c5c0c48bce61607be87089</anchor>
       <arglist>(const juce::String &amp;input) noexcept</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static juce::String</type>
+      <name>getHazardMessage</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>a35725201630354ddac6eafcc9e6f4cb3</anchor>
+      <arglist>(const jam::Document &amp;cell) noexcept</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static juce::Result</type>
+      <name>validateTableHazards</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>a08beaddd176d57e0d0b3c4c151de58cf</anchor>
+      <arglist>(const jam::Document &amp;root, const juce::Identifier &amp;tableId, const juce::String &amp;sourceFile)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static juce::Result</type>
+      <name>validateManifest</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>a3cafe4a8a66eb56e8d7a7c71c130704b</anchor>
+      <arglist>(const jam::Document &amp;manifestDoc, const juce::File &amp;manifestFile)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static juce::Result</type>
+      <name>validateRoots</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>ac4dc4c3e0d8f37c68561c9900feb555d</anchor>
+      <arglist>(const jam::Array&lt; jam::Document &gt; &amp;roots, const jam::Document &amp;manifestDoc, const juce::StringArray &amp;dispatchKeys, const juce::StringArray &amp;constraintKeys, const juce::File &amp;dir)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static juce::Result</type>
+      <name>validatePerColumnConstraints</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>ab52b177f75e5ec55cb04447fe05a349e</anchor>
+      <arglist>(const jam::Document &amp;manifestDoc, const juce::StringArray &amp;constraintKeys, const jam::Array&lt; jam::Document &gt; &amp;roots, const juce::File &amp;dir, const juce::String &amp;manifestPath)</arglist>
     </member>
     <member kind="variable" static="yes">
       <type>static const juce::StringArray</type>
       <name>perColumnPredicates</name>
       <anchorfile>namespacecast.html</anchorfile>
       <anchor>ab676d052a0f3efb4062591b54ffc1604</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>const jam::HashMap&lt; juce::String, juce::String &gt;</type>
+      <name>banner</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>abe65a5f539a491ebfa4698a24ee34ee5</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable" static="yes">
@@ -787,15 +433,65 @@
       <arglist></arglist>
     </member>
     <member kind="variable" static="yes">
-      <type>static const std::array&lt; std::pair&lt; const char *, TransformFn &gt;, 9 &gt;</type>
+      <type>static constexpr int</type>
+      <name>asciiMax</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>a7722f3d29ae52d835338854f09d53640</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static constexpr int</type>
+      <name>byteHexDigits</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>a29721d2cd56af7406b281ad5ec3c40ac</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static constexpr int</type>
+      <name>codepointHexDigits</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>a48f262209228c67deedea228387cc2e8</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static const std::array&lt; std::pair&lt; juce::String, TransformFn &gt;, 9 &gt;</type>
       <name>transforms</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>ab040cec9142af0fbe59fafbb085b5fd5</anchor>
+      <anchor>a5d3e7e391997de80260d26f7013f600f</anchor>
       <arglist></arglist>
+    </member>
+  </compound>
+  <compound kind="namespace">
+    <name>cast::Constraints</name>
+    <filename>namespacecast_1_1_constraints.html</filename>
+    <member kind="function" static="yes">
+      <type>static juce::Result</type>
+      <name>validate</name>
+      <anchorfile>namespacecast_1_1_constraints.html</anchorfile>
+      <anchor>af98a39305b0f99a8b2becf6e6d6f19ad</anchor>
+      <arglist>(const juce::String &amp;predicateName, const juce::String &amp;predicateArgs, const juce::String &amp;columnName, const jam::Document &amp;root, const juce::String &amp;tableName, const jam::Array&lt; jam::Document &gt; &amp;roots, const juce::File &amp;dir, const jam::Document &amp;manifestDoc, const juce::String &amp;sourceFile)</arglist>
+    </member>
+  </compound>
+  <compound kind="namespace">
+    <name>cast::Driver</name>
+    <filename>namespacecast_1_1_driver.html</filename>
+    <member kind="function" static="yes">
+      <type>static juce::Result</type>
+      <name>run</name>
+      <anchorfile>namespacecast_1_1_driver.html</anchorfile>
+      <anchor>a66a1e5cc96f2d517f8f93bb5ac5a3931</anchor>
+      <arglist>(const juce::File &amp;manifestFile, const juce::String &amp;outputFilter={})</arglist>
     </member>
   </compound>
   <compound kind="namespace">
     <name>std</name>
     <filename>namespacestd.html</filename>
+  </compound>
+  <compound kind="dir">
+    <name>generated</name>
+    <path>generated/</path>
+    <filename>dir_84fc5dba3506812825191c0c043e3c97.html</filename>
+    <file>Banner.h</file>
+    <file>Lexicon.h</file>
   </compound>
 </tagfile>

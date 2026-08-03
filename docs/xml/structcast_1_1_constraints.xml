@@ -4,10 +4,10 @@
     <compoundname>cast::Constraints</compoundname>
     <includes refid="_constraints_8h" local="no">Constraints.h</includes>
     <sectiondef kind="public-static-func">
-      <memberdef kind="function" id="structcast_1_1_constraints_1a2f6e37b483238fb62ed50bc594b5688b" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="structcast_1_1_constraints_1a1c9f258ecc687342330234be8474e0b3" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
         <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
-        <definition>juce::Result cast::Constraints::validate</definition>
-        <argsstring>(const jam::Array&lt; ConstraintEntry &gt; &amp;constraints, const jam::HashMap&lt; juce::String, const jam::Document * &gt; &amp;tables, const juce::String &amp;sourceFile)</argsstring>
+        <definition>static juce::Result cast::Constraints::validate</definition>
+        <argsstring>(const jam::Array&lt; ConstraintEntry &gt; &amp;constraints, const jam::HashMap&lt; juce::String, const jam::Document * &gt; &amp;tables, const jam::HashMap&lt; juce::String, const jam::Document * &gt; &amp;roots, const jam::HashMap&lt; juce::String, juce::String &gt; &amp;sources)</argsstring>
         <name>validate</name>
         <qualifiedname>cast::Constraints::validate</qualifiedname>
         <param>
@@ -19,8 +19,12 @@
           <declname>tables</declname>
         </param>
         <param>
-          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
-          <declname>sourceFile</declname>
+          <type>const <ref refid="classjam_1_1HashMap" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::HashMap</ref>&lt; <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref>, const <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> * &gt; &amp;</type>
+          <declname>roots</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjam_1_1HashMap" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::HashMap</ref>&lt; <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref>, <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &gt; &amp;</type>
+          <declname>sources</declname>
         </param>
         <briefdescription>
         </briefdescription>
@@ -28,22 +32,22 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Constraints.h" line="9" column="25" bodyfile="Constraints.cpp" bodystart="231" bodyend="256"/>
-        <references refid="namespacecast_1a759a1a85432ec8a895a0f0b88db4fc50" compoundref="_constraints_8cpp" startline="204" endline="229">cast::applyConstraintToTable</references>
-        <references refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" compoundref="_constraints_8cpp" startline="188" endline="200">cast::buildPredicateMap</references>
+        <location file="Constraints.h" line="257" column="25" bodyfile="Constraints.h" bodystart="257" bodyend="282"/>
+        <references refid="namespacecast_1a1fd7bfaf71e12bd016d17cf8ee879e1c" compoundref="_constraints_8h" startline="224" endline="253">cast::applyConstraintToTable</references>
+        <references refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" compoundref="_constraints_8h" startline="208" endline="220">cast::buildPredicateMap</references>
         <references refid="structjam_1_1Function_1_1Map_1a4c650e66d077dc454ba2f9c528e9ce76">jam::Function::Map&lt; typename KeyType, typename ReturnType &gt;::contains</references>
         <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
+        <references refid="classjam_1_1HashMap_1aa8cd30d951846463b373eb6e82d96a3d">jam::HashMap&lt; typename Key, typename Mapped, typename HashFn, typename KeyEqual, typename AllocatorOrContainer, typename Bucket, typename BucketContainer, bool IsSegmented &gt;::find</references>
         <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
-        <referencedby refid="namespacecast_1ada0bb3ffc05f77a1168fc1b1b2cf8d71" compoundref="_driver_8cpp" startline="141" endline="159">cast::processOutput</referencedby>
       </memberdef>
     </sectiondef>
     <briefdescription>
     </briefdescription>
     <detaileddescription>
     </detaileddescription>
-    <location file="Constraints.h" line="7" column="1" bodyfile="Constraints.h" bodystart="8" bodyend="12"/>
+    <location file="Constraints.h" line="255" column="1" bodyfile="Constraints.h" bodystart="256" bodyend="283"/>
     <listofallmembers>
-      <member refid="structcast_1_1_constraints_1a2f6e37b483238fb62ed50bc594b5688b" prot="public" virt="non-virtual"><scope>cast::Constraints</scope><name>validate</name></member>
+      <member refid="structcast_1_1_constraints_1a1c9f258ecc687342330234be8474e0b3" prot="public" virt="non-virtual"><scope>cast::Constraints</scope><name>validate</name></member>
     </listofallmembers>
   </compounddef>
 </doxygen>
