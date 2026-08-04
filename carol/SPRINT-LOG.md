@@ -111,6 +111,32 @@
 
 ## SPRINT HISTORY
 
+## Sprint 4: JAM Generated Consolidation — cast ripple ✅
+
+**Date:** 2026-08-04
+**Duration:** ~02:30 (shared with jam Sprint 60 — see jam carol/SPRINT-LOG.md for the full sprint)
+
+### Agents Participated
+- COUNSELOR: orchestration (jam-side); cast ripple only here
+- Engineer: G5 consumer rewire (one cast line)
+
+### Files Modified (1 total)
+- `Source/Cast.cpp:8` — `<generated/ColourNames.h>` include removed; jam::ColourNames now arrives transitively via jam_core's jam_Generated.h master (jam sole-includer contract). Cast's own `"generated/Lexicon.h"` / `"generated/Banner.h"` untouched.
+
+### Alignment Check
+- [x] BLESSED principles followed — E/S: modules never reach into jam's generated path
+- [x] NAMES.md adhered — no new names in cast
+- [x] MANIFESTO.md principles applied
+
+### Problems Solved
+- None cast-local — ripple of jam Sprint 60 layout consolidation
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None
+
 ## Sprint 3: Markdown Isomorphism — Engine on jam::Document + Self-Validation ✅
 
 **Date:** 2026-08-02 → 2026-08-04

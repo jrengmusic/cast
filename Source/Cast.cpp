@@ -5,7 +5,6 @@
 
 #include <JuceHeader.h>
 #include <jam_tui/jam_tui.h>
-#include <generated/ColourNames.h>
 #include "generated/Lexicon.h"
 #include "generated/Banner.h"
 #include "Driver.h"
