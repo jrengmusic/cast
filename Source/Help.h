@@ -4,6 +4,7 @@
 
 namespace cast
 {
+/*____________________________________________________________________________*/
 
 static constexpr int widthCap { 120 };
 static constexpr int documentMargin { 2 };
@@ -33,7 +34,7 @@ static inline void printHelp (const juce::String& specText)
     jam::MarkdownDocument markdownDoc { std::move (tree), lookAndFeel.getMonoFont() };
 
     const auto ansi { jam::tui::toAnsiString (markdownDoc, lookAndFeel, widthCols) };
-    const auto margin { juce::String::repeatedString (" ", documentMargin) };
+    const auto margin { juce::String::repeatedString (Id::charSpace, documentMargin) };
 
     juce::StringArray lines;
     lines.addLines (ansi);
@@ -41,7 +42,8 @@ static inline void printHelp (const juce::String& specText)
     for (auto& line : lines)
         line = margin + line;
 
-    printf ("%s\n", lines.joinIntoString ("\n").toRawUTF8());
+    printf ("%s\n", lines.joinIntoString (Id::charNewline).toRawUTF8());
 }
 
-} // namespace cast
+/**______________________________END OF NAMESPACE______________________________*/
+}// namespace cast

@@ -6,6 +6,7 @@
 
 namespace cast
 {
+/*____________________________________________________________________________*/
 
 /**
  * @brief Detects the SPEC §2 cell hazard rule in one parsed cell.
@@ -25,10 +26,10 @@ static juce::String getHazardMessage (const jam::Document& cell) noexcept
     cell.applyFunctionRecursively ([&hazard] (const jam::Document& node) -> bool
     {
         if (node.contains (Id::tag) and *node.get<juce::Identifier> (Id::tag) == Id::a)
-            hazard = "contains URI scheme";
+            hazard = Id::failHazardUri;
         else if (not node.contains (Id::tag) and node.contains (Id::text)
-                 and node.get<juce::String> (Id::text)->containsAnyOf ("<>"))
-            hazard = "contains '<' or '>'";
+                 and node.get<juce::String> (Id::text)->containsAnyOf (Id::hazardChars))
+            hazard = Id::failHazardAngleBrackets;
 
         return not (node.contains (Id::tag) and *node.get<juce::Identifier> (Id::tag) == Id::code);
     });
@@ -60,7 +61,7 @@ static juce::Result validateTableHazards (const jam::Document& root, const juce:
                 const auto hazard { getHazardMessage (*cell) };
 
                 if (hazard.isNotEmpty())
-                    return juce::Result::fail (getLocation (sourceFile, rowKeys.indexOf (rowKey) + 1, header) + ": " + hazard);
+                    return juce::Result::fail (getLocation (sourceFile, rowKeys.indexOf (rowKey) + 1, header) + Id::diagnosticSeparator + hazard);
             }
         }
 
@@ -96,7 +97,7 @@ static juce::Result validateManifest (const jam::Document& manifestDoc, const ju
 
         if (found == transforms.end())
             return juce::Result::fail (getLocation (path, transformKeys.indexOf (transformKey) + 1, transformKey)
-                                       + ": unknown transform: " + transformName);
+                                       + Id::diagnosticSeparator + Id::failUnknownTransform + Id::diagnosticSeparator + transformName);
     }
 
     const auto outputKeys   { manifestDoc.getTableRowKeys (Id::outputs) };
@@ -109,7 +110,7 @@ static juce::Result validateManifest (const jam::Document& manifestDoc, const ju
 
         if (not dir.getChildFile (templatePath).existsAsFile())
             return juce::Result::fail (getLocation (path, outputKeys.indexOf (outputKey) + 1, Id::templatePath.toString())
-                                       + ": template not found: " + templatePath);
+                                       + Id::diagnosticSeparator + Id::failTemplateMissing + Id::diagnosticSeparator + templatePath);
 
         referencedTemplates.addIfNotAlreadyThere (templatePath);
     }
@@ -120,7 +121,7 @@ static juce::Result validateManifest (const jam::Document& manifestDoc, const ju
 
         if (not dir.getChildFile (fragmentPath).existsAsFile())
             return juce::Result::fail (getLocation (path, dispatchKeys.indexOf (dispatchKey) + 1, Id::templatePath.toString())
-                                       + ": fragment not found: " + fragmentPath);
+                                       + Id::diagnosticSeparator + Id::failFragmentMissing + Id::diagnosticSeparator + fragmentPath);
 
         referencedTemplates.addIfNotAlreadyThere (fragmentPath);
     }
@@ -152,7 +153,7 @@ static juce::Result validateManifest (const jam::Document& manifestDoc, const ju
                     [&dir, &siblingFile] (const auto& templatePath) { return dir.getChildFile (templatePath) == siblingFile; }) };
 
                 if (not referenced)
-                    return juce::Result::fail (path + ": orphan template: " + siblingFile.getFullPathName());
+                    return juce::Result::fail (path + Id::diagnosticSeparator + Id::failOrphan + Id::diagnosticSeparator + siblingFile.getFullPathName());
             }
     }
 
@@ -196,8 +197,8 @@ static juce::Result validateRoots (const jam::Array<jam::Document>& roots, const
         for (const auto& constraintKey : constraintKeys)
         {
             const auto predicateSpec { manifestDoc.getTableValue (Id::constraints, Id::predicate, constraintKey) };
-            const auto predicateName { predicateSpec.upToFirstOccurrenceOf (" ", false, false) };
-            const auto predicateArgs { predicateSpec.fromFirstOccurrenceOf (" ", false, false).trim() };
+            const auto predicateName { predicateSpec.upToFirstOccurrenceOf (Id::charSpace, false, false) };
+            const auto predicateArgs { predicateSpec.fromFirstOccurrenceOf (Id::charSpace, false, false).trim() };
 
             if (not perColumnPredicates.contains (predicateName))
                 for (const auto& scannedTable : scannedTables)
@@ -235,8 +236,8 @@ static juce::Result validatePerColumnConstraints (const jam::Document& manifestD
     for (const auto& constraintKey : constraintKeys)
     {
         const auto predicateSpec { manifestDoc.getTableValue (Id::constraints, Id::predicate, constraintKey) };
-        const auto predicateName { predicateSpec.upToFirstOccurrenceOf (" ", false, false) };
-        const auto predicateArgs { predicateSpec.fromFirstOccurrenceOf (" ", false, false).trim() };
+        const auto predicateName { predicateSpec.upToFirstOccurrenceOf (Id::charSpace, false, false) };
+        const auto predicateArgs { predicateSpec.fromFirstOccurrenceOf (Id::charSpace, false, false).trim() };
 
         if (perColumnPredicates.contains (predicateName))
         {
@@ -255,4 +256,5 @@ static juce::Result validatePerColumnConstraints (const jam::Document& manifestD
     return juce::Result::ok();
 }
 
-} // namespace cast
+/**______________________________END OF NAMESPACE______________________________*/
+}// namespace cast

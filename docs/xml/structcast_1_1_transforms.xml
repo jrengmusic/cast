@@ -47,9 +47,9 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Transforms.h" line="165" column="25" bodyfile="Transforms.h" bodystart="165" bodyend="173"/>
-        <references refid="namespacecast_1a5d3e7e391997de80260d26f7013f600f" compoundref="_transforms_8h" startline="141" endline="151">cast::transforms</references>
-        <referencedby refid="namespacecast_1a8e6d82622e7cb90f1aef9b99ab024dc7" compoundref="_driver_8h" startline="60" endline="79">cast::buildPerRowMap</referencedby>
+        <location file="Transforms.h" line="166" column="25" bodyfile="Transforms.h" bodystart="166" bodyend="174"/>
+        <references refid="namespacecast_1a5d3e7e391997de80260d26f7013f600f" compoundref="_transforms_8h" startline="142" endline="152">cast::transforms</references>
+        <referencedby refid="namespacecast_1a8e6d82622e7cb90f1aef9b99ab024dc7" compoundref="_driver_8h" startline="59" endline="78">cast::buildPerRowMap</referencedby>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -57,7 +57,7 @@
     </briefdescription>
     <detaileddescription>
     </detaileddescription>
-    <location file="Transforms.h" line="154" column="1" bodyfile="Transforms.h" bodystart="155" bodyend="174"/>
+    <location file="Transforms.h" line="155" column="1" bodyfile="Transforms.h" bodystart="156" bodyend="175"/>
     <listofallmembers>
       <member refid="structcast_1_1_transforms_1a8f205eb5ba5a4a87c4241d3a73a10ede" prot="public" virt="non-virtual"><scope>cast::Transforms</scope><name>getTransformed</name></member>
     </listofallmembers>

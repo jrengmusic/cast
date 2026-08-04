@@ -15,6 +15,8 @@
 | transform | word |  | template/Identifier.h | transform |
 | file | word |  | template/Identifier.h | file |
 | column | word |  | template/Identifier.h | column |
+| char | word |  | template/Char.h | char |
+| string | word |  | template/String.h | string |
 | banner | colour |  | template/HashMap.h | banner |
 
 ## constraints
@@ -22,3 +24,9 @@
 | column | predicate |
 |---|---|
 | word | unique |
+
+## transforms
+
+| column | transform |
+|---|---|
+| string | escapeCpp |

@@ -56,6 +56,7 @@ Well-known filename vocabulary.
 |---|---|
 | cast | CAST.md |
 | specification | SPEC.md |
+| castOutput | cast_output.md |
 
 ## column
 
@@ -69,3 +70,60 @@ CAST.md manifest table column-header vocabulary — the fixed schema columns of 
 | predicate | predicate |
 | tables | tables |
 | templatePath | template |
+| value | value |
+
+## char
+
+Single-char juce::String constants derived from Chars:: — eliminates repeated juce::String::charToString boilerplate.
+
+| word | char |
+|---|---|
+| charSpace | space |
+| charNewline | newline |
+| charDot | dot |
+| charPipe | pipe |
+| charOpenParen | openParen |
+| charCloseParen | closeParen |
+| charCarriageReturn | carriageReturn |
+| charColon | colon |
+| charComma | comma |
+| charCloseBracket | closeBracket |
+| charCloseBrace | closeBrace |
+
+## string
+
+Cast-specific multi-char string constants.
+
+| word | string |
+|---|---|
+| programName | cast |
+| commentPrefix | `// ` |
+| cliPrefix | -- |
+| scopeResolution | :: |
+| juceNamespace | `juce::` |
+| hazardChars | `<>` |
+| hexPrefix | 0x |
+| hexEscapePrefix | `\x` |
+| escapedDoubleQuote | `\"` |
+| escapedBackslash | `\\` |
+| codepointPrefix | U+ |
+| diagnosticSeparator | `: ` |
+| failNoMatch | value does not match |
+| failDuplicate | duplicate |
+| failForeignKeyMissing | `value not found in ` |
+| failNotInSet | `value not in {` |
+| failOutOfRange | ` outside [` |
+| failLocalMissing | local key not in ref |
+| failRefMissing | ref key not in local |
+| failNotFound | not found |
+| failGroupOpen | `group '` |
+| failGroupClose | `' does not have exactly one marked row` |
+| failUnknownPredicate | unknown predicate |
+| failHazardUri | contains URI scheme |
+| failHazardAngleBrackets | `contains '<' or '>'` |
+| failUnknownTransform | unknown transform |
+| failTemplateMissing | template not found |
+| failFragmentMissing | fragment not found |
+| failOrphan | orphan template |
+| failUnresolvedHole | unresolved template hole |
+| failOutputMissing | output not found |

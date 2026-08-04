@@ -10,7 +10,7 @@
     <member refid="namespacecast_1a54f69242eb732ad6931adc8a6ba9874c" kind="typedef"><name>SubstitutionMap</name></member>
     <member refid="namespacecast_1a51b3422dcceb353347be1d8134781475" kind="typedef"><name>TransformFn</name></member>
     <member refid="namespacecast_1ab676d052a0f3efb4062591b54ffc1604" kind="variable"><name>perColumnPredicates</name></member>
-    <member refid="namespacecast_1a987fcf97a8ba4e8a81b436c301beafed" kind="variable"><name>outputBannerFileName</name></member>
+    <member refid="namespacecast_1abe65a5f539a491ebfa4698a24ee34ee5" kind="variable"><name>banner</name></member>
     <member refid="namespacecast_1a864c9b0890d921f63b9b4ff36c05b61a" kind="variable"><name>widthCap</name></member>
     <member refid="namespacecast_1a5a1fa6426a004c80b6ecd43651375c0c" kind="variable"><name>documentMargin</name></member>
     <member refid="namespacecast_1a7722f3d29ae52d835338854f09d53640" kind="variable"><name>asciiMax</name></member>
@@ -75,6 +75,12 @@
   </compound>
   <compound refid="_driver_8h" kind="file"><name>Driver.h</name>
   </compound>
+  <compound refid="_c_a_s_t_8h" kind="file"><name>CAST.h</name>
+  </compound>
+  <compound refid="_hash_maps_8h" kind="file"><name>HashMaps.h</name>
+  </compound>
+  <compound refid="_identifiers_8h" kind="file"><name>Identifiers.h</name>
+  </compound>
   <compound refid="_help_8h" kind="file"><name>Help.h</name>
   </compound>
   <compound refid="_template_8h" kind="file"><name>Template.h</name>
@@ -82,5 +88,7 @@
   <compound refid="_transforms_8h" kind="file"><name>Transforms.h</name>
   </compound>
   <compound refid="_validation_8h" kind="file"><name>Validation.h</name>
+  </compound>
+  <compound refid="dir_84fc5dba3506812825191c0c043e3c97" kind="dir"><name>generated</name>
   </compound>
 </doxygenindex>

@@ -6,6 +6,7 @@
 
 namespace cast
 {
+/*____________________________________________________________________________*/
 
 /**
  * @brief Hole-name to fill-value map for one template expansion.
@@ -59,7 +60,7 @@ static juce::Result validateHoles (const juce::File& templateFile, const juce::S
     const auto row      { juce::jmax (1, juce::StringArray::fromLines (text.substring (0, openPos)).size()) };
 
     return juce::Result::fail (getLocation (templateFile.getFullPathName(), row, holeName)
-                               + ": unresolved template hole: " + holeName);
+                               + Id::diagnosticSeparator + Id::failUnresolvedHole + Id::diagnosticSeparator + holeName);
 }
 
 /// @brief SPEC §3 template expansion: fills `@hole@` constructs from a substitution map.
@@ -82,8 +83,9 @@ struct TemplateEngine
         for (const auto& [holeName, holeValue] : values)
             result = jam::Format::replaceholder (result, holeName, getHoleValue (holeValue));
 
-        return result.replace ("\r\n", "\n").replace ("\r", "\n");
+        return result.replace (Id::charCarriageReturn + Id::charNewline, Id::charNewline).replace (Id::charCarriageReturn, Id::charNewline);
     }
 };
 
-} // namespace cast
+/**______________________________END OF NAMESPACE______________________________*/
+}// namespace cast

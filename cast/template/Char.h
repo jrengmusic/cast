@@ -1,0 +1,1 @@
+inline const juce::String @word@ { juce::String::charToString (Chars::@char@) };

@@ -8,12 +8,11 @@
 
 namespace cast
 {
-
-static const juce::String outputBannerFileName { "cast_output.md" };
+/*____________________________________________________________________________*/
 
 static juce::String getOutputBanner (const juce::File& dir)
 {
-    const auto bannerFile { dir.getChildFile (outputBannerFileName) };
+    const auto bannerFile { dir.getChildFile (Id::castOutput.toString()) };
 
     if (not bannerFile.existsAsFile())
         return {};
@@ -38,9 +37,9 @@ static juce::String getOutputBanner (const juce::File& dir)
     lines.addLines (rawBanner);
 
     for (auto& line : lines)
-        line = "// " + line;
+        line = Id::commentPrefix + line;
 
-    return lines.joinIntoString ("\n");
+    return lines.joinIntoString (Id::charNewline);
 }
 
 /**
@@ -120,6 +119,7 @@ static juce::String getOutput (const juce::File& dir, const juce::String& rootTe
  * @param constraintKeys Row keys of the manifest's `## constraints` table.
  * @param outputKey      The `## outputs` row key identifying this output.
  * @param writeOutputs   When true, writes the output file if its bytes differ from disk.
+ * @param outputBanner   The formatted banner prepended to generated output when non-empty.
  * @return juce::Result::ok() on success, or the first validation failure.
  */
 static juce::Result processOutput (const jam::Document& manifestDoc, const juce::File& manifestFile, const juce::File& dir,
@@ -192,7 +192,7 @@ static juce::Result processOutput (const jam::Document& manifestDoc, const juce:
     if (not orphanCheck.wasOk())
         return orphanCheck;
 
-    const auto finalOutput { outputBanner.isNotEmpty() ? outputBanner + "\n" + outputText : outputText };
+    const auto finalOutput { outputBanner.isNotEmpty() ? outputBanner + Id::charNewline + outputText : outputText };
 
     if (writeOutputs)
     {
@@ -200,7 +200,7 @@ static juce::Result processOutput (const jam::Document& manifestDoc, const juce:
         const auto existing   { outputFile.loadFileAsString() };
 
         if (finalOutput != existing)
-            outputFile.replaceWithText (finalOutput, false, false, "\n");
+            outputFile.replaceWithText (finalOutput, false, false, Id::charNewline.toRawUTF8());
     }
 
     return juce::Result::ok();
@@ -208,6 +208,7 @@ static juce::Result processOutput (const jam::Document& manifestDoc, const juce:
 
 namespace Driver
 {
+/*____________________________________________________________________________*/
 
 /**
  * @brief Regenerates a manifest's declared outputs.
@@ -257,9 +258,11 @@ static juce::Result run (const juce::File& manifestFile, const juce::String& out
 
     return (outputFilter.isEmpty() or outputKeys.contains (outputFilter))
                ? juce::Result::ok()
-               : juce::Result::fail (manifestFile.getFullPathName() + ": output not found: " + outputFilter);
+               : juce::Result::fail (manifestFile.getFullPathName() + Id::diagnosticSeparator + Id::failOutputMissing + Id::diagnosticSeparator + outputFilter);
 }
 
-} // namespace Driver
+/**______________________________END OF NAMESPACE______________________________*/
+}// namespace Driver
 
-} // namespace cast
+/**______________________________END OF NAMESPACE______________________________*/
+}// namespace cast

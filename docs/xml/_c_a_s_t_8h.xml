@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
+  <compounddef id="_c_a_s_t_8h" kind="file" language="C++">
+    <compoundname>CAST.h</compoundname>
+    <includes refid="_identifiers_8h" local="yes">Identifiers.h</includes>
+    <includes refid="_hash_maps_8h" local="yes">HashMaps.h</includes>
+    <includedby refid="_cast_c_l_i_8cpp" local="yes">CastCLI.cpp</includedby>
+    <incdepgraph>
+      <node id="1">
+        <label>generated/CAST.h</label>
+        <link refid="_c_a_s_t_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>HashMaps.h</label>
+        <link refid="_hash_maps_8h"/>
+      </node>
+      <node id="2">
+        <label>Identifiers.h</label>
+        <link refid="_identifiers_8h"/>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="2">
+        <label>CastCLI.cpp</label>
+        <link refid="_cast_c_l_i_8cpp"/>
+      </node>
+      <node id="1">
+        <label>generated/CAST.h</label>
+        <link refid="_c_a_s_t_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="_identifiers_8h" kindref="compound">Identifiers.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="_hash_maps_8h" kindref="compound">HashMaps.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="generated/CAST.h"/>
+  </compounddef>
+</doxygen>

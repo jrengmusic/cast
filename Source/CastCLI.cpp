@@ -57,13 +57,13 @@ static void printBanner()
     jam::tui::Graphics graphics { firstText.length(), static_cast<int> (cast::banner.size()) };
     paintBanner (graphics);
 
-    printf ("%s\n", graphics.getLines().joinIntoString ("\n").toRawUTF8());
+    printf ("%s\n", graphics.getLines().joinIntoString (Id::charNewline).toRawUTF8());
 }
 
 static void printBannerAndHelp()
 {
     printBanner();
-    printf ("\n");
+    printf ("%s", Id::charNewline.toRawUTF8());
     cast::printHelp (BinaryData::getString (Id::specification.toString()));
 }
 
@@ -83,7 +83,7 @@ static jam::Array<juce::File> getConfigureDepends (const juce::File& manifestFil
 
     const auto dir { manifestFile.getParentDirectory() };
 
-    const auto bannerFile { dir.getChildFile (cast::outputBannerFileName) };
+    const auto bannerFile { dir.getChildFile (Id::castOutput.toString()) };
 
     if (bannerFile.existsAsFile())
         depends.add (bannerFile);
@@ -126,7 +126,8 @@ static int runManifest (const juce::File& manifest, const juce::String& outputFi
         return 0;
     }
 
-    fprintf (stderr, "cast: %s\n", result.getErrorMessage().toRawUTF8());
+    const auto errorLine { Id::programName + Id::diagnosticSeparator + result.getErrorMessage() };
+    fprintf (stderr, "%s\n", errorLine.toRawUTF8());
     return 1;
 }
 
@@ -140,13 +141,14 @@ int main (int argc, char* argv[])
 
     jam::Stamp::getInstance()->addIfNotAlreadyThere (jam::Stamp::Entry {});
 
-    if (argc == 2 and juce::String { argv[1] } == "--" + Id::version.toString())
+    if (argc == 2 and juce::String { argv[1] } == Id::cliPrefix + Id::version.toString())
     {
-        printf ("cast %s (" CAST_COMMIT ")\n", ProjectInfo::versionString);
+        const auto versionLine { Id::programName + Id::charSpace + ProjectInfo::versionString + Id::charSpace + Id::charOpenParen + CAST_COMMIT + Id::charCloseParen };
+        printf ("%s\n", versionLine.toRawUTF8());
         return 0;
     }
 
-    if (argc == 2 and juce::String { argv[1] } == "--" + Id::help.toString())
+    if (argc == 2 and juce::String { argv[1] } == Id::cliPrefix + Id::help.toString())
     {
         printBannerAndHelp();
         return 0;
@@ -170,6 +172,7 @@ int main (int argc, char* argv[])
         return runManifest (manifestFile);
 
     printBannerAndHelp();
-    fprintf (stderr, "cast: no %s found\n", Id::cast.toString().toRawUTF8());
+    const auto noManifestLine { Id::programName + Id::diagnosticSeparator + Id::failNotFound + Id::diagnosticSeparator + Id::cast.toString() };
+    fprintf (stderr, "%s\n", noManifestLine.toRawUTF8());
     return 1;
 }

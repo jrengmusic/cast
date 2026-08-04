@@ -2,8 +2,9 @@
 <doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
   <compounddef id="dir_84fc5dba3506812825191c0c043e3c97" kind="dir">
     <compoundname>generated</compoundname>
-    <innerfile refid="_banner_8h">Banner.h</innerfile>
-    <innerfile refid="_lexicon_8h">Lexicon.h</innerfile>
+    <innerfile refid="_c_a_s_t_8h">CAST.h</innerfile>
+    <innerfile refid="_hash_maps_8h">HashMaps.h</innerfile>
+    <innerfile refid="_identifiers_8h">Identifiers.h</innerfile>
     <briefdescription>
     </briefdescription>
     <detaileddescription>

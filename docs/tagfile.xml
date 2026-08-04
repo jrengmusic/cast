@@ -4,6 +4,7 @@
     <name>CastCLI.cpp</name>
     <path></path>
     <filename>_cast_c_l_i_8cpp.html</filename>
+    <includes id="_c_a_s_t_8h" name="CAST.h" local="yes" import="no" module="no" objc="no">generated/CAST.h</includes>
     <includes id="_driver_8h" name="Driver.h" local="yes" import="no" module="no" objc="no">Driver.h</includes>
     <includes id="_help_8h" name="Help.h" local="yes" import="no" module="no" objc="no">Help.h</includes>
     <member kind="function" static="yes">
@@ -66,6 +67,24 @@
     <includes id="_transforms_8h" name="Transforms.h" local="yes" import="no" module="no" objc="no">Transforms.h</includes>
     <namespace>cast</namespace>
     <namespace>cast::Driver</namespace>
+  </compound>
+  <compound kind="file">
+    <name>CAST.h</name>
+    <path>generated/</path>
+    <filename>_c_a_s_t_8h.html</filename>
+    <includes id="_identifiers_8h" name="Identifiers.h" local="yes" import="no" module="no" objc="no">Identifiers.h</includes>
+    <includes id="_hash_maps_8h" name="HashMaps.h" local="yes" import="no" module="no" objc="no">HashMaps.h</includes>
+  </compound>
+  <compound kind="file">
+    <name>HashMaps.h</name>
+    <path>generated/</path>
+    <filename>_hash_maps_8h.html</filename>
+    <namespace>cast</namespace>
+  </compound>
+  <compound kind="file">
+    <name>Identifiers.h</name>
+    <path>generated/</path>
+    <filename>_identifiers_8h.html</filename>
   </compound>
   <compound kind="file">
     <name>Help.h</name>
@@ -405,11 +424,11 @@
       <anchor>ab676d052a0f3efb4062591b54ffc1604</anchor>
       <arglist></arglist>
     </member>
-    <member kind="variable" static="yes">
-      <type>static constexpr juce::String</type>
-      <name>outputBannerFileName</name>
+    <member kind="variable">
+      <type>const jam::HashMap&lt; juce::String, juce::String &gt;</type>
+      <name>banner</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a987fcf97a8ba4e8a81b436c301beafed</anchor>
+      <anchor>abe65a5f539a491ebfa4698a24ee34ee5</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable" static="yes">
@@ -480,5 +499,13 @@
   <compound kind="namespace">
     <name>std</name>
     <filename>namespacestd.html</filename>
+  </compound>
+  <compound kind="dir">
+    <name>generated</name>
+    <path>generated/</path>
+    <filename>dir_84fc5dba3506812825191c0c043e3c97.html</filename>
+    <file>CAST.h</file>
+    <file>HashMaps.h</file>
+    <file>Identifiers.h</file>
   </compound>
 </tagfile>

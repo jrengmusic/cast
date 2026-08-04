@@ -129,26 +129,28 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Constraints.h" line="485" column="21" bodyfile="Constraints.h" bodystart="485" bodyend="519"/>
-        <references refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" compoundref="_constraints_8h" startline="437" endline="459">cast::buildPredicateMap</references>
+        <location file="Constraints.h" line="602" column="21" bodyfile="Constraints.h" bodystart="602" bodyend="660"/>
+        <references refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" compoundref="_constraints_8h" startline="547" endline="575">cast::buildPredicateMap</references>
         <references refid="structjam_1_1Function_1_1Map_1a4c650e66d077dc454ba2f9c528e9ce76">jam::Function::Map&lt; typename KeyType, typename ReturnType &gt;::contains</references>
+        <references refid="namespaceId_1a5e729b9864fd096462b3f08ef1eb4b1a" compoundref="_identifiers_8h" startline="73" endline="73">Id::diagnosticSeparator</references>
         <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
+        <references refid="namespaceId_1a05e0f09a795d9e11f4b8f132a862d0f8" compoundref="_identifiers_8h" startline="84" endline="84">Id::failUnknownPredicate</references>
         <references refid="structjam_1_1Function_1_1Map_1a8453a5bf3a0d89b7e854b734d20338a2">jam::Function::Map&lt; typename KeyType, typename ReturnType &gt;::get</references>
         <references refid="structjam_1_1Document_1afa9deb06eb822ef31c8a7fc68fb7227f">jam::Document::getTableHeaders</references>
         <references refid="structjam_1_1Document_1a2ecdf94514d37ab13bc399c3768635ff">jam::Document::getTableRowKeys</references>
         <references refid="structjam_1_1Document_1ae3925939b5b672e58d9f983388c0ed66">jam::Document::getTableValue</references>
         <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
-        <references refid="namespacecast_1ab676d052a0f3efb4062591b54ffc1604" compoundref="_constraints_8h" startline="430" endline="430">cast::perColumnPredicates</references>
-        <references refid="namespacecast_1_1_constraints_1af98a39305b0f99a8b2becf6e6d6f19ad" compoundref="_constraints_8h" startline="485" endline="519">validate</references>
-        <referencedby refid="namespacecast_1_1_constraints_1af98a39305b0f99a8b2becf6e6d6f19ad" compoundref="_constraints_8h" startline="485" endline="519">validate</referencedby>
-        <referencedby refid="namespacecast_1ab52b177f75e5ec55cb04447fe05a349e" compoundref="_validation_8h" startline="231" endline="256">cast::validatePerColumnConstraints</referencedby>
-        <referencedby refid="namespacecast_1ac4dc4c3e0d8f37c68561c9900feb555d" compoundref="_validation_8h" startline="177" endline="215">cast::validateRoots</referencedby>
+        <references refid="namespacecast_1ab676d052a0f3efb4062591b54ffc1604" compoundref="_constraints_8h" startline="538" endline="540">cast::perColumnPredicates</references>
+        <references refid="namespacecast_1_1_constraints_1af98a39305b0f99a8b2becf6e6d6f19ad" compoundref="_constraints_8h" startline="602" endline="660">validate</references>
+        <referencedby refid="namespacecast_1_1_constraints_1af98a39305b0f99a8b2becf6e6d6f19ad" compoundref="_constraints_8h" startline="602" endline="660">validate</referencedby>
+        <referencedby refid="namespacecast_1ab52b177f75e5ec55cb04447fe05a349e" compoundref="_validation_8h" startline="232" endline="257">cast::validatePerColumnConstraints</referencedby>
+        <referencedby refid="namespacecast_1ac4dc4c3e0d8f37c68561c9900feb555d" compoundref="_validation_8h" startline="178" endline="216">cast::validateRoots</referencedby>
       </memberdef>
     </sectiondef>
     <briefdescription>
     </briefdescription>
     <detaileddescription>
     </detaileddescription>
-    <location file="Constraints.h" line="461" column="1"/>
+    <location file="Constraints.h" line="577" column="1"/>
   </compounddef>
 </doxygen>

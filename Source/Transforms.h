@@ -3,6 +3,7 @@
 
 namespace cast
 {
+/*____________________________________________________________________________*/
 
 static constexpr int asciiMax { 127 };
 static constexpr int byteHexDigits { 2 };
@@ -29,14 +30,14 @@ static juce::String toKebab (const juce::String& input) noexcept
 /// @brief SPEC §6.9 `symbolFromFile` — filename with dots replaced by underscores (BinaryData symbol).
 static juce::String symbolFromFile (const juce::String& input) noexcept
 {
-    return input.replaceCharacter ('.', '_');
+    return input.replaceCharacter (Chars::dot, Chars::underscore);
 }
 
 /// @brief SPEC §6.8 `qualifySymbol` — two-part `A::b` symbol to `juce::A::b`; three-plus parts verbatim.
 static juce::String qualifySymbol (const juce::String& input) noexcept
 {
-    const auto count { (input.length() - input.replace ("::", "").length()) / 2 };
-    return count == 1 ? juce::String ("juce::") + input : input;
+    const auto count { (input.length() - input.replace (Id::scopeResolution, juce::String()).length()) / 2 };
+    return count == 1 ? Id::juceNamespace + input : input;
 }
 
 /**
@@ -47,7 +48,7 @@ static juce::String qualifySymbol (const juce::String& input) noexcept
  */
 static juce::juce_wchar parseCodepoint (const juce::String& input) noexcept
 {
-    const auto isHex { input.startsWith ("0x") or input.startsWith ("0X") };
+    const auto isHex { input.startsWithIgnoreCase (Id::hexPrefix) };
     return isHex ? static_cast<juce::juce_wchar> (input.substring (2).getHexValue32())
                  : input.getCharPointer().getAndAdvance();
 }
@@ -65,7 +66,7 @@ static juce::String encodeCodepointAsEscapedUtf8 (juce::juce_wchar codepoint) no
     juce::String result;
 
     for (int i { 0 }; bytes[i] != 0; ++i)
-        result += "\\x" + juce::String::toHexString (static_cast<int> (bytes[i])).paddedLeft ('0', byteHexDigits).toUpperCase();
+        result += Id::hexEscapePrefix + juce::String::toHexString (static_cast<int> (bytes[i])).paddedLeft (Chars::zero, byteHexDigits).toUpperCase();
 
     return result;
 }
@@ -80,12 +81,12 @@ static juce::String escapeCpp (const juce::String& input) noexcept
     {
         const auto byte { bytes[i] };
 
-        if (byte == '"')
-            result += "\\\"";
-        else if (byte == '\\')
-            result += "\\\\";
+        if (byte == Chars::doubleQuote)
+            result += Id::escapedDoubleQuote;
+        else if (byte == Chars::backslash)
+            result += Id::escapedBackslash;
         else if (byte > asciiMax)
-            result += "\\x" + juce::String::toHexString (static_cast<int> (byte)).paddedLeft ('0', byteHexDigits).toUpperCase();
+            result += Id::hexEscapePrefix + juce::String::toHexString (static_cast<int> (byte)).paddedLeft (Chars::zero, byteHexDigits).toUpperCase();
         else
             result += static_cast<juce::juce_wchar> (byte);
     }
@@ -101,7 +102,7 @@ static juce::String escapeCpp (const juce::String& input) noexcept
  */
 static juce::String encodeUPlusToken (const juce::String& token) noexcept
 {
-    jassert (token.startsWith ("U+"));
+    jassert (token.startsWith (Id::codepointPrefix));
 
     const auto cp { static_cast<juce::juce_wchar> (token.substring (2).getHexValue32()) };
     return encodeCodepointAsEscapedUtf8 (cp);
@@ -124,14 +125,14 @@ static juce::String utf8Bytes (const juce::String& input) noexcept
 static juce::String codepointHex (const juce::String& input) noexcept
 {
     const auto cp { parseCodepoint (input) };
-    return "0x" + juce::String::toHexString (static_cast<int> (cp)).paddedLeft ('0', codepointHexDigits).toUpperCase();
+    return Id::hexPrefix + juce::String::toHexString (static_cast<int> (cp)).paddedLeft (Chars::zero, codepointHexDigits).toUpperCase();
 }
 
 /// @brief SPEC §6.7 `codepointLabel` — codepoint to zero-padded uppercase `U+XXXX` notation.
 static juce::String codepointLabel (const juce::String& input) noexcept
 {
     const auto cp { parseCodepoint (input) };
-    return "U+" + juce::String::toHexString (static_cast<int> (cp)).paddedLeft ('0', codepointHexDigits).toUpperCase();
+    return Id::codepointPrefix + juce::String::toHexString (static_cast<int> (cp)).paddedLeft (Chars::zero, codepointHexDigits).toUpperCase();
 }
 
 using TransformFn = juce::String (*) (const juce::String&);
@@ -173,4 +174,5 @@ struct Transforms
     }
 };
 
-} // namespace cast
+/**______________________________END OF NAMESPACE______________________________*/
+}// namespace cast
