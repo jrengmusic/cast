@@ -10,7 +10,7 @@
     <member refid="namespacecast_1a54f69242eb732ad6931adc8a6ba9874c" kind="typedef"><name>SubstitutionMap</name></member>
     <member refid="namespacecast_1a51b3422dcceb353347be1d8134781475" kind="typedef"><name>TransformFn</name></member>
     <member refid="namespacecast_1ab676d052a0f3efb4062591b54ffc1604" kind="variable"><name>perColumnPredicates</name></member>
-    <member refid="namespacecast_1abe65a5f539a491ebfa4698a24ee34ee5" kind="variable"><name>banner</name></member>
+    <member refid="namespacecast_1a987fcf97a8ba4e8a81b436c301beafed" kind="variable"><name>outputBannerFileName</name></member>
     <member refid="namespacecast_1a864c9b0890d921f63b9b4ff36c05b61a" kind="variable"><name>widthCap</name></member>
     <member refid="namespacecast_1a5a1fa6426a004c80b6ecd43651375c0c" kind="variable"><name>documentMargin</name></member>
     <member refid="namespacecast_1a7722f3d29ae52d835338854f09d53640" kind="variable"><name>asciiMax</name></member>
@@ -30,9 +30,10 @@
     <member refid="namespacecast_1a99a1ce594ab3e4112cd125c6f1e979d9" kind="function"><name>predicateFileExists</name></member>
     <member refid="namespacecast_1a5f1d3684af79fc45039a7a8d5877e202" kind="function"><name>predicateOnePerGroup</name></member>
     <member refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" kind="function"><name>buildPredicateMap</name></member>
+    <member refid="namespacecast_1a8cacd457dc5d41367ee1f590f036750e" kind="function"><name>getOutputBanner</name></member>
     <member refid="namespacecast_1a8e6d82622e7cb90f1aef9b99ab024dc7" kind="function"><name>buildPerRowMap</name></member>
     <member refid="namespacecast_1a7bbd7fef86ca13e3d456605a1f0eb5f4" kind="function"><name>getOutput</name></member>
-    <member refid="namespacecast_1adef90352236f733d8ca922a9d323f967" kind="function"><name>processOutput</name></member>
+    <member refid="namespacecast_1afdeff5f86e399b8b956d14717360e4c0" kind="function"><name>processOutput</name></member>
     <member refid="namespacecast_1af452b934f2fca601c8a4dca14ac46701" kind="function"><name>printHelp</name></member>
     <member refid="namespacecast_1a7a2cce9676002ffeb8b226db61270248" kind="function"><name>getHoleValue</name></member>
     <member refid="namespacecast_1a1bc492d7ad52980b359fa1b34dcc4e07" kind="function"><name>validateHoles</name></member>
@@ -62,21 +63,17 @@
   </compound>
   <compound refid="namespacestd" kind="namespace"><name>std</name>
   </compound>
-  <compound refid="_cast_8cpp" kind="file"><name>Cast.cpp</name>
-    <member refid="_cast_8cpp_1ab78bd14cb03a7f6e70153ef948826a58" kind="function"><name>paintBanner</name></member>
-    <member refid="_cast_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" kind="function"><name>printBanner</name></member>
-    <member refid="_cast_8cpp_1a7f683cefdf7f675f09e36661ce8df7cc" kind="function"><name>printBannerAndHelp</name></member>
-    <member refid="_cast_8cpp_1a1db31476f5693c3e1ca60cbff4135bb0" kind="function"><name>getConfigureDepends</name></member>
-    <member refid="_cast_8cpp_1a7beba094c25e9aa5626e49384e647202" kind="function"><name>runManifest</name></member>
-    <member refid="_cast_8cpp_1a0ddf1224851353fc92bfbff6f499fa97" kind="function"><name>main</name></member>
+  <compound refid="_cast_c_l_i_8cpp" kind="file"><name>CastCLI.cpp</name>
+    <member refid="_cast_c_l_i_8cpp_1ab78bd14cb03a7f6e70153ef948826a58" kind="function"><name>paintBanner</name></member>
+    <member refid="_cast_c_l_i_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" kind="function"><name>printBanner</name></member>
+    <member refid="_cast_c_l_i_8cpp_1a7f683cefdf7f675f09e36661ce8df7cc" kind="function"><name>printBannerAndHelp</name></member>
+    <member refid="_cast_c_l_i_8cpp_1a1db31476f5693c3e1ca60cbff4135bb0" kind="function"><name>getConfigureDepends</name></member>
+    <member refid="_cast_c_l_i_8cpp_1a7beba094c25e9aa5626e49384e647202" kind="function"><name>runManifest</name></member>
+    <member refid="_cast_c_l_i_8cpp_1a0ddf1224851353fc92bfbff6f499fa97" kind="function"><name>main</name></member>
   </compound>
   <compound refid="_constraints_8h" kind="file"><name>Constraints.h</name>
   </compound>
   <compound refid="_driver_8h" kind="file"><name>Driver.h</name>
-  </compound>
-  <compound refid="_banner_8h" kind="file"><name>Banner.h</name>
-  </compound>
-  <compound refid="_lexicon_8h" kind="file"><name>Lexicon.h</name>
   </compound>
   <compound refid="_help_8h" kind="file"><name>Help.h</name>
   </compound>
@@ -85,7 +82,5 @@
   <compound refid="_transforms_8h" kind="file"><name>Transforms.h</name>
   </compound>
   <compound refid="_validation_8h" kind="file"><name>Validation.h</name>
-  </compound>
-  <compound refid="dir_84fc5dba3506812825191c0c043e3c97" kind="dir"><name>generated</name>
   </compound>
 </doxygenindex>

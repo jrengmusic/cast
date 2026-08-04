@@ -59,31 +59,22 @@
         <referencedby refid="namespacecast_1ab52b177f75e5ec55cb04447fe05a349e" compoundref="_validation_8h" startline="231" endline="256">validatePerColumnConstraints</referencedby>
         <referencedby refid="namespacecast_1ac4dc4c3e0d8f37c68561c9900feb555d" compoundref="_validation_8h" startline="177" endline="215">validateRoots</referencedby>
       </memberdef>
-      <memberdef kind="variable" id="namespacecast_1abe65a5f539a491ebfa4698a24ee34ee5" prot="public" static="no" mutable="no">
-        <type>const <ref refid="classjam_1_1HashMap" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::HashMap</ref>&lt; <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref>, <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &gt;</type>
-        <definition>const jam::HashMap&lt;juce::String, juce::String&gt; cast::banner</definition>
+      <memberdef kind="variable" id="namespacecast_1a987fcf97a8ba4e8a81b436c301beafed" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>juce::String cast::outputBannerFileName</definition>
         <argsstring></argsstring>
-        <name>banner</name>
-        <qualifiedname>cast::banner</qualifiedname>
-        <initializer>{
-    { &quot;Blue Mana&quot;, <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;████████████  ████████████  ████████████  ████████████&quot;) },
-    { &quot;Hello Summer&quot;, <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;████░░░░████  ████░░░░████  ████░░░░████  ░░░░████░░░░&quot;) },
-    { &quot;High Blue&quot;, <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;████    ░░░░  ████    ████  ████    ░░░░      ████    &quot;) },
-    { &quot;Aquarius&quot;, <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;████          ████████████  ████████████      ████    &quot;) },
-    { &quot;Homeworld&quot;, <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;████          ████░░░░████  ░░░░░░░░████      ████    &quot;) },
-    { &quot;Ocean Blue&quot;, <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;████    ████  ████    ████  ████    ████      ████    &quot;) },
-    { &quot;Swimmer&quot;, <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;████████████  ████    ████  ████████████      ████    &quot;) },
-    { &quot;Way Beyond the Blue&quot;, <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;░░░░░░░░░░░░  ░░░░    ░░░░  ░░░░░░░░░░░░      ░░░░    &quot;) },
-}</initializer>
+        <name>outputBannerFileName</name>
+        <qualifiedname>cast::outputBannerFileName</qualifiedname>
+        <initializer>{ &quot;cast_output.md&quot; }</initializer>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="generated/Banner.h" line="5" column="27" bodyfile="generated/Banner.h" bodystart="6" bodyend="15"/>
-        <referencedby refid="_cast_8cpp_1ab78bd14cb03a7f6e70153ef948826a58" compoundref="_cast_8cpp" startline="21" endline="52">paintBanner</referencedby>
-        <referencedby refid="_cast_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" compoundref="_cast_8cpp" startline="55" endline="62">printBanner</referencedby>
+        <location file="Driver.h" line="12" column="31" bodyfile="Driver.h" bodystart="12" bodyend="12"/>
+        <referencedby refid="_cast_c_l_i_8cpp_1a1db31476f5693c3e1ca60cbff4135bb0" compoundref="_cast_c_l_i_8cpp" startline="79" endline="105">getConfigureDepends</referencedby>
+        <referencedby refid="namespacecast_1a8cacd457dc5d41367ee1f590f036750e" compoundref="_driver_8h" startline="14" endline="44">getOutputBanner</referencedby>
       </memberdef>
       <memberdef kind="variable" id="namespacecast_1a864c9b0890d921f63b9b4ff36c05b61a" prot="public" static="yes" constexpr="yes" mutable="no">
         <type>int</type>
@@ -369,10 +360,8 @@
         </inbodydescription>
         <location file="Constraints.h" line="47" column="26" bodyfile="Constraints.h" bodystart="47" bodyend="61"/>
         <references refid="classjuce_1_1StringArray_1ace2ca99d1fd6b037f1011e46fbdbaef5">juce::StringArray::addIfNotAlreadyThere</references>
-        <references refid="namespaceId_1af7aad3795cc937b8327eb2d56d222b56" compoundref="_lexicon_8h" startline="18" endline="18">Id::constraints</references>
         <references refid="classjuce_1_1String_1af9575546e316f0b6fbc123b55364119d">juce::String::fromFirstOccurrenceOf</references>
         <references refid="structjam_1_1Document_1ae3925939b5b672e58d9f983388c0ed66">jam::Document::getTableValue</references>
-        <references refid="namespaceId_1a416cedb3744bdc61dd9b87b9b3d2f7ad" compoundref="_lexicon_8h" startline="49" endline="49">Id::predicate</references>
         <references refid="classjuce_1_1String_1a1680f336545ec14d3b8a63c938eecfb3">juce::String::trim</references>
         <referencedby refid="namespacecast_1aef9d112fece55c723df7aea2e28de346" compoundref="_constraints_8h" startline="248" endline="325">predicateParity</referencedby>
         <referencedby refid="namespacecast_1a957c9e9c8ecb2c610568bebc7667f4c1" compoundref="_constraints_8h" startline="117" endline="165">predicateUnique</referencedby>
@@ -483,7 +472,7 @@
           <declname>sourceFile</declname>
         </param>
         <briefdescription>
-<para>SPEC §7.1 <computeroutput>matches &lt;regex&gt;</computeroutput> — cell matches the pattern. </para>
+<para>SPEC §7.1 <computeroutput>matches \&lt;regex\&gt;</computeroutput> — cell matches the pattern. </para>
         </briefdescription>
         <detaileddescription>
 <para>Row-scoped: <ref refid="namespacecast_1_1_constraints_1af98a39305b0f99a8b2becf6e6d6f19ad" kindref="member">Constraints::validate()</ref> invokes this once per row of every scanned table that declares the constraint&apos;s column. </para>
@@ -494,7 +483,6 @@
         <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
         <references refid="namespacecast_1afb20cc8ccd65bbfce56cc5014cb8cd11" compoundref="_constraints_8h" startline="18" endline="21">getLocation</references>
         <references refid="namespacecast_1a7afae2a0181db2bd1cf3bf5d95516bbb" compoundref="_constraints_8h" startline="31" endline="34">getRowNumber</references>
-        <references refid="namespaceId_1a9878a732de348128c0c5e75d0da49b86" compoundref="_lexicon_8h" startline="21" endline="21">Id::matches</references>
         <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
         <references refid="classjuce_1_1String_1a288d9b6ad31a5825d00aa76bfd998ca8">juce::String::toStdString</references>
         <referencedby refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" compoundref="_constraints_8h" startline="437" endline="459">buildPredicateMap</referencedby>
@@ -548,9 +536,7 @@
         </inbodydescription>
         <location file="Constraints.h" line="117" column="21" bodyfile="Constraints.h" bodystart="117" bodyend="165"/>
         <references refid="classjuce_1_1StringArray_1aa73d26821acfb994327d27619703c8fc">juce::StringArray::add</references>
-        <references refid="namespaceId_1af7aad3795cc937b8327eb2d56d222b56" compoundref="_lexicon_8h" startline="18" endline="18">Id::constraints</references>
         <references refid="classjuce_1_1StringArray_1a203722a396327c701fd30b3c76da225c">juce::StringArray::contains</references>
-        <references refid="namespaceId_1aca212072de97e8efa0e6a3b5051a362d" compoundref="_lexicon_8h" startline="16" endline="16">Id::dispatch</references>
         <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
         <references refid="namespacecast_1aa9d23644d8f454e84a807e75f6a81efa" compoundref="_constraints_8h" startline="47" endline="61">getConstraintTargetTables</references>
         <references refid="namespacecast_1afb20cc8ccd65bbfce56cc5014cb8cd11" compoundref="_constraints_8h" startline="18" endline="21">getLocation</references>
@@ -559,7 +545,6 @@
         <references refid="classjuce_1_1String_1a1f0c785b3834720c20a115ff82f138de">juce::String::isEmpty</references>
         <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
         <references refid="namespaceId_1ac0d6bb21fb6eb483624e52f9002294ab">Id::path</references>
-        <references refid="namespaceId_1a8953922fa0a2f9adba43eef79a2a49b6" compoundref="_lexicon_8h" startline="22" endline="22">Id::unique</references>
         <referencedby refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" compoundref="_constraints_8h" startline="437" endline="459">buildPredicateMap</referencedby>
       </memberdef>
       <memberdef kind="function" id="namespacecast_1abf0f319aa75c388eaa1e0eb9c58e996f" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
@@ -607,18 +592,17 @@
           <declname>sourceFile</declname>
         </param>
         <briefdescription>
-<para>SPEC §7.3 <computeroutput>existsIn &lt;table&gt;. </computeroutput></para>
+<para>SPEC §7.3 <computeroutput>existsIn \&lt;table\&gt;. </computeroutput></para>
         </briefdescription>
         <detaileddescription>
-<para>&lt;column&gt; — FK: cell keys a row in the target table.</para>
-<para>Row-scoped: resolves the target table&apos;s column-0 key against <computeroutput>value</computeroutput>. <computeroutput>&lt;column&gt;</computeroutput> names the target table&apos;s key (column 0); resolution is keyed access, not a scan of <computeroutput>&lt;column&gt;</computeroutput>&apos;s own values. </para>
+<para>\&lt;column\&gt; — FK: cell keys a row in the target table.</para>
+<para>Row-scoped: resolves the target table&apos;s column-0 key against <computeroutput>value</computeroutput>. <computeroutput>\&lt;column\&gt;</computeroutput> names the target table&apos;s key (column 0); resolution is keyed access, not a scan of <computeroutput>\&lt;column\&gt;</computeroutput>&apos;s own values. </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
         <location file="Constraints.h" line="174" column="21" bodyfile="Constraints.h" bodystart="174" bodyend="196"/>
         <references refid="classjam_1_1Array_1a88e6fb09b166faae19143380e1b9dea0">jam::Array&lt; typename ElementType &gt;::begin</references>
         <references refid="classjam_1_1Array_1a47aa82e30b09e6df18c7fe5276cfd28e">jam::Array&lt; typename ElementType &gt;::end</references>
-        <references refid="namespaceId_1ad60a7cb7017dc4ab7b6b546fa78c2520" compoundref="_lexicon_8h" startline="23" endline="23">Id::existsIn</references>
         <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
         <references refid="namespacecast_1afb20cc8ccd65bbfce56cc5014cb8cd11" compoundref="_constraints_8h" startline="18" endline="21">getLocation</references>
         <references refid="namespacecast_1a7afae2a0181db2bd1cf3bf5d95516bbb" compoundref="_constraints_8h" startline="31" endline="34">getRowNumber</references>
@@ -682,7 +666,6 @@
         <references refid="namespacecast_1afb20cc8ccd65bbfce56cc5014cb8cd11" compoundref="_constraints_8h" startline="18" endline="21">getLocation</references>
         <references refid="namespacecast_1a7afae2a0181db2bd1cf3bf5d95516bbb" compoundref="_constraints_8h" startline="31" endline="34">getRowNumber</references>
         <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
-        <references refid="namespaceId_1a78c7cb2da8420db932e024f06af46fc1" compoundref="_lexicon_8h" startline="24" endline="24">Id::oneOf</references>
         <referencedby refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" compoundref="_constraints_8h" startline="437" endline="459">buildPredicateMap</referencedby>
       </memberdef>
       <memberdef kind="function" id="namespacecast_1a1eb56cd981aeb18983256abf5812d7bc" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
@@ -744,7 +727,6 @@
         <references refid="namespacecast_1a7afae2a0181db2bd1cf3bf5d95516bbb" compoundref="_constraints_8h" startline="31" endline="34">getRowNumber</references>
         <references refid="structjam_1_1Document_1ae3925939b5b672e58d9f983388c0ed66">jam::Document::getTableValue</references>
         <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
-        <references refid="namespaceId_1aec4170f20f580e8736befa263a18bd93" compoundref="_lexicon_8h" startline="25" endline="25">Id::range</references>
         <references refid="classjuce_1_1String_1a1680f336545ec14d3b8a63c938eecfb3">juce::String::trim</references>
         <references refid="classjuce_1_1String_1a104293243d3705433aba984bfe16c483">juce::String::upToFirstOccurrenceOf</references>
         <referencedby refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" compoundref="_constraints_8h" startline="437" endline="459">buildPredicateMap</referencedby>
@@ -790,10 +772,10 @@
           <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
         </param>
         <briefdescription>
-<para>SPEC §7.6 <computeroutput>parity &lt;table&gt;. </computeroutput></para>
+<para>SPEC §7.6 <computeroutput>parity \&lt;table\&gt;. </computeroutput></para>
         </briefdescription>
         <detaileddescription>
-<para>&lt;column&gt; — key-set equality across tables.</para>
+<para>\&lt;column\&gt; — key-set equality across tables.</para>
 <para>Scope-scoped (perColumnPredicates): collects <computeroutput>args&apos;s</computeroutput> target table/column values, then scans every scanned table declaring the constraint&apos;s column and reports the first local value missing from the target set, or — failing that — the first target value missing from the local set. </para>
         </detaileddescription>
         <inbodydescription>
@@ -802,9 +784,7 @@
         <references refid="classjuce_1_1StringArray_1aa73d26821acfb994327d27619703c8fc">juce::StringArray::add</references>
         <references refid="classjuce_1_1StringArray_1ace2ca99d1fd6b037f1011e46fbdbaef5">juce::StringArray::addIfNotAlreadyThere</references>
         <references refid="classjuce_1_1StringArray_1afbf713024fad732c816526c8c4515aea">juce::StringArray::begin</references>
-        <references refid="namespaceId_1af7aad3795cc937b8327eb2d56d222b56" compoundref="_lexicon_8h" startline="18" endline="18">Id::constraints</references>
         <references refid="classjuce_1_1StringArray_1a203722a396327c701fd30b3c76da225c">juce::StringArray::contains</references>
-        <references refid="namespaceId_1aca212072de97e8efa0e6a3b5051a362d" compoundref="_lexicon_8h" startline="16" endline="16">Id::dispatch</references>
         <references refid="classjuce_1_1StringArray_1aa307078c3a328185ed2582a3f58b0b93">juce::StringArray::end</references>
         <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
         <references refid="classjuce_1_1String_1af9575546e316f0b6fbc123b55364119d">juce::String::fromFirstOccurrenceOf</references>
@@ -815,7 +795,6 @@
         <references refid="classjuce_1_1String_1a1f0c785b3834720c20a115ff82f138de">juce::String::isEmpty</references>
         <references refid="classjuce_1_1String_1af5084463343819f82187154ccb62ea3a">juce::String::isNotEmpty</references>
         <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
-        <references refid="namespaceId_1ab525c29f17c67c765f8e47952958b85c" compoundref="_lexicon_8h" startline="26" endline="26">Id::parity</references>
         <references refid="namespaceId_1ac0d6bb21fb6eb483624e52f9002294ab">Id::path</references>
         <references refid="classjuce_1_1String_1a104293243d3705433aba984bfe16c483">juce::String::upToFirstOccurrenceOf</references>
         <referencedby refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" compoundref="_constraints_8h" startline="437" endline="459">buildPredicateMap</referencedby>
@@ -865,16 +844,15 @@
           <declname>sourceFile</declname>
         </param>
         <briefdescription>
-<para>SPEC §7.7 <computeroutput>fileExists &lt;root&gt;</computeroutput> — cell resolves to an existing file under the declared root. </para>
+<para>SPEC §7.7 <computeroutput>fileExists \&lt;root\&gt;</computeroutput> — cell resolves to an existing file under the declared root. </para>
         </briefdescription>
         <detaileddescription>
-<para>Row-scoped. <computeroutput>args</computeroutput> is a directory path relative to the manifest&apos;s directory; the target file is <computeroutput>&lt;root&gt;/&lt;value&gt;</computeroutput>. </para>
+<para>Row-scoped. <computeroutput>args</computeroutput> is a directory path relative to the manifest&apos;s directory; the target file is <computeroutput>\&lt;root\&gt;/\&lt;value\&gt;</computeroutput>. </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
         <location file="Constraints.h" line="333" column="21" bodyfile="Constraints.h" bodystart="333" bodyend="343"/>
         <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
-        <references refid="namespaceId_1a59fe7555c9a5d3352fc26d0e6be3b85f" compoundref="_lexicon_8h" startline="27" endline="27">Id::fileExists</references>
         <references refid="classjuce_1_1File_1a57b992aacb19e09ee5905cd0f0e9bb31">juce::File::getChildFile</references>
         <references refid="namespacecast_1afb20cc8ccd65bbfce56cc5014cb8cd11" compoundref="_constraints_8h" startline="18" endline="21">getLocation</references>
         <references refid="namespacecast_1a7afae2a0181db2bd1cf3bf5d95516bbb" compoundref="_constraints_8h" startline="31" endline="34">getRowNumber</references>
@@ -922,7 +900,7 @@
           <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
         </param>
         <briefdescription>
-<para>SPEC §7.8 <computeroutput>onePerGroup &lt;column&gt;</computeroutput> — exactly one marked row per distinct group value. </para>
+<para>SPEC §7.8 <computeroutput>onePerGroup \&lt;column\&gt;</computeroutput> — exactly one marked row per distinct group value. </para>
         </briefdescription>
         <detaileddescription>
 <para>Scope-scoped (perColumnPredicates): <computeroutput>args</computeroutput> names the grouping column; for each scanned table declaring both the constraint&apos;s column and the group column, groups rows by the group column and reports the first group whose count of non-empty marks in the constraint&apos;s column is not exactly one. </para>
@@ -955,12 +933,6 @@
         <location file="Constraints.h" line="437" column="27" bodyfile="Constraints.h" bodystart="437" bodyend="459"/>
         <references refid="structjam_1_1Function_1_1Map_1a4c5333e037712bf4fbed00a9d1dcaf34">jam::Function::Map&lt; typename KeyType, typename ReturnType &gt;::add</references>
         <references refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" compoundref="_constraints_8h" startline="437" endline="459">buildPredicateMap</references>
-        <references refid="namespaceId_1ad60a7cb7017dc4ab7b6b546fa78c2520" compoundref="_lexicon_8h" startline="23" endline="23">Id::existsIn</references>
-        <references refid="namespaceId_1a59fe7555c9a5d3352fc26d0e6be3b85f" compoundref="_lexicon_8h" startline="27" endline="27">Id::fileExists</references>
-        <references refid="namespaceId_1a9878a732de348128c0c5e75d0da49b86" compoundref="_lexicon_8h" startline="21" endline="21">Id::matches</references>
-        <references refid="namespaceId_1a78c7cb2da8420db932e024f06af46fc1" compoundref="_lexicon_8h" startline="24" endline="24">Id::oneOf</references>
-        <references refid="namespaceId_1a27756ba7c8c9826617c2056721db9139" compoundref="_lexicon_8h" startline="28" endline="28">Id::onePerGroup</references>
-        <references refid="namespaceId_1ab525c29f17c67c765f8e47952958b85c" compoundref="_lexicon_8h" startline="26" endline="26">Id::parity</references>
         <references refid="namespacecast_1abf0f319aa75c388eaa1e0eb9c58e996f" compoundref="_constraints_8h" startline="174" endline="196">predicateExistsIn</references>
         <references refid="namespacecast_1a99a1ce594ab3e4112cd125c6f1e979d9" compoundref="_constraints_8h" startline="333" endline="343">predicateFileExists</references>
         <references refid="namespacecast_1a3479568350d4afa881b7d12ea1cd7792" compoundref="_constraints_8h" startline="97" endline="107">predicateMatches</references>
@@ -969,10 +941,34 @@
         <references refid="namespacecast_1aef9d112fece55c723df7aea2e28de346" compoundref="_constraints_8h" startline="248" endline="325">predicateParity</references>
         <references refid="namespacecast_1a1eb56cd981aeb18983256abf5812d7bc" compoundref="_constraints_8h" startline="222" endline="238">predicateRange</references>
         <references refid="namespacecast_1a957c9e9c8ecb2c610568bebc7667f4c1" compoundref="_constraints_8h" startline="117" endline="165">predicateUnique</references>
-        <references refid="namespaceId_1aec4170f20f580e8736befa263a18bd93" compoundref="_lexicon_8h" startline="25" endline="25">Id::range</references>
-        <references refid="namespaceId_1a8953922fa0a2f9adba43eef79a2a49b6" compoundref="_lexicon_8h" startline="22" endline="22">Id::unique</references>
         <referencedby refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" compoundref="_constraints_8h" startline="437" endline="459">buildPredicateMap</referencedby>
         <referencedby refid="namespacecast_1_1_constraints_1af98a39305b0f99a8b2becf6e6d6f19ad" compoundref="_constraints_8h" startline="485" endline="519">cast::Constraints::validate</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacecast_1a8cacd457dc5d41367ee1f590f036750e" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>static juce::String cast::getOutputBanner</definition>
+        <argsstring>(const juce::File &amp;dir)</argsstring>
+        <name>getOutputBanner</name>
+        <qualifiedname>cast::getOutputBanner</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref> &amp;</type>
+          <declname>dir</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Driver.h" line="14" column="21" bodyfile="Driver.h" bodystart="14" bodyend="44"/>
+        <references refid="classjuce_1_1StringArray_1ab0d599cf25b924c397bf2dd4c6c0e4a6">juce::StringArray::addLines</references>
+        <references refid="structId_1_1BlockType_1a455b6d3512ef505f7c00e4acbe0e6b86a5f121597e837cdacc95bcd43a0a44d7e">Id::BlockType::codeBlock</references>
+        <references refid="classjuce_1_1File_1a57b992aacb19e09ee5905cd0f0e9bb31">juce::File::getChildFile</references>
+        <references refid="classjuce_1_1String_1a1f0c785b3834720c20a115ff82f138de">juce::String::isEmpty</references>
+        <references refid="classjuce_1_1StringArray_1a023d7cf3115d23d25beac528f26690b1">juce::StringArray::joinIntoString</references>
+        <references refid="namespacecast_1a987fcf97a8ba4e8a81b436c301beafed" compoundref="_driver_8h" startline="12" endline="12">outputBannerFileName</references>
+        <references refid="structjam_1_1Markdown_1ad2eeadd77ac16749f86be26e4aa4858c">jam::Markdown::parse</references>
+        <references refid="namespaceId_1ab4956db6d5e735af8b4e202830ac73f7">Id::type</references>
       </memberdef>
       <memberdef kind="function" id="namespacecast_1a8e6d82622e7cb90f1aef9b99ab024dc7" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="namespacecast_1a54f69242eb732ad6931adc8a6ba9874c" kindref="member">SubstitutionMap</ref></type>
@@ -1040,15 +1036,13 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Driver.h" line="26" column="24" bodyfile="Driver.h" bodystart="26" bodyend="45"/>
+        <location file="Driver.h" line="60" column="24" bodyfile="Driver.h" bodystart="60" bodyend="79"/>
         <references refid="structjam_1_1Document_1afa9deb06eb822ef31c8a7fc68fb7227f">jam::Document::getTableHeaders</references>
         <references refid="structjam_1_1Document_1a2ecdf94514d37ab13bc399c3768635ff">jam::Document::getTableRowKeys</references>
         <references refid="structjam_1_1Document_1ae3925939b5b672e58d9f983388c0ed66">jam::Document::getTableValue</references>
         <references refid="structcast_1_1_transforms_1a8f205eb5ba5a4a87c4241d3a73a10ede" compoundref="_transforms_8h" startline="165" endline="173">cast::Transforms::getTransformed</references>
         <references refid="classjam_1_1HashMap_1a652692e674a0b76b04df95b4a64394d8">jam::HashMap&lt; typename Key, typename Mapped, typename HashFn, typename KeyEqual, typename AllocatorOrContainer, typename Bucket, typename BucketContainer, bool IsSegmented &gt;::insert</references>
-        <references refid="namespaceId_1aba3b965c57485745ceb3dbc5fd0a64b7" compoundref="_lexicon_8h" startline="48" endline="48">Id::transform</references>
-        <references refid="namespaceId_1aecea3e004bffc22cc04bfe3d8508c54d" compoundref="_lexicon_8h" startline="17" endline="17">Id::transforms</references>
-        <referencedby refid="namespacecast_1adef90352236f733d8ca922a9d323f967" compoundref="_driver_8h" startline="91" endline="171">processOutput</referencedby>
+        <referencedby refid="namespacecast_1afdeff5f86e399b8b956d14717360e4c0" compoundref="_driver_8h" startline="125" endline="207">processOutput</referencedby>
       </memberdef>
       <memberdef kind="function" id="namespacecast_1a7bbd7fef86ca13e3d456605a1f0eb5f4" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
@@ -1104,16 +1098,16 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Driver.h" line="58" column="21" bodyfile="Driver.h" bodystart="58" bodyend="67"/>
+        <location file="Driver.h" line="92" column="21" bodyfile="Driver.h" bodystart="92" bodyend="101"/>
         <references refid="structcast_1_1_template_engine_1a17663684abc84ea95042ef3ba089526c" compoundref="_template_8h" startline="78" endline="86">cast::TemplateEngine::expand</references>
         <references refid="classjuce_1_1File_1a57b992aacb19e09ee5905cd0f0e9bb31">juce::File::getChildFile</references>
         <references refid="classjam_1_1HashMap_1a652692e674a0b76b04df95b4a64394d8">jam::HashMap&lt; typename Key, typename Mapped, typename HashFn, typename KeyEqual, typename AllocatorOrContainer, typename Bucket, typename BucketContainer, bool IsSegmented &gt;::insert</references>
-        <referencedby refid="namespacecast_1adef90352236f733d8ca922a9d323f967" compoundref="_driver_8h" startline="91" endline="171">processOutput</referencedby>
+        <referencedby refid="namespacecast_1afdeff5f86e399b8b956d14717360e4c0" compoundref="_driver_8h" startline="125" endline="207">processOutput</referencedby>
       </memberdef>
-      <memberdef kind="function" id="namespacecast_1adef90352236f733d8ca922a9d323f967" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="namespacecast_1afdeff5f86e399b8b956d14717360e4c0" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
         <definition>static juce::Result cast::processOutput</definition>
-        <argsstring>(const jam::Document &amp;manifestDoc, const juce::File &amp;manifestFile, const juce::File &amp;dir, const juce::StringArray &amp;dispatchKeys, const juce::StringArray &amp;constraintKeys, const juce::String &amp;outputKey, bool writeOutputs)</argsstring>
+        <argsstring>(const jam::Document &amp;manifestDoc, const juce::File &amp;manifestFile, const juce::File &amp;dir, const juce::StringArray &amp;dispatchKeys, const juce::StringArray &amp;constraintKeys, const juce::String &amp;outputKey, bool writeOutputs, const juce::String &amp;outputBanner)</argsstring>
         <name>processOutput</name>
         <qualifiedname>cast::processOutput</qualifiedname>
         <param>
@@ -1143,6 +1137,10 @@
         <param>
           <type>bool</type>
           <declname>writeOutputs</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>outputBanner</declname>
         </param>
         <briefdescription>
 <para>Validates and generates one declared output row. </para>
@@ -1213,27 +1211,22 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Driver.h" line="91" column="21" bodyfile="Driver.h" bodystart="91" bodyend="171"/>
+        <location file="Driver.h" line="125" column="21" bodyfile="Driver.h" bodystart="125" bodyend="207"/>
         <references refid="classjam_1_1Array_1a056773d314babbb130f136a544a1b3e7">jam::Array&lt; typename ElementType &gt;::add</references>
         <references refid="classjam_1_1Array_1a88e6fb09b166faae19143380e1b9dea0">jam::Array&lt; typename ElementType &gt;::begin</references>
-        <references refid="namespacecast_1a8e6d82622e7cb90f1aef9b99ab024dc7" compoundref="_driver_8h" startline="26" endline="45">buildPerRowMap</references>
-        <references refid="namespaceId_1af2239fe8341ea76506105b6ce8f3b749" compoundref="_lexicon_8h" startline="46" endline="46">Id::column</references>
-        <references refid="namespaceId_1aca212072de97e8efa0e6a3b5051a362d" compoundref="_lexicon_8h" startline="16" endline="16">Id::dispatch</references>
+        <references refid="namespacecast_1a8e6d82622e7cb90f1aef9b99ab024dc7" compoundref="_driver_8h" startline="60" endline="79">buildPerRowMap</references>
         <references refid="classjam_1_1Array_1a47aa82e30b09e6df18c7fe5276cfd28e">jam::Array&lt; typename ElementType &gt;::end</references>
         <references refid="structcast_1_1_template_engine_1a17663684abc84ea95042ef3ba089526c" compoundref="_template_8h" startline="78" endline="86">cast::TemplateEngine::expand</references>
         <references refid="classjuce_1_1File_1a57b992aacb19e09ee5905cd0f0e9bb31">juce::File::getChildFile</references>
         <references refid="classjuce_1_1File_1a515fa016b189068f365cc875e241e2a1">juce::File::getFullPathName</references>
-        <references refid="namespacecast_1a7bbd7fef86ca13e3d456605a1f0eb5f4" compoundref="_driver_8h" startline="58" endline="67">getOutput</references>
+        <references refid="namespacecast_1a7bbd7fef86ca13e3d456605a1f0eb5f4" compoundref="_driver_8h" startline="92" endline="101">getOutput</references>
         <references refid="structjam_1_1Document_1ae3925939b5b672e58d9f983388c0ed66">jam::Document::getTableValue</references>
         <references refid="structjam_1_1Document_1a1ef0d9fcd4a404ab1390a73bd91907c1">jam::Document::getTableValues</references>
+        <references refid="classjuce_1_1String_1af5084463343819f82187154ccb62ea3a">juce::String::isNotEmpty</references>
         <references refid="classjuce_1_1File_1aa65d2fa50370357bf93658d6447c296d">juce::File::loadFileAsString</references>
         <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
-        <references refid="namespaceId_1a59a827617008cc92aafb72fab02c2377" compoundref="_lexicon_8h" startline="15" endline="15">Id::outputs</references>
         <references refid="structjam_1_1Markdown_1ad2eeadd77ac16749f86be26e4aa4858c">jam::Markdown::parse</references>
         <references refid="namespaceId_1ac0d6bb21fb6eb483624e52f9002294ab">Id::path</references>
-        <references refid="namespaceId_1a2df19ec1c01e2def2f876a5435160b52" compoundref="_lexicon_8h" startline="47" endline="47">Id::slot</references>
-        <references refid="namespaceId_1a0c21715610ba99996860a3a00d7c1561" compoundref="_lexicon_8h" startline="50" endline="50">Id::tables</references>
-        <references refid="namespaceId_1a56531ef8a997e8a2fc8d53cf8b543459" compoundref="_lexicon_8h" startline="51" endline="51">Id::templatePath</references>
         <references refid="namespacecast_1a1bc492d7ad52980b359fa1b34dcc4e07" compoundref="_template_8h" startline="48" endline="63">validateHoles</references>
         <references refid="namespacecast_1ab52b177f75e5ec55cb04447fe05a349e" compoundref="_validation_8h" startline="231" endline="256">validatePerColumnConstraints</references>
         <references refid="namespacecast_1ac4dc4c3e0d8f37c68561c9900feb555d" compoundref="_validation_8h" startline="177" endline="215">validateRoots</references>
@@ -1283,7 +1276,7 @@
         <references refid="classjuce_1_1String_1a276c7c57f1d1a2fc76a8b47aed0823e7">juce::String::toRawUTF8</references>
         <references refid="structjam_1_1Cell_1aecd8f8ae6d8912e9b0689382ac96cbb4">jam::Cell::value</references>
         <references refid="namespacecast_1a864c9b0890d921f63b9b4ff36c05b61a" compoundref="_help_8h" startline="8" endline="8">widthCap</references>
-        <referencedby refid="_cast_8cpp_1a7f683cefdf7f675f09e36661ce8df7cc" compoundref="_cast_8cpp" startline="64" endline="69">printBannerAndHelp</referencedby>
+        <referencedby refid="_cast_c_l_i_8cpp_1a7f683cefdf7f675f09e36661ce8df7cc" compoundref="_cast_c_l_i_8cpp" startline="63" endline="68">printBannerAndHelp</referencedby>
       </memberdef>
       <memberdef kind="function" id="namespacecast_1a7a2cce9676002ffeb8b226db61270248" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
@@ -1366,7 +1359,7 @@
         <references refid="namespacecast_1afb20cc8ccd65bbfce56cc5014cb8cd11" compoundref="_constraints_8h" startline="18" endline="21">getLocation</references>
         <references refid="namespacejuce_1a50060cafc2432519b7611476410dbe22">juce::jmax</references>
         <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
-        <referencedby refid="namespacecast_1adef90352236f733d8ca922a9d323f967" compoundref="_driver_8h" startline="91" endline="171">processOutput</referencedby>
+        <referencedby refid="namespacecast_1afdeff5f86e399b8b956d14717360e4c0" compoundref="_driver_8h" startline="125" endline="207">processOutput</referencedby>
       </memberdef>
       <memberdef kind="function" id="namespacecast_1afda97cfd45a76c2dd84f199a4279a337" prot="public" static="yes" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
         <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
@@ -1810,7 +1803,6 @@
         <references refid="classjuce_1_1StringArray_1afbf713024fad732c816526c8c4515aea">juce::StringArray::begin</references>
         <references refid="classjuce_1_1Array_1a8b63ab45523667d4c4caf637312be0b1">juce::Array&lt; typename ElementType, typename TypeOfCriticalSectionToUse, int minimumAllocatedSize &gt;::contains</references>
         <references refid="classjuce_1_1StringArray_1a203722a396327c701fd30b3c76da225c">juce::StringArray::contains</references>
-        <references refid="namespaceId_1aca212072de97e8efa0e6a3b5051a362d" compoundref="_lexicon_8h" startline="16" endline="16">Id::dispatch</references>
         <references refid="classjuce_1_1StringArray_1aa307078c3a328185ed2582a3f58b0b93">juce::StringArray::end</references>
         <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
         <references refid="classjuce_1_1File_1a7f2a6dd2500753c44eaa5febc68fe435afcc07481192152404da0e5e807a697bd">juce::File::findFiles</references>
@@ -1820,11 +1812,8 @@
         <references refid="structjam_1_1Document_1a2ecdf94514d37ab13bc399c3768635ff">jam::Document::getTableRowKeys</references>
         <references refid="structjam_1_1Document_1ae3925939b5b672e58d9f983388c0ed66">jam::Document::getTableValue</references>
         <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
-        <references refid="namespaceId_1a59a827617008cc92aafb72fab02c2377" compoundref="_lexicon_8h" startline="15" endline="15">Id::outputs</references>
-        <references refid="namespaceId_1a56531ef8a997e8a2fc8d53cf8b543459" compoundref="_lexicon_8h" startline="51" endline="51">Id::templatePath</references>
-        <references refid="namespaceId_1aba3b965c57485745ceb3dbc5fd0a64b7" compoundref="_lexicon_8h" startline="48" endline="48">Id::transform</references>
+        <references refid="classjuce_1_1Identifier_1ab6f0db1de2c36cacd1a9d7280f73aeeb">juce::Identifier::toString</references>
         <references refid="namespacecast_1a5d3e7e391997de80260d26f7013f600f" compoundref="_transforms_8h" startline="141" endline="151">transforms</references>
-        <references refid="namespaceId_1aecea3e004bffc22cc04bfe3d8508c54d" compoundref="_lexicon_8h" startline="17" endline="17">Id::transforms</references>
       </memberdef>
       <memberdef kind="function" id="namespacecast_1ac4dc4c3e0d8f37c68561c9900feb555d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
@@ -1905,17 +1894,15 @@
         <inbodydescription>
         </inbodydescription>
         <location file="Validation.h" line="177" column="21" bodyfile="Validation.h" bodystart="177" bodyend="215"/>
-        <references refid="namespaceId_1af7aad3795cc937b8327eb2d56d222b56" compoundref="_lexicon_8h" startline="18" endline="18">Id::constraints</references>
         <references refid="namespacecast_1aa9d23644d8f454e84a807e75f6a81efa" compoundref="_constraints_8h" startline="47" endline="61">getConstraintTargetTables</references>
         <references refid="namespacecast_1a9c10471453f0bcf1ae622d274f17340a" compoundref="_constraints_8h" startline="75" endline="89">getScannedTables</references>
         <references refid="structjam_1_1Document_1ae3925939b5b672e58d9f983388c0ed66">jam::Document::getTableValue</references>
         <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
         <references refid="namespaceId_1ac0d6bb21fb6eb483624e52f9002294ab">Id::path</references>
         <references refid="namespacecast_1ab676d052a0f3efb4062591b54ffc1604" compoundref="_constraints_8h" startline="430" endline="430">perColumnPredicates</references>
-        <references refid="namespaceId_1a416cedb3744bdc61dd9b87b9b3d2f7ad" compoundref="_lexicon_8h" startline="49" endline="49">Id::predicate</references>
         <references refid="namespacecast_1_1_constraints_1af98a39305b0f99a8b2becf6e6d6f19ad" compoundref="_constraints_8h" startline="485" endline="519">cast::Constraints::validate</references>
         <references refid="namespacecast_1a08beaddd176d57e0d0b3c4c151de58cf" compoundref="_validation_8h" startline="48" endline="68">validateTableHazards</references>
-        <referencedby refid="namespacecast_1adef90352236f733d8ca922a9d323f967" compoundref="_driver_8h" startline="91" endline="171">processOutput</referencedby>
+        <referencedby refid="namespacecast_1afdeff5f86e399b8b956d14717360e4c0" compoundref="_driver_8h" startline="125" endline="207">processOutput</referencedby>
       </memberdef>
       <memberdef kind="function" id="namespacecast_1ab52b177f75e5ec55cb04447fe05a349e" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
@@ -1996,13 +1983,11 @@
         <inbodydescription>
         </inbodydescription>
         <location file="Validation.h" line="231" column="21" bodyfile="Validation.h" bodystart="231" bodyend="256"/>
-        <references refid="namespaceId_1af7aad3795cc937b8327eb2d56d222b56" compoundref="_lexicon_8h" startline="18" endline="18">Id::constraints</references>
         <references refid="structjam_1_1Document_1ae3925939b5b672e58d9f983388c0ed66">jam::Document::getTableValue</references>
         <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
         <references refid="namespacecast_1ab676d052a0f3efb4062591b54ffc1604" compoundref="_constraints_8h" startline="430" endline="430">perColumnPredicates</references>
-        <references refid="namespaceId_1a416cedb3744bdc61dd9b87b9b3d2f7ad" compoundref="_lexicon_8h" startline="49" endline="49">Id::predicate</references>
         <references refid="namespacecast_1_1_constraints_1af98a39305b0f99a8b2becf6e6d6f19ad" compoundref="_constraints_8h" startline="485" endline="519">cast::Constraints::validate</references>
-        <referencedby refid="namespacecast_1adef90352236f733d8ca922a9d323f967" compoundref="_driver_8h" startline="91" endline="171">processOutput</referencedby>
+        <referencedby refid="namespacecast_1afdeff5f86e399b8b956d14717360e4c0" compoundref="_driver_8h" startline="125" endline="207">processOutput</referencedby>
       </memberdef>
     </sectiondef>
     <briefdescription>

@@ -1,12 +1,11 @@
 /**
- * @file Cast.cpp
+ * @file CastCLI.cpp
  * @brief `cast` CLI entry point: banner/help rendering and manifest dispatch.
  */
 
 #include <JuceHeader.h>
 #include <jam_tui/jam_tui.h>
-#include "generated/Lexicon.h"
-#include "generated/Banner.h"
+#include "generated/CAST.h"
 #include "Driver.h"
 #include "Help.h"
 
@@ -82,7 +81,13 @@ static jam::Array<juce::File> getConfigureDepends (const juce::File& manifestFil
     jam::Array<juce::File> depends;
     depends.add (manifestFile);
 
-    const auto dir         { manifestFile.getParentDirectory() };
+    const auto dir { manifestFile.getParentDirectory() };
+
+    const auto bannerFile { dir.getChildFile (cast::outputBannerFileName) };
+
+    if (bannerFile.existsAsFile())
+        depends.add (bannerFile);
+
     const auto manifestDoc { jam::Markdown::parse (manifestFile.loadFileAsString()) };
 
     for (const auto& outputKey : manifestDoc.getTableRowKeys (Id::outputs))

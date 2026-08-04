@@ -111,6 +111,79 @@
 
 ## SPRINT HISTORY
 
+## Handoff to COUNSELOR: Cast Generated Layout Fix (task #8/#9 preflight)
+
+**From:** COUNSELOR
+**Date:** 2026-08-05
+**Status:** Ready for Implementation (planning gate open — two decisions pending)
+
+### Context
+JAM's generated layout is now the ACCURATE target (jam Sprint 60: 7 type
+files + jam_Generated.h master, jam_core sole includer). ARCHITECT opened
+the next front: fix cast's OWN generated output to the identical convention
+(module layout minus the jam_ prefix), then extract templates (task #8) and
+author JAM CAST.md (task #9). This session was discovery only — Pathfinder
+surveyed the cast engine + generated pipeline; no code changed.
+
+### Completed (this session)
+- Task hygiene: closed stale D9/D10, Step 5/6 duplicates (#58,#59,#64,#65,
+  #70,#71) — jam Sprint 60 + cast Sprint 4 already covered them.
+- Full engine survey (Pathfinder) — capabilities verified against file:line.
+
+### Cast survey facts (ground truth)
+- Cast generated output: `Source/generated/Lexicon.h` (namespace Id,
+  33 juce::Identifier consts, 5 sections) incl. Cast.cpp:8;
+  `Source/generated/Banner.h` (namespace cast, jam::HashMap banner, 8 rows)
+  incl. Cast.cpp:9.
+- Cast tables (correct as-is): `cast/tables/cast.md` (5 word|string sections
+  → Identifiers), `cast/tables/banner.md` (colour|text → HashMap). Banner
+  text is value payload, stays literal.
+- Cast templates: `cast/template/` — Lexicon.h + IdentifierRow.h,
+  Banner.h + BannerRow.h. Manifest: `cast/CAST.md` (2 outputs, 6 dispatch,
+  1 constraint `word unique`).
+- Engine READY: multi-table→one-output union (Driver.h:96-105); 9 transforms
+  (Driver.h:37-38); cross-table `unique` scans all roots (Constraints.h:117-
+  165); two-phase atomic + write-if-different (Driver.h:203-219);
+  `Id::@word@.toString()` referencing is pure template text, zero engine work.
+- Engine GAP (only one): NO dedup. Dispatch emits one fragment per matching
+  row (Driver.h:139-148); same word in two tables → emitted twice. The
+  ratified Identifiers union+dedup projection is the sole engine extension
+  outstanding — lands with task #8/#9, not the cast-local fix.
+- Dispatch is ONE level (table→fragment→slot). jam_Bimaps.h root template
+  will need one dispatch row per Bimap struct-table (~54 slots).
+
+### Key Decisions (ratified prior sprints, still binding)
+- Cast convention = module layout exactly, minus jam_ prefix. So cast
+  `Source/generated/` target: `Identifiers.h` (replaces Lexicon.h — "no
+  lexicon"), `HashMaps.h` (replaces Banner.h), `Generated.h` master.
+  Cast.cpp:8-9 collapse to one `"generated/Generated.h"` include.
+- SSOT generation (binds #8/#9): tables declare a word once; Identifiers =
+  union+dedup projection over all tables' word columns; all other outputs
+  emit `Id::<word>.toString()` references; divergent display forms via
+  transform columns; opaque values (ColourIdMap literals, Entity UTF8,
+  banner text) stay literal.
+- jam::ID extinct — `Id::` only. company/companyName key/value split.
+
+### Files Modified
+- None (discovery + task-status hygiene only).
+
+### Open Questions (block the cast-local plan — ask ARCHITECT first)
+1. Master `Generated.h` — hand-written (jam_Generated.h pattern) OR added as
+   a third manifest output row (engine-generated)?
+2. Fragment template naming — `BannerRow.h` → convention name? (module fix
+   introduces StringRow/CharRow/etc.; cast should match.)
+
+### Next Steps
+- Resolve the two open questions (AskUserQuestion, one at a time).
+- Then `/goplan` the cast-local fix: rename Lexicon→Identifiers,
+  Banner→HashMaps, add Generated.h master, rewire Cast.cpp includes, update
+  CAST.md output rows + template filenames. Engine untouched.
+- After cast-local lands: task #8 (extract 7 module template pairs from the
+  restructured jam headers) → task #9 (author jam/cast CAST.md incl. the
+  union+dedup engine extension) → #10 conformance loop → #11 switchover.
+
+---
+
 ## Sprint 4: JAM Generated Consolidation — cast ripple ✅
 
 **Date:** 2026-08-04
@@ -265,3 +338,61 @@
 ---
 
 <!-- Actual sprint entries go here, written by PRIMARY agents -->
+
+## Handoff to COUNSELOR: Cast-Local Generated Output Fix
+
+**From:** COUNSELOR
+**Date:** 2026-08-05
+**Status:** In Progress — Steps 1-6 done, Step 7 (ARCHITECT build + fixpoint) pending; two ARCHITECT decisions open
+
+### Context
+Cast's own generated output needed alignment with JAM Sprint 60's convention: one header per type, master include, engine-injected banner, formatted namespace blocks. This is the prerequisite before PLAN-cast.md tasks #8 (extract JAM templates) and #9 (author JAM CAST.md). Plan lives at `PLAN-cast-local-fix.md`.
+
+### Completed
+- Step 1: `cast_output.txt` → `cast/cast/cast_output.md` (fenced code block, parseable by jam::Markdown)
+- Step 2: Engine banner injection — `getOutputBanner()` in Driver.h reads cast_output.md via `jam::Markdown::parse()`, extracts codeBlock via `applyFunctionRecursively` + `getAllSubText()`, prefixes lines with `// `, prepends to every generated output. Read once in `Driver::run`, passed through both passes. `getConfigureDepends` in CastCLI.cpp includes cast_output.md. SSOT constant `outputBannerFileName`. NAMES fixes applied (`element` not `node`, `bannerDoc` not `doc`).
+- Step 3: Templates renamed — Lexicon.h→Identifiers.h, Banner.h→HashMaps.h, IdentifierRow.h→Identifier.h, BannerRow.h→HashMap.h. New CAST.h master template (no namespace, just includes). Namespace separator + END marker in root templates. Hardcoded banner removed from templates.
+- Step 4: Manifest updated — 3 output rows (Identifiers.h, HashMaps.h, CAST.h with empty tables), 6 dispatch rows with new fragment names.
+- Step 5: CastCLI.cpp includes collapsed to `#include "generated/CAST.h"`. File renamed Cast.cpp→CastCLI.cpp (doxygen @file fixed).
+- Step 6: Old generated files deleted (Lexicon.h, Banner.h). Interim hand-authored Identifiers.h, HashMaps.h, CAST.h created so cast builds (chicken-and-egg — cast generates these but can't build without them).
+- Doxygen warnings fixed: CastCLI.cpp @file mismatch, Constraints.h HTML entity escapes (8 occurrences of `\<`/`\>` in doxygen prose).
+
+### Remaining
+- Step 7: ARCHITECT builds cast, runs fixpoint (`./cast cast/CAST.md` twice, verify empty diff). Verify generated output: banner at top, namespace format, CAST.h master shape.
+- Two Auditor findings require ARCHITECT decisions (see Open Questions).
+- Doxygen pass (dedicated step after fixpoint validated — per JRENG-CODING-STANDARD.md timing discipline).
+- Auditor re-run after ARCHITECT decisions resolved.
+
+### Key Decisions
+- Master include: `generated/CAST.h` (cast), `generated/jam_CAST.h` (jam) — engine-generated manifest output rows, not hand-written. ARCHITECT-directed.
+- Fragment naming: singular of root type (Identifier.h, HashMap.h, Bimap.h, Char.h). No "Row" suffix. ARCHITECT-directed.
+- Namespace format: `/*___...___*/` separator after opening brace, `/**___END OF NAMESPACE___*/` before closing brace. ARCHITECT-directed.
+- Output banner: engine reads `cast_output.md` (markdown, parsed by jam::Markdown), auto-prepends `// `-prefixed lines to every generated `.h`. Not in templates. ARCHITECT-directed.
+- Input banner: authoring convention on table `.md` files, not enforced. ARCHITECT-directed.
+- No manual string parsing — jam::Markdown::parse() only. ARCHITECT-directed.
+
+### Files Modified
+- `Source/CastCLI.cpp` (new, replaces deleted `Source/Cast.cpp`) — @file fixed; includes collapsed to `generated/CAST.h`; `getConfigureDepends` adds `cast_output.md` via SSOT constant
+- `Source/Driver.h` — `getOutputBanner()` function; `outputBannerFileName` SSOT constant; `processOutput` signature + banner injection; `Driver::run` reads banner once
+- `Source/Constraints.h` — 8 doxygen HTML entity escapes (`\<`/`\>`)
+- `cast/CAST.md` — 3 output rows, 6 dispatch rows with new fragment paths
+- `cast/cast_output.md` (new) — fenced code block banner artwork
+- `cast/template/Identifiers.h` (new) — root template, namespace Id, separator + END marker
+- `cast/template/HashMaps.h` (new) — root template, namespace cast, separator + END marker
+- `cast/template/Identifier.h` (new) — fragment template
+- `cast/template/HashMap.h` (new) — fragment template
+- `cast/template/CAST.h` (new) — master template, no namespace
+- `cast/template/Lexicon.h`, `Banner.h`, `IdentifierRow.h`, `BannerRow.h` (deleted)
+- `cast_output.txt` (deleted)
+- `Source/generated/Identifiers.h`, `HashMaps.h`, `CAST.h` (new, interim hand-authored, gitignored)
+- `PLAN-cast-local-fix.md` (new) — 7-step plan
+
+### Open Questions
+1. **SPEC vs cast_output.md** — SPEC §1 lists three tracked artifact kinds (relations, templates, manifest). `cast_output.md` is a fourth input. SPEC §5 determinism says output is a function of (tables, templates, CAST.md, binary) — now also cast_output.md. Should SPEC be amended to add cast_output.md as a tracked input?
+2. **Version stamp in banner** — SPEC §9 says "the same stamp appears in generated file banners." Currently cast_output.md has only artwork — no version/commit. Should the engine compose the version stamp into the banner, or should cast_output.md author a hole for it?
+
+### Next Steps
+- ARCHITECT resolves the two open questions.
+- ARCHITECT builds cast and runs fixpoint (Step 7).
+- On fixpoint success: doxygen pass (dedicated delegation to Engineer), then Auditor final sweep.
+- Then: PLAN-cast.md task #8 (extract 7 module template pairs from restructured jam headers) → task #9 (author jam/cast CAST.md incl. union+dedup engine extension) → #10 conformance loop → #11 switchover.

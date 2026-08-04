@@ -2,19 +2,20 @@
 
 | output | template | tables |
 |---|---|---|
-| ../Source/generated/Lexicon.h | template/Lexicon.h | `tables/cast.md` |
-| ../Source/generated/Banner.h | template/Banner.h | `tables/banner.md` |
+| ../Source/generated/Identifiers.h | template/Identifiers.h | `tables/cast.md` |
+| ../Source/generated/HashMaps.h | template/HashMaps.h | `tables/banner.md` |
+| ../Source/generated/CAST.h | template/CAST.h |  |
 
 ## dispatch
 
 | table | column | value | template | slot |
 |---|---|---|---|---|
-| section | word |  | template/IdentifierRow.h | section |
-| predicate | word |  | template/IdentifierRow.h | predicate |
-| transform | word |  | template/IdentifierRow.h | transform |
-| file | word |  | template/IdentifierRow.h | file |
-| column | word |  | template/IdentifierRow.h | column |
-| banner | colour |  | template/BannerRow.h | banner |
+| section | word |  | template/Identifier.h | section |
+| predicate | word |  | template/Identifier.h | predicate |
+| transform | word |  | template/Identifier.h | transform |
+| file | word |  | template/Identifier.h | file |
+| column | word |  | template/Identifier.h | column |
+| banner | colour |  | template/HashMap.h | banner |
 
 ## constraints
 

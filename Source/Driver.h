@@ -9,6 +9,40 @@
 namespace cast
 {
 
+static const juce::String outputBannerFileName { "cast_output.md" };
+
+static juce::String getOutputBanner (const juce::File& dir)
+{
+    const auto bannerFile { dir.getChildFile (outputBannerFileName) };
+
+    if (not bannerFile.existsAsFile())
+        return {};
+
+    const auto bannerDoc { jam::Markdown::parse (bannerFile.loadFileAsString()) };
+    juce::String rawBanner;
+
+    bannerDoc.applyFunctionRecursively ([&rawBanner] (const jam::Document& element) -> bool
+    {
+        if (rawBanner.isEmpty()
+            and element.contains (Id::type)
+            and *element.get<int> (Id::type) == Id::BlockType::codeBlock)
+            rawBanner = element.getAllSubText();
+
+        return true;
+    });
+
+    if (rawBanner.isEmpty())
+        return {};
+
+    juce::StringArray lines;
+    lines.addLines (rawBanner);
+
+    for (auto& line : lines)
+        line = "// " + line;
+
+    return lines.joinIntoString ("\n");
+}
+
 /**
  * @brief Builds the hole substitution map for one relation row.
  *
@@ -90,7 +124,7 @@ static juce::String getOutput (const juce::File& dir, const juce::String& rootTe
  */
 static juce::Result processOutput (const jam::Document& manifestDoc, const juce::File& manifestFile, const juce::File& dir,
                                    const juce::StringArray& dispatchKeys, const juce::StringArray& constraintKeys,
-                                   const juce::String& outputKey, bool writeOutputs)
+                                   const juce::String& outputKey, bool writeOutputs, const juce::String& outputBanner)
 {
     const auto rootTemplatePath { manifestDoc.getTableValue (Id::outputs, Id::templatePath, outputKey) };
     const auto tablePaths       { manifestDoc.getTableValues (Id::outputs, Id::tables, outputKey) };
@@ -158,13 +192,15 @@ static juce::Result processOutput (const jam::Document& manifestDoc, const juce:
     if (not orphanCheck.wasOk())
         return orphanCheck;
 
+    const auto finalOutput { outputBanner.isNotEmpty() ? outputBanner + "\n" + outputText : outputText };
+
     if (writeOutputs)
     {
         const auto outputFile { dir.getChildFile (outputKey) };
         const auto existing   { outputFile.loadFileAsString() };
 
-        if (outputText != existing)
-            outputFile.replaceWithText (outputText, false, false, "\n");
+        if (finalOutput != existing)
+            outputFile.replaceWithText (finalOutput, false, false, "\n");
     }
 
     return juce::Result::ok();
@@ -196,6 +232,7 @@ static juce::Result run (const juce::File& manifestFile, const juce::String& out
         return validation;
 
     const auto dir            { manifestFile.getParentDirectory() };
+    const auto outputBanner   { getOutputBanner (dir) };
     const auto outputKeys     { manifestDoc.getTableRowKeys (Id::outputs) };
     const auto dispatchKeys   { manifestDoc.getTableRowKeys (Id::dispatch) };
     const auto constraintKeys { manifestDoc.getTableRowKeys (Id::constraints) };
@@ -203,7 +240,7 @@ static juce::Result run (const juce::File& manifestFile, const juce::String& out
     for (const auto& outputKey : outputKeys)
         if (outputFilter.isEmpty() or outputKey == outputFilter)
         {
-            const auto result { processOutput (manifestDoc, manifestFile, dir, dispatchKeys, constraintKeys, outputKey, false) };
+            const auto result { processOutput (manifestDoc, manifestFile, dir, dispatchKeys, constraintKeys, outputKey, false, outputBanner) };
 
             if (not result.wasOk())
                 return result;
@@ -212,7 +249,7 @@ static juce::Result run (const juce::File& manifestFile, const juce::String& out
     for (const auto& outputKey : outputKeys)
         if (outputFilter.isEmpty() or outputKey == outputFilter)
         {
-            const auto result { processOutput (manifestDoc, manifestFile, dir, dispatchKeys, constraintKeys, outputKey, true) };
+            const auto result { processOutput (manifestDoc, manifestFile, dir, dispatchKeys, constraintKeys, outputKey, true, outputBanner) };
 
             if (not result.wasOk())
                 return result;

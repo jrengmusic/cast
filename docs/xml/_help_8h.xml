@@ -4,7 +4,7 @@
     <compoundname>Help.h</compoundname>
     <includes local="no">JuceHeader.h</includes>
     <includes local="no">jam_tui/jam_tui.h</includes>
-    <includedby refid="_cast_8cpp" local="yes">Cast.cpp</includedby>
+    <includedby refid="_cast_c_l_i_8cpp" local="yes">CastCLI.cpp</includedby>
     <incdepgraph>
       <node id="1">
         <label>Help.h</label>
@@ -24,8 +24,8 @@
     </incdepgraph>
     <invincdepgraph>
       <node id="2">
-        <label>Cast.cpp</label>
-        <link refid="_cast_8cpp"/>
+        <label>CastCLI.cpp</label>
+        <link refid="_cast_c_l_i_8cpp"/>
       </node>
       <node id="1">
         <label>Help.h</label>

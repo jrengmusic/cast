@@ -89,7 +89,7 @@ static juce::StringArray getScannedTables (const jam::Document& root, const juce
 }
 
 /**
- * @brief SPEC §7.1 `matches <regex>` — cell matches the pattern.
+ * @brief SPEC §7.1 `matches \<regex\>` — cell matches the pattern.
  *
  * Row-scoped: Constraints::validate() invokes this once per row of every
  * scanned table that declares the constraint's column.
@@ -165,11 +165,11 @@ static juce::Result predicateUnique (const juce::String&, const juce::String&, c
 }
 
 /**
- * @brief SPEC §7.3 `existsIn <table>.<column>` — FK: cell keys a row in the target table.
+ * @brief SPEC §7.3 `existsIn \<table\>.\<column\>` — FK: cell keys a row in the target table.
  *
  * Row-scoped: resolves the target table's column-0 key against @p value.
- * `<column>` names the target table's key (column 0); resolution is keyed
- * access, not a scan of `<column>`'s own values.
+ * `\<column\>` names the target table's key (column 0); resolution is keyed
+ * access, not a scan of `\<column\>`'s own values.
  */
 static juce::Result predicateExistsIn (const juce::String& value, const juce::String& args, const juce::String& rowKey,
                                        const juce::String& columnName, const jam::Document& root, const juce::String& tableName,
@@ -238,7 +238,7 @@ static juce::Result predicateRange (const juce::String& value, const juce::Strin
 }
 
 /**
- * @brief SPEC §7.6 `parity <table>.<column>` — key-set equality across tables.
+ * @brief SPEC §7.6 `parity \<table\>.\<column\>` — key-set equality across tables.
  *
  * Scope-scoped (perColumnPredicates): collects @p args's target table/column
  * values, then scans every scanned table declaring the constraint's column
@@ -325,10 +325,10 @@ static juce::Result predicateParity (const juce::String&, const juce::String& ar
 }
 
 /**
- * @brief SPEC §7.7 `fileExists <root>` — cell resolves to an existing file under the declared root.
+ * @brief SPEC §7.7 `fileExists \<root\>` — cell resolves to an existing file under the declared root.
  *
  * Row-scoped. @p args is a directory path relative to the manifest's
- * directory; the target file is `<root>/<value>`.
+ * directory; the target file is `\<root\>/\<value\>`.
  */
 static juce::Result predicateFileExists (const juce::String& value, const juce::String& args, const juce::String& rowKey,
                                          const juce::String& columnName, const jam::Document& root, const juce::String& tableName,
@@ -343,7 +343,7 @@ static juce::Result predicateFileExists (const juce::String& value, const juce::
 }
 
 /**
- * @brief SPEC §7.8 `onePerGroup <column>` — exactly one marked row per distinct group value.
+ * @brief SPEC §7.8 `onePerGroup \<column\>` — exactly one marked row per distinct group value.
  *
  * Scope-scoped (perColumnPredicates): @p args names the grouping column; for
  * each scanned table declaring both the constraint's column and the group

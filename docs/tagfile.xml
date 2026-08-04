@@ -1,52 +1,50 @@
 <?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
 <tagfile doxygen_version="1.16.1">
   <compound kind="file">
-    <name>Cast.cpp</name>
+    <name>CastCLI.cpp</name>
     <path></path>
-    <filename>_cast_8cpp.html</filename>
-    <includes id="_lexicon_8h" name="Lexicon.h" local="yes" import="no" module="no" objc="no">generated/Lexicon.h</includes>
-    <includes id="_banner_8h" name="Banner.h" local="yes" import="no" module="no" objc="no">generated/Banner.h</includes>
+    <filename>_cast_c_l_i_8cpp.html</filename>
     <includes id="_driver_8h" name="Driver.h" local="yes" import="no" module="no" objc="no">Driver.h</includes>
     <includes id="_help_8h" name="Help.h" local="yes" import="no" module="no" objc="no">Help.h</includes>
     <member kind="function" static="yes">
       <type>static void</type>
       <name>paintBanner</name>
-      <anchorfile>_cast_8cpp.html</anchorfile>
+      <anchorfile>_cast_c_l_i_8cpp.html</anchorfile>
       <anchor>ab78bd14cb03a7f6e70153ef948826a58</anchor>
       <arglist>(jam::tui::Graphics &amp;g)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static void</type>
       <name>printBanner</name>
-      <anchorfile>_cast_8cpp.html</anchorfile>
+      <anchorfile>_cast_c_l_i_8cpp.html</anchorfile>
       <anchor>a2c040b6a8eba42513dfa5b2a261f442d</anchor>
       <arglist>()</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static void</type>
       <name>printBannerAndHelp</name>
-      <anchorfile>_cast_8cpp.html</anchorfile>
+      <anchorfile>_cast_c_l_i_8cpp.html</anchorfile>
       <anchor>a7f683cefdf7f675f09e36661ce8df7cc</anchor>
       <arglist>()</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static jam::Array&lt; juce::File &gt;</type>
       <name>getConfigureDepends</name>
-      <anchorfile>_cast_8cpp.html</anchorfile>
+      <anchorfile>_cast_c_l_i_8cpp.html</anchorfile>
       <anchor>a1db31476f5693c3e1ca60cbff4135bb0</anchor>
       <arglist>(const juce::File &amp;manifestFile)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static int</type>
       <name>runManifest</name>
-      <anchorfile>_cast_8cpp.html</anchorfile>
+      <anchorfile>_cast_c_l_i_8cpp.html</anchorfile>
       <anchor>a7beba094c25e9aa5626e49384e647202</anchor>
       <arglist>(const juce::File &amp;manifest, const juce::String &amp;outputFilter={})</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>main</name>
-      <anchorfile>_cast_8cpp.html</anchorfile>
+      <anchorfile>_cast_c_l_i_8cpp.html</anchorfile>
       <anchor>a0ddf1224851353fc92bfbff6f499fa97</anchor>
       <arglist>(int argc, char *argv[])</arglist>
     </member>
@@ -68,17 +66,6 @@
     <includes id="_transforms_8h" name="Transforms.h" local="yes" import="no" module="no" objc="no">Transforms.h</includes>
     <namespace>cast</namespace>
     <namespace>cast::Driver</namespace>
-  </compound>
-  <compound kind="file">
-    <name>Banner.h</name>
-    <path>generated/</path>
-    <filename>_banner_8h.html</filename>
-    <namespace>cast</namespace>
-  </compound>
-  <compound kind="file">
-    <name>Lexicon.h</name>
-    <path>generated/</path>
-    <filename>_lexicon_8h.html</filename>
   </compound>
   <compound kind="file">
     <name>Help.h</name>
@@ -244,6 +231,13 @@
       <arglist>()</arglist>
     </member>
     <member kind="function" static="yes">
+      <type>static juce::String</type>
+      <name>getOutputBanner</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>a8cacd457dc5d41367ee1f590f036750e</anchor>
+      <arglist>(const juce::File &amp;dir)</arglist>
+    </member>
+    <member kind="function" static="yes">
       <type>static SubstitutionMap</type>
       <name>buildPerRowMap</name>
       <anchorfile>namespacecast.html</anchorfile>
@@ -261,8 +255,8 @@
       <type>static juce::Result</type>
       <name>processOutput</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>adef90352236f733d8ca922a9d323f967</anchor>
-      <arglist>(const jam::Document &amp;manifestDoc, const juce::File &amp;manifestFile, const juce::File &amp;dir, const juce::StringArray &amp;dispatchKeys, const juce::StringArray &amp;constraintKeys, const juce::String &amp;outputKey, bool writeOutputs)</arglist>
+      <anchor>afdeff5f86e399b8b956d14717360e4c0</anchor>
+      <arglist>(const jam::Document &amp;manifestDoc, const juce::File &amp;manifestFile, const juce::File &amp;dir, const juce::StringArray &amp;dispatchKeys, const juce::StringArray &amp;constraintKeys, const juce::String &amp;outputKey, bool writeOutputs, const juce::String &amp;outputBanner)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static void</type>
@@ -411,11 +405,11 @@
       <anchor>ab676d052a0f3efb4062591b54ffc1604</anchor>
       <arglist></arglist>
     </member>
-    <member kind="variable">
-      <type>const jam::HashMap&lt; juce::String, juce::String &gt;</type>
-      <name>banner</name>
+    <member kind="variable" static="yes">
+      <type>static constexpr juce::String</type>
+      <name>outputBannerFileName</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>abe65a5f539a491ebfa4698a24ee34ee5</anchor>
+      <anchor>a987fcf97a8ba4e8a81b436c301beafed</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable" static="yes">
@@ -486,12 +480,5 @@
   <compound kind="namespace">
     <name>std</name>
     <filename>namespacestd.html</filename>
-  </compound>
-  <compound kind="dir">
-    <name>generated</name>
-    <path>generated/</path>
-    <filename>dir_84fc5dba3506812825191c0c043e3c97.html</filename>
-    <file>Banner.h</file>
-    <file>Lexicon.h</file>
   </compound>
 </tagfile>
