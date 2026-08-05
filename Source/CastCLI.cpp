@@ -26,11 +26,12 @@ static void paintBanner (jam::tui::Graphics& g)
     for (const auto& [name, text] : cast::banner)
     {
         const juce::Colour rowColour { jam::ColourNames::colours[jam::ColourNames::get (name)] };
-        const juce::Colour priorColour { jam::ColourNames::colours[jam::ColourNames::get (priorName)] };
+        const juce::Colour priorColour {
+            jam::ColourNames::colours[jam::ColourNames::get (priorName)]
+        };
 
-        const jam::HashMap<juce::juce_wchar, juce::Colour> glyphColours
-        {
-            { U'█', rowColour },
+        const jam::HashMap<juce::juce_wchar, juce::Colour> glyphColours {
+            { U'█', rowColour   },
             { U'░', priorColour }
         };
 
@@ -64,7 +65,7 @@ static void printBannerAndHelp()
 {
     printBanner();
     printf ("%s", Id::charNewline.toRawUTF8());
-    cast::printHelp (BinaryData::getString (Id::specification.toString()));
+    cast::printHelp (BinaryData::getString (Id::castHelp.toString()));
 }
 
 /**
@@ -92,14 +93,17 @@ static jam::Array<juce::File> getConfigureDepends (const juce::File& manifestFil
 
     for (const auto& outputKey : manifestDoc.getTableRowKeys (Id::outputs))
     {
-        depends.add (dir.getChildFile (manifestDoc.getTableValue (Id::outputs, Id::templatePath, outputKey)));
+        depends.add (dir.getChildFile (
+            manifestDoc.getTableValue (Id::outputs, Id::templatePath, outputKey)));
 
-        for (const auto& tablePath : manifestDoc.getTableValues (Id::outputs, Id::tables, outputKey))
+        for (const auto& tablePath :
+             manifestDoc.getTableValues (Id::outputs, Id::tables, outputKey))
             depends.add (dir.getChildFile (tablePath.trim()));
     }
 
     for (const auto& dispatchKey : manifestDoc.getTableRowKeys (Id::dispatch))
-        depends.add (dir.getChildFile (manifestDoc.getTableValue (Id::dispatch, Id::templatePath, dispatchKey)));
+        depends.add (dir.getChildFile (
+            manifestDoc.getTableValue (Id::dispatch, Id::templatePath, dispatchKey)));
 
     return depends;
 }
@@ -143,12 +147,14 @@ int main (int argc, char* argv[])
 
     if (argc == 2 and juce::String { argv[1] } == Id::cliPrefix + Id::version.toString())
     {
-        const auto versionLine { Id::programName + Id::charSpace + ProjectInfo::versionString + Id::charSpace + Id::charOpenParen + CAST_COMMIT + Id::charCloseParen };
+        const auto versionLine { Id::programName + Id::charSpace + ProjectInfo::versionString
+                                 + Id::charSpace + Id::charOpenParen + CAST_COMMIT
+                                 + Id::charCloseParen };
         printf ("%s\n", versionLine.toRawUTF8());
         return 0;
     }
 
-    if (argc == 2 and juce::String { argv[1] } == Id::cliPrefix + Id::help.toString())
+    if (argc == 2 and juce::String { argv[1] } == Id::cliPrefix + Id::castHelp.toString())
     {
         printBannerAndHelp();
         return 0;
@@ -161,8 +167,7 @@ int main (int argc, char* argv[])
             juce::String { argv[2] });
     }
 
-    const juce::File manifestFile
-    {
+    const juce::File manifestFile {
         (argc == 2)
             ? juce::File::getCurrentWorkingDirectory().getChildFile (juce::String { argv[1] })
             : juce::File::getCurrentWorkingDirectory().getChildFile (Id::cast.toString())
@@ -172,7 +177,8 @@ int main (int argc, char* argv[])
         return runManifest (manifestFile);
 
     printBannerAndHelp();
-    const auto noManifestLine { Id::programName + Id::diagnosticSeparator + Id::failNotFound + Id::diagnosticSeparator + Id::cast.toString() };
+    const auto noManifestLine { Id::programName + Id::diagnosticSeparator + Id::failNotFound
+                                + Id::diagnosticSeparator + Id::cast.toString() };
     fprintf (stderr, "%s\n", noManifestLine.toRawUTF8());
     return 1;
 }

@@ -36,7 +36,12 @@ target_compile_definitions(cast_App PRIVATE
     CAST_COMMIT="${CAST_COMMIT_HASH}"
 )
 
-juce_add_binary_data(cast_BinaryData SOURCES SPEC.md Source/style.css)
+juce_add_binary_data(
+    cast_BinaryData 
+    SOURCES Source/HELP.md 
+            Source/style.css
+)
+
 target_link_libraries(cast_App PRIVATE cast_BinaryData)
 
 message(STATUS "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")

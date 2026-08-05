@@ -84,8 +84,8 @@
         <inbodydescription>
         </inbodydescription>
         <location file="generated/HashMaps.h" line="15" column="27" bodyfile="generated/HashMaps.h" bodystart="16" bodyend="25"/>
-        <referencedby refid="_cast_c_l_i_8cpp_1ab78bd14cb03a7f6e70153ef948826a58" compoundref="_cast_c_l_i_8cpp" startline="20" endline="51">paintBanner</referencedby>
-        <referencedby refid="_cast_c_l_i_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" compoundref="_cast_c_l_i_8cpp" startline="54" endline="61">printBanner</referencedby>
+        <referencedby refid="_cast_c_l_i_8cpp_1ab78bd14cb03a7f6e70153ef948826a58" compoundref="_cast_c_l_i_8cpp" startline="20" endline="52">paintBanner</referencedby>
+        <referencedby refid="_cast_c_l_i_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" compoundref="_cast_c_l_i_8cpp" startline="55" endline="62">printBanner</referencedby>
       </memberdef>
       <memberdef kind="variable" id="namespacecast_1a864c9b0890d921f63b9b4ff36c05b61a" prot="public" static="yes" constexpr="yes" mutable="no">
         <type>int</type>
@@ -1360,7 +1360,7 @@
         <references refid="classjuce_1_1String_1a276c7c57f1d1a2fc76a8b47aed0823e7">juce::String::toRawUTF8</references>
         <references refid="structjam_1_1Cell_1aecd8f8ae6d8912e9b0689382ac96cbb4">jam::Cell::value</references>
         <references refid="namespacecast_1a864c9b0890d921f63b9b4ff36c05b61a" compoundref="_help_8h" startline="9" endline="9">widthCap</references>
-        <referencedby refid="_cast_c_l_i_8cpp_1a7f683cefdf7f675f09e36661ce8df7cc" compoundref="_cast_c_l_i_8cpp" startline="63" endline="68">printBannerAndHelp</referencedby>
+        <referencedby refid="_cast_c_l_i_8cpp_1a7f683cefdf7f675f09e36661ce8df7cc" compoundref="_cast_c_l_i_8cpp" startline="64" endline="69">printBannerAndHelp</referencedby>
       </memberdef>
       <memberdef kind="function" id="namespacecast_1a7a2cce9676002ffeb8b226db61270248" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
