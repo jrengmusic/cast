@@ -1,6 +1,5 @@
 #pragma once
 #include <JuceHeader.h>
-#include <jam_markdown/parser/jam_Markdown.h>
 #include "Constraints.h"
 #include "Transforms.h"
 
@@ -23,16 +22,18 @@ static juce::String getHazardMessage (const jam::Document& cell) noexcept
 {
     juce::String hazard;
 
-    cell.applyFunctionRecursively ([&hazard] (const jam::Document& node) -> bool
-    {
-        if (node.contains (Id::tag) and *node.get<juce::Identifier> (Id::tag) == Id::a)
-            hazard = Id::failHazardUri;
-        else if (not node.contains (Id::tag) and node.contains (Id::text)
-                 and node.get<juce::String> (Id::text)->containsAnyOf (Id::hazardChars))
-            hazard = Id::failHazardAngleBrackets;
+    cell.applyFunctionRecursively (
+        [&hazard] (const jam::Document& node) -> bool
+        {
+            if (node.contains (Id::tag) and *node.get<juce::Identifier> (Id::tag) == Id::a)
+                hazard = Id::failHazardUri;
+            else if (not node.contains (Id::tag) and node.contains (Id::text)
+                     and node.get<juce::String> (Id::text)->containsAnyOf (Id::hazardChars))
+                hazard = Id::failHazardAngleBrackets;
 
-        return not (node.contains (Id::tag) and *node.get<juce::Identifier> (Id::tag) == Id::code);
-    });
+            return not(node.contains (Id::tag)
+                       and *node.get<juce::Identifier> (Id::tag) == Id::code);
+        });
 
     return hazard;
 }
@@ -46,22 +47,27 @@ static juce::String getHazardMessage (const jam::Document& cell) noexcept
  * @return juce::Result::ok() when no cell is hazardous; otherwise a
  *         SPEC §8 `file:row (column)` failure naming the first hazard.
  */
-static juce::Result validateTableHazards (const jam::Document& root, const juce::Identifier& tableId, const juce::String& sourceFile)
+static juce::Result validateTableHazards (const jam::Document& root,
+                                          const juce::Identifier& tableId,
+                                          const juce::String& sourceFile)
 {
     const auto rowKeys { root.getTableRowKeys (tableId) };
-    const auto headers  { root.getTableHeaders (tableId) };
+    const auto headers { root.getTableHeaders (tableId) };
 
     for (const auto& rowKey : rowKeys)
         for (const auto& header : headers)
         {
-            const auto* cell { root.getTableCell (tableId, juce::Identifier (header), juce::Identifier (rowKey)) };
+            const auto* cell { root.getTableCell (
+                tableId, juce::Identifier (header), juce::Identifier (rowKey)) };
 
             if (cell != nullptr)
             {
                 const auto hazard { getHazardMessage (*cell) };
 
                 if (hazard.isNotEmpty())
-                    return juce::Result::fail (getLocation (sourceFile, rowKeys.indexOf (rowKey) + 1, header) + Id::diagnosticSeparator + hazard);
+                    return juce::Result::fail (
+                        getLocation (sourceFile, rowKeys.indexOf (rowKey) + 1, header)
+                        + Id::diagnosticSeparator + hazard);
             }
         }
 
@@ -82,46 +88,61 @@ static juce::Result validateTableHazards (const jam::Document& root, const juce:
  * @return juce::Result::ok() when the manifest is well-formed; otherwise the
  *         first SPEC §4/§8 failure found.
  */
-static juce::Result validateManifest (const jam::Document& manifestDoc, const juce::File& manifestFile)
+static juce::Result
+validateManifest (const jam::Document& manifestDoc, const juce::File& manifestFile)
 {
-    const auto dir  { manifestFile.getParentDirectory() };
+    const auto dir { manifestFile.getParentDirectory() };
     const auto path { manifestFile.getFullPathName() };
 
     const auto transformKeys { manifestDoc.getTableRowKeys (Id::transforms) };
 
     for (const auto& transformKey : transformKeys)
     {
-        const auto transformName { manifestDoc.getTableValue (Id::transforms, Id::transform, transformKey) };
-        const auto found { std::find_if (transforms.begin(), transforms.end(),
-            [&transformName] (const auto& entry) { return entry.first == transformName; }) };
+        const auto transformName { manifestDoc.getTableValue (
+            Id::transforms, Id::transform, transformKey) };
+        const auto found { std::find_if (transforms.begin(),
+                                         transforms.end(),
+                                         [&transformName] (const auto& entry)
+                                         {
+                                             return entry.first == transformName;
+                                         }) };
 
         if (found == transforms.end())
-            return juce::Result::fail (getLocation (path, transformKeys.indexOf (transformKey) + 1, transformKey)
-                                       + Id::diagnosticSeparator + Id::failUnknownTransform + Id::diagnosticSeparator + transformName);
+            return juce::Result::fail (
+                getLocation (path, transformKeys.indexOf (transformKey) + 1, transformKey)
+                + Id::diagnosticSeparator + Id::failUnknownTransform + Id::diagnosticSeparator
+                + transformName);
     }
 
-    const auto outputKeys   { manifestDoc.getTableRowKeys (Id::outputs) };
+    const auto outputKeys { manifestDoc.getTableRowKeys (Id::outputs) };
     const auto dispatchKeys { manifestDoc.getTableRowKeys (Id::dispatch) };
     juce::StringArray referencedTemplates;
 
     for (const auto& outputKey : outputKeys)
     {
-        const auto templatePath { manifestDoc.getTableValue (Id::outputs, Id::templatePath, outputKey) };
+        const auto templatePath { manifestDoc.getTableValue (
+            Id::outputs, Id::templatePath, outputKey) };
 
         if (not dir.getChildFile (templatePath).existsAsFile())
-            return juce::Result::fail (getLocation (path, outputKeys.indexOf (outputKey) + 1, Id::templatePath.toString())
-                                       + Id::diagnosticSeparator + Id::failTemplateMissing + Id::diagnosticSeparator + templatePath);
+            return juce::Result::fail (
+                getLocation (path, outputKeys.indexOf (outputKey) + 1, Id::templatePath.toString())
+                + Id::diagnosticSeparator + Id::failTemplateMissing + Id::diagnosticSeparator
+                + templatePath);
 
         referencedTemplates.addIfNotAlreadyThere (templatePath);
     }
 
     for (const auto& dispatchKey : dispatchKeys)
     {
-        const auto fragmentPath { manifestDoc.getTableValue (Id::dispatch, Id::templatePath, dispatchKey) };
+        const auto fragmentPath { manifestDoc.getTableValue (
+            Id::dispatch, Id::templatePath, dispatchKey) };
 
         if (not dir.getChildFile (fragmentPath).existsAsFile())
-            return juce::Result::fail (getLocation (path, dispatchKeys.indexOf (dispatchKey) + 1, Id::templatePath.toString())
-                                       + Id::diagnosticSeparator + Id::failFragmentMissing + Id::diagnosticSeparator + fragmentPath);
+            return juce::Result::fail (getLocation (path,
+                                                    dispatchKeys.indexOf (dispatchKey) + 1,
+                                                    Id::templatePath.toString())
+                                       + Id::diagnosticSeparator + Id::failFragmentMissing
+                                       + Id::diagnosticSeparator + fragmentPath);
 
         referencedTemplates.addIfNotAlreadyThere (fragmentPath);
     }
@@ -129,7 +150,8 @@ static juce::Result validateManifest (const jam::Document& manifestDoc, const ju
     juce::StringArray referencedExtensions;
 
     for (const auto& templatePath : referencedTemplates)
-        referencedExtensions.addIfNotAlreadyThere (dir.getChildFile (templatePath).getFileExtension());
+        referencedExtensions.addIfNotAlreadyThere (
+            dir.getChildFile (templatePath).getFileExtension());
 
     juce::Array<juce::File> templateDirs;
 
@@ -147,13 +169,21 @@ static juce::Result validateManifest (const jam::Document& manifestDoc, const ju
         templateDir.findChildFiles (siblingFiles, juce::File::findFiles, false);
 
         for (const auto& siblingFile : siblingFiles)
-            if (not siblingFile.isHidden() and referencedExtensions.contains (siblingFile.getFileExtension()))
+            if (not siblingFile.isHidden()
+                and referencedExtensions.contains (siblingFile.getFileExtension()))
             {
-                const auto referenced { std::any_of (referencedTemplates.begin(), referencedTemplates.end(),
-                    [&dir, &siblingFile] (const auto& templatePath) { return dir.getChildFile (templatePath) == siblingFile; }) };
+                const auto referenced { std::any_of (referencedTemplates.begin(),
+                                                     referencedTemplates.end(),
+                                                     [&dir, &siblingFile] (const auto& templatePath)
+                                                     {
+                                                         return dir.getChildFile (templatePath)
+                                                                == siblingFile;
+                                                     }) };
 
                 if (not referenced)
-                    return juce::Result::fail (path + Id::diagnosticSeparator + Id::failOrphan + Id::diagnosticSeparator + siblingFile.getFullPathName());
+                    return juce::Result::fail (path + Id::diagnosticSeparator + Id::failOrphan
+                                               + Id::diagnosticSeparator
+                                               + siblingFile.getFullPathName());
             }
     }
 
@@ -175,20 +205,23 @@ static juce::Result validateManifest (const jam::Document& manifestDoc, const ju
  * @param dir            The manifest's parent directory.
  * @return juce::Result::ok() on success, or the first hazard or constraint failure.
  */
-static juce::Result validateRoots (const jam::Array<jam::Document>& roots, const jam::Document& manifestDoc,
-                                   const juce::StringArray& dispatchKeys, const juce::StringArray& constraintKeys,
+static juce::Result validateRoots (const jam::Array<jam::Document>& roots,
+                                   const jam::Document& manifestDoc,
+                                   const juce::StringArray& dispatchKeys,
+                                   const juce::StringArray& constraintKeys,
                                    const juce::File& dir)
 {
     const auto targetTables { getConstraintTargetTables (manifestDoc, constraintKeys) };
 
     for (const auto& root : roots)
     {
-        const auto sourceFile    { *root.get<juce::String> (Id::path) };
+        const auto sourceFile { *root.get<juce::String> (Id::path) };
         const auto scannedTables { getScannedTables (root, dispatchKeys, targetTables) };
 
         for (const auto& scannedTable : scannedTables)
         {
-            const auto hazardResult { validateTableHazards (root, juce::Identifier (scannedTable), sourceFile) };
+            const auto hazardResult { validateTableHazards (
+                root, juce::Identifier (scannedTable), sourceFile) };
 
             if (not hazardResult.wasOk())
                 return hazardResult;
@@ -196,15 +229,26 @@ static juce::Result validateRoots (const jam::Array<jam::Document>& roots, const
 
         for (const auto& constraintKey : constraintKeys)
         {
-            const auto predicateSpec { manifestDoc.getTableValue (Id::constraints, Id::predicate, constraintKey) };
-            const auto predicateName { predicateSpec.upToFirstOccurrenceOf (Id::charSpace, false, false) };
-            const auto predicateArgs { predicateSpec.fromFirstOccurrenceOf (Id::charSpace, false, false).trim() };
+            const auto predicateSpec { manifestDoc.getTableValue (
+                Id::constraints, Id::predicate, constraintKey) };
+            const auto predicateName { predicateSpec.upToFirstOccurrenceOf (
+                Id::charSpace, false, false) };
+            const auto predicateArgs {
+                predicateSpec.fromFirstOccurrenceOf (Id::charSpace, false, false).trim()
+            };
 
             if (not perColumnPredicates.contains (predicateName))
                 for (const auto& scannedTable : scannedTables)
                 {
-                    const auto constraintResult { Constraints::validate (predicateName, predicateArgs, constraintKey,
-                                                                         root, scannedTable, roots, dir, manifestDoc, sourceFile) };
+                    const auto constraintResult { Constraints::validate (predicateName,
+                                                                         predicateArgs,
+                                                                         constraintKey,
+                                                                         root,
+                                                                         scannedTable,
+                                                                         roots,
+                                                                         dir,
+                                                                         manifestDoc,
+                                                                         sourceFile) };
 
                     if (not constraintResult.wasOk())
                         return constraintResult;
@@ -229,24 +273,36 @@ static juce::Result validateRoots (const jam::Array<jam::Document>& roots, const
  * @param manifestPath   The manifest file's path, for error locations.
  * @return juce::Result::ok() on success, or the first constraint failure.
  */
-static juce::Result validatePerColumnConstraints (const jam::Document& manifestDoc, const juce::StringArray& constraintKeys,
-                                                   const jam::Array<jam::Document>& roots, const juce::File& dir,
-                                                   const juce::String& manifestPath)
+static juce::Result validatePerColumnConstraints (const jam::Document& manifestDoc,
+                                                  const juce::StringArray& constraintKeys,
+                                                  const jam::Array<jam::Document>& roots,
+                                                  const juce::File& dir,
+                                                  const juce::String& manifestPath)
 {
     for (const auto& constraintKey : constraintKeys)
     {
-        const auto predicateSpec { manifestDoc.getTableValue (Id::constraints, Id::predicate, constraintKey) };
-        const auto predicateName { predicateSpec.upToFirstOccurrenceOf (Id::charSpace, false, false) };
-        const auto predicateArgs { predicateSpec.fromFirstOccurrenceOf (Id::charSpace, false, false).trim() };
+        const auto predicateSpec { manifestDoc.getTableValue (
+            Id::constraints, Id::predicate, constraintKey) };
+        const auto predicateName { predicateSpec.upToFirstOccurrenceOf (
+            Id::charSpace, false, false) };
+        const auto predicateArgs {
+            predicateSpec.fromFirstOccurrenceOf (Id::charSpace, false, false).trim()
+        };
 
         if (perColumnPredicates.contains (predicateName))
         {
             const jam::Document placeholderRoot;
             const juce::String placeholderTableName;
 
-            const auto constraintResult { Constraints::validate (predicateName, predicateArgs, constraintKey,
-                                                                 placeholderRoot, placeholderTableName, roots, dir,
-                                                                 manifestDoc, manifestPath) };
+            const auto constraintResult { Constraints::validate (predicateName,
+                                                                 predicateArgs,
+                                                                 constraintKey,
+                                                                 placeholderRoot,
+                                                                 placeholderTableName,
+                                                                 roots,
+                                                                 dir,
+                                                                 manifestDoc,
+                                                                 manifestPath) };
 
             if (not constraintResult.wasOk())
                 return constraintResult;

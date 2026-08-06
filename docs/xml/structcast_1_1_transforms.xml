@@ -49,7 +49,7 @@
         </inbodydescription>
         <location file="Transforms.h" line="166" column="25" bodyfile="Transforms.h" bodystart="166" bodyend="174"/>
         <references refid="namespacecast_1a5d3e7e391997de80260d26f7013f600f" compoundref="_transforms_8h" startline="142" endline="152">cast::transforms</references>
-        <referencedby refid="namespacecast_1a8e6d82622e7cb90f1aef9b99ab024dc7" compoundref="_driver_8h" startline="59" endline="78">cast::buildPerRowMap</referencedby>
+        <referencedby refid="namespacecast_1a8e6d82622e7cb90f1aef9b99ab024dc7" compoundref="_driver_8h" startline="58" endline="82">cast::buildPerRowMap</referencedby>
       </memberdef>
     </sectiondef>
     <briefdescription>

@@ -11,8 +11,8 @@
       <type>static void</type>
       <name>paintBanner</name>
       <anchorfile>_cast_c_l_i_8cpp.html</anchorfile>
-      <anchor>ab78bd14cb03a7f6e70153ef948826a58</anchor>
-      <arglist>(jam::tui::Graphics &amp;g)</arglist>
+      <anchor>a53749567f657bb9a9a4b0efe5d094749</anchor>
+      <arglist>(jam::terminal::GraphicsContext &amp;context)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static void</type>

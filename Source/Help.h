@@ -1,6 +1,5 @@
 #pragma once
 #include <JuceHeader.h>
-#include <jam_tui/jam_tui.h>
 
 namespace cast
 {
@@ -12,37 +11,41 @@ static constexpr int documentMargin { 2 };
 /**
  * @brief Renders and prints the SPEC.md text as the `--help` banner body.
  *
- * Parses @p specText as markdown and renders it through the TUI markdown
- * document pipeline, word-wrapped to the terminal width (capped at
- * @c widthCap columns) with a left/right margin of @c documentMargin columns.
+ * Parses @p specText as markdown, projects it through jam::MarkdownComponent
+ * onto a headless jam::terminal::GraphicsEngine frame (word-wrapped to
+ * @c widthCap columns, minus a left/right margin of @c documentMargin
+ * columns), and prints the resulting cell grid to stdout.
  *
  * @param specText The specification text (SPEC §9: printed verbatim on `--help`
  *                 and when no manifest is found).
  */
 static inline void printHelp (const juce::String& specText)
 {
-    auto tree { jam::Markdown::parse (specText) };
-    const auto terminalCols { jam::tui::Metrics::getBounds().getWidth().value };
-    const auto widthCols { juce::jmin (terminalCols, widthCap) - documentMargin * 2 };
+    const auto document { jam::Markdown::parse (specText) };
+    const auto cols { widthCap - documentMargin * 2 };
 
     jam::SharedInstance<jam::SharedDocuments> documents { std::in_place };
     jam::StyleManager styleManager { {} };
 
-    jam::tui::LookAndFeel lookAndFeel;
+    juce::LookAndFeel_V4 lookAndFeel;
     styleManager.setAppearance (lookAndFeel, Id::dark);
 
-    jam::MarkdownDocument markdownDoc { std::move (tree), lookAndFeel.getMonoFont() };
+    jam::MarkdownComponent component { document };
+    component.setLookAndFeel (&lookAndFeel);
+    component.setBounds (0, 0, cols, 0);
 
-    const auto ansi { jam::tui::toAnsiString (markdownDoc, lookAndFeel, widthCols) };
-    const auto margin { juce::String::repeatedString (Id::charSpace, documentMargin) };
+    const auto rows { component.getTextHeight() + documentMargin };
+    component.setBounds (0, 0, cols, rows);
 
-    juce::StringArray lines;
-    lines.addLines (ansi);
+    jam::terminal::GraphicsEngine engine { stdout };
+    engine.resize (widthCap, rows);
 
-    for (auto& line : lines)
-        line = margin + line;
-
-    printf ("%s\n", lines.joinIntoString (Id::charNewline).toRawUTF8());
+    {
+        jam::terminal::GraphicsContext context { engine };
+        juce::Graphics graphics { context };
+        graphics.setOrigin (documentMargin, 0);
+        component.paint (graphics);
+    }
 }
 
 /**______________________________END OF NAMESPACE______________________________*/

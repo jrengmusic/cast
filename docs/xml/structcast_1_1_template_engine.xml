@@ -46,14 +46,14 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Template.h" line="79" column="25" bodyfile="Template.h" bodystart="79" bodyend="87"/>
+        <location file="Template.h" line="81" column="25" bodyfile="Template.h" bodystart="81" bodyend="90"/>
         <references refid="namespaceId_1a4ff5eedceb8a1b3c71706e3e13fc3cb4" compoundref="_identifiers_8h" startline="56" endline="56">Id::charCarriageReturn</references>
         <references refid="namespaceId_1ac402f14db451dbacbf11958e45c2d8c3" compoundref="_identifiers_8h" startline="51" endline="51">Id::charNewline</references>
-        <references refid="namespacecast_1a7a2cce9676002ffeb8b226db61270248" compoundref="_template_8h" startline="28" endline="39">cast::getHoleValue</references>
+        <references refid="namespacecast_1a7a2cce9676002ffeb8b226db61270248" compoundref="_template_8h" startline="26" endline="39">cast::getHoleValue</references>
         <references refid="classjuce_1_1File_1aa65d2fa50370357bf93658d6447c296d">juce::File::loadFileAsString</references>
         <references refid="structjam_1_1Format_1a84331a5a2d98640edc7b93bb4d09e072">jam::Format::replaceholder</references>
-        <referencedby refid="namespacecast_1a7bbd7fef86ca13e3d456605a1f0eb5f4" compoundref="_driver_8h" startline="91" endline="100">cast::getOutput</referencedby>
-        <referencedby refid="namespacecast_1afdeff5f86e399b8b956d14717360e4c0" compoundref="_driver_8h" startline="125" endline="207">cast::processOutput</referencedby>
+        <referencedby refid="namespacecast_1a7bbd7fef86ca13e3d456605a1f0eb5f4" compoundref="_driver_8h" startline="95" endline="105">cast::getOutput</referencedby>
+        <referencedby refid="namespacecast_1afdeff5f86e399b8b956d14717360e4c0" compoundref="_driver_8h" startline="130" endline="229">cast::processOutput</referencedby>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -61,7 +61,7 @@
     </briefdescription>
     <detaileddescription>
     </detaileddescription>
-    <location file="Template.h" line="67" column="1" bodyfile="Template.h" bodystart="68" bodyend="88"/>
+    <location file="Template.h" line="69" column="1" bodyfile="Template.h" bodystart="70" bodyend="91"/>
     <listofallmembers>
       <member refid="structcast_1_1_template_engine_1a17663684abc84ea95042ef3ba089526c" prot="public" virt="non-virtual"><scope>cast::TemplateEngine</scope><name>expand</name></member>
     </listofallmembers>

@@ -4,20 +4,19 @@
  */
 
 #include <JuceHeader.h>
-#include <jam_tui/jam_tui.h>
 #include "generated/CAST.h"
 #include "Driver.h"
 #include "Help.h"
 
 /**
- * @brief Paints the generated glyph banner into a TUI graphics context.
+ * @brief Paints the generated glyph banner into a terminal graphics context.
  *
  * Each banner row is colour-keyed by its own name and the prior row's name,
  * used to blend the solid (`█`) and shaded (`░`) glyph colours between rows.
  *
- * @param g The TUI graphics context to paint into.
+ * @param context The terminal graphics context to paint into.
  */
-static void paintBanner (jam::tui::Graphics& g)
+static void paintBanner (jam::terminal::GraphicsContext& context)
 {
     const auto& [firstName, firstText] { *cast::banner.begin() };
     auto priorName { firstName };
@@ -30,19 +29,24 @@ static void paintBanner (jam::tui::Graphics& g)
             jam::ColourNames::colours[jam::ColourNames::get (priorName)]
         };
 
-        const jam::HashMap<juce::juce_wchar, juce::Colour> glyphColours {
-            { U'█', rowColour   },
-            { U'░', priorColour }
+        auto* stamp { jam::Stamp::getInstance() };
+
+        const jam::HashMap<juce::juce_wchar, uint16_t> glyphStyles {
+            { U'█', static_cast<uint16_t> (stamp->addIfNotAlreadyThere (jam::Stamp::Entry { rowColour, {}, {}, 0 }))   },
+            { U'░', static_cast<uint16_t> (stamp->addIfNotAlreadyThere (jam::Stamp::Entry { priorColour, {}, {}, 0 })) }
         };
 
         for (int col { 0 }; col < text.length(); ++col)
         {
             const auto glyph { text[col] };
 
-            if (glyphColours.contains (glyph))
+            if (glyphStyles.contains (glyph))
             {
-                g.setColour (glyphColours.at (glyph));
-                g.drawCellText (juce::String::charToString (glyph), col, row, 1);
+                const jam::AttributedChar cell { jam::AttributedChar::make (
+                    static_cast<uint32_t> (glyph), jam::AttributedChar::contentCodepoint,
+                    jam::AttributedChar::narrow, glyphStyles.at (glyph)) };
+
+                context.drawCells (jam::Cell { col }, jam::Cell { row }, { &cell, 1 });
             }
         }
 
@@ -55,10 +59,22 @@ static void paintBanner (jam::tui::Graphics& g)
 static void printBanner()
 {
     const auto& [firstName, firstText] { *cast::banner.begin() };
-    jam::tui::Graphics graphics { firstText.length(), static_cast<int> (cast::banner.size()) };
-    paintBanner (graphics);
+    const auto cols { firstText.length() };
+    const auto rows { static_cast<int> (cast::banner.size()) };
 
-    printf ("%s\n", graphics.getLines().joinIntoString (Id::charNewline).toRawUTF8());
+    jam::terminal::GraphicsEngine engine { stdout };
+    engine.resize (cast::widthCap, rows);
+
+    const juce::Rectangle<int> pageRect { 0, 0, cast::widthCap, rows };
+    const juce::Rectangle<int> bannerRect { 0, 0, cols, rows };
+    const auto placed { juce::Justification (juce::Justification::centred)
+                             .appliedToRectangle (bannerRect, pageRect) };
+
+    {
+        jam::terminal::GraphicsContext context { engine };
+        context.setOrigin ({ placed.getX(), 0 });
+        paintBanner (context);
+    }
 }
 
 static void printBannerAndHelp()

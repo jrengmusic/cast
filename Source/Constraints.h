@@ -1,8 +1,5 @@
 #pragma once
 #include <JuceHeader.h>
-#include <jam_core/function_map/jam_Function.h>
-#include <jam_markdown/parser/jam_Markdown.h>
-#include <regex>
 
 namespace cast
 {
@@ -19,7 +16,8 @@ namespace cast
 static juce::String
 getLocation (const juce::String& sourceFile, int rowNumber, const juce::String& columnName)
 {
-    return sourceFile + Id::charColon + juce::String (rowNumber) + Id::charSpace + Id::charOpenParen + columnName + Id::charCloseParen;
+    return sourceFile + Id::charColon + juce::String (rowNumber) + Id::charSpace + Id::charOpenParen
+           + columnName + Id::charCloseParen;
 }
 
 /**
@@ -120,7 +118,8 @@ static juce::Result predicateMatches (const juce::String& value,
                ? juce::Result::ok()
                : juce::Result::fail (
                      getLocation (sourceFile, getRowNumber (root, tableName, rowKey), columnName)
-                     + Id::diagnosticSeparator + Id::matches.toString() + Id::diagnosticSeparator + Id::failNoMatch + Id::diagnosticSeparator + value);
+                     + Id::diagnosticSeparator + Id::matches.toString() + Id::diagnosticSeparator
+                     + Id::failNoMatch + Id::diagnosticSeparator + value);
 }
 
 /**
@@ -189,8 +188,10 @@ static juce::Result predicateUnique (const juce::String&,
 
     return duplicateValue.isEmpty()
                ? juce::Result::ok()
-               : juce::Result::fail (duplicateLocation + Id::diagnosticSeparator + Id::unique.toString()
-                                     + Id::diagnosticSeparator + Id::failDuplicate + Id::diagnosticSeparator + duplicateValue);
+               : juce::Result::fail (duplicateLocation + Id::diagnosticSeparator
+                                     + Id::unique.toString() + Id::diagnosticSeparator
+                                     + Id::failDuplicate + Id::diagnosticSeparator
+                                     + duplicateValue);
 }
 
 /**
@@ -229,8 +230,8 @@ static juce::Result predicateExistsIn (const juce::String& value,
                ? juce::Result::ok()
                : juce::Result::fail (
                      getLocation (sourceFile, getRowNumber (root, tableName, rowKey), columnName)
-                     + Id::diagnosticSeparator + Id::existsIn.toString() + Id::diagnosticSeparator + Id::failForeignKeyMissing + args + Id::diagnosticSeparator
-                     + value);
+                     + Id::diagnosticSeparator + Id::existsIn.toString() + Id::diagnosticSeparator
+                     + Id::failForeignKeyMissing + args + Id::diagnosticSeparator + value);
 }
 
 /**
@@ -250,13 +251,17 @@ static juce::Result predicateOneOf (const juce::String& value,
                                     const jam::Document&,
                                     const juce::String& sourceFile)
 {
-    const auto matched { juce::StringArray::fromTokens (args, Id::charPipe, juce::String()).contains (value) };
+    const auto matched {
+        juce::StringArray::fromTokens (args, Id::charPipe, juce::String()).contains (value)
+    };
 
     return matched
                ? juce::Result::ok()
                : juce::Result::fail (
                      getLocation (sourceFile, getRowNumber (root, tableName, rowKey), columnName)
-                     + Id::diagnosticSeparator + Id::oneOf.toString() + Id::diagnosticSeparator + Id::failNotInSet + args + Id::charCloseBrace + Id::diagnosticSeparator + value);
+                     + Id::diagnosticSeparator + Id::oneOf.toString() + Id::diagnosticSeparator
+                     + Id::failNotInSet + args + Id::charCloseBrace + Id::diagnosticSeparator
+                     + value);
 }
 
 /**
@@ -291,8 +296,9 @@ static juce::Result predicateRange (const juce::String& value,
                ? juce::Result::ok()
                : juce::Result::fail (
                      getLocation (sourceFile, getRowNumber (root, tableName, rowKey), columnName)
-                     + Id::diagnosticSeparator + Id::range.toString() + Id::diagnosticSeparator + value + Id::failOutOfRange
-                     + juce::String (lowValue) + Id::charComma + Id::charSpace + juce::String (highValue) + Id::charCloseBracket);
+                     + Id::diagnosticSeparator + Id::range.toString() + Id::diagnosticSeparator
+                     + value + Id::failOutOfRange + juce::String (lowValue) + Id::charComma
+                     + Id::charSpace + juce::String (highValue) + Id::charCloseBracket);
 }
 
 /**
@@ -384,8 +390,10 @@ static juce::Result predicateParity (const juce::String&,
     }
 
     if (missingLocalValue.isNotEmpty())
-        return juce::Result::fail (missingLocalLocation + Id::diagnosticSeparator + Id::parity.toString()
-                                   + Id::diagnosticSeparator + Id::failLocalMissing + Id::diagnosticSeparator + missingLocalValue);
+        return juce::Result::fail (missingLocalLocation + Id::diagnosticSeparator
+                                   + Id::parity.toString() + Id::diagnosticSeparator
+                                   + Id::failLocalMissing + Id::diagnosticSeparator
+                                   + missingLocalValue);
 
     const auto missingTarget { std::find_if (targetValues.begin(),
                                              targetValues.end(),
@@ -400,8 +408,9 @@ static juce::Result predicateParity (const juce::String&,
     const auto missingIndex { static_cast<int> (
         std::distance (targetValues.begin(), missingTarget)) };
 
-    return juce::Result::fail (targetLocations[missingIndex] + Id::diagnosticSeparator + Id::parity.toString()
-                               + Id::diagnosticSeparator + Id::failRefMissing + Id::diagnosticSeparator + *missingTarget);
+    return juce::Result::fail (targetLocations[missingIndex] + Id::diagnosticSeparator
+                               + Id::parity.toString() + Id::diagnosticSeparator
+                               + Id::failRefMissing + Id::diagnosticSeparator + *missingTarget);
 }
 
 /**
@@ -427,8 +436,8 @@ static juce::Result predicateFileExists (const juce::String& value,
                ? juce::Result::ok()
                : juce::Result::fail (
                      getLocation (sourceFile, getRowNumber (root, tableName, rowKey), columnName)
-                     + Id::diagnosticSeparator + Id::fileExists.toString()
-                     + Id::diagnosticSeparator + Id::failNotFound + Id::diagnosticSeparator + target.getFullPathName());
+                     + Id::diagnosticSeparator + Id::fileExists.toString() + Id::diagnosticSeparator
+                     + Id::failNotFound + Id::diagnosticSeparator + target.getFullPathName());
 }
 
 /**
@@ -523,9 +532,9 @@ static juce::Result predicateOnePerGroup (const juce::String&,
 
     return badGroupName.isEmpty()
                ? juce::Result::ok()
-               : juce::Result::fail (badGroupLocation + Id::diagnosticSeparator + Id::onePerGroup.toString()
-                                     + Id::diagnosticSeparator + Id::failGroupOpen + badGroupName
-                                     + Id::failGroupClose);
+               : juce::Result::fail (badGroupLocation + Id::diagnosticSeparator
+                                     + Id::onePerGroup.toString() + Id::diagnosticSeparator
+                                     + Id::failGroupOpen + badGroupName + Id::failGroupClose);
 }
 
 /**
@@ -612,7 +621,8 @@ static juce::Result validate (const juce::String& predicateName,
     static jam::Function::Map<juce::String, juce::Result> predicates { buildPredicateMap() };
 
     if (not predicates.contains (predicateName))
-        return juce::Result::fail (sourceFile + Id::diagnosticSeparator + Id::failUnknownPredicate + Id::diagnosticSeparator + predicateName);
+        return juce::Result::fail (sourceFile + Id::diagnosticSeparator + Id::failUnknownPredicate
+                                   + Id::diagnosticSeparator + predicateName);
 
     if (perColumnPredicates.contains (predicateName))
     {

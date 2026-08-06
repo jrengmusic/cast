@@ -53,4 +53,6 @@
     --Markdown--tableHeaderColourId: var(--yellow);
     --Markdown--syntaxNumberColourId: var(--yellow);
     --Markdown--codeBackgroundColourId: var(--black);
+    --Markdown--quoteBackgroundColourId: var(--black);
+    --Markdown--codeBlockBackgroundColourId: var(--black);
 }

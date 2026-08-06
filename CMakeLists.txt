@@ -23,7 +23,8 @@ configure_app(
     VERSION      "${PROJECT_VERSION}"
     MODULES      juce_core
     JAM_MODULES  jam_core
-                 jam_tui
+                 jam_style
+                 jam_terminal
                  jam_markdown
 )
 

@@ -56,7 +56,7 @@ The manifest is the "brain" of the operation. It contains four specific GFM tabl
 
 ---
 
-## 🔧 Transform Vocabulary (Closed Set)
+## Transform Vocabulary (Closed Set)
 These are the only text transformations CAST can perform, applied via the `## transforms` table:
 
 1.  `toUpper` — Converts the value to uppercase.
@@ -85,7 +85,7 @@ These are the only validation rules CAST can enforce, applied via the `## constr
 
 ---
 
-## 🛡️ Determinism & Failure Behavior
+## Determinism & Failure Behavior
 
 CAST is designed to be perfectly reproducible.
 

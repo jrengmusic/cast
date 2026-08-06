@@ -1,6 +1,5 @@
 #pragma once
 #include <JuceHeader.h>
-#include <jam_markdown/parser/jam_Markdown.h>
 #include "Constraints.h"
 #include "Validation.h"
 #include "Template.h"
@@ -20,15 +19,15 @@ static juce::String getOutputBanner (const juce::File& dir)
     const auto bannerDoc { jam::Markdown::parse (bannerFile.loadFileAsString()) };
     juce::String rawBanner;
 
-    bannerDoc.applyFunctionRecursively ([&rawBanner] (const jam::Document& element) -> bool
-    {
-        if (rawBanner.isEmpty()
-            and element.contains (Id::type)
-            and *element.get<int> (Id::type) == Id::BlockType::codeBlock)
-            rawBanner = element.getAllSubText();
+    bannerDoc.applyFunctionRecursively (
+        [&rawBanner] (const jam::Document& element) -> bool
+        {
+            if (rawBanner.isEmpty() and element.contains (Id::type)
+                and *element.get<int> (Id::type) == Id::BlockType::codeBlock)
+                rawBanner = element.getAllSubText();
 
-        return true;
-    });
+            return true;
+        });
 
     if (rawBanner.isEmpty())
         return {};
@@ -56,20 +55,25 @@ static juce::String getOutputBanner (const juce::File& dir)
  * @param manifestDoc The parsed manifest, supplying the `## transforms` table.
  * @return A map from column header to its (possibly transformed) cell value.
  */
-static SubstitutionMap buildPerRowMap (const jam::Document& root, const juce::String& tableName, const juce::String& rowKey,
+static SubstitutionMap buildPerRowMap (const jam::Document& root,
+                                       const juce::String& tableName,
+                                       const juce::String& rowKey,
                                        const jam::Document& manifestDoc)
 {
     SubstitutionMap map;
 
-    const auto tableId            { juce::Identifier (tableName) };
+    const auto tableId { juce::Identifier (tableName) };
     const auto transformedColumns { manifestDoc.getTableRowKeys (Id::transforms) };
 
     for (const auto& header : root.getTableHeaders (tableId))
     {
         const auto rawValue { root.getTableValue (tableId, juce::Identifier (header), rowKey) };
-        const auto value    { transformedColumns.contains (header)
-                                  ? Transforms::getTransformed (manifestDoc.getTableValue (Id::transforms, Id::transform, header), rawValue)
-                                  : rawValue };
+        const auto value {
+            transformedColumns.contains (header)
+                ? Transforms::getTransformed (
+                      manifestDoc.getTableValue (Id::transforms, Id::transform, header), rawValue)
+                : rawValue
+        };
 
         map.insert ({ header, value });
     }
@@ -88,7 +92,8 @@ static SubstitutionMap buildPerRowMap (const jam::Document& root, const juce::St
  * @param slotResults      Per-slot fragment text, keyed by slot name.
  * @return The expanded output text, LF-normalized.
  */
-static juce::String getOutput (const juce::File& dir, const juce::String& rootTemplatePath,
+static juce::String getOutput (const juce::File& dir,
+                               const juce::String& rootTemplatePath,
                                const jam::HashMap<juce::String, juce::StringArray>& slotResults)
 {
     SubstitutionMap rootMap;
@@ -122,12 +127,18 @@ static juce::String getOutput (const juce::File& dir, const juce::String& rootTe
  * @param outputBanner   The formatted banner prepended to generated output when non-empty.
  * @return juce::Result::ok() on success, or the first validation failure.
  */
-static juce::Result processOutput (const jam::Document& manifestDoc, const juce::File& manifestFile, const juce::File& dir,
-                                   const juce::StringArray& dispatchKeys, const juce::StringArray& constraintKeys,
-                                   const juce::String& outputKey, bool writeOutputs, const juce::String& outputBanner)
+static juce::Result processOutput (const jam::Document& manifestDoc,
+                                   const juce::File& manifestFile,
+                                   const juce::File& dir,
+                                   const juce::StringArray& dispatchKeys,
+                                   const juce::StringArray& constraintKeys,
+                                   const juce::String& outputKey,
+                                   bool writeOutputs,
+                                   const juce::String& outputBanner)
 {
-    const auto rootTemplatePath { manifestDoc.getTableValue (Id::outputs, Id::templatePath, outputKey) };
-    const auto tablePaths       { manifestDoc.getTableValues (Id::outputs, Id::tables, outputKey) };
+    const auto rootTemplatePath { manifestDoc.getTableValue (
+        Id::outputs, Id::templatePath, outputKey) };
+    const auto tablePaths { manifestDoc.getTableValues (Id::outputs, Id::tables, outputKey) };
 
     jam::Array<jam::Document> roots;
 
@@ -138,12 +149,14 @@ static juce::Result processOutput (const jam::Document& manifestDoc, const juce:
         roots.add (std::move (root));
     }
 
-    const auto rootsResult { validateRoots (roots, manifestDoc, dispatchKeys, constraintKeys, dir) };
+    const auto rootsResult { validateRoots (
+        roots, manifestDoc, dispatchKeys, constraintKeys, dir) };
 
     if (not rootsResult.wasOk())
         return rootsResult;
 
-    const auto perColumnResult { validatePerColumnConstraints (manifestDoc, constraintKeys, roots, dir, manifestFile.getFullPathName()) };
+    const auto perColumnResult { validatePerColumnConstraints (
+        manifestDoc, constraintKeys, roots, dir, manifestFile.getFullPathName()) };
 
     if (not perColumnResult.wasOk())
         return perColumnResult;
@@ -152,29 +165,37 @@ static juce::Result processOutput (const jam::Document& manifestDoc, const juce:
 
     for (const auto& dispatchKey : dispatchKeys)
     {
-        const auto found { std::find_if (roots.begin(), roots.end(), [&dispatchKey] (const auto& candidate)
-        {
-            return candidate.getChildByID (dispatchKey) != nullptr;
-        }) };
+        const auto found { std::find_if (roots.begin(),
+                                         roots.end(),
+                                         [&dispatchKey] (const auto& candidate)
+                                         {
+                                             return candidate.getChildByID (dispatchKey) != nullptr;
+                                         }) };
 
         if (found != roots.end())
         {
-            const auto tableId      { juce::Identifier (dispatchKey) };
-            const auto columnName   { manifestDoc.getTableValue (Id::dispatch, Id::column, dispatchKey) };
-            const auto matchValue   { manifestDoc.getTableValue (Id::dispatch, Id::value, dispatchKey) };
-            const auto fragmentFile { dir.getChildFile (manifestDoc.getTableValue (Id::dispatch, Id::templatePath, dispatchKey)) };
-            const auto slotName     { manifestDoc.getTableValue (Id::dispatch, Id::slot, dispatchKey) };
+            const auto tableId { juce::Identifier (dispatchKey) };
+            const auto columnName { manifestDoc.getTableValue (
+                Id::dispatch, Id::column, dispatchKey) };
+            const auto matchValue { manifestDoc.getTableValue (
+                Id::dispatch, Id::value, dispatchKey) };
+            const auto fragmentFile { dir.getChildFile (
+                manifestDoc.getTableValue (Id::dispatch, Id::templatePath, dispatchKey)) };
+            const auto slotName { manifestDoc.getTableValue (Id::dispatch, Id::slot, dispatchKey) };
 
             for (const auto& rowKey : found->getTableRowKeys (tableId))
             {
-                const auto cellValue { found->getTableValue (tableId, juce::Identifier (columnName), rowKey) };
-                const auto matches   { matchValue.isEmpty() ? cellValue.isNotEmpty() : cellValue == matchValue };
+                const auto cellValue { found->getTableValue (
+                    tableId, juce::Identifier (columnName), rowKey) };
+                const auto matches { matchValue.isEmpty() ? cellValue.isNotEmpty()
+                                                          : cellValue == matchValue };
 
                 if (matches)
                 {
-                    const auto perRowMap    { buildPerRowMap (*found, dispatchKey, rowKey, manifestDoc) };
+                    const auto perRowMap { buildPerRowMap (
+                        *found, dispatchKey, rowKey, manifestDoc) };
                     const auto fragmentText { TemplateEngine::expand (fragmentFile, perRowMap) };
-                    const auto orphanCheck  { validateHoles (fragmentFile, fragmentText) };
+                    const auto orphanCheck { validateHoles (fragmentFile, fragmentText) };
 
                     if (not orphanCheck.wasOk())
                         return orphanCheck;
@@ -185,19 +206,20 @@ static juce::Result processOutput (const jam::Document& manifestDoc, const juce:
         }
     }
 
-    const auto outputText  { getOutput (dir, rootTemplatePath, slotResults) };
-    const auto rootFile    { dir.getChildFile (rootTemplatePath) };
+    const auto outputText { getOutput (dir, rootTemplatePath, slotResults) };
+    const auto rootFile { dir.getChildFile (rootTemplatePath) };
     const auto orphanCheck { validateHoles (rootFile, outputText) };
 
     if (not orphanCheck.wasOk())
         return orphanCheck;
 
-    const auto finalOutput { outputBanner.isNotEmpty() ? outputBanner + Id::charNewline + outputText : outputText };
+    const auto finalOutput { outputBanner.isNotEmpty() ? outputBanner + Id::charNewline + outputText
+                                                       : outputText };
 
     if (writeOutputs)
     {
         const auto outputFile { dir.getChildFile (outputKey) };
-        const auto existing   { outputFile.loadFileAsString() };
+        const auto existing { outputFile.loadFileAsString() };
 
         if (finalOutput != existing)
             outputFile.replaceWithText (finalOutput, false, false, Id::charNewline.toRawUTF8());
@@ -227,21 +249,28 @@ namespace Driver
 static juce::Result run (const juce::File& manifestFile, const juce::String& outputFilter = {})
 {
     const auto manifestDoc { jam::Markdown::parse (manifestFile.loadFileAsString()) };
-    const auto validation  { validateManifest (manifestDoc, manifestFile) };
+    const auto validation { validateManifest (manifestDoc, manifestFile) };
 
     if (not validation.wasOk())
         return validation;
 
-    const auto dir            { manifestFile.getParentDirectory() };
-    const auto outputBanner   { getOutputBanner (dir) };
-    const auto outputKeys     { manifestDoc.getTableRowKeys (Id::outputs) };
-    const auto dispatchKeys   { manifestDoc.getTableRowKeys (Id::dispatch) };
+    const auto dir { manifestFile.getParentDirectory() };
+    const auto outputBanner { getOutputBanner (dir) };
+    const auto outputKeys { manifestDoc.getTableRowKeys (Id::outputs) };
+    const auto dispatchKeys { manifestDoc.getTableRowKeys (Id::dispatch) };
     const auto constraintKeys { manifestDoc.getTableRowKeys (Id::constraints) };
 
     for (const auto& outputKey : outputKeys)
         if (outputFilter.isEmpty() or outputKey == outputFilter)
         {
-            const auto result { processOutput (manifestDoc, manifestFile, dir, dispatchKeys, constraintKeys, outputKey, false, outputBanner) };
+            const auto result { processOutput (manifestDoc,
+                                               manifestFile,
+                                               dir,
+                                               dispatchKeys,
+                                               constraintKeys,
+                                               outputKey,
+                                               false,
+                                               outputBanner) };
 
             if (not result.wasOk())
                 return result;
@@ -250,7 +279,14 @@ static juce::Result run (const juce::File& manifestFile, const juce::String& out
     for (const auto& outputKey : outputKeys)
         if (outputFilter.isEmpty() or outputKey == outputFilter)
         {
-            const auto result { processOutput (manifestDoc, manifestFile, dir, dispatchKeys, constraintKeys, outputKey, true, outputBanner) };
+            const auto result { processOutput (manifestDoc,
+                                               manifestFile,
+                                               dir,
+                                               dispatchKeys,
+                                               constraintKeys,
+                                               outputKey,
+                                               true,
+                                               outputBanner) };
 
             if (not result.wasOk())
                 return result;
@@ -258,7 +294,9 @@ static juce::Result run (const juce::File& manifestFile, const juce::String& out
 
     return (outputFilter.isEmpty() or outputKeys.contains (outputFilter))
                ? juce::Result::ok()
-               : juce::Result::fail (manifestFile.getFullPathName() + Id::diagnosticSeparator + Id::failOutputMissing + Id::diagnosticSeparator + outputFilter);
+               : juce::Result::fail (manifestFile.getFullPathName() + Id::diagnosticSeparator
+                                     + Id::failOutputMissing + Id::diagnosticSeparator
+                                     + outputFilter);
 }
 
 /**______________________________END OF NAMESPACE______________________________*/

@@ -111,6 +111,38 @@
 
 ## SPRINT HISTORY
 
+## Sprint 6: --help Through the Terminal Graphics Contract ✅
+
+**Date:** 2026-08-05 → 2026-08-07
+**Duration:** multi-session (shared with jam Sprint 61)
+
+### Agents Participated
+- COUNSELOR: harness design under PLAN-terminal-graphics.md Step [9]; Help.h regression restore; trailing-newline hack reverted on ARCHITECT NO-HACK ruling
+- Engineer ×3: harness rewrite (CMake + Help flow + banner port), banner centring, exact-frame sizing
+- Auditor: deferred with jam Sprint 61 to plan step [12]
+
+### Files Modified (3 total)
+- `CMakeLists.txt:24-29` — JAM_MODULES: `jam_tui` (deleted module) → `jam_style` + `jam_terminal`, `jam_markdown` kept
+- `Source/Help.h` — printHelp rewritten to the create-only surface: parse → jam::MarkdownComponent over the Document (StyleManager/style.css LookAndFeel wiring unchanged) → `setBounds(0,0,cols,0)` → `rows = getTextHeight() + documentMargin` (exact frame, bottom margin as real rows) → `GraphicsEngine engine { stdout }` → scoped `GraphicsContext` + `juce::Graphics` + `setOrigin(documentMargin, 0)` → paint; presentation at scope exit. Old manual walk (jam::tui::toAnsiString), getLines/trim/margin-prepend/printf all deleted. Single `<JuceHeader.h>` include
+- `Source/CastCLI.cpp` — printBanner ported off jam_tui onto terminal::GraphicsEngine/GraphicsContext drawCells with Stamp-interned styles; horizontally centred via `juce::Justification (centred).appliedToRectangle (bannerRect, pageRect)` + context setOrigin — no hand arithmetic
+
+### Alignment Check
+- [x] BLESSED — Encapsulation (cast creates engine/context/Graphics, never touches engine after paint), SSOT (style.css → LookAndFeel → projection; Id::/Chars:: only), Deterministic (exact frame from getTextHeight, no heuristics, no live terminal-width query)
+- [x] NAMES.md adhered — no new cast names
+- [x] MANIFESTO.md applied
+- [ ] Auditor sweep — deferred to jam plan step [12]
+
+### Problems Solved
+- --help renders pixel-reference-faithful through the full TGC chain ("rendered perfect") — tight • lists with hanging indent, quote band + │ bar + padding cell, inline code magenta-on-black per style.css codeBackgroundColourId, ─ rules, centred banner + H1, blank tail margin from real frame rows
+- Stale-buffer regression of Help.h caught by compiler and restored to the ratified surface
+- rowsPerBlock oversize heuristic and post-paint trim eliminated by juce::TextEditor-native getTextHeight measure
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None ARCHITECT-commanded. Carried: orphaned textEditorComponent* colour entries in generated/jam_Bimaps.h + cast/tables/colours.md (jam [11]/Arc A); interim generated files still bootstrap-pending first fixpoint run (PLAN-cast Step 7)
+
 ## Sprint 5: Eliminate Magic Strings — Table-Driven Id:: Constants ✅
 
 **Date:** 2026-08-04

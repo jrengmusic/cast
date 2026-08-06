@@ -1,8 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
-#include <jam_core/format/jam_Format.h>
 #include "Constraints.h"
-#include <regex>
 
 namespace cast
 {
@@ -27,15 +25,17 @@ using SubstitutionMap = jam::HashMap<juce::String, std::variant<juce::String, ju
  */
 static juce::String getHoleValue (const std::variant<juce::String, juce::StringArray>& value)
 {
-    return std::visit ([] (const auto& v) -> juce::String
-    {
-        using T = std::decay_t<decltype (v)>;
+    return std::visit (
+        [] (const auto& v) -> juce::String
+        {
+            using T = std::decay_t<decltype (v)>;
 
-        if constexpr (std::is_same_v<T, juce::String>)
-            return v;
-        else
-            return v.joinIntoString ({});
-    }, value);
+            if constexpr (std::is_same_v<T, juce::String>)
+                return v;
+            else
+                return v.joinIntoString ({});
+        },
+        value);
 }
 
 /**
@@ -55,12 +55,14 @@ static juce::Result validateHoles (const juce::File& templateFile, const juce::S
     if (not std::regex_search (textAsStdString, match, holePattern))
         return juce::Result::ok();
 
-    const auto openPos  { static_cast<int> (match.position (0)) };
+    const auto openPos { static_cast<int> (match.position (0)) };
     const auto holeName { juce::String (match.str (0)) };
-    const auto row      { juce::jmax (1, juce::StringArray::fromLines (text.substring (0, openPos)).size()) };
+    const auto row { juce::jmax (
+        1, juce::StringArray::fromLines (text.substring (0, openPos)).size()) };
 
     return juce::Result::fail (getLocation (templateFile.getFullPathName(), row, holeName)
-                               + Id::diagnosticSeparator + Id::failUnresolvedHole + Id::diagnosticSeparator + holeName);
+                               + Id::diagnosticSeparator + Id::failUnresolvedHole
+                               + Id::diagnosticSeparator + holeName);
 }
 
 /// @brief SPEC §3 template expansion: fills `@hole@` constructs from a substitution map.
@@ -83,7 +85,8 @@ struct TemplateEngine
         for (const auto& [holeName, holeValue] : values)
             result = jam::Format::replaceholder (result, holeName, getHoleValue (holeValue));
 
-        return result.replace (Id::charCarriageReturn + Id::charNewline, Id::charNewline).replace (Id::charCarriageReturn, Id::charNewline);
+        return result.replace (Id::charCarriageReturn + Id::charNewline, Id::charNewline)
+            .replace (Id::charCarriageReturn, Id::charNewline);
     }
 };
 

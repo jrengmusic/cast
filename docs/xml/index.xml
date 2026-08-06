@@ -64,7 +64,7 @@
   <compound refid="namespacestd" kind="namespace"><name>std</name>
   </compound>
   <compound refid="_cast_c_l_i_8cpp" kind="file"><name>CastCLI.cpp</name>
-    <member refid="_cast_c_l_i_8cpp_1ab78bd14cb03a7f6e70153ef948826a58" kind="function"><name>paintBanner</name></member>
+    <member refid="_cast_c_l_i_8cpp_1a53749567f657bb9a9a4b0efe5d094749" kind="function"><name>paintBanner</name></member>
     <member refid="_cast_c_l_i_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" kind="function"><name>printBanner</name></member>
     <member refid="_cast_c_l_i_8cpp_1a7f683cefdf7f675f09e36661ce8df7cc" kind="function"><name>printBannerAndHelp</name></member>
     <member refid="_cast_c_l_i_8cpp_1a1db31476f5693c3e1ca60cbff4135bb0" kind="function"><name>getConfigureDepends</name></member>

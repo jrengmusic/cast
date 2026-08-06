@@ -3,7 +3,6 @@
   <compounddef id="_cast_c_l_i_8cpp" kind="file" language="C++">
     <compoundname>CastCLI.cpp</compoundname>
     <includes local="no">JuceHeader.h</includes>
-    <includes local="no">jam_tui/jam_tui.h</includes>
     <includes refid="_c_a_s_t_8h" local="yes">generated/CAST.h</includes>
     <includes refid="_driver_8h" local="yes">Driver.h</includes>
     <includes refid="_help_8h" local="yes">Help.h</includes>
@@ -15,139 +14,102 @@
         </childnode>
         <childnode refid="3" relation="include">
         </childnode>
-        <childnode refid="4" relation="include">
-        </childnode>
-        <childnode refid="7" relation="include">
-        </childnode>
-        <childnode refid="16" relation="include">
-        </childnode>
-      </node>
-      <node id="9">
-        <label>Constraints.h</label>
-        <link refid="_constraints_8h"/>
-        <childnode refid="2" relation="include">
-        </childnode>
-        <childnode refid="10" relation="include">
-        </childnode>
-        <childnode refid="8" relation="include">
+        <childnode refid="6" relation="include">
         </childnode>
         <childnode refid="11" relation="include">
         </childnode>
       </node>
       <node id="7">
+        <label>Constraints.h</label>
+        <link refid="_constraints_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="6">
         <label>Driver.h</label>
         <link refid="_driver_8h"/>
         <childnode refid="2" relation="include">
         </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
         <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
         </childnode>
         <childnode refid="9" relation="include">
         </childnode>
-        <childnode refid="12" relation="include">
-        </childnode>
-        <childnode refid="14" relation="include">
-        </childnode>
-        <childnode refid="13" relation="include">
-        </childnode>
       </node>
-      <node id="16">
+      <node id="11">
         <label>Help.h</label>
         <link refid="_help_8h"/>
         <childnode refid="2" relation="include">
         </childnode>
-        <childnode refid="3" relation="include">
-        </childnode>
       </node>
-      <node id="14">
+      <node id="10">
         <label>Template.h</label>
         <link refid="_template_8h"/>
         <childnode refid="2" relation="include">
         </childnode>
-        <childnode refid="15" relation="include">
-        </childnode>
-        <childnode refid="9" relation="include">
-        </childnode>
-        <childnode refid="11" relation="include">
+        <childnode refid="7" relation="include">
         </childnode>
       </node>
-      <node id="13">
+      <node id="9">
         <label>Transforms.h</label>
         <link refid="_transforms_8h"/>
         <childnode refid="2" relation="include">
         </childnode>
       </node>
-      <node id="12">
+      <node id="8">
         <label>Validation.h</label>
         <link refid="_validation_8h"/>
         <childnode refid="2" relation="include">
         </childnode>
-        <childnode refid="8" relation="include">
+        <childnode refid="7" relation="include">
         </childnode>
         <childnode refid="9" relation="include">
         </childnode>
-        <childnode refid="13" relation="include">
-        </childnode>
       </node>
-      <node id="4">
+      <node id="3">
         <label>generated/CAST.h</label>
         <link refid="_c_a_s_t_8h"/>
+        <childnode refid="4" relation="include">
+        </childnode>
         <childnode refid="5" relation="include">
         </childnode>
-        <childnode refid="6" relation="include">
-        </childnode>
       </node>
-      <node id="6">
+      <node id="5">
         <label>HashMaps.h</label>
         <link refid="_hash_maps_8h"/>
       </node>
-      <node id="5">
+      <node id="4">
         <label>Identifiers.h</label>
         <link refid="_identifiers_8h"/>
-      </node>
-      <node id="15">
-        <label>jam_core/format/jam_Format.h</label>
-        <link refid="jam__Format_8h.html" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
-      </node>
-      <node id="10">
-        <label>jam_core/function_map/jam_Function.h</label>
-        <link refid="jam__Function_8h.html" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
-      </node>
-      <node id="8">
-        <label>jam_markdown/parser/jam_Markdown.h</label>
-        <link refid="jam__Markdown_8h.html" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
-      </node>
-      <node id="3">
-        <label>jam_tui/jam_tui.h</label>
-        <link refid="jam__tui_8h.html" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
       </node>
       <node id="2">
         <label>JuceHeader.h</label>
       </node>
-      <node id="11">
-        <label>regex</label>
-      </node>
     </incdepgraph>
     <sectiondef kind="func">
-      <memberdef kind="function" id="_cast_c_l_i_8cpp_1ab78bd14cb03a7f6e70153ef948826a58" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="_cast_c_l_i_8cpp_1a53749567f657bb9a9a4b0efe5d094749" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
         <definition>static void paintBanner</definition>
-        <argsstring>(jam::tui::Graphics &amp;g)</argsstring>
+        <argsstring>(jam::terminal::GraphicsContext &amp;context)</argsstring>
         <name>paintBanner</name>
         <param>
-          <type><ref refid="classjam_1_1tui_1_1Graphics" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::tui::Graphics</ref> &amp;</type>
-          <declname>g</declname>
+          <type><ref refid="classjam_1_1terminal_1_1GraphicsContext" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::terminal::GraphicsContext</ref> &amp;</type>
+          <declname>context</declname>
         </param>
         <briefdescription>
-<para>Paints the generated glyph banner into a TUI graphics context. </para>
+<para>Paints the generated glyph banner into a terminal graphics context. </para>
         </briefdescription>
         <detaileddescription>
 <para>Each banner row is colour-keyed by its own name and the prior row&apos;s name, used to blend the solid (<computeroutput>█</computeroutput>) and shaded (<computeroutput>░</computeroutput>) glyph colours between rows.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
-<parametername>g</parametername>
+<parametername>context</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>The TUI graphics context to paint into. </para>
+<para>The terminal graphics context to paint into. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -155,14 +117,18 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="CastCLI.cpp" line="20" column="13" bodyfile="CastCLI.cpp" bodystart="20" bodyend="52"/>
+        <location file="CastCLI.cpp" line="19" column="13" bodyfile="CastCLI.cpp" bodystart="19" bodyend="56"/>
         <references refid="classjam_1_1HashMap_1a5a46d490ce023d9b1d773eccc23a7904">jam::HashMap&lt; typename Key, typename Mapped, typename HashFn, typename KeyEqual, typename AllocatorOrContainer, typename Bucket, typename BucketContainer, bool IsSegmented &gt;::at</references>
         <references refid="namespacecast_1abe65a5f539a491ebfa4698a24ee34ee5" compoundref="_hash_maps_8h" startline="16" endline="25">cast::banner</references>
-        <references refid="classjuce_1_1String_1a128e862810bc5e3f16cb70c3c9751867">juce::String::charToString</references>
         <references refid="structjam_1_1ColourNames_1ae617f01a3f7c98ee640eb7e55557547c">jam::ColourNames::colours</references>
         <references refid="classjam_1_1HashMap_1a62292e586b9c399c8013b9a18a5b11c8">jam::HashMap&lt; typename Key, typename Mapped, typename HashFn, typename KeyEqual, typename AllocatorOrContainer, typename Bucket, typename BucketContainer, bool IsSegmented &gt;::contains</references>
+        <references refid="structjam_1_1AttributedChar_1a6284e150340983f654c95f0f7c6f9946">jam::AttributedChar::contentCodepoint</references>
+        <references refid="classjam_1_1terminal_1_1GraphicsContext_1a37f97d29fa909f5f0338cdc73c482931">jam::terminal::GraphicsContext::drawCells</references>
         <references refid="structjam_1_1ColourNames_1ad1eae6adc23420732f175a71879af9d8">jam::ColourNames::get</references>
-        <referencedby refid="_cast_c_l_i_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" compoundref="_cast_c_l_i_8cpp" startline="55" endline="62">printBanner</referencedby>
+        <references refid="structjam_1_1Instance_1ad5d2bbb58e37d8d260b428b334823140">jam::Instance&lt; Derived &gt;::getInstance</references>
+        <references refid="structjam_1_1AttributedChar_1a3f06f1031f9139857ec4c96b71c80d9d">jam::AttributedChar::make</references>
+        <references refid="structjam_1_1AttributedChar_1ac2cf15fb7f1ac405033373a61b49acdb">jam::AttributedChar::narrow</references>
+        <referencedby refid="_cast_c_l_i_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" compoundref="_cast_c_l_i_8cpp" startline="59" endline="72">printBanner</referencedby>
       </memberdef>
       <memberdef kind="function" id="_cast_c_l_i_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -176,11 +142,11 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="CastCLI.cpp" line="55" column="13" bodyfile="CastCLI.cpp" bodystart="55" bodyend="62"/>
+        <location file="CastCLI.cpp" line="59" column="13" bodyfile="CastCLI.cpp" bodystart="59" bodyend="72"/>
         <references refid="namespacecast_1abe65a5f539a491ebfa4698a24ee34ee5" compoundref="_hash_maps_8h" startline="16" endline="25">cast::banner</references>
-        <references refid="namespaceId_1ac402f14db451dbacbf11958e45c2d8c3" compoundref="_identifiers_8h" startline="51" endline="51">Id::charNewline</references>
-        <references refid="_cast_c_l_i_8cpp_1ab78bd14cb03a7f6e70153ef948826a58" compoundref="_cast_c_l_i_8cpp" startline="20" endline="52">paintBanner</references>
-        <referencedby refid="_cast_c_l_i_8cpp_1a7f683cefdf7f675f09e36661ce8df7cc" compoundref="_cast_c_l_i_8cpp" startline="64" endline="69">printBannerAndHelp</referencedby>
+        <references refid="_cast_c_l_i_8cpp_1a53749567f657bb9a9a4b0efe5d094749" compoundref="_cast_c_l_i_8cpp" startline="19" endline="56">paintBanner</references>
+        <references refid="classjam_1_1terminal_1_1GraphicsEngine_1a337ab523356dc3c25314e6a027dca23b">jam::terminal::GraphicsEngine::resize</references>
+        <referencedby refid="_cast_c_l_i_8cpp_1a7f683cefdf7f675f09e36661ce8df7cc" compoundref="_cast_c_l_i_8cpp" startline="74" endline="79">printBannerAndHelp</referencedby>
       </memberdef>
       <memberdef kind="function" id="_cast_c_l_i_8cpp_1a7f683cefdf7f675f09e36661ce8df7cc" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -193,13 +159,13 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="CastCLI.cpp" line="64" column="13" bodyfile="CastCLI.cpp" bodystart="64" bodyend="69"/>
+        <location file="CastCLI.cpp" line="74" column="13" bodyfile="CastCLI.cpp" bodystart="74" bodyend="79"/>
         <references refid="namespaceId_1a7f7d31c09e802159e41846c7a2e1ca91" compoundref="_identifiers_8h" startline="40" endline="40">Id::castHelp</references>
         <references refid="namespaceId_1ac402f14db451dbacbf11958e45c2d8c3" compoundref="_identifiers_8h" startline="51" endline="51">Id::charNewline</references>
         <references refid="namespaceBinaryData_1ab470912f6d1c32d1892f7750ab510641">BinaryData::getString</references>
-        <references refid="_cast_c_l_i_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" compoundref="_cast_c_l_i_8cpp" startline="55" endline="62">printBanner</references>
-        <references refid="namespacecast_1af452b934f2fca601c8a4dca14ac46701" compoundref="_help_8h" startline="22" endline="46">cast::printHelp</references>
-        <referencedby refid="_cast_c_l_i_8cpp_1a0ddf1224851353fc92bfbff6f499fa97" compoundref="_cast_c_l_i_8cpp" startline="138" endline="184">main</referencedby>
+        <references refid="_cast_c_l_i_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" compoundref="_cast_c_l_i_8cpp" startline="59" endline="72">printBanner</references>
+        <references refid="namespacecast_1af452b934f2fca601c8a4dca14ac46701" compoundref="_help_8h" startline="22" endline="51">cast::printHelp</references>
+        <referencedby refid="_cast_c_l_i_8cpp_1a0ddf1224851353fc92bfbff6f499fa97" compoundref="_cast_c_l_i_8cpp" startline="148" endline="194">main</referencedby>
       </memberdef>
       <memberdef kind="function" id="_cast_c_l_i_8cpp_1a1db31476f5693c3e1ca60cbff4135bb0" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="classjam_1_1Array" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Array</ref>&lt; <ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref> &gt;</type>
@@ -230,7 +196,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="CastCLI.cpp" line="80" column="19" bodyfile="CastCLI.cpp" bodystart="80" bodyend="109"/>
+        <location file="CastCLI.cpp" line="90" column="19" bodyfile="CastCLI.cpp" bodystart="90" bodyend="119"/>
         <references refid="classjam_1_1Array_1a056773d314babbb130f136a544a1b3e7">jam::Array&lt; typename ElementType &gt;::add</references>
         <references refid="namespaceId_1a908abf446cbd940840c4e8b286812a07" compoundref="_identifiers_8h" startline="41" endline="41">Id::castOutput</references>
         <references refid="namespaceId_1aca212072de97e8efa0e6a3b5051a362d" compoundref="_identifiers_8h" startline="16" endline="16">Id::dispatch</references>
@@ -283,8 +249,8 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="CastCLI.cpp" line="121" column="12" bodyfile="CastCLI.cpp" bodystart="121" bodyend="136"/>
-        <referencedby refid="_cast_c_l_i_8cpp_1a0ddf1224851353fc92bfbff6f499fa97" compoundref="_cast_c_l_i_8cpp" startline="138" endline="184">main</referencedby>
+        <location file="CastCLI.cpp" line="131" column="12" bodyfile="CastCLI.cpp" bodystart="131" bodyend="146"/>
+        <referencedby refid="_cast_c_l_i_8cpp_1a0ddf1224851353fc92bfbff6f499fa97" compoundref="_cast_c_l_i_8cpp" startline="148" endline="194">main</referencedby>
       </memberdef>
       <memberdef kind="function" id="_cast_c_l_i_8cpp_1a0ddf1224851353fc92bfbff6f499fa97" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -306,7 +272,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="CastCLI.cpp" line="138" column="5" bodyfile="CastCLI.cpp" bodystart="138" bodyend="184"/>
+        <location file="CastCLI.cpp" line="148" column="5" bodyfile="CastCLI.cpp" bodystart="148" bodyend="194"/>
         <references refid="namespaceId_1ad85c3ba9ca665124a6714abe9e868bdc" compoundref="_identifiers_8h" startline="39" endline="39">Id::cast</references>
         <references refid="namespaceId_1a7f7d31c09e802159e41846c7a2e1ca91" compoundref="_identifiers_8h" startline="40" endline="40">Id::castHelp</references>
         <references refid="namespaceId_1a67e41d2abd03766f81fbe180f53ec046" compoundref="_identifiers_8h" startline="55" endline="55">Id::charCloseParen</references>
@@ -319,9 +285,9 @@
         <references refid="classjuce_1_1File_1a57b992aacb19e09ee5905cd0f0e9bb31">juce::File::getChildFile</references>
         <references refid="classjuce_1_1File_1af57a7a6e83fbd4a6b048e7d0010d7279">juce::File::getCurrentWorkingDirectory</references>
         <references refid="structjam_1_1Instance_1ad5d2bbb58e37d8d260b428b334823140">jam::Instance&lt; Derived &gt;::getInstance</references>
-        <references refid="_cast_c_l_i_8cpp_1a7f683cefdf7f675f09e36661ce8df7cc" compoundref="_cast_c_l_i_8cpp" startline="64" endline="69">printBannerAndHelp</references>
+        <references refid="_cast_c_l_i_8cpp_1a7f683cefdf7f675f09e36661ce8df7cc" compoundref="_cast_c_l_i_8cpp" startline="74" endline="79">printBannerAndHelp</references>
         <references refid="namespaceId_1a5890bedc678ae7beeb0231e5ef0ce12f" compoundref="_identifiers_8h" startline="62" endline="62">Id::programName</references>
-        <references refid="_cast_c_l_i_8cpp_1a7beba094c25e9aa5626e49384e647202" compoundref="_cast_c_l_i_8cpp" startline="121" endline="136">runManifest</references>
+        <references refid="_cast_c_l_i_8cpp_1a7beba094c25e9aa5626e49384e647202" compoundref="_cast_c_l_i_8cpp" startline="131" endline="146">runManifest</references>
         <references refid="namespaceId_1a26b45dcee4122af40c4184ef577e0a0e">Id::version</references>
       </memberdef>
     </sectiondef>
@@ -334,156 +300,166 @@
 <codeline lineno="1"><highlight class="normal"></highlight></codeline>
 <codeline lineno="5"><highlight class="normal"></highlight></codeline>
 <codeline lineno="6"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;JuceHeader.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="7"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;<ref refid="jam__tui_8h.html" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam_tui/jam_tui.h</ref>&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="_c_a_s_t_8h" kindref="compound">generated/CAST.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="9"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="_driver_8h" kindref="compound">Driver.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="_help_8h" kindref="compound">Help.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="11"><highlight class="normal"></highlight></codeline>
-<codeline lineno="20" refid="_cast_c_l_i_8cpp_1ab78bd14cb03a7f6e70153ef948826a58" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="_cast_c_l_i_8cpp_1ab78bd14cb03a7f6e70153ef948826a58" kindref="member">paintBanner</ref><sp/>(<ref refid="classjam_1_1tui_1_1Graphics" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::tui::Graphics</ref>&amp;<sp/>g)</highlight></codeline>
-<codeline lineno="21"><highlight class="normal">{</highlight></codeline>
-<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal">&amp;<sp/>[firstName,<sp/>firstText]<sp/>{<sp/>*<ref refid="namespacecast_1abe65a5f539a491ebfa4698a24ee34ee5" kindref="member">cast::banner</ref>.begin()<sp/>};</highlight></codeline>
-<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>priorName<sp/>{<sp/>firstName<sp/>};</highlight></codeline>
-<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>row<sp/>{<sp/>0<sp/>};</highlight></codeline>
-<codeline lineno="25"><highlight class="normal"></highlight></codeline>
-<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal">&amp;<sp/>[<ref refid="juce__UnityPluginInterface_8h_1a010e50efcb9d6d393b9414f09f368dbc" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">name</ref>,<sp/>text]<sp/>:<sp/><ref refid="namespacecast_1abe65a5f539a491ebfa4698a24ee34ee5" kindref="member">cast::banner</ref>)</highlight></codeline>
-<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
-<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classjuce_1_1Colour" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Colour</ref><sp/>rowColour<sp/>{<sp/><ref refid="structjam_1_1ColourNames_1ae617f01a3f7c98ee640eb7e55557547c" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::ColourNames::colours</ref>[<ref refid="structjam_1_1ColourNames_1ad1eae6adc23420732f175a71879af9d8" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::ColourNames::get</ref><sp/>(<ref refid="juce__UnityPluginInterface_8h_1a010e50efcb9d6d393b9414f09f368dbc" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">name</ref>)]<sp/>};</highlight></codeline>
-<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classjuce_1_1Colour" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Colour</ref><sp/>priorColour<sp/>{</highlight></codeline>
-<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structjam_1_1ColourNames_1ae617f01a3f7c98ee640eb7e55557547c" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::ColourNames::colours</ref>[<ref refid="structjam_1_1ColourNames_1ad1eae6adc23420732f175a71879af9d8" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::ColourNames::get</ref><sp/>(priorName)]</highlight></codeline>
-<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>};</highlight></codeline>
-<codeline lineno="32"><highlight class="normal"></highlight></codeline>
-<codeline lineno="33"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classjam_1_1HashMap" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::HashMap&lt;juce::juce_wchar, juce::Colour&gt;</ref><sp/>glyphColours<sp/>{</highlight></codeline>
-<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{<sp/>U</highlight><highlight class="stringliteral">&apos;█&apos;</highlight><highlight class="normal">,<sp/>rowColour<sp/><sp/><sp/>},</highlight></codeline>
-<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{<sp/>U</highlight><highlight class="stringliteral">&apos;░&apos;</highlight><highlight class="normal">,<sp/>priorColour<sp/>}</highlight></codeline>
-<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>};</highlight></codeline>
-<codeline lineno="37"><highlight class="normal"></highlight></codeline>
-<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>col<sp/>{<sp/>0<sp/>};<sp/>col<sp/>&lt;<sp/>text.length();<sp/>++col)</highlight></codeline>
-<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{</highlight></codeline>
-<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>glyph<sp/>{<sp/>text[col]<sp/>};</highlight></codeline>
-<codeline lineno="41"><highlight class="normal"></highlight></codeline>
-<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(glyphColours.<ref refid="classjam_1_1HashMap_1a62292e586b9c399c8013b9a18a5b11c8" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">contains</ref><sp/>(glyph))</highlight></codeline>
-<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{</highlight></codeline>
-<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>g.setColour<sp/>(glyphColours.<ref refid="classjam_1_1HashMap_1a5a46d490ce023d9b1d773eccc23a7904" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">at</ref><sp/>(glyph));</highlight></codeline>
-<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>g.drawCellText<sp/>(<ref refid="classjuce_1_1String_1a128e862810bc5e3f16cb70c3c9751867" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::charToString</ref><sp/>(glyph),<sp/>col,<sp/>row,<sp/>1);</highlight></codeline>
-<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="_c_a_s_t_8h" kindref="compound">generated/CAST.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="_driver_8h" kindref="compound">Driver.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="_help_8h" kindref="compound">Help.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight></codeline>
+<codeline lineno="19" refid="_cast_c_l_i_8cpp_1a53749567f657bb9a9a4b0efe5d094749" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="_cast_c_l_i_8cpp_1a53749567f657bb9a9a4b0efe5d094749" kindref="member">paintBanner</ref><sp/>(<ref refid="classjam_1_1terminal_1_1GraphicsContext" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::terminal::GraphicsContext</ref>&amp;<sp/>context)</highlight></codeline>
+<codeline lineno="20"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal">&amp;<sp/>[firstName,<sp/>firstText]<sp/>{<sp/>*<ref refid="namespacecast_1abe65a5f539a491ebfa4698a24ee34ee5" kindref="member">cast::banner</ref>.begin()<sp/>};</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>priorName<sp/>{<sp/>firstName<sp/>};</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>row<sp/>{<sp/>0<sp/>};</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal">&amp;<sp/>[<ref refid="juce__UnityPluginInterface_8h_1a010e50efcb9d6d393b9414f09f368dbc" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">name</ref>,<sp/>text]<sp/>:<sp/><ref refid="namespacecast_1abe65a5f539a491ebfa4698a24ee34ee5" kindref="member">cast::banner</ref>)</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classjuce_1_1Colour" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Colour</ref><sp/>rowColour<sp/>{<sp/><ref refid="structjam_1_1ColourNames_1ae617f01a3f7c98ee640eb7e55557547c" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::ColourNames::colours</ref>[<ref refid="structjam_1_1ColourNames_1ad1eae6adc23420732f175a71879af9d8" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::ColourNames::get</ref><sp/>(<ref refid="juce__UnityPluginInterface_8h_1a010e50efcb9d6d393b9414f09f368dbc" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">name</ref>)]<sp/>};</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classjuce_1_1Colour" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Colour</ref><sp/>priorColour<sp/>{</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structjam_1_1ColourNames_1ae617f01a3f7c98ee640eb7e55557547c" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::ColourNames::colours</ref>[<ref refid="structjam_1_1ColourNames_1ad1eae6adc23420732f175a71879af9d8" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::ColourNames::get</ref><sp/>(priorName)]</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>};</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal">*<sp/>stamp<sp/>{<sp/><ref refid="structjam_1_1Instance_1ad5d2bbb58e37d8d260b428b334823140" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Stamp::getInstance</ref>()<sp/>};</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classjam_1_1HashMap" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::HashMap&lt;juce::juce_wchar, uint16_t&gt;</ref><sp/>glyphStyles<sp/>{</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{<sp/>U</highlight><highlight class="stringliteral">&apos;█&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="keyword">static_cast&lt;</highlight><highlight class="normal">uint16_t</highlight><highlight class="keyword">&gt;</highlight><highlight class="normal"><sp/>(stamp-&gt;addIfNotAlreadyThere<sp/>(<ref refid="structjam_1_1Stamp_1_1Entry" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Stamp::Entry</ref><sp/>{<sp/>rowColour,<sp/>{},<sp/>{},<sp/>0<sp/>}))<sp/><sp/><sp/>},</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{<sp/>U</highlight><highlight class="stringliteral">&apos;░&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="keyword">static_cast&lt;</highlight><highlight class="normal">uint16_t</highlight><highlight class="keyword">&gt;</highlight><highlight class="normal"><sp/>(stamp-&gt;addIfNotAlreadyThere<sp/>(<ref refid="structjam_1_1Stamp_1_1Entry" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Stamp::Entry</ref><sp/>{<sp/>priorColour,<sp/>{},<sp/>{},<sp/>0<sp/>}))<sp/>}</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>};</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>col<sp/>{<sp/>0<sp/>};<sp/>col<sp/>&lt;<sp/>text.length();<sp/>++col)</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>glyph<sp/>{<sp/>text[col]<sp/>};</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(glyphStyles.<ref refid="classjam_1_1HashMap_1a62292e586b9c399c8013b9a18a5b11c8" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">contains</ref><sp/>(glyph))</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structjam_1_1AttributedChar" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::AttributedChar</ref><sp/><ref refid="jam__Cell_8h_1adb968df47f8b9dd5aa6a35499c35c9f6" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">cell</ref><sp/>{<sp/><ref refid="structjam_1_1AttributedChar_1a3f06f1031f9139857ec4c96b71c80d9d" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::AttributedChar::make</ref><sp/>(</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static_cast&lt;</highlight><highlight class="normal">uint32_t</highlight><highlight class="keyword">&gt;</highlight><highlight class="normal"><sp/>(glyph),<sp/><ref refid="structjam_1_1AttributedChar_1a6284e150340983f654c95f0f7c6f9946" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::AttributedChar::contentCodepoint</ref>,</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structjam_1_1AttributedChar_1ac2cf15fb7f1ac405033373a61b49acdb" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::AttributedChar::narrow</ref>,<sp/>glyphStyles.<ref refid="classjam_1_1HashMap_1a5a46d490ce023d9b1d773eccc23a7904" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">at</ref><sp/>(glyph))<sp/>};</highlight></codeline>
 <codeline lineno="48"><highlight class="normal"></highlight></codeline>
-<codeline lineno="49"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>priorName<sp/>=<sp/><ref refid="juce__UnityPluginInterface_8h_1a010e50efcb9d6d393b9414f09f368dbc" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">name</ref>;</highlight></codeline>
-<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>++row;</highlight></codeline>
-<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline lineno="52"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="53"><highlight class="normal"></highlight></codeline>
-<codeline lineno="55" refid="_cast_c_l_i_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="_cast_c_l_i_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" kindref="member">printBanner</ref>()</highlight></codeline>
-<codeline lineno="56"><highlight class="normal">{</highlight></codeline>
-<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal">&amp;<sp/>[firstName,<sp/>firstText]<sp/>{<sp/>*<ref refid="namespacecast_1abe65a5f539a491ebfa4698a24ee34ee5" kindref="member">cast::banner</ref>.begin()<sp/>};</highlight></codeline>
-<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classjam_1_1tui_1_1Graphics" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::tui::Graphics</ref><sp/>graphics<sp/>{<sp/>firstText.length(),<sp/></highlight><highlight class="keyword">static_cast&lt;</highlight><highlight class="keywordtype">int</highlight><highlight class="keyword">&gt;</highlight><highlight class="normal"><sp/>(<ref refid="namespacecast_1abe65a5f539a491ebfa4698a24ee34ee5" kindref="member">cast::banner</ref>.size())<sp/>};</highlight></codeline>
-<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="_cast_c_l_i_8cpp_1ab78bd14cb03a7f6e70153ef948826a58" kindref="member">paintBanner</ref><sp/>(graphics);</highlight></codeline>
-<codeline lineno="60"><highlight class="normal"></highlight></codeline>
-<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/>printf<sp/>(</highlight><highlight class="stringliteral">&quot;%s\n&quot;</highlight><highlight class="normal">,<sp/>graphics.getLines().joinIntoString<sp/>(<ref refid="namespaceId_1ac402f14db451dbacbf11958e45c2d8c3" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::charNewline</ref>).toRawUTF8());</highlight></codeline>
-<codeline lineno="62"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="63"><highlight class="normal"></highlight></codeline>
-<codeline lineno="64" refid="_cast_c_l_i_8cpp_1a7f683cefdf7f675f09e36661ce8df7cc" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="_cast_c_l_i_8cpp_1a7f683cefdf7f675f09e36661ce8df7cc" kindref="member">printBannerAndHelp</ref>()</highlight></codeline>
-<codeline lineno="65"><highlight class="normal">{</highlight></codeline>
-<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="_cast_c_l_i_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" kindref="member">printBanner</ref>();</highlight></codeline>
-<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/>printf<sp/>(</highlight><highlight class="stringliteral">&quot;%s&quot;</highlight><highlight class="normal">,<sp/><ref refid="namespaceId_1ac402f14db451dbacbf11958e45c2d8c3" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::charNewline</ref>.toRawUTF8());</highlight></codeline>
-<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="namespacecast_1af452b934f2fca601c8a4dca14ac46701" kindref="member">cast::printHelp</ref><sp/>(<ref refid="namespaceBinaryData_1ab470912f6d1c32d1892f7750ab510641" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">BinaryData::getString</ref><sp/>(<ref refid="namespaceId_1a7f7d31c09e802159e41846c7a2e1ca91" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::castHelp</ref>.toString()));</highlight></codeline>
-<codeline lineno="69"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="70"><highlight class="normal"></highlight></codeline>
-<codeline lineno="80" refid="_cast_c_l_i_8cpp_1a1db31476f5693c3e1ca60cbff4135bb0" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="classjam_1_1Array" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Array&lt;juce::File&gt;</ref><sp/><ref refid="_cast_c_l_i_8cpp_1a1db31476f5693c3e1ca60cbff4135bb0" kindref="member">getConfigureDepends</ref><sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref>&amp;<sp/>manifestFile)</highlight></codeline>
-<codeline lineno="81"><highlight class="normal">{</highlight></codeline>
-<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classjam_1_1Array" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Array&lt;juce::File&gt;</ref><sp/>depends;</highlight></codeline>
-<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/>depends.<ref refid="classjam_1_1Array_1a056773d314babbb130f136a544a1b3e7" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">add</ref><sp/>(manifestFile);</highlight></codeline>
-<codeline lineno="84"><highlight class="normal"></highlight></codeline>
-<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>dir<sp/>{<sp/>manifestFile.<ref refid="classjuce_1_1File_1ab6bec65fbcf19ce10e38cf9d1015770d" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">getParentDirectory</ref>()<sp/>};</highlight></codeline>
-<codeline lineno="86"><highlight class="normal"></highlight></codeline>
-<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>bannerFile<sp/>{<sp/>dir.getChildFile<sp/>(<ref refid="namespaceId_1a908abf446cbd940840c4e8b286812a07" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::castOutput</ref>.toString())<sp/>};</highlight></codeline>
-<codeline lineno="88"><highlight class="normal"></highlight></codeline>
-<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(bannerFile.existsAsFile())</highlight></codeline>
-<codeline lineno="90"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>depends.<ref refid="classjam_1_1Array_1a056773d314babbb130f136a544a1b3e7" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">add</ref><sp/>(bannerFile);</highlight></codeline>
-<codeline lineno="91"><highlight class="normal"></highlight></codeline>
-<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>manifestDoc<sp/>{<sp/><ref refid="structjam_1_1Markdown_1ad2eeadd77ac16749f86be26e4aa4858c" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Markdown::parse</ref><sp/>(manifestFile.<ref refid="classjuce_1_1File_1aa65d2fa50370357bf93658d6447c296d" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">loadFileAsString</ref>())<sp/>};</highlight></codeline>
-<codeline lineno="93"><highlight class="normal"></highlight></codeline>
-<codeline lineno="94"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal">&amp;<sp/>outputKey<sp/>:<sp/>manifestDoc.getTableRowKeys<sp/>(<ref refid="namespaceId_1a59a827617008cc92aafb72fab02c2377" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::outputs</ref>))</highlight></codeline>
-<codeline lineno="95"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
-<codeline lineno="96"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>depends.<ref refid="classjam_1_1Array_1a056773d314babbb130f136a544a1b3e7" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">add</ref><sp/>(dir.getChildFile<sp/>(</highlight></codeline>
-<codeline lineno="97"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>manifestDoc.getTableValue<sp/>(<ref refid="namespaceId_1a59a827617008cc92aafb72fab02c2377" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::outputs</ref>,<sp/><ref refid="namespaceId_1a56531ef8a997e8a2fc8d53cf8b543459" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::templatePath</ref>,<sp/>outputKey)));</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>context.<ref refid="classjam_1_1terminal_1_1GraphicsContext_1a37f97d29fa909f5f0338cdc73c482931" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">drawCells</ref><sp/>(<ref refid="structjam_1_1Cell" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Cell</ref><sp/>{<sp/>col<sp/>},<sp/><ref refid="structjam_1_1Cell" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Cell</ref><sp/>{<sp/>row<sp/>},<sp/>{<sp/>&amp;<ref refid="jam__Cell_8h_1adb968df47f8b9dd5aa6a35499c35c9f6" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">cell</ref>,<sp/>1<sp/>});</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>priorName<sp/>=<sp/><ref refid="juce__UnityPluginInterface_8h_1a010e50efcb9d6d393b9414f09f368dbc" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">name</ref>;</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>++row;</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="56"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"></highlight></codeline>
+<codeline lineno="59" refid="_cast_c_l_i_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="_cast_c_l_i_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" kindref="member">printBanner</ref>()</highlight></codeline>
+<codeline lineno="60"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal">&amp;<sp/>[firstName,<sp/>firstText]<sp/>{<sp/>*<ref refid="namespacecast_1abe65a5f539a491ebfa4698a24ee34ee5" kindref="member">cast::banner</ref>.begin()<sp/>};</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>cols<sp/>{<sp/>firstText.length()<sp/>};</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>rows<sp/>{<sp/></highlight><highlight class="keyword">static_cast&lt;</highlight><highlight class="keywordtype">int</highlight><highlight class="keyword">&gt;</highlight><highlight class="normal"><sp/>(<ref refid="namespacecast_1abe65a5f539a491ebfa4698a24ee34ee5" kindref="member">cast::banner</ref>.size())<sp/>};</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classjam_1_1terminal_1_1GraphicsEngine" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::terminal::GraphicsEngine</ref><sp/>engine<sp/>{<sp/>stdout<sp/>};</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/>engine.<ref refid="classjam_1_1terminal_1_1GraphicsEngine_1a337ab523356dc3c25314e6a027dca23b" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">resize</ref><sp/>(cols,<sp/>rows);</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classjam_1_1terminal_1_1GraphicsContext" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::terminal::GraphicsContext</ref><sp/>context<sp/>{<sp/>engine<sp/>};</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="_cast_c_l_i_8cpp_1a53749567f657bb9a9a4b0efe5d094749" kindref="member">paintBanner</ref><sp/>(context);</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="72"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"></highlight></codeline>
+<codeline lineno="74" refid="_cast_c_l_i_8cpp_1a7f683cefdf7f675f09e36661ce8df7cc" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="_cast_c_l_i_8cpp_1a7f683cefdf7f675f09e36661ce8df7cc" kindref="member">printBannerAndHelp</ref>()</highlight></codeline>
+<codeline lineno="75"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="_cast_c_l_i_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" kindref="member">printBanner</ref>();</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/><sp/><sp/>printf<sp/>(</highlight><highlight class="stringliteral">&quot;%s&quot;</highlight><highlight class="normal">,<sp/><ref refid="namespaceId_1ac402f14db451dbacbf11958e45c2d8c3" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::charNewline</ref>.toRawUTF8());</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="namespacecast_1af452b934f2fca601c8a4dca14ac46701" kindref="member">cast::printHelp</ref><sp/>(<ref refid="namespaceBinaryData_1ab470912f6d1c32d1892f7750ab510641" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">BinaryData::getString</ref><sp/>(<ref refid="namespaceId_1a7f7d31c09e802159e41846c7a2e1ca91" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::castHelp</ref>.toString()));</highlight></codeline>
+<codeline lineno="79"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"></highlight></codeline>
+<codeline lineno="90" refid="_cast_c_l_i_8cpp_1a1db31476f5693c3e1ca60cbff4135bb0" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="classjam_1_1Array" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Array&lt;juce::File&gt;</ref><sp/><ref refid="_cast_c_l_i_8cpp_1a1db31476f5693c3e1ca60cbff4135bb0" kindref="member">getConfigureDepends</ref><sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref>&amp;<sp/>manifestFile)</highlight></codeline>
+<codeline lineno="91"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classjam_1_1Array" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Array&lt;juce::File&gt;</ref><sp/>depends;</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><sp/><sp/>depends.<ref refid="classjam_1_1Array_1a056773d314babbb130f136a544a1b3e7" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">add</ref><sp/>(manifestFile);</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"></highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>dir<sp/>{<sp/>manifestFile.<ref refid="classjuce_1_1File_1ab6bec65fbcf19ce10e38cf9d1015770d" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">getParentDirectory</ref>()<sp/>};</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"></highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>bannerFile<sp/>{<sp/>dir.getChildFile<sp/>(<ref refid="namespaceId_1a908abf446cbd940840c4e8b286812a07" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::castOutput</ref>.toString())<sp/>};</highlight></codeline>
 <codeline lineno="98"><highlight class="normal"></highlight></codeline>
-<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal">&amp;<sp/>tablePath<sp/>:</highlight></codeline>
-<codeline lineno="100"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>manifestDoc.getTableValues<sp/>(<ref refid="namespaceId_1a59a827617008cc92aafb72fab02c2377" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::outputs</ref>,<sp/><ref refid="namespaceId_1a0c21715610ba99996860a3a00d7c1561" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::tables</ref>,<sp/>outputKey))</highlight></codeline>
-<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>depends.<ref refid="classjam_1_1Array_1a056773d314babbb130f136a544a1b3e7" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">add</ref><sp/>(dir.getChildFile<sp/>(tablePath.trim()));</highlight></codeline>
-<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(bannerFile.existsAsFile())</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>depends.<ref refid="classjam_1_1Array_1a056773d314babbb130f136a544a1b3e7" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">add</ref><sp/>(bannerFile);</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"></highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>manifestDoc<sp/>{<sp/><ref refid="structjam_1_1Markdown_1ad2eeadd77ac16749f86be26e4aa4858c" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Markdown::parse</ref><sp/>(manifestFile.<ref refid="classjuce_1_1File_1aa65d2fa50370357bf93658d6447c296d" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">loadFileAsString</ref>())<sp/>};</highlight></codeline>
 <codeline lineno="103"><highlight class="normal"></highlight></codeline>
-<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal">&amp;<sp/>dispatchKey<sp/>:<sp/>manifestDoc.getTableRowKeys<sp/>(<ref refid="namespaceId_1aca212072de97e8efa0e6a3b5051a362d" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::dispatch</ref>))</highlight></codeline>
-<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>depends.<ref refid="classjam_1_1Array_1a056773d314babbb130f136a544a1b3e7" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">add</ref><sp/>(dir.getChildFile<sp/>(</highlight></codeline>
-<codeline lineno="106"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>manifestDoc.getTableValue<sp/>(<ref refid="namespaceId_1aca212072de97e8efa0e6a3b5051a362d" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::dispatch</ref>,<sp/><ref refid="namespaceId_1a56531ef8a997e8a2fc8d53cf8b543459" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::templatePath</ref>,<sp/>dispatchKey)));</highlight></codeline>
-<codeline lineno="107"><highlight class="normal"></highlight></codeline>
-<codeline lineno="108"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>depends;</highlight></codeline>
-<codeline lineno="109"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="110"><highlight class="normal"></highlight></codeline>
-<codeline lineno="121" refid="_cast_c_l_i_8cpp_1a7beba094c25e9aa5626e49384e647202" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="_cast_c_l_i_8cpp_1a7beba094c25e9aa5626e49384e647202" kindref="member">runManifest</ref><sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref>&amp;<sp/>manifest,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref>&amp;<sp/>outputFilter<sp/>=<sp/>{})</highlight></codeline>
-<codeline lineno="122"><highlight class="normal">{</highlight></codeline>
-<codeline lineno="123"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>result<sp/>{<sp/><ref refid="namespacecast_1_1_driver_1a66a1e5cc96f2d517f8f93bb5ac5a3931" kindref="member">cast::Driver::run</ref><sp/>(manifest,<sp/>outputFilter)<sp/>};</highlight></codeline>
-<codeline lineno="124"><highlight class="normal"></highlight></codeline>
-<codeline lineno="125"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(result.wasOk())</highlight></codeline>
-<codeline lineno="126"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
-<codeline lineno="127"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal">&amp;<sp/>path<sp/>:<sp/><ref refid="_cast_c_l_i_8cpp_1a1db31476f5693c3e1ca60cbff4135bb0" kindref="member">getConfigureDepends</ref><sp/>(manifest))</highlight></codeline>
-<codeline lineno="128"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>printf<sp/>(</highlight><highlight class="stringliteral">&quot;%s\n&quot;</highlight><highlight class="normal">,<sp/><ref refid="namespaceId_1ac0d6bb21fb6eb483624e52f9002294ab" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">path</ref>.getFullPathName().toRawUTF8());</highlight></codeline>
-<codeline lineno="129"><highlight class="normal"></highlight></codeline>
-<codeline lineno="130"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
-<codeline lineno="131"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline lineno="132"><highlight class="normal"></highlight></codeline>
-<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>errorLine<sp/>{<sp/><ref refid="namespaceId_1a5890bedc678ae7beeb0231e5ef0ce12f" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::programName</ref><sp/>+<sp/><ref refid="namespaceId_1a5e729b9864fd096462b3f08ef1eb4b1a" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::diagnosticSeparator</ref><sp/>+<sp/>result.getErrorMessage()<sp/>};</highlight></codeline>
-<codeline lineno="134"><highlight class="normal"><sp/><sp/><sp/><sp/>fprintf<sp/>(stderr,<sp/></highlight><highlight class="stringliteral">&quot;%s\n&quot;</highlight><highlight class="normal">,<sp/>errorLine.toRawUTF8());</highlight></codeline>
-<codeline lineno="135"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
-<codeline lineno="136"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="137"><highlight class="normal"></highlight></codeline>
-<codeline lineno="138" refid="_cast_c_l_i_8cpp_1a0ddf1224851353fc92bfbff6f499fa97" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="_cast_c_l_i_8cpp_1a0ddf1224851353fc92bfbff6f499fa97" kindref="member">main</ref><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>argc,<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/>argv[])</highlight></codeline>
-<codeline lineno="139"><highlight class="normal">{</highlight></codeline>
-<codeline lineno="140"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1ScopedJuceInitialiser__GUI" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::ScopedJuceInitialiser_GUI</ref><sp/>libraryInitialiser;</highlight></codeline>
-<codeline lineno="141"><highlight class="normal"></highlight></codeline>
-<codeline lineno="142"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structjam_1_1Stamp" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Stamp</ref><sp/>stamp;</highlight></codeline>
-<codeline lineno="143"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structjam_1_1Hyperlink" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Hyperlink</ref><sp/>hyperlink;</highlight></codeline>
-<codeline lineno="144"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structjam_1_1ColourNames" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::ColourNames</ref><sp/>colourNames;</highlight></codeline>
-<codeline lineno="145"><highlight class="normal"></highlight></codeline>
-<codeline lineno="146"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structjam_1_1Instance_1ad5d2bbb58e37d8d260b428b334823140" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Stamp::getInstance</ref>()-&gt;addIfNotAlreadyThere<sp/>(<ref refid="structjam_1_1Stamp_1_1Entry" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Stamp::Entry</ref><sp/>{});</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal">&amp;<sp/>outputKey<sp/>:<sp/>manifestDoc.getTableRowKeys<sp/>(<ref refid="namespaceId_1a59a827617008cc92aafb72fab02c2377" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::outputs</ref>))</highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>depends.<ref refid="classjam_1_1Array_1a056773d314babbb130f136a544a1b3e7" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">add</ref><sp/>(dir.getChildFile<sp/>(</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>manifestDoc.getTableValue<sp/>(<ref refid="namespaceId_1a59a827617008cc92aafb72fab02c2377" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::outputs</ref>,<sp/><ref refid="namespaceId_1a56531ef8a997e8a2fc8d53cf8b543459" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::templatePath</ref>,<sp/>outputKey)));</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"></highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal">&amp;<sp/>tablePath<sp/>:</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>manifestDoc.getTableValues<sp/>(<ref refid="namespaceId_1a59a827617008cc92aafb72fab02c2377" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::outputs</ref>,<sp/><ref refid="namespaceId_1a0c21715610ba99996860a3a00d7c1561" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::tables</ref>,<sp/>outputKey))</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>depends.<ref refid="classjam_1_1Array_1a056773d314babbb130f136a544a1b3e7" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">add</ref><sp/>(dir.getChildFile<sp/>(tablePath.trim()));</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"></highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal">&amp;<sp/>dispatchKey<sp/>:<sp/>manifestDoc.getTableRowKeys<sp/>(<ref refid="namespaceId_1aca212072de97e8efa0e6a3b5051a362d" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::dispatch</ref>))</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>depends.<ref refid="classjam_1_1Array_1a056773d314babbb130f136a544a1b3e7" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">add</ref><sp/>(dir.getChildFile<sp/>(</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>manifestDoc.getTableValue<sp/>(<ref refid="namespaceId_1aca212072de97e8efa0e6a3b5051a362d" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::dispatch</ref>,<sp/><ref refid="namespaceId_1a56531ef8a997e8a2fc8d53cf8b543459" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::templatePath</ref>,<sp/>dispatchKey)));</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"></highlight></codeline>
+<codeline lineno="118"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>depends;</highlight></codeline>
+<codeline lineno="119"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"></highlight></codeline>
+<codeline lineno="131" refid="_cast_c_l_i_8cpp_1a7beba094c25e9aa5626e49384e647202" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="_cast_c_l_i_8cpp_1a7beba094c25e9aa5626e49384e647202" kindref="member">runManifest</ref><sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref>&amp;<sp/>manifest,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref>&amp;<sp/>outputFilter<sp/>=<sp/>{})</highlight></codeline>
+<codeline lineno="132"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>result<sp/>{<sp/><ref refid="namespacecast_1_1_driver_1a66a1e5cc96f2d517f8f93bb5ac5a3931" kindref="member">cast::Driver::run</ref><sp/>(manifest,<sp/>outputFilter)<sp/>};</highlight></codeline>
+<codeline lineno="134"><highlight class="normal"></highlight></codeline>
+<codeline lineno="135"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(result.wasOk())</highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal">&amp;<sp/>path<sp/>:<sp/><ref refid="_cast_c_l_i_8cpp_1a1db31476f5693c3e1ca60cbff4135bb0" kindref="member">getConfigureDepends</ref><sp/>(manifest))</highlight></codeline>
+<codeline lineno="138"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>printf<sp/>(</highlight><highlight class="stringliteral">&quot;%s\n&quot;</highlight><highlight class="normal">,<sp/><ref refid="namespaceId_1ac0d6bb21fb6eb483624e52f9002294ab" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">path</ref>.getFullPathName().toRawUTF8());</highlight></codeline>
+<codeline lineno="139"><highlight class="normal"></highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="142"><highlight class="normal"></highlight></codeline>
+<codeline lineno="143"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>errorLine<sp/>{<sp/><ref refid="namespaceId_1a5890bedc678ae7beeb0231e5ef0ce12f" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::programName</ref><sp/>+<sp/><ref refid="namespaceId_1a5e729b9864fd096462b3f08ef1eb4b1a" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::diagnosticSeparator</ref><sp/>+<sp/>result.getErrorMessage()<sp/>};</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><sp/><sp/><sp/><sp/>fprintf<sp/>(stderr,<sp/></highlight><highlight class="stringliteral">&quot;%s\n&quot;</highlight><highlight class="normal">,<sp/>errorLine.toRawUTF8());</highlight></codeline>
+<codeline lineno="145"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="146"><highlight class="normal">}</highlight></codeline>
 <codeline lineno="147"><highlight class="normal"></highlight></codeline>
-<codeline lineno="148"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(argc<sp/>==<sp/>2<sp/>and<sp/><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>{<sp/>argv[1]<sp/>}<sp/>==<sp/><ref refid="namespaceId_1acdae33a433139607850983efab76f315" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::cliPrefix</ref><sp/>+<sp/><ref refid="namespaceId_1a26b45dcee4122af40c4184ef577e0a0e" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::version</ref>.toString())</highlight></codeline>
-<codeline lineno="149"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
-<codeline lineno="150"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>versionLine<sp/>{<sp/><ref refid="namespaceId_1a5890bedc678ae7beeb0231e5ef0ce12f" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::programName</ref><sp/>+<sp/><ref refid="namespaceId_1ae2bc4e9f580dc1f05bbba97090a88b2c" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::charSpace</ref><sp/>+<sp/>ProjectInfo::versionString</highlight></codeline>
-<codeline lineno="151"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>+<sp/><ref refid="namespaceId_1ae2bc4e9f580dc1f05bbba97090a88b2c" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::charSpace</ref><sp/>+<sp/><ref refid="namespaceId_1a593a2bb5c53122e278e916c7e61b2dc4" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::charOpenParen</ref><sp/>+<sp/>CAST_COMMIT</highlight></codeline>
-<codeline lineno="152"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>+<sp/><ref refid="namespaceId_1a67e41d2abd03766f81fbe180f53ec046" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::charCloseParen</ref><sp/>};</highlight></codeline>
-<codeline lineno="153"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>printf<sp/>(</highlight><highlight class="stringliteral">&quot;%s\n&quot;</highlight><highlight class="normal">,<sp/>versionLine.toRawUTF8());</highlight></codeline>
-<codeline lineno="154"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
-<codeline lineno="155"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline lineno="156"><highlight class="normal"></highlight></codeline>
-<codeline lineno="157"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(argc<sp/>==<sp/>2<sp/>and<sp/><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>{<sp/>argv[1]<sp/>}<sp/>==<sp/><ref refid="namespaceId_1acdae33a433139607850983efab76f315" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::cliPrefix</ref><sp/>+<sp/><ref refid="namespaceId_1a7f7d31c09e802159e41846c7a2e1ca91" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::castHelp</ref>.toString())</highlight></codeline>
-<codeline lineno="158"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
-<codeline lineno="159"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="_cast_c_l_i_8cpp_1a7f683cefdf7f675f09e36661ce8df7cc" kindref="member">printBannerAndHelp</ref>();</highlight></codeline>
-<codeline lineno="160"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
-<codeline lineno="161"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline lineno="162"><highlight class="normal"></highlight></codeline>
-<codeline lineno="163"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(argc<sp/>==<sp/>3)</highlight></codeline>
-<codeline lineno="164"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
-<codeline lineno="165"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="_cast_c_l_i_8cpp_1a7beba094c25e9aa5626e49384e647202" kindref="member">runManifest</ref><sp/>(</highlight></codeline>
-<codeline lineno="166"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1File_1af57a7a6e83fbd4a6b048e7d0010d7279" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File::getCurrentWorkingDirectory</ref>().getChildFile<sp/>(<ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>{<sp/>argv[1]<sp/>}),</highlight></codeline>
-<codeline lineno="167"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>{<sp/>argv[2]<sp/>});</highlight></codeline>
-<codeline lineno="168"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline lineno="169"><highlight class="normal"></highlight></codeline>
-<codeline lineno="170"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref><sp/>manifestFile<sp/>{</highlight></codeline>
-<codeline lineno="171"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(argc<sp/>==<sp/>2)</highlight></codeline>
-<codeline lineno="172"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>?<sp/><ref refid="classjuce_1_1File_1af57a7a6e83fbd4a6b048e7d0010d7279" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File::getCurrentWorkingDirectory</ref>().getChildFile<sp/>(<ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>{<sp/>argv[1]<sp/>})</highlight></codeline>
-<codeline lineno="173"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>:<sp/><ref refid="classjuce_1_1File_1af57a7a6e83fbd4a6b048e7d0010d7279" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File::getCurrentWorkingDirectory</ref>().<ref refid="classjuce_1_1File_1a57b992aacb19e09ee5905cd0f0e9bb31" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">getChildFile</ref><sp/>(<ref refid="namespaceId_1ad85c3ba9ca665124a6714abe9e868bdc" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::cast</ref>.toString())</highlight></codeline>
-<codeline lineno="174"><highlight class="normal"><sp/><sp/><sp/><sp/>};</highlight></codeline>
-<codeline lineno="175"><highlight class="normal"></highlight></codeline>
-<codeline lineno="176"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(manifestFile.<ref refid="classjuce_1_1File_1a37e88fbc390d78f3d79675974f53fa78" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">existsAsFile</ref>())</highlight></codeline>
-<codeline lineno="177"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="_cast_c_l_i_8cpp_1a7beba094c25e9aa5626e49384e647202" kindref="member">runManifest</ref><sp/>(manifestFile);</highlight></codeline>
-<codeline lineno="178"><highlight class="normal"></highlight></codeline>
-<codeline lineno="179"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="_cast_c_l_i_8cpp_1a7f683cefdf7f675f09e36661ce8df7cc" kindref="member">printBannerAndHelp</ref>();</highlight></codeline>
-<codeline lineno="180"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>noManifestLine<sp/>{<sp/><ref refid="namespaceId_1a5890bedc678ae7beeb0231e5ef0ce12f" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::programName</ref><sp/>+<sp/><ref refid="namespaceId_1a5e729b9864fd096462b3f08ef1eb4b1a" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::diagnosticSeparator</ref><sp/>+<sp/><ref refid="namespaceId_1a46a4109f929cdae87cbbad7d26dd475e" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::failNotFound</ref></highlight></codeline>
-<codeline lineno="181"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>+<sp/><ref refid="namespaceId_1a5e729b9864fd096462b3f08ef1eb4b1a" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::diagnosticSeparator</ref><sp/>+<sp/><ref refid="namespaceId_1ad85c3ba9ca665124a6714abe9e868bdc" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::cast</ref>.toString()<sp/>};</highlight></codeline>
-<codeline lineno="182"><highlight class="normal"><sp/><sp/><sp/><sp/>fprintf<sp/>(stderr,<sp/></highlight><highlight class="stringliteral">&quot;%s\n&quot;</highlight><highlight class="normal">,<sp/>noManifestLine.toRawUTF8());</highlight></codeline>
-<codeline lineno="183"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
-<codeline lineno="184"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="148" refid="_cast_c_l_i_8cpp_1a0ddf1224851353fc92bfbff6f499fa97" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="_cast_c_l_i_8cpp_1a0ddf1224851353fc92bfbff6f499fa97" kindref="member">main</ref><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>argc,<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/>argv[])</highlight></codeline>
+<codeline lineno="149"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="150"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1ScopedJuceInitialiser__GUI" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::ScopedJuceInitialiser_GUI</ref><sp/>libraryInitialiser;</highlight></codeline>
+<codeline lineno="151"><highlight class="normal"></highlight></codeline>
+<codeline lineno="152"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structjam_1_1Stamp" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Stamp</ref><sp/>stamp;</highlight></codeline>
+<codeline lineno="153"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structjam_1_1Hyperlink" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Hyperlink</ref><sp/>hyperlink;</highlight></codeline>
+<codeline lineno="154"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structjam_1_1ColourNames" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::ColourNames</ref><sp/>colourNames;</highlight></codeline>
+<codeline lineno="155"><highlight class="normal"></highlight></codeline>
+<codeline lineno="156"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structjam_1_1Instance_1ad5d2bbb58e37d8d260b428b334823140" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Stamp::getInstance</ref>()-&gt;addIfNotAlreadyThere<sp/>(<ref refid="structjam_1_1Stamp_1_1Entry" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Stamp::Entry</ref><sp/>{});</highlight></codeline>
+<codeline lineno="157"><highlight class="normal"></highlight></codeline>
+<codeline lineno="158"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(argc<sp/>==<sp/>2<sp/>and<sp/><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>{<sp/>argv[1]<sp/>}<sp/>==<sp/><ref refid="namespaceId_1acdae33a433139607850983efab76f315" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::cliPrefix</ref><sp/>+<sp/><ref refid="namespaceId_1a26b45dcee4122af40c4184ef577e0a0e" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::version</ref>.toString())</highlight></codeline>
+<codeline lineno="159"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="160"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>versionLine<sp/>{<sp/><ref refid="namespaceId_1a5890bedc678ae7beeb0231e5ef0ce12f" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::programName</ref><sp/>+<sp/><ref refid="namespaceId_1ae2bc4e9f580dc1f05bbba97090a88b2c" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::charSpace</ref><sp/>+<sp/>ProjectInfo::versionString</highlight></codeline>
+<codeline lineno="161"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>+<sp/><ref refid="namespaceId_1ae2bc4e9f580dc1f05bbba97090a88b2c" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::charSpace</ref><sp/>+<sp/><ref refid="namespaceId_1a593a2bb5c53122e278e916c7e61b2dc4" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::charOpenParen</ref><sp/>+<sp/>CAST_COMMIT</highlight></codeline>
+<codeline lineno="162"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>+<sp/><ref refid="namespaceId_1a67e41d2abd03766f81fbe180f53ec046" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::charCloseParen</ref><sp/>};</highlight></codeline>
+<codeline lineno="163"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>printf<sp/>(</highlight><highlight class="stringliteral">&quot;%s\n&quot;</highlight><highlight class="normal">,<sp/>versionLine.toRawUTF8());</highlight></codeline>
+<codeline lineno="164"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="165"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="166"><highlight class="normal"></highlight></codeline>
+<codeline lineno="167"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(argc<sp/>==<sp/>2<sp/>and<sp/><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>{<sp/>argv[1]<sp/>}<sp/>==<sp/><ref refid="namespaceId_1acdae33a433139607850983efab76f315" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::cliPrefix</ref><sp/>+<sp/><ref refid="namespaceId_1a7f7d31c09e802159e41846c7a2e1ca91" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::castHelp</ref>.toString())</highlight></codeline>
+<codeline lineno="168"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="169"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="_cast_c_l_i_8cpp_1a7f683cefdf7f675f09e36661ce8df7cc" kindref="member">printBannerAndHelp</ref>();</highlight></codeline>
+<codeline lineno="170"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="171"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="172"><highlight class="normal"></highlight></codeline>
+<codeline lineno="173"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(argc<sp/>==<sp/>3)</highlight></codeline>
+<codeline lineno="174"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="175"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="_cast_c_l_i_8cpp_1a7beba094c25e9aa5626e49384e647202" kindref="member">runManifest</ref><sp/>(</highlight></codeline>
+<codeline lineno="176"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1File_1af57a7a6e83fbd4a6b048e7d0010d7279" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File::getCurrentWorkingDirectory</ref>().getChildFile<sp/>(<ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>{<sp/>argv[1]<sp/>}),</highlight></codeline>
+<codeline lineno="177"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>{<sp/>argv[2]<sp/>});</highlight></codeline>
+<codeline lineno="178"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="179"><highlight class="normal"></highlight></codeline>
+<codeline lineno="180"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref><sp/>manifestFile<sp/>{</highlight></codeline>
+<codeline lineno="181"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(argc<sp/>==<sp/>2)</highlight></codeline>
+<codeline lineno="182"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>?<sp/><ref refid="classjuce_1_1File_1af57a7a6e83fbd4a6b048e7d0010d7279" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File::getCurrentWorkingDirectory</ref>().getChildFile<sp/>(<ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref><sp/>{<sp/>argv[1]<sp/>})</highlight></codeline>
+<codeline lineno="183"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>:<sp/><ref refid="classjuce_1_1File_1af57a7a6e83fbd4a6b048e7d0010d7279" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File::getCurrentWorkingDirectory</ref>().<ref refid="classjuce_1_1File_1a57b992aacb19e09ee5905cd0f0e9bb31" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">getChildFile</ref><sp/>(<ref refid="namespaceId_1ad85c3ba9ca665124a6714abe9e868bdc" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::cast</ref>.toString())</highlight></codeline>
+<codeline lineno="184"><highlight class="normal"><sp/><sp/><sp/><sp/>};</highlight></codeline>
+<codeline lineno="185"><highlight class="normal"></highlight></codeline>
+<codeline lineno="186"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(manifestFile.<ref refid="classjuce_1_1File_1a37e88fbc390d78f3d79675974f53fa78" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">existsAsFile</ref>())</highlight></codeline>
+<codeline lineno="187"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="_cast_c_l_i_8cpp_1a7beba094c25e9aa5626e49384e647202" kindref="member">runManifest</ref><sp/>(manifestFile);</highlight></codeline>
+<codeline lineno="188"><highlight class="normal"></highlight></codeline>
+<codeline lineno="189"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="_cast_c_l_i_8cpp_1a7f683cefdf7f675f09e36661ce8df7cc" kindref="member">printBannerAndHelp</ref>();</highlight></codeline>
+<codeline lineno="190"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>noManifestLine<sp/>{<sp/><ref refid="namespaceId_1a5890bedc678ae7beeb0231e5ef0ce12f" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::programName</ref><sp/>+<sp/><ref refid="namespaceId_1a5e729b9864fd096462b3f08ef1eb4b1a" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::diagnosticSeparator</ref><sp/>+<sp/><ref refid="namespaceId_1a46a4109f929cdae87cbbad7d26dd475e" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::failNotFound</ref></highlight></codeline>
+<codeline lineno="191"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>+<sp/><ref refid="namespaceId_1a5e729b9864fd096462b3f08ef1eb4b1a" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::diagnosticSeparator</ref><sp/>+<sp/><ref refid="namespaceId_1ad85c3ba9ca665124a6714abe9e868bdc" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">Id::cast</ref>.toString()<sp/>};</highlight></codeline>
+<codeline lineno="192"><highlight class="normal"><sp/><sp/><sp/><sp/>fprintf<sp/>(stderr,<sp/></highlight><highlight class="stringliteral">&quot;%s\n&quot;</highlight><highlight class="normal">,<sp/>noManifestLine.toRawUTF8());</highlight></codeline>
+<codeline lineno="193"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="194"><highlight class="normal">}</highlight></codeline>
     </programlisting>
     <location file="CastCLI.cpp"/>
   </compounddef>

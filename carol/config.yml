@@ -7,11 +7,11 @@ version: "1.0"
 project:
   name: "cast"
   path: "/Users/jreng/Documents/Poems/dev/cast"
-  initialized: "2026-08-01"
+  initialized: "2026-08-07"
 
 carol:
   mode: "symlink"  # or "portable"
-  version: "0.0.22"
+  version: "0.0.23"
 
 agents:
   # Track which agents are assigned to roles
