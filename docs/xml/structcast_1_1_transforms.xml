@@ -2,8 +2,31 @@
 <doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
   <compounddef id="structcast_1_1_transforms" kind="struct" language="C++" prot="public">
     <compoundname>cast::Transforms</compoundname>
-    <includes refid="_transforms_8h" local="no">Transforms.h</includes>
+    <includes refid="_operators_8h" local="no">Operators.h</includes>
     <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="structcast_1_1_transforms_1abc1476003fb5b3b90ab6fdc040d5de3d" prot="public" static="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>static bool cast::Transforms::contains</definition>
+        <argsstring>(const juce::String &amp;name) noexcept</argsstring>
+        <name>contains</name>
+        <qualifiedname>cast::Transforms::contains</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>name</declname>
+        </param>
+        <briefdescription>
+<para>Reports whether <computeroutput>name</computeroutput> is in the closed transform vocabulary (SPEC §6). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Operators.h" line="142" column="17" bodyfile="Operators.h" bodystart="142" bodyend="145"/>
+        <references refid="structcast_1_1_transforms_1a93b2c0c5df5cd0cee07e79263c3cfb84" compoundref="_operators_8h" startline="164" endline="188">getTransforms</references>
+        <referencedby refid="namespacecast_1a4d619a2cebf05e5d2e8764475cd0e19e" compoundref="_generator_8h" startline="76" endline="85">cast::getResolvedCell</referencedby>
+        <referencedby refid="structcast_1_1_transforms_1a8f205eb5ba5a4a87c4241d3a73a10ede" compoundref="_operators_8h" startline="156" endline="161">getTransformed</referencedby>
+        <referencedby refid="namespacecast_1a8b0b668faf943d54d84ac338bd213c94" compoundref="_validator_8h" startline="768" endline="861">cast::validateManifest</referencedby>
+      </memberdef>
       <memberdef kind="function" id="structcast_1_1_transforms_1a8f205eb5ba5a4a87c4241d3a73a10ede" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
         <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
         <definition>static juce::String cast::Transforms::getTransformed</definition>
@@ -47,9 +70,59 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Transforms.h" line="166" column="25" bodyfile="Transforms.h" bodystart="166" bodyend="174"/>
-        <references refid="namespacecast_1a5d3e7e391997de80260d26f7013f600f" compoundref="_transforms_8h" startline="142" endline="152">cast::transforms</references>
-        <referencedby refid="namespacecast_1a8e6d82622e7cb90f1aef9b99ab024dc7" compoundref="_driver_8h" startline="58" endline="82">cast::buildPerRowMap</referencedby>
+        <location file="Operators.h" line="156" column="25" bodyfile="Operators.h" bodystart="156" bodyend="161"/>
+        <references refid="structcast_1_1_transforms_1abc1476003fb5b3b90ab6fdc040d5de3d" compoundref="_operators_8h" startline="142" endline="145">contains</references>
+        <references refid="structcast_1_1_transforms_1a93b2c0c5df5cd0cee07e79263c3cfb84" compoundref="_operators_8h" startline="164" endline="188">getTransforms</references>
+        <referencedby refid="namespacecast_1a2ac57925bfc1273fc03de595f51bfae5" compoundref="_generator_8h" startline="102" endline="144">cast::buildPerRowMap</referencedby>
+        <referencedby refid="namespacecast_1aaaf20bd724ca3615da68b33db5b8d077" compoundref="_generator_8h" startline="376" endline="521">cast::buildSlotResults</referencedby>
+        <referencedby refid="namespacecast_1a1923b512425ff12f555a9cd2b9363f22" compoundref="_generator_8h" startline="159" endline="213">cast::buildTableMap</referencedby>
+        <referencedby refid="namespacecast_1a7ce05456bfec2ccd8efd3f205506c97a" compoundref="_generator_8h" startline="237" endline="336">cast::expandRowRegions</referencedby>
+        <referencedby refid="namespacecast_1a4d619a2cebf05e5d2e8764475cd0e19e" compoundref="_generator_8h" startline="76" endline="85">cast::getResolvedCell</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="structcast_1_1_transforms_1a93b2c0c5df5cd0cee07e79263c3cfb84" prot="public" static="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>const <ref refid="structjam_1_1Function_1_1Map" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Function::Map</ref>&lt; <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref>, <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &gt; &amp;</type>
+        <definition>static const jam::Function::Map&lt; juce::String, juce::String &gt; &amp; cast::Transforms::getTransforms</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>getTransforms</name>
+        <qualifiedname>cast::Transforms::getTransforms</qualifiedname>
+        <briefdescription>
+<para>The closed transform vocabulary (SPEC §6), keyed by identifier string. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Operators.h" line="164" column="37" bodyfile="Operators.h" bodystart="164" bodyend="188"/>
+        <references refid="namespacecast_1a905b20792d61b5991d5029270c82cac7" compoundref="_operators_8h" startline="119" endline="123">cast::codepointHex</references>
+        <references refid="namespaceId_1aeeaed7884fb4307d2e07f4465c213d0b" compoundref="g_2_identifiers_8h" startline="42" endline="42">Id::codepointHex</references>
+        <references refid="namespacecast_1a20db922e27c5c0c48bce61607be87089" compoundref="_operators_8h" startline="126" endline="130">cast::codepointLabel</references>
+        <references refid="namespaceId_1ac01bb7e0e9b2d7bfd2272ace9a89b040" compoundref="g_2_identifiers_8h" startline="43" endline="43">Id::codepointLabel</references>
+        <references refid="namespacecast_1aa4156e4c51c1b067d961bdfcb6d2b4ea" compoundref="_operators_8h" startline="64" endline="89">cast::escapeCpp</references>
+        <references refid="namespaceId_1a4110556f3f944bc675cc495175a3bab2" compoundref="g_2_identifiers_8h" startline="40" endline="40">Id::escapeCpp</references>
+        <references refid="namespacecast_1a138ed53d479b1eacc02f35ff83b03c36" compoundref="_operators_8h" startline="20" endline="24">cast::qualifySymbol</references>
+        <references refid="namespaceId_1a5643ee12ba13c48e73aad6dc4be8408f" compoundref="g_2_identifiers_8h" startline="44" endline="44">Id::qualifySymbol</references>
+        <references refid="namespacecast_1adb327ef93074cf86a7237a38aa438749" compoundref="_operators_8h" startline="14" endline="17">cast::symbolFromFile</references>
+        <references refid="namespaceId_1a9bc698d3969b0d6fdb900d46281be84a" compoundref="g_2_identifiers_8h" startline="45" endline="45">Id::symbolFromFile</references>
+        <references refid="namespaceId_1a5e913c8c07256c0ce368c7defcb8867c" compoundref="g_2_identifiers_8h" startline="48" endline="48">Id::toCamel</references>
+        <references refid="structjam_1_1Format_1a02392277ebce64f76b3e29691a671cc5">jam::Format::toCamelCase</references>
+        <references refid="namespaceId_1aad03c2a9f456be39c911827c79d06f4b" compoundref="g_2_identifiers_8h" startline="39" endline="39">Id::toKebab</references>
+        <references refid="structjam_1_1Format_1a5ec1c416e01d35534f4e7d0204551a97">jam::Format::toKebabCase</references>
+        <references refid="namespaceId_1abb7a8274bb115fdef5458982e7698af9" compoundref="g_2_identifiers_8h" startline="47" endline="47">Id::toPascal</references>
+        <references refid="structjam_1_1Format_1a1550cfb63d8b6a662119920196332261">jam::Format::toPascalCase</references>
+        <references refid="namespacecast_1ac720336ac8445391244c118c1c61cd28" compoundref="_operators_8h" startline="133" endline="136">cast::toString</references>
+        <references refid="namespaceId_1ae095c1d1087a68ff529396abb6253aef" compoundref="g_2_identifiers_8h" startline="46" endline="46">Id::toString</references>
+        <references refid="namespaceId_1a89c567eb7d070197f736d8fbacce5262" compoundref="g_2_identifiers_8h" startline="38" endline="38">Id::toTitle</references>
+        <references refid="structjam_1_1Format_1aaf8ae70d5805caa700be709a58f3412a">jam::Format::toTitleCase</references>
+        <references refid="namespaceId_1a12b7e6227d1c80a40bfba8f1e5f4e690" compoundref="g_2_identifiers_8h" startline="37" endline="37">Id::toUpper</references>
+        <references refid="classjuce_1_1String_1a1e7124c97cfb142b269080422fcba540">juce::String::toUpperCase</references>
+        <references refid="namespacecast_1a4404a9c79c3e961484d6e8e1fe6ec2d5" compoundref="_operators_8h" startline="106" endline="116">cast::utf8Bytes</references>
+        <references refid="namespaceId_1a42b0b8896936b75711c0aed5f0848707" compoundref="g_2_identifiers_8h" startline="41" endline="41">Id::utf8Bytes</references>
+        <referencedby refid="namespacecast_1a2ac57925bfc1273fc03de595f51bfae5" compoundref="_generator_8h" startline="102" endline="144">cast::buildPerRowMap</referencedby>
+        <referencedby refid="namespacecast_1aaaf20bd724ca3615da68b33db5b8d077" compoundref="_generator_8h" startline="376" endline="521">cast::buildSlotResults</referencedby>
+        <referencedby refid="namespacecast_1a1923b512425ff12f555a9cd2b9363f22" compoundref="_generator_8h" startline="159" endline="213">cast::buildTableMap</referencedby>
+        <referencedby refid="structcast_1_1_transforms_1abc1476003fb5b3b90ab6fdc040d5de3d" compoundref="_operators_8h" startline="142" endline="145">contains</referencedby>
+        <referencedby refid="namespacecast_1a7ce05456bfec2ccd8efd3f205506c97a" compoundref="_generator_8h" startline="237" endline="336">cast::expandRowRegions</referencedby>
+        <referencedby refid="structcast_1_1_transforms_1a8f205eb5ba5a4a87c4241d3a73a10ede" compoundref="_operators_8h" startline="156" endline="161">getTransformed</referencedby>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -57,9 +130,11 @@
     </briefdescription>
     <detaileddescription>
     </detaileddescription>
-    <location file="Transforms.h" line="155" column="1" bodyfile="Transforms.h" bodystart="156" bodyend="175"/>
+    <location file="Operators.h" line="139" column="1" bodyfile="Operators.h" bodystart="140" bodyend="189"/>
     <listofallmembers>
+      <member refid="structcast_1_1_transforms_1abc1476003fb5b3b90ab6fdc040d5de3d" prot="public" virt="non-virtual"><scope>cast::Transforms</scope><name>contains</name></member>
       <member refid="structcast_1_1_transforms_1a8f205eb5ba5a4a87c4241d3a73a10ede" prot="public" virt="non-virtual"><scope>cast::Transforms</scope><name>getTransformed</name></member>
+      <member refid="structcast_1_1_transforms_1a93b2c0c5df5cd0cee07e79263c3cfb84" prot="public" virt="non-virtual"><scope>cast::Transforms</scope><name>getTransforms</name></member>
     </listofallmembers>
   </compounddef>
 </doxygen>

@@ -5,7 +5,7 @@
 
 #include <JuceHeader.h>
 #include "generated/CAST.h"
-#include "Driver.h"
+#include "Generator.h"
 #include "Help.h"
 
 /**
@@ -24,9 +24,9 @@ static void paintBanner (jam::terminal::GraphicsContext& context)
 
     for (const auto& [name, text] : cast::banner)
     {
-        const juce::Colour rowColour { jam::ColourNames::colours[jam::ColourNames::get (name)] };
+        const juce::Colour rowColour { map::ColourNames::colours[map::ColourNames::get (name)] };
         const juce::Colour priorColour {
-            jam::ColourNames::colours[jam::ColourNames::get (priorName)]
+            map::ColourNames::colours[map::ColourNames::get (priorName)]
         };
 
         auto* stamp { jam::Stamp::getInstance() };
@@ -85,50 +85,11 @@ static void printBannerAndHelp()
 }
 
 /**
- * @brief Derives the CMake configure-dependency file list from a manifest (SPEC §4).
- *
- * The manifest itself, every `## outputs` row's template and input tables,
- * and every `## dispatch` row's fragment template — never hand-maintained.
- *
- * @param manifestFile The `CAST.md` manifest to derive dependencies from.
- * @return The manifest-derived dependency files.
- */
-static jam::Array<juce::File> getConfigureDepends (const juce::File& manifestFile)
-{
-    jam::Array<juce::File> depends;
-    depends.add (manifestFile);
-
-    const auto dir { manifestFile.getParentDirectory() };
-
-    const auto bannerFile { dir.getChildFile (Id::castOutput.toString()) };
-
-    if (bannerFile.existsAsFile())
-        depends.add (bannerFile);
-
-    const auto manifestDoc { jam::Markdown::parse (manifestFile.loadFileAsString()) };
-
-    for (const auto& outputKey : manifestDoc.getTableRowKeys (Id::outputs))
-    {
-        depends.add (dir.getChildFile (
-            manifestDoc.getTableValue (Id::outputs, Id::templatePath, outputKey)));
-
-        for (const auto& tablePath :
-             manifestDoc.getTableValues (Id::outputs, Id::tables, outputKey))
-            depends.add (dir.getChildFile (tablePath.trim()));
-    }
-
-    for (const auto& dispatchKey : manifestDoc.getTableRowKeys (Id::dispatch))
-        depends.add (dir.getChildFile (
-            manifestDoc.getTableValue (Id::dispatch, Id::templatePath, dispatchKey)));
-
-    return depends;
-}
-
-/**
  * @brief Runs cast::Driver::run() and reports the result on stdout/stderr.
  *
- * On success, prints the manifest's configure-dependency list
- * (getConfigureDepends()) to stdout, one path per line, for CMake to consume.
+ * On success, renders the manifest itself through cast::printHelp(), so the
+ * run reports the relations, dispatch, transforms, and constraints it was
+ * driven by.
  *
  * @param manifest     The `CAST.md` manifest to run.
  * @param outputFilter When non-empty, restricts regeneration to the named output row.
@@ -136,12 +97,14 @@ static jam::Array<juce::File> getConfigureDepends (const juce::File& manifestFil
  */
 static int runManifest (const juce::File& manifest, const juce::String& outputFilter = {})
 {
+#if JUCE_DEBUG
+    const jam::debug::Log::Scope logScope { jam::File::getDebugLog() };
+#endif
     const auto result { cast::Driver::run (manifest, outputFilter) };
 
     if (result.wasOk())
     {
-        for (const auto& path : getConfigureDepends (manifest))
-            printf ("%s\n", path.getFullPathName().toRawUTF8());
+        cast::printHelp (manifest.loadFileAsString());
 
         return 0;
     }
@@ -157,7 +120,9 @@ int main (int argc, char* argv[])
 
     jam::Stamp stamp;
     jam::Hyperlink hyperlink;
-    jam::ColourNames colourNames;
+    map::ColourNames colourNames;
+    jam::Grapheme grapheme;
+    Id::Instances instances;
 
     jam::Stamp::getInstance()->addIfNotAlreadyThere (jam::Stamp::Entry {});
 

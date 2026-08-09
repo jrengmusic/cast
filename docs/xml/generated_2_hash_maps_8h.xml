@@ -1,0 +1,66 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
+  <compounddef id="generated_2_hash_maps_8h" kind="file" language="C++">
+    <compoundname>HashMaps.h</compoundname>
+    <includedby refid="generated_2_c_a_s_t_8h" local="yes">generated/CAST.h</includedby>
+    <invincdepgraph>
+      <node id="3">
+        <label>CastCLI.cpp</label>
+        <link refid="_cast_c_l_i_8cpp"/>
+      </node>
+      <node id="2">
+        <label>generated/CAST.h</label>
+        <link refid="generated_2_c_a_s_t_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>generated/HashMaps.h</label>
+        <link refid="generated_2_hash_maps_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <innernamespace refid="namespacecast">cast</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*******************************************************************************</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Codegen<sp/>Annotated<sp/>Source<sp/>of<sp/>Truth</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/></highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>░░████████████░░████████████░░████████████░░████████████</highlight></codeline>
+<codeline lineno="5"><highlight class="comment"><sp/>░░████<sp/><sp/>░░████░░████<sp/><sp/>░░████░░████<sp/><sp/>░░████<sp/><sp/><sp/><sp/>░░████</highlight></codeline>
+<codeline lineno="6"><highlight class="comment"><sp/>░░████<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>░░████<sp/><sp/>░░████░░████<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>░░████</highlight></codeline>
+<codeline lineno="7"><highlight class="comment"><sp/>░░████<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>░░████████████░░████████████<sp/><sp/><sp/><sp/>░░████</highlight></codeline>
+<codeline lineno="8"><highlight class="comment"><sp/>░░████<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>░░████<sp/><sp/>░░████<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>░░████<sp/><sp/><sp/><sp/>░░████</highlight></codeline>
+<codeline lineno="9"><highlight class="comment"><sp/>░░████<sp/><sp/>░░████░░████<sp/><sp/>░░████░░████<sp/><sp/>░░████<sp/><sp/><sp/><sp/>░░████</highlight></codeline>
+<codeline lineno="10"><highlight class="comment"><sp/>░░████████████░░████<sp/><sp/>░░████░░████████████<sp/><sp/><sp/><sp/>░░████</highlight></codeline>
+<codeline lineno="11"><highlight class="comment"><sp/></highlight></codeline>
+<codeline lineno="12"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>For<sp/>your<sp/>eyes<sp/>only,<sp/>do<sp/>not<sp/>edit</highlight></codeline>
+<codeline lineno="13"><highlight class="comment"><sp/>*******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespacecast" kindref="compound">cast</ref></highlight></codeline>
+<codeline lineno="18"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="comment">/*____________________________________________________________________________*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>jam::HashMap&lt;juce::String,<sp/>juce::String&gt;<sp/><ref refid="namespacecast_1adb5b4c3c76f199cecb443a32fe7361db" kindref="member">banner</ref></highlight></codeline>
+<codeline lineno="22"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;Blue<sp/>Mana&quot;</highlight><highlight class="normal">,<sp/><ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████████████<sp/><sp/>████████████<sp/><sp/>████████████<sp/><sp/>████████████&quot;</highlight><highlight class="normal">)<sp/>},</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;Hello<sp/>Summer&quot;</highlight><highlight class="normal">,<sp/><ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████░░░░████<sp/><sp/>████░░░░████<sp/><sp/>████░░░░████<sp/><sp/>░░░░████░░░░&quot;</highlight><highlight class="normal">)<sp/>},</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;High<sp/>Blue&quot;</highlight><highlight class="normal">,<sp/><ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████<sp/><sp/><sp/><sp/>░░░░<sp/><sp/>████<sp/><sp/><sp/><sp/>████<sp/><sp/>████<sp/><sp/><sp/><sp/>░░░░<sp/><sp/><sp/><sp/><sp/><sp/>████<sp/><sp/><sp/><sp/>&quot;</highlight><highlight class="normal">)<sp/>},</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;Aquarius&quot;</highlight><highlight class="normal">,<sp/><ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>████████████<sp/><sp/>████████████<sp/><sp/><sp/><sp/><sp/><sp/>████<sp/><sp/><sp/><sp/>&quot;</highlight><highlight class="normal">)<sp/>},</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;Homeworld&quot;</highlight><highlight class="normal">,<sp/><ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>████░░░░████<sp/><sp/>░░░░░░░░████<sp/><sp/><sp/><sp/><sp/><sp/>████<sp/><sp/><sp/><sp/>&quot;</highlight><highlight class="normal">)<sp/>},</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;Ocean<sp/>Blue&quot;</highlight><highlight class="normal">,<sp/><ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████<sp/><sp/><sp/><sp/>████<sp/><sp/>████<sp/><sp/><sp/><sp/>████<sp/><sp/>████<sp/><sp/><sp/><sp/>████<sp/><sp/><sp/><sp/><sp/><sp/>████<sp/><sp/><sp/><sp/>&quot;</highlight><highlight class="normal">)<sp/>},</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;Swimmer&quot;</highlight><highlight class="normal">,<sp/><ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████████████<sp/><sp/>████<sp/><sp/><sp/><sp/>████<sp/><sp/>████████████<sp/><sp/><sp/><sp/><sp/><sp/>████<sp/><sp/><sp/><sp/>&quot;</highlight><highlight class="normal">)<sp/>},</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;Way<sp/>Beyond<sp/>the<sp/>Blue&quot;</highlight><highlight class="normal">,<sp/><ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;░░░░░░░░░░░░<sp/><sp/>░░░░<sp/><sp/><sp/><sp/>░░░░<sp/><sp/>░░░░░░░░░░░░<sp/><sp/><sp/><sp/><sp/><sp/>░░░░<sp/><sp/><sp/><sp/>&quot;</highlight><highlight class="normal">)<sp/>},</highlight></codeline>
+<codeline lineno="31"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal">}</highlight><highlight class="comment">//<sp/>namespace<sp/>cast</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="generated/HashMaps.h"/>
+  </compounddef>
+</doxygen>

@@ -1,45 +1,37 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
 <doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="1.16.1" xml:lang="en-US">
   <compound refid="structcast_1_1_template_engine" kind="struct"><name>cast::TemplateEngine</name>
+    <member refid="structcast_1_1_template_engine_1ac43683fd26a78559d8a7460a933eed94" kind="function"><name>expandText</name></member>
     <member refid="structcast_1_1_template_engine_1a17663684abc84ea95042ef3ba089526c" kind="function"><name>expand</name></member>
   </compound>
   <compound refid="structcast_1_1_transforms" kind="struct"><name>cast::Transforms</name>
+    <member refid="structcast_1_1_transforms_1abc1476003fb5b3b90ab6fdc040d5de3d" kind="function"><name>contains</name></member>
     <member refid="structcast_1_1_transforms_1a8f205eb5ba5a4a87c4241d3a73a10ede" kind="function"><name>getTransformed</name></member>
+    <member refid="structcast_1_1_transforms_1a93b2c0c5df5cd0cee07e79263c3cfb84" kind="function"><name>getTransforms</name></member>
   </compound>
   <compound refid="namespacecast" kind="namespace"><name>cast</name>
     <member refid="namespacecast_1a54f69242eb732ad6931adc8a6ba9874c" kind="typedef"><name>SubstitutionMap</name></member>
-    <member refid="namespacecast_1a51b3422dcceb353347be1d8134781475" kind="typedef"><name>TransformFn</name></member>
-    <member refid="namespacecast_1ab676d052a0f3efb4062591b54ffc1604" kind="variable"><name>perColumnPredicates</name></member>
-    <member refid="namespacecast_1abe65a5f539a491ebfa4698a24ee34ee5" kind="variable"><name>banner</name></member>
+    <member refid="namespacecast_1adb5b4c3c76f199cecb443a32fe7361db" kind="variable"><name>banner</name></member>
+    <member refid="namespacecast_1a685bc2023753baad66af489ca6822320" kind="variable"><name>rowRegionBegin</name></member>
+    <member refid="namespacecast_1ac432738e84fbb375a0d3cc91d46a95b0" kind="variable"><name>rowRegionEnd</name></member>
+    <member refid="namespacecast_1a2944d0cbe565e88a6c165e7ee9452196" kind="variable"><name>rowRegionIndex</name></member>
     <member refid="namespacecast_1a864c9b0890d921f63b9b4ff36c05b61a" kind="variable"><name>widthCap</name></member>
     <member refid="namespacecast_1a5a1fa6426a004c80b6ecd43651375c0c" kind="variable"><name>documentMargin</name></member>
     <member refid="namespacecast_1a7722f3d29ae52d835338854f09d53640" kind="variable"><name>asciiMax</name></member>
     <member refid="namespacecast_1a29721d2cd56af7406b281ad5ec3c40ac" kind="variable"><name>byteHexDigits</name></member>
     <member refid="namespacecast_1a48f262209228c67deedea228387cc2e8" kind="variable"><name>codepointHexDigits</name></member>
-    <member refid="namespacecast_1a5d3e7e391997de80260d26f7013f600f" kind="variable"><name>transforms</name></member>
-    <member refid="namespacecast_1afb20cc8ccd65bbfce56cc5014cb8cd11" kind="function"><name>getLocation</name></member>
-    <member refid="namespacecast_1a7afae2a0181db2bd1cf3bf5d95516bbb" kind="function"><name>getRowNumber</name></member>
-    <member refid="namespacecast_1aa9d23644d8f454e84a807e75f6a81efa" kind="function"><name>getConstraintTargetTables</name></member>
-    <member refid="namespacecast_1a9c10471453f0bcf1ae622d274f17340a" kind="function"><name>getScannedTables</name></member>
-    <member refid="namespacecast_1a3479568350d4afa881b7d12ea1cd7792" kind="function"><name>predicateMatches</name></member>
-    <member refid="namespacecast_1a957c9e9c8ecb2c610568bebc7667f4c1" kind="function"><name>predicateUnique</name></member>
-    <member refid="namespacecast_1abf0f319aa75c388eaa1e0eb9c58e996f" kind="function"><name>predicateExistsIn</name></member>
-    <member refid="namespacecast_1a0ac52bbb9ccfc9451873aaf14bd9cfb8" kind="function"><name>predicateOneOf</name></member>
-    <member refid="namespacecast_1a1eb56cd981aeb18983256abf5812d7bc" kind="function"><name>predicateRange</name></member>
-    <member refid="namespacecast_1aef9d112fece55c723df7aea2e28de346" kind="function"><name>predicateParity</name></member>
-    <member refid="namespacecast_1a99a1ce594ab3e4112cd125c6f1e979d9" kind="function"><name>predicateFileExists</name></member>
-    <member refid="namespacecast_1a5f1d3684af79fc45039a7a8d5877e202" kind="function"><name>predicateOnePerGroup</name></member>
-    <member refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" kind="function"><name>buildPredicateMap</name></member>
+    <member refid="namespacecast_1add544a4ce94bcfa1c64956b21ac5f186" kind="variable"><name>hexEscapeCharsPerByte</name></member>
+    <member refid="namespacecast_1ab676d052a0f3efb4062591b54ffc1604" kind="variable"><name>perColumnPredicates</name></member>
     <member refid="namespacecast_1a8cacd457dc5d41367ee1f590f036750e" kind="function"><name>getOutputBanner</name></member>
-    <member refid="namespacecast_1a8e6d82622e7cb90f1aef9b99ab024dc7" kind="function"><name>buildPerRowMap</name></member>
+    <member refid="namespacecast_1a31cea864865670bad11688a5eeb5a90a" kind="function"><name>isLiteralCell</name></member>
+    <member refid="namespacecast_1a4d619a2cebf05e5d2e8764475cd0e19e" kind="function"><name>getResolvedCell</name></member>
+    <member refid="namespacecast_1a2ac57925bfc1273fc03de595f51bfae5" kind="function"><name>buildPerRowMap</name></member>
+    <member refid="namespacecast_1a1923b512425ff12f555a9cd2b9363f22" kind="function"><name>buildTableMap</name></member>
+    <member refid="namespacecast_1a7ce05456bfec2ccd8efd3f205506c97a" kind="function"><name>expandRowRegions</name></member>
     <member refid="namespacecast_1a7bbd7fef86ca13e3d456605a1f0eb5f4" kind="function"><name>getOutput</name></member>
-    <member refid="namespacecast_1afdeff5f86e399b8b956d14717360e4c0" kind="function"><name>processOutput</name></member>
+    <member refid="namespacecast_1aaaf20bd724ca3615da68b33db5b8d077" kind="function"><name>buildSlotResults</name></member>
+    <member refid="namespacecast_1a1898e0a4b4b84bf3d720ca0168ee7d60" kind="function"><name>processOutput</name></member>
     <member refid="namespacecast_1af452b934f2fca601c8a4dca14ac46701" kind="function"><name>printHelp</name></member>
-    <member refid="namespacecast_1a7a2cce9676002ffeb8b226db61270248" kind="function"><name>getHoleValue</name></member>
-    <member refid="namespacecast_1a1bc492d7ad52980b359fa1b34dcc4e07" kind="function"><name>validateHoles</name></member>
-    <member refid="namespacecast_1afda97cfd45a76c2dd84f199a4279a337" kind="function"><name>toUpper</name></member>
-    <member refid="namespacecast_1a21f9b93304933030e052a93163924a32" kind="function"><name>toTitle</name></member>
-    <member refid="namespacecast_1a96f0ba6964cc9fb3d05bfb94a4c24199" kind="function"><name>toKebab</name></member>
     <member refid="namespacecast_1adb327ef93074cf86a7237a38aa438749" kind="function"><name>symbolFromFile</name></member>
     <member refid="namespacecast_1a138ed53d479b1eacc02f35ff83b03c36" kind="function"><name>qualifySymbol</name></member>
     <member refid="namespacecast_1a5f27fb7dd55ed862809801e09939f591" kind="function"><name>parseCodepoint</name></member>
@@ -49,14 +41,30 @@
     <member refid="namespacecast_1a4404a9c79c3e961484d6e8e1fe6ec2d5" kind="function"><name>utf8Bytes</name></member>
     <member refid="namespacecast_1a905b20792d61b5991d5029270c82cac7" kind="function"><name>codepointHex</name></member>
     <member refid="namespacecast_1a20db922e27c5c0c48bce61607be87089" kind="function"><name>codepointLabel</name></member>
-    <member refid="namespacecast_1a35725201630354ddac6eafcc9e6f4cb3" kind="function"><name>getHazardMessage</name></member>
-    <member refid="namespacecast_1a08beaddd176d57e0d0b3c4c151de58cf" kind="function"><name>validateTableHazards</name></member>
-    <member refid="namespacecast_1a3cafe4a8a66eb56e8d7a7c71c130704b" kind="function"><name>validateManifest</name></member>
-    <member refid="namespacecast_1ac4dc4c3e0d8f37c68561c9900feb555d" kind="function"><name>validateRoots</name></member>
-    <member refid="namespacecast_1ab52b177f75e5ec55cb04447fe05a349e" kind="function"><name>validatePerColumnConstraints</name></member>
+    <member refid="namespacecast_1ac720336ac8445391244c118c1c61cd28" kind="function"><name>toString</name></member>
+    <member refid="namespacecast_1afb20cc8ccd65bbfce56cc5014cb8cd11" kind="function"><name>getLocation</name></member>
+    <member refid="namespacecast_1afb4f8ca77c3a09b0ac0d7ac6b083519d" kind="function"><name>getRowNumber</name></member>
+    <member refid="namespacecast_1a1297eec1f1b80f432676369911dafb64" kind="function"><name>getConstraintTargetTables</name></member>
+    <member refid="namespacecast_1a13cb63fc804e4d4a67283306336bab2e" kind="function"><name>getScannedTables</name></member>
+    <member refid="namespacecast_1ac9ebae313ae8a1928ea660f94fab083e" kind="function"><name>predicateMatches</name></member>
+    <member refid="namespacecast_1aa82a34598a4a032c10a0fb831ec3128b" kind="function"><name>predicateUnique</name></member>
+    <member refid="namespacecast_1a060679a35e907f3a532d9c48cfa2bfe2" kind="function"><name>predicateExistsIn</name></member>
+    <member refid="namespacecast_1a3cfba6bcfc3d536deae405fdd8cd471c" kind="function"><name>predicateOneOf</name></member>
+    <member refid="namespacecast_1ab9635851253e417e211df509f422f464" kind="function"><name>predicateRange</name></member>
+    <member refid="namespacecast_1aac0f96b4683bd2ec643a11d3fe97356b" kind="function"><name>predicateParity</name></member>
+    <member refid="namespacecast_1a853d32417c68bfddf44d161b1a0b1313" kind="function"><name>predicateFileExists</name></member>
+    <member refid="namespacecast_1ae2e99b3d0a712ea029fb72b202dcce47" kind="function"><name>predicateOnePerGroup</name></member>
+    <member refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" kind="function"><name>buildPredicateMap</name></member>
+    <member refid="namespacecast_1ac5e2f17a8a15866b3e04d834d4bd0583" kind="function"><name>getHazardMessage</name></member>
+    <member refid="namespacecast_1a797901aeab14d7fc1222baed0aff018d" kind="function"><name>validateTableHazards</name></member>
+    <member refid="namespacecast_1a8b0b668faf943d54d84ac338bd213c94" kind="function"><name>validateManifest</name></member>
+    <member refid="namespacecast_1abfd95b65e28823faa07409946e38c161" kind="function"><name>validateRoots</name></member>
+    <member refid="namespacecast_1aa32a96862abb414232edc0577e0f44d6" kind="function"><name>validatePerColumnConstraints</name></member>
+    <member refid="namespacecast_1a7af720d1640fe65643611ff6c946f447" kind="function"><name>getPlaceholderValue</name></member>
+    <member refid="namespacecast_1a414124be1e7c908ca60ad16f0dc77751" kind="function"><name>validatePlaceholders</name></member>
   </compound>
   <compound refid="namespacecast_1_1_constraints" kind="namespace"><name>cast::Constraints</name>
-    <member refid="namespacecast_1_1_constraints_1af98a39305b0f99a8b2becf6e6d6f19ad" kind="function"><name>validate</name></member>
+    <member refid="namespacecast_1_1_constraints_1afcd3bcdd0cab1a56f213e2991f96b8db" kind="function"><name>validate</name></member>
   </compound>
   <compound refid="namespacecast_1_1_driver" kind="namespace"><name>cast::Driver</name>
     <member refid="namespacecast_1_1_driver_1a66a1e5cc96f2d517f8f93bb5ac5a3931" kind="function"><name>run</name></member>
@@ -67,27 +75,32 @@
     <member refid="_cast_c_l_i_8cpp_1a53749567f657bb9a9a4b0efe5d094749" kind="function"><name>paintBanner</name></member>
     <member refid="_cast_c_l_i_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" kind="function"><name>printBanner</name></member>
     <member refid="_cast_c_l_i_8cpp_1a7f683cefdf7f675f09e36661ce8df7cc" kind="function"><name>printBannerAndHelp</name></member>
-    <member refid="_cast_c_l_i_8cpp_1a1db31476f5693c3e1ca60cbff4135bb0" kind="function"><name>getConfigureDepends</name></member>
     <member refid="_cast_c_l_i_8cpp_1a7beba094c25e9aa5626e49384e647202" kind="function"><name>runManifest</name></member>
     <member refid="_cast_c_l_i_8cpp_1a0ddf1224851353fc92bfbff6f499fa97" kind="function"><name>main</name></member>
   </compound>
-  <compound refid="_constraints_8h" kind="file"><name>Constraints.h</name>
+  <compound refid="g_2_c_a_s_t_8h" kind="file"><name>CAST.h</name>
   </compound>
-  <compound refid="_driver_8h" kind="file"><name>Driver.h</name>
+  <compound refid="generated_2_c_a_s_t_8h" kind="file"><name>CAST.h</name>
   </compound>
-  <compound refid="_c_a_s_t_8h" kind="file"><name>CAST.h</name>
+  <compound refid="g_2_hash_maps_8h" kind="file"><name>HashMaps.h</name>
   </compound>
-  <compound refid="_hash_maps_8h" kind="file"><name>HashMaps.h</name>
+  <compound refid="generated_2_hash_maps_8h" kind="file"><name>HashMaps.h</name>
   </compound>
-  <compound refid="_identifiers_8h" kind="file"><name>Identifiers.h</name>
+  <compound refid="g_2_identifiers_8h" kind="file"><name>Identifiers.h</name>
+  </compound>
+  <compound refid="generated_2_identifiers_8h" kind="file"><name>Identifiers.h</name>
+  </compound>
+  <compound refid="_generator_8h" kind="file"><name>Generator.h</name>
   </compound>
   <compound refid="_help_8h" kind="file"><name>Help.h</name>
   </compound>
-  <compound refid="_template_8h" kind="file"><name>Template.h</name>
+  <compound refid="_operators_8h" kind="file"><name>Operators.h</name>
   </compound>
-  <compound refid="_transforms_8h" kind="file"><name>Transforms.h</name>
+  <compound refid="_validator_8h" kind="file"><name>Validator.h</name>
   </compound>
-  <compound refid="_validation_8h" kind="file"><name>Validation.h</name>
+  <compound refid="_writer_8h" kind="file"><name>Writer.h</name>
+  </compound>
+  <compound refid="dir_7221087907367cd1faffa6ad29fe4f51" kind="dir"><name>g</name>
   </compound>
   <compound refid="dir_84fc5dba3506812825191c0c043e3c97" kind="dir"><name>generated</name>
   </compound>

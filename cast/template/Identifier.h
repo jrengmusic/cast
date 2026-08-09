@@ -1,1 +1,1 @@
-inline const juce::Identifier @word@ { "@string@" };
+inline const juce::Identifier @entry:toCamel@ { "@value@" };

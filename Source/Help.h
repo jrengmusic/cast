@@ -5,7 +5,7 @@ namespace cast
 {
 /*____________________________________________________________________________*/
 
-static constexpr int widthCap { 120 };
+static constexpr int widthCap { 80 };
 static constexpr int documentMargin { 2 };
 
 /**

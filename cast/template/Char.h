@@ -1,1 +1,1 @@
-inline const juce::String @word@ { juce::String::charToString (Chars::@char@) };
+inline const juce::String @entry:toCamel@ { juce::String::charToString (Chars::@value@) };

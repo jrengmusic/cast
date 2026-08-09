@@ -1,1 +1,1 @@
-    { "@colour@", juce::String::fromUTF8 ("@text@") },
+    { "@entry@", juce::String::fromUTF8 ("@value@") },

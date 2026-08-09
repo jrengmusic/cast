@@ -1,1 +1,1 @@
-inline const juce::String @word@ { "@string@" };
+inline const juce::String @entry:toCamel@ { "@value:escapeCpp@" };
