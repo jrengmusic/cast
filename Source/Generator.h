@@ -1,7 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
 #include <string>
-#include <tuple>
 #include "Validator.h"
 #include "Writer.h"
 #include "Operators.h"
@@ -17,7 +16,7 @@ static juce::String getOutputBanner (const juce::File& dir)
     if (not bannerFile.existsAsFile())
         return {};
 
-    const auto bannerDoc { jam::Markdown::parse (bannerFile.loadFileAsString()) };
+    const auto bannerDoc { jam::MarkdownDocument::parse (bannerFile.loadFileAsString()) };
     juce::String rawBanner;
 
     bannerDoc.root->applyFunctionRecursively (
@@ -92,6 +91,9 @@ static const juce::String defaultKeyType {
 };///< `@type@` when a dispatch row omits the `type` cell.
 static const juce::String formatColumn { "format" };
 static const juce::String extensionsNamespace { "extensions::" };
+static const jam::Array<juce::Identifier> registryTableIds {
+    Id::lexicon, Id::chars, Id::files, Id::extensions
+};
 
 /**
  * @brief Resolves one cell value against the row key (SPEC §3.1).
@@ -122,6 +124,29 @@ getResolvedCell (const juce::String& cellValue, const juce::String& rowKey, int 
 }
 
 /**
+ * @brief Resolves a registry row's declared value (SPEC registry contract).
+ *
+ * Reads @p row's `value` cell via getTableCell(); a backtick-literal cell
+ * resolves through getLiteralValue(), any other cell through its plain
+ * subtext. An empty or absent cell resolves to @p row's own key.
+ *
+ * @param castDocument The master document owning every registry table.
+ * @param row          The registry row to resolve.
+ * @return The row's declared value, or its own key when none is authored.
+ */
+static juce::String getDeclaredValue (const jam::MarkdownDocument& castDocument,
+                                      const jam::Document::Element& row)
+{
+    const auto* valueCell { castDocument.getTableCell (row.parent->id, Id::value, row.id) };
+    const auto isBacktickLiteral { valueCell != nullptr and isLiteralCell (*valueCell) };
+    const auto rawValue { isBacktickLiteral
+                              ? getLiteralValue (*valueCell)
+                              : castDocument.getTableValue (row.parent->id, Id::value, row.id) };
+
+    return rawValue.isEmpty() ? row.id.toString() : rawValue;
+}
+
+/**
  * @brief Builds the placeholder substitution map for one relation row.
  *
  * Reads every column of @p tableName's @p row out of @p root, running each
@@ -149,9 +174,7 @@ static SubstitutionMap buildPerRowMap (
     int rowIndex,
     const juce::String& projectionValue,
     const juce::String& fromValue,
-    const juce::String& toValue,
-    const jam::HashMap<juce::String, std::tuple<juce::String, juce::String, juce::Identifier>>&
-        lexicon)
+    const juce::String& toValue)
 {
     SubstitutionMap map;
 
@@ -223,11 +246,10 @@ static SubstitutionMap buildPerRowMap (
         const auto keySource { formatResolved.isNotEmpty()
                                    ? formatResolved
                                    : getPlaceholderValue (map.at (Id::entry.toString())) };
-        const auto keySourceFolded { keySource.toLowerCase() };
-        const auto isExtensionsDeclared { fromValue == Id::fromId.toString() and not lexicon.empty()
-                                          and lexicon.contains (keySourceFolded)
-                                          and std::get<2> (lexicon.at (keySourceFolded))
-                                                  == Id::extensions };
+        const auto isExtensionsDeclared { fromValue == Id::fromId.toString()
+                                          and manifestDoc.getTableRow (
+                                                  Id::extensions, juce::Identifier (keySource))
+                                                  != nullptr };
         const auto fromResolved { isExtensionsDeclared
                                       ? extensionsNamespace + jam::Format::toCamelCase (keySource)
                                       : Transforms::getTransformed (fromValue, keySource) };
@@ -381,8 +403,6 @@ static juce::String expandRowRegions (
     const juce::String& fromValue,
     const juce::String& toValue,
     const juce::String& symbolValue,
-    const jam::HashMap<juce::String, std::tuple<juce::String, juce::String, juce::Identifier>>&
-        lexicon,
     SubstitutionMap& availablePlaceholders,
     const juce::File& sourceFile,
     juce::Result& regionResult)
@@ -449,57 +469,47 @@ static juce::String expandRowRegions (
                                              rowIndex,
                                              projectionValue,
                                              fromValue,
-                                             toValue,
-                                             lexicon) };
+                                             toValue) };
             perRowMap.insert ({ rowRegionIndex, juce::String { rowIndex } });
 
             const auto rowKey { row->id.toString() };
-            const auto folded { rowKey.toLowerCase() };
             const auto isRegistryHeader { headers.at (0) == Id::entry.toString()
                                           or headers.at (0) == Id::name.toString() };
 
-            if (not lexicon.empty() and isRegistryHeader and lexicon.contains (folded))
-            {
-                const auto& [name, value, declaringTable] { lexicon.at (folded) };
-                juce::ignoreUnused (declaringTable);
+            const jam::Document::Element* declaredRow { nullptr };
 
-                perRowMap.addOrReplace (Id::entry.toString(), name);
+            if (isRegistryHeader)
+                for (const auto& registryTableId : registryTableIds)
+                {
+                    declaredRow = manifestDoc.getTableRow (registryTableId, juce::Identifier (rowKey));
+
+                    if (declaredRow != nullptr)
+                        break;
+                }
+
+            if (declaredRow != nullptr and not headers.contains (valueColumn))
+            {
+                const auto value { getDeclaredValue (manifestDoc, *declaredRow) };
+                const auto transformedValue {
+                    valueColumnTransformed
+                        ? Transforms::getTransformed (
+                              manifestDoc.getTableValue (
+                                  Id::transforms, Id::transform, valueColumn),
+                              value)
+                        : value
+                };
+
+                perRowMap.addOrReplace (valueColumn, transformedValue);
 
                 for (const auto& [transformName, transformFunction] : Transforms::getTransforms())
                 {
-                    const auto placeholder { Id::entry.toString()
-                                             + juce::String::charToString (chars::colon)
-                                             + transformName };
-
-                    if (body.contains (placeholder))
-                        perRowMap.addOrReplace (
-                            placeholder, Transforms::getTransformed (transformName, name));
-                }
-
-                if (not headers.contains (valueColumn))
-                {
-                    const auto transformedValue {
-                        valueColumnTransformed
-                            ? Transforms::getTransformed (
-                                  manifestDoc.getTableValue (
-                                      Id::transforms, Id::transform, valueColumn),
-                                  value)
-                            : value
+                    const auto placeholder {
+                        valueColumn + juce::String::charToString (chars::colon) + transformName
                     };
 
-                    perRowMap.addOrReplace (valueColumn, transformedValue);
-
-                    for (const auto& [transformName, transformFunction] :
-                         Transforms::getTransforms())
-                    {
-                        const auto placeholder {
-                            valueColumn + juce::String::charToString (chars::colon) + transformName
-                        };
-
-                        if (body.contains (placeholder))
-                            perRowMap.insert (
-                                { placeholder, Transforms::getTransformed (transformName, value) });
-                    }
+                    if (body.contains (placeholder))
+                        perRowMap.insert (
+                            { placeholder, Transforms::getTransformed (transformName, value) });
                 }
             }
 
@@ -643,59 +653,47 @@ static juce::String expandRowRegions (
                                              namedRowIndex,
                                              projectionValue,
                                              fromValue,
-                                             toValue,
-                                             lexicon) };
+                                             toValue) };
             perRowMap.insert ({ rowRegionIndex, juce::String { namedRowIndex } });
 
             const auto rowKey { row->id.toString() };
-            const auto folded { rowKey.toLowerCase() };
             const auto isRegistryHeader { headers.at (0) == Id::entry.toString()
                                           or headers.at (0) == Id::name.toString() };
 
-            if (not lexicon.empty() and isRegistryHeader and lexicon.contains (folded))
-            {
-                const auto& [lexiconName, lexiconValue, lexiconDeclaringTable] { lexicon.at (
-                    folded) };
-                juce::ignoreUnused (lexiconDeclaringTable);
+            const jam::Document::Element* declaredRow { nullptr };
 
-                perRowMap.addOrReplace (Id::entry.toString(), lexiconName);
+            if (isRegistryHeader)
+                for (const auto& registryTableId : registryTableIds)
+                {
+                    declaredRow = manifestDoc.getTableRow (registryTableId, juce::Identifier (rowKey));
+
+                    if (declaredRow != nullptr)
+                        break;
+                }
+
+            if (declaredRow != nullptr and not headers.contains (valueColumn))
+            {
+                const auto value { getDeclaredValue (manifestDoc, *declaredRow) };
+                const auto transformedValue {
+                    valueColumnTransformed
+                        ? Transforms::getTransformed (
+                              manifestDoc.getTableValue (
+                                  Id::transforms, Id::transform, valueColumn),
+                              value)
+                        : value
+                };
+
+                perRowMap.addOrReplace (valueColumn, transformedValue);
 
                 for (const auto& [transformName, transformFunction] : Transforms::getTransforms())
                 {
-                    const auto placeholder { Id::entry.toString()
-                                             + juce::String::charToString (chars::colon)
-                                             + transformName };
-
-                    if (namedBody.contains (placeholder))
-                        perRowMap.addOrReplace (
-                            placeholder, Transforms::getTransformed (transformName, lexiconName));
-                }
-
-                if (not headers.contains (valueColumn))
-                {
-                    const auto transformedValue {
-                        valueColumnTransformed
-                            ? Transforms::getTransformed (
-                                  manifestDoc.getTableValue (
-                                      Id::transforms, Id::transform, valueColumn),
-                                  lexiconValue)
-                            : lexiconValue
+                    const auto placeholder {
+                        valueColumn + juce::String::charToString (chars::colon) + transformName
                     };
 
-                    perRowMap.addOrReplace (valueColumn, transformedValue);
-
-                    for (const auto& [transformName, transformFunction] :
-                         Transforms::getTransforms())
-                    {
-                        const auto placeholder {
-                            valueColumn + juce::String::charToString (chars::colon) + transformName
-                        };
-
-                        if (namedBody.contains (placeholder))
-                            perRowMap.insert (
-                                { placeholder,
-                                  Transforms::getTransformed (transformName, lexiconValue) });
-                    }
+                    if (namedBody.contains (placeholder))
+                        perRowMap.insert (
+                            { placeholder, Transforms::getTransformed (transformName, value) });
                 }
             }
 
@@ -841,8 +839,6 @@ substituteSlotRegions (const juce::String& rootText,
  * @param dir          The manifest's parent directory.
  * @param dispatchRows Rows of the manifest's `## dispatch` table (row-addressed;
  *                     the same key legitimately labels more than one row).
- * @param rootIndex    Dispatch heading name to its owning relation document.
- * @param roots        Every parsed relation document, for qualified `table::row` reference resolution.
  * @param slotRegions  Every root-owned slot region (engine feature), keyed by slot name.
  * @param slotResults  Out parameter: per-slot fragment/row text, keyed by slot name.
  * @return juce::Result::ok() on success, or the first validation failure.
@@ -852,10 +848,6 @@ static juce::Result buildSlotResults (
     const juce::File& manifestFile,
     const juce::File& dir,
     const jam::Array<jam::Document::Element*>& dispatchRows,
-    const jam::HashMap<juce::String, const jam::MarkdownDocument*>& rootIndex,
-    const jam::HashMap<juce::String, std::tuple<juce::String, juce::String, juce::Identifier>>&
-        lexicon,
-    const jam::Array<jam::MarkdownDocument>& roots,
     const SlotRegionMap& slotRegions,
     jam::HashMap<juce::String, juce::StringArray>& slotResults)
 {
@@ -866,16 +858,14 @@ static juce::Result buildSlotResults (
         const auto dispatchKey { dispatchRow->id.toString() };
         const auto sourceName { getDispatchCell (manifestDoc, *dispatchRow, Id::sourceTable) };
         const auto tableKey { sourceName.isNotEmpty() ? sourceName : dispatchKey };
-        const auto found { rootIndex.find (tableKey) };
+        const auto* tableElement { manifestDoc.root->getChildByID (juce::Identifier (tableKey)) };
 
-        if (found == rootIndex.end())
+        if (tableElement == nullptr)
             return juce::Result::fail (manifestFile.getFullPathName() + Id::diagnosticSeparator
                                        + text::en::failTableMissing + Id::diagnosticSeparator
                                        + tableKey + juce::String::charToString (chars::newline)
                                        + Id::dispatchRowLabel + dispatchKey + Id::sourceTableOpen
                                        + tableKey + juce::String::charToString (chars::closeParen));
-
-        const auto& [indexKey, rootPtr] { *found };
 
         const auto tableId { juce::Identifier (tableKey) };
         const auto columnName { getDispatchCell (manifestDoc, *dispatchRow, Id::column) };
@@ -941,7 +931,7 @@ static juce::Result buildSlotResults (
         const auto& fragmentText { fragmentCache.at (isRegionRow ? fragmentPath + slotName
                                                                  : fragmentPath) };
 
-        const auto headers { rootPtr->getTableHeaders (tableId) };
+        const auto headers { manifestDoc.getTableHeaders (tableId) };
 
         // Engine feature rule 4 (fragment half): `row` is reserved and may not name a
         // dispatched table's own column.
@@ -957,7 +947,7 @@ static juce::Result buildSlotResults (
 
         jam::Array<jam::Document::Element*> matchedRows;
 
-        for (auto* row : rootPtr->getTableRows (tableId))
+        for (auto* row : manifestDoc.getTableRows (tableId))
         {
             if (isSeparatorRow (row->id.toString()))
                 continue;
@@ -983,14 +973,14 @@ static juce::Result buildSlotResults (
         const auto isRegistryHeader { headers.at (0) == Id::entry.toString()
                                       or headers.at (0) == Id::name.toString() };
 
-        if (not lexicon.empty() and isRegistryHeader)
+        if (isRegistryHeader)
             for (auto* matchedRow : matchedRows)
             {
                 const auto rowKey { matchedRow->id.toString() };
                 const auto isQualifiedEntry { rowKey.contains (Id::doubleColon) };
 
                 const auto
-                    valid { isQualifiedEntry ? [&rowKey, &roots]
+                    valid { isQualifiedEntry ? [&rowKey, &manifestDoc]
                                 {
                                     const auto leftId { juce::Identifier (
                                         rowKey.upToFirstOccurrenceOf (
@@ -1000,45 +990,47 @@ static juce::Result buildSlotResults (
                                             Id::doubleColon, false, false)) };
                                     const auto rightPart { rightId.toString() };
 
+                                    if (manifestDoc.root->getChildByID (leftId) == nullptr)
+                                        return false;
+
+                                    if (manifestDoc.getTableRow (leftId, rightId) != nullptr)
+                                        return true;
+
+                                    const auto candidateRowKeys {
+                                        manifestDoc.getTableRowKeys (leftId)
+                                    };
+
                                     return std::any_of (
-                                        roots.begin(),
-                                        roots.end(),
-                                        [&leftId, &rightId, &rightPart] (
-                                            const jam::MarkdownDocument& candidate)
+                                        candidateRowKeys.begin(),
+                                        candidateRowKeys.end(),
+                                        [&rightPart] (const juce::String& candidateRowKey)
                                         {
-                                            if (candidate.root->getChildByID (leftId) == nullptr)
-                                                return false;
-
-                                            if (candidate.getTableRow (leftId, rightId) != nullptr)
-                                                return true;
-
-                                            const auto candidateRowKeys {
-                                                candidate.getTableRowKeys (leftId)
-                                            };
-
-                                            return std::any_of (
-                                                candidateRowKeys.begin(),
-                                                candidateRowKeys.end(),
-                                                [&rightPart] (const juce::String& candidateRowKey)
-                                                {
-                                                    return not isSeparatorRow (candidateRowKey)
-                                                           and Transforms::getTransformed (
-                                                                   Id::toCamel.toString(),
-                                                                   candidateRowKey)
-                                                                   == rightPart;
-                                                });
+                                            return not isSeparatorRow (candidateRowKey)
+                                                   and Transforms::getTransformed (
+                                                           Id::toCamel.toString(), candidateRowKey)
+                                                           == rightPart;
                                         });
                                 }()
-                                             : lexicon.contains (rowKey.toLowerCase()) };
+                                             : std::any_of (
+                                                   registryTableIds.begin(),
+                                                   registryTableIds.end(),
+                                                   [&manifestDoc, &rowKey] (
+                                                       const juce::Identifier& registryTableId)
+                                                   {
+                                                       return manifestDoc.getTableRow (
+                                                                  registryTableId,
+                                                                  juce::Identifier (rowKey))
+                                                              != nullptr;
+                                                   }) };
 
                 if (not valid)
                 {
                     const auto rowOffset { static_cast<uint32_t> (
                         *matchedRow->get<int> (Id::offset)) };
-                    const auto rowLine { static_cast<int> (rootPtr->getLineNumber (rowOffset)) };
+                    const auto rowLine { static_cast<int> (manifestDoc.getLineNumber (rowOffset)) };
 
                     return juce::Result::fail (
-                        getLocation (*rootPtr->root->get<juce::String> (Id::path),
+                        getLocation (*manifestDoc.root->get<juce::String> (Id::path),
                                      rowLine,
                                      Id::entry.toString())
                         + Id::diagnosticSeparator + text::en::failEntityMissing
@@ -1063,7 +1055,7 @@ static juce::Result buildSlotResults (
             juce::Result regionResult { juce::Result::ok() };
 
             const auto expanded { expandRowRegions (fragmentText,
-                                                    *rootPtr,
+                                                    manifestDoc,
                                                     tableKey,
                                                     matchedRows,
                                                     manifestDoc,
@@ -1073,7 +1065,6 @@ static juce::Result buildSlotResults (
                                                     fromValue,
                                                     toValue,
                                                     symbolValue,
-                                                    lexicon,
                                                     availablePlaceholders,
                                                     fragmentFile,
                                                     regionResult) };
@@ -1096,7 +1087,7 @@ static juce::Result buildSlotResults (
             for (auto* matchedRow : matchedRows)
             {
                 const auto rowKey { matchedRow->id.toString() };
-                auto perRowMap { buildPerRowMap (*rootPtr,
+                auto perRowMap { buildPerRowMap (manifestDoc,
                                                  tableKey,
                                                  *matchedRow,
                                                  manifestDoc,
@@ -1104,55 +1095,44 @@ static juce::Result buildSlotResults (
                                                  rowIndex,
                                                  projectionValue,
                                                  fromValue,
-                                                 toValue,
-                                                 lexicon) };
+                                                 toValue) };
 
-                if (not lexicon.empty() and isRegistryHeader
-                    and lexicon.contains (rowKey.toLowerCase()))
+                const jam::Document::Element* declaredRow { nullptr };
+
+                if (isRegistryHeader)
+                    for (const auto& registryTableId : registryTableIds)
+                    {
+                        declaredRow = manifestDoc.getTableRow (registryTableId, juce::Identifier (rowKey));
+
+                        if (declaredRow != nullptr)
+                            break;
+                    }
+
+                if (declaredRow != nullptr and not headers.contains (valueColumn))
                 {
-                    const auto folded { rowKey.toLowerCase() };
-                    const auto& [name, value, declaringTable] { lexicon.at (folded) };
-                    juce::ignoreUnused (declaringTable);
+                    const auto value { getDeclaredValue (manifestDoc, *declaredRow) };
+                    const auto transformedValue {
+                        valueColumnTransformed
+                            ? Transforms::getTransformed (
+                                  manifestDoc.getTableValue (
+                                      Id::transforms, Id::transform, valueColumn),
+                                  value)
+                            : value
+                    };
 
-                    perRowMap.addOrReplace (Id::entry.toString(), name);
+                    perRowMap.addOrReplace (valueColumn, transformedValue);
 
                     for (const auto& [transformName, transformFunction] :
                          Transforms::getTransforms())
                     {
-                        const auto placeholder { Id::entry.toString()
+                        const auto placeholder { valueColumn
                                                  + juce::String::charToString (chars::colon)
                                                  + transformName };
 
                         if (fragmentText.contains (placeholder))
-                            perRowMap.addOrReplace (
-                                placeholder, Transforms::getTransformed (transformName, name));
-                    }
-
-                    if (not headers.contains (valueColumn))
-                    {
-                        const auto transformedValue {
-                            valueColumnTransformed
-                                ? Transforms::getTransformed (
-                                      manifestDoc.getTableValue (
-                                          Id::transforms, Id::transform, valueColumn),
-                                      value)
-                                : value
-                        };
-
-                        perRowMap.addOrReplace (valueColumn, transformedValue);
-
-                        for (const auto& [transformName, transformFunction] :
-                             Transforms::getTransforms())
-                        {
-                            const auto placeholder { valueColumn
-                                                     + juce::String::charToString (chars::colon)
-                                                     + transformName };
-
-                            if (fragmentText.contains (placeholder))
-                                perRowMap.insert (
-                                    { placeholder,
-                                      Transforms::getTransformed (transformName, value) });
-                        }
+                            perRowMap.insert (
+                                { placeholder,
+                                  Transforms::getTransformed (transformName, value) });
                     }
                 }
 
@@ -1339,18 +1319,19 @@ namespace Driver
  */
 static juce::Result run (const juce::File& manifestFile, const juce::String& outputFilter = {})
 {
-    const auto manifestDoc { jam::Markdown::parse (manifestFile.loadFileAsString()) };
+    jam::MarkdownDocument castDocument { jam::MarkdownDocument::parse (
+        manifestFile.loadFileAsString(), manifestFile.getFullPathName()) };
 
-    const auto validation { validateManifest (manifestDoc, manifestFile) };
+    const auto validation { validateManifest (castDocument, manifestFile) };
 
     if (not validation.wasOk())
         return validation;
 
     const auto dir { manifestFile.getParentDirectory() };
     const auto outputBanner { getOutputBanner (dir) };
-    const auto outputKeys { manifestDoc.getTableRowKeys (Id::generated) };
-    const auto dispatchRows { manifestDoc.getTableRows (Id::dispatch) };
-    const auto constraintKeys { manifestDoc.getTableRowKeys (Id::constraints) };
+    const auto outputKeys { castDocument.getTableRowKeys (Id::generated) };
+    const auto dispatchRows { castDocument.getTableRows (Id::dispatch) };
+    const auto constraintKeys { castDocument.getTableRowKeys (Id::constraints) };
 
     jam::Array<juce::String> dispatchKeys;
 
@@ -1361,22 +1342,20 @@ static juce::Result run (const juce::File& manifestFile, const juce::String& out
 
     for (auto* dispatchRow : dispatchRows)
         slotNames.addIfNotAlreadyThere (
-            getDispatchCell (manifestDoc, *dispatchRow, Id::placeholder));
+            getDispatchCell (castDocument, *dispatchRow, Id::placeholder));
 
     SlotRegionMap slotRegions;
     const auto slotRegionResult { collectSlotRegions (
-        manifestDoc, manifestFile, dir, slotNames, slotRegions) };
+        castDocument, manifestFile, dir, slotNames, slotRegions) };
 
     if (not slotRegionResult.wasOk())
         return slotRegionResult;
 
     const auto regionPairingResult { validateDispatchRegionPairing (
-        manifestDoc, manifestFile, dispatchRows, slotRegions) };
+        castDocument, manifestFile, dispatchRows, slotRegions) };
 
     if (not regionPairingResult.wasOk())
         return regionPairingResult;
-
-    jam::Array<jam::MarkdownDocument> roots;
 
     {
         const auto tableFiles { dir.getChildFile (Id::tables.toString())
@@ -1385,62 +1364,85 @@ static juce::Result run (const juce::File& manifestFile, const juce::String& out
                                                      Id::asteriskDot.toString() + extensions::md) };
         const auto fileCount { tableFiles.size() };
 
-        roots.resize (fileCount);
+        jam::Array<jam::MarkdownDocument> parsedTables;
+        parsedTables.resize (fileCount);
 
         {
             juce::ThreadPool parsePool;
 
             for (int i { 0 }; i < fileCount; ++i)
                 parsePool.addJob (
-                    [&tableFiles, &roots, i]
+                    [&tableFiles, &parsedTables, i]
                     {
                         const auto& entry { tableFiles.getReference (i) };
 
-                        roots[i] = jam::Markdown::parse (entry.loadFileAsString());
-                        roots[i].root->add<juce::String> (Id::path, entry.getFullPathName());
+                        parsedTables[i] = jam::MarkdownDocument::parse (
+                            entry.loadFileAsString(), entry.getFullPathName());
                     });
 
             while (parsePool.getNumJobs() > 0)
                 juce::Thread::sleep (1);
         }
+
+        for (auto& parsedTable : parsedTables)
+        {
+            for (auto* child : *parsedTable.root)
+            {
+                if (*child->get<int> (Id::type) == map::BlockType::table)
+                {
+                    const auto* existing { castDocument.root->getChildByID (child->id) };
+
+                    if (existing != nullptr)
+                        return juce::Result::fail (
+                            *child->get<juce::String> (Id::path) + Id::diagnosticSeparator
+                            + text::en::failDuplicate + child->id.toString()
+                            + text::en::failAlreadyDeclared
+                            + *existing->get<juce::String> (Id::path));
+                }
+            }
+
+            castDocument.appendChildren (*castDocument.root, std::move (parsedTable));
+        }
     }
 
-    jam::HashMap<juce::String, std::tuple<juce::String, juce::String, juce::Identifier>> lexicon;
-    static const jam::Array<juce::Identifier> registryTableIds {
-        Id::lexicon, Id::chars, Id::files, Id::extensions
-    };
+    {
+        jam::HashMap<juce::String, jam::Document::Element*> declaredRows;
 
-    for (const auto& root : roots)
         for (const auto& registryTableId : registryTableIds)
         {
-            const auto lexiconKeys { root.getTableRowKeys (registryTableId) };
+            const auto lexiconRows { castDocument.getTableRows (registryTableId) };
 
-            for (int ki { 0 }; ki < lexiconKeys.size(); ++ki)
+            for (int ki { 0 }; ki < lexiconRows.size(); ++ki)
             {
-                const auto& canonical { lexiconKeys[ki] };
+                auto* row { lexiconRows[ki] };
+                const auto canonical { row->id.toString() };
 
                 if (isSeparatorRow (canonical))
                     continue;
 
                 const auto folded { canonical.toLowerCase() };
 
-                const auto rowLocation = [&root, &registryTableId, &canonical]
+                const auto rowLocation = [row]
                 {
                     return getLocation (
-                        *root.root->get<juce::String> (Id::path),
-                        getRowLineNumber (root, registryTableId.toString(), canonical),
+                        *row->parent->get<juce::String> (Id::path),
+                        *row->get<int> (Id::line),
                         Id::name.toString());
                 };
 
-                if (lexicon.contains (folded))
+                const auto insertion { declaredRows.try_emplace (folded, row) };
+
+                if (not insertion.second)
+                {
+                    const auto* earlierRow { insertion.first->second };
+
                     return juce::Result::fail (
                         rowLocation() + Id::diagnosticSeparator + text::en::failDuplicate
                         + canonical + text::en::failAlreadyDeclared
-                        + getLocation (*root.root->get<juce::String> (Id::path),
-                                       getRowLineNumber (root,
-                                                         registryTableId.toString(),
-                                                         std::get<0> (lexicon.at (folded))),
+                        + getLocation (*earlierRow->parent->get<juce::String> (Id::path),
+                                       *earlierRow->get<int> (Id::line),
                                        Id::name.toString()));
+                }
 
                 const auto nameResult { validateLexiconName (canonical) };
 
@@ -1448,13 +1450,14 @@ static juce::Result run (const juce::File& manifestFile, const juce::String& out
                     return juce::Result::fail (rowLocation() + Id::diagnosticSeparator
                                                + nameResult.getErrorMessage());
 
-                const auto* valueCell { root.getTableCell (
+                const auto* valueCell { castDocument.getTableCell (
                     registryTableId, Id::value, juce::Identifier (canonical)) };
                 const auto isBacktickLiteral { valueCell != nullptr
                                                and isLiteralCell (*valueCell) };
                 const auto rawValue {
-                    isBacktickLiteral ? getLiteralValue (*valueCell)
-                                      : root.getTableValue (registryTableId, Id::value, canonical)
+                    isBacktickLiteral
+                        ? getLiteralValue (*valueCell)
+                        : castDocument.getTableValue (registryTableId, Id::value, canonical)
                 };
 
                 if (isTooLong (rawValue))
@@ -1472,64 +1475,28 @@ static juce::Result run (const juce::File& manifestFile, const juce::String& out
                         return juce::Result::fail (rowLocation() + Id::diagnosticSeparator
                                                    + redundancyResult.getErrorMessage());
                 }
-
-                lexicon.insert ({
-                    folded,
-                    { canonical, rawValue.isEmpty() ? canonical : rawValue, registryTableId }
-                });
             }
         }
-
-    jam::HashMap<juce::String, const jam::MarkdownDocument*> rootIndex;
-
-    for (const auto& root : roots)
-        for (const auto& dispatchKey : dispatchKeys)
-            if (root.root->getChildByID (juce::Identifier (dispatchKey)) != nullptr)
-            {
-                const auto existing { rootIndex.find (dispatchKey) };
-
-                if (existing != rootIndex.end() and existing->second != &root)
-                    return juce::Result::fail (
-                        manifestFile.getFullPathName() + Id::diagnosticSeparator
-                        + text::en::failTableAmbiguous + Id::diagnosticSeparator + dispatchKey
-                        + Id::diagnosticSeparator
-                        + *existing->second->root->get<juce::String> (Id::path)
-                        + Id::diagnosticSeparator + *root.root->get<juce::String> (Id::path));
-
-                rootIndex.insert ({ dispatchKey, &root });
-            }
-
-    for (auto* dispatchRow : dispatchRows)
-    {
-        const auto sourceName { getDispatchCell (manifestDoc, *dispatchRow, Id::sourceTable) };
-
-        if (sourceName.isNotEmpty() and not rootIndex.contains (sourceName))
-            for (const auto& root : roots)
-                if (root.root->getChildByID (juce::Identifier (sourceName)) != nullptr)
-                    rootIndex.insert ({ sourceName, &root });
     }
 
-    const auto rootsResult { validateRoots (
-        roots, manifestDoc, dispatchKeys, constraintKeys, dir) };
+    const auto rootsResult { isValid (
+        castDocument, castDocument, dispatchKeys, constraintKeys, dir) };
 
     if (not rootsResult.wasOk())
         return rootsResult;
 
     const auto perColumnResult { validatePerColumnConstraints (
-        manifestDoc, constraintKeys, roots, dir, manifestFile.getFullPathName()) };
+        castDocument, constraintKeys, castDocument, dir, manifestFile.getFullPathName()) };
 
     if (not perColumnResult.wasOk())
         return perColumnResult;
 
     jam::HashMap<juce::String, juce::StringArray> slotResults;
 
-    const auto dispatchResult { buildSlotResults (manifestDoc,
+    const auto dispatchResult { buildSlotResults (castDocument,
                                                   manifestFile,
                                                   dir,
                                                   dispatchRows,
-                                                  rootIndex,
-                                                  lexicon,
-                                                  roots,
                                                   slotRegions,
                                                   slotResults) };
 
@@ -1540,7 +1507,7 @@ static juce::Result run (const juce::File& manifestFile, const juce::String& out
         if (outputFilter.isEmpty() or outputKey == outputFilter)
         {
             const auto result { processOutput (
-                manifestDoc, manifestFile, dir, slotResults, outputKey, false, outputBanner) };
+                castDocument, manifestFile, dir, slotResults, outputKey, false, outputBanner) };
 
             if (not result.wasOk())
                 return result;
@@ -1550,7 +1517,7 @@ static juce::Result run (const juce::File& manifestFile, const juce::String& out
         if (outputFilter.isEmpty() or outputKey == outputFilter)
         {
             const auto result { processOutput (
-                manifestDoc, manifestFile, dir, slotResults, outputKey, true, outputBanner) };
+                castDocument, manifestFile, dir, slotResults, outputKey, true, outputBanner) };
 
             if (not result.wasOk())
                 return result;

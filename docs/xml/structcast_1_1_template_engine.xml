@@ -52,10 +52,10 @@
         <references refid="namespacecast_1a7af720d1640fe65643611ff6c946f447" compoundref="_writer_8h" startline="26" endline="39">cast::getPlaceholderValue</references>
         <references refid="namespacechars_1a2b2645fbc35de446253aa71b0dc4ca25">chars::newline</references>
         <references refid="structjam_1_1Format_1a055c523626845987c793b72d460fa3ab">jam::Format::replaceholder</references>
-        <referencedby refid="namespacecast_1a34db78a09891e7a161e7ad228d380d8a" compoundref="_generator_8h" startline="850" endline="1219">cast::buildSlotResults</referencedby>
+        <referencedby refid="namespacecast_1aaa7c1fb96ce3e03bec0ec2e35ad0bfb8" compoundref="_generator_8h" startline="846" endline="1199">cast::buildSlotResults</referencedby>
         <referencedby refid="structcast_1_1_template_engine_1a17663684abc84ea95042ef3ba089526c" compoundref="_writer_8h" startline="124" endline="127">expand</referencedby>
-        <referencedby refid="namespacecast_1ad81170ef4a6c508c892f69f92951a7e9" compoundref="_generator_8h" startline="372" endline="783">cast::expandRowRegions</referencedby>
-        <referencedby refid="namespacecast_1a1898e0a4b4b84bf3d720ca0168ee7d60" compoundref="_generator_8h" startline="1241" endline="1320">cast::processOutput</referencedby>
+        <referencedby refid="namespacecast_1aca018fb878084e5746d3e3f538709e4b" compoundref="_generator_8h" startline="394" endline="781">cast::expandRowRegions</referencedby>
+        <referencedby refid="namespacecast_1a1898e0a4b4b84bf3d720ca0168ee7d60" compoundref="_generator_8h" startline="1221" endline="1300">cast::processOutput</referencedby>
       </memberdef>
       <memberdef kind="function" id="structcast_1_1_template_engine_1a17663684abc84ea95042ef3ba089526c" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
         <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>

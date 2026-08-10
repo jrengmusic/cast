@@ -21,7 +21,6 @@
 | fail orphan                 | orphan template                                                      |
 | fail no source              | placeholder has no source                                            |
 | fail table missing          | table not found                                                      |
-| fail table ambiguous        | table declared in multiple files                                     |
 | fail already declared       | `" already declared at `                                             |
 | fail entity missing         | entity not declared in lexicon                                       |
 | fail output missing         | output not found                                                     |

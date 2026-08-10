@@ -21,7 +21,7 @@ static constexpr int documentMargin { 2 };
  */
 static inline void printHelp (const juce::String& specText)
 {
-    const auto document { jam::Markdown::parse (specText) };
+    const auto document { jam::MarkdownDocument::parse (specText) };
     const auto cols { widthCap - documentMargin * 2 };
 
     jam::SharedInstance<jam::SharedDocuments> documents { std::in_place };

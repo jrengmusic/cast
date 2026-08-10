@@ -16,7 +16,7 @@
         </childnode>
         <childnode refid="10" relation="include">
         </childnode>
-        <childnode refid="16" relation="include">
+        <childnode refid="15" relation="include">
         </childnode>
       </node>
       <node id="10">
@@ -28,39 +28,37 @@
         </childnode>
         <childnode refid="12" relation="include">
         </childnode>
-        <childnode refid="13" relation="include">
-        </childnode>
-        <childnode refid="15" relation="include">
-        </childnode>
         <childnode refid="14" relation="include">
         </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
       </node>
-      <node id="16">
+      <node id="15">
         <label>Help.h</label>
         <link refid="_help_8h"/>
         <childnode refid="2" relation="include">
         </childnode>
       </node>
-      <node id="14">
+      <node id="13">
         <label>Operators.h</label>
         <link refid="_operators_8h"/>
         <childnode refid="2" relation="include">
         </childnode>
       </node>
-      <node id="13">
+      <node id="12">
         <label>Validator.h</label>
         <link refid="_validator_8h"/>
         <childnode refid="2" relation="include">
         </childnode>
-        <childnode refid="14" relation="include">
+        <childnode refid="13" relation="include">
         </childnode>
       </node>
-      <node id="15">
+      <node id="14">
         <label>Writer.h</label>
         <link refid="_writer_8h"/>
         <childnode refid="2" relation="include">
         </childnode>
-        <childnode refid="13" relation="include">
+        <childnode refid="12" relation="include">
         </childnode>
       </node>
       <node id="3">
@@ -108,9 +106,6 @@
       </node>
       <node id="11">
         <label>string</label>
-      </node>
-      <node id="12">
-        <label>tuple</label>
       </node>
     </incdepgraph>
     <sectiondef kind="func">

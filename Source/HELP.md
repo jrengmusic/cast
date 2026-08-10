@@ -65,7 +65,7 @@ The resolved value is then passed through any declared column transform.
 
 When `lexicon.md` is present in the tables directory and a dispatched source table's column-0 header is `entry`, each entry cell is resolved as a reference into the lexicon registry:
 
-*   The entry cell is looked up **case-insensitively** in the lexicon's `name` column.
+*   The entry cell is looked up **byte-exactly** in the lexicon's `name` column — a reference must match its declaration's casing verbatim. A reference differing only in case is an undeclared entity (FATAL).
 *   On hit: `@entry@` fills with the **canonical name** (as declared in the lexicon, spaces and casing preserved). `@value@` fills with the referenced entity's value, passed through standard cell resolution and any declared column transform.
 *   On miss: **FATAL** — the entity is not declared.
 *   When no `lexicon.md` is present, `entry`-headed tables expand without reference resolution (backward compatible).
@@ -148,15 +148,17 @@ Every CAST-driven project declares its generation inputs in the canon files:
 
 The reference registry is the union of the declaration tables — `## lexicon`, `## chars`, `## files`, `## extensions`. A relation cell may reference an entity from any of them; the word is declared exactly once, in exactly one table.
 
+All manifest and table files compile into **one master state document**: every `##`-headed table, from every file, becomes a sibling in a single tree, and generation reads only that tree. Table headings therefore share one namespace across all files — two files declaring the same heading is a **FATAL** duplicate-heading error naming both files.
+
 **Entity rules:**
 *   An entity is unique, whole, and opaque. `UI`, `scale`, and `UI scale` are three independent declarations — CAST never decomposes or derives one from another.
 *   Uniqueness is global and case-insensitive. First declaration wins and fixes the casing.
 *   Word boundaries (spaces) and per-word casing are stored data — the declaration is the single source of every projected form. The declared casing is exactly what `@entry@` emits.
 *   Casing at emission belongs to the template, via transform tags backed by the closed Transform Vocabulary's case family (`toTitle`/`toPascal`/`toCamel`/`toKebab`). An all-uppercase declared word is an abbreviation and passes through `toTitle`/`toPascal`/`toCamel` intact — see Transform Vocabulary below for the full rule and examples (`fail hazard URI` → `failHazardURI`).
 *   A value wrapped in backticks is a byte-exact literal — every authored character, including leading/trailing spaces and raw non-ASCII bytes, survives untouched. This holds even though `lexicon.md`/`relations.md` are themselves markdown: CAST reads a backtick-wrapped cell's pre-formatting source text, not markdown's rendered form, so authored whitespace is never trimmed and multi-byte glyphs are never corrupted by markdown's own inline rules.
-*   Every use outside the declaration — relation cells, template tags — is a reference, resolved case-insensitively. Referencing an undeclared entity is a **FATAL** generation error:
+*   Every use outside the declaration — relation cells, template tags — is a reference, resolved **byte-exactly against the declared canonical form** (case-insensitivity applies only to the uniqueness constraint, never to lookup). Referencing an undeclared entity — including a declared word in the wrong casing — is a **FATAL** generation error:
     > `tables/relations.md: entity not declared in lexicon: myMissingEntity`
-*   A row whose column-0 cell is solely dash characters (one or more `-`, nothing else) is a visual separator, not data. GFM parses it as an ordinary row, but CAST skips it everywhere a row is enumerated — the lexicon registry, dispatch row-matching, and uniqueness/constraint scans:
+*   A row whose column-0 cell is solely dash characters (one or more `-`, nothing else) is a visual separator, not data. GFM parses it as an ordinary row, but CAST skips it everywhere a row is enumerated — the lexicon registry, dispatch row-matching, and uniqueness/constraint validation:
     ```markdown
     | name    | value |
     | ------- | ----- |
@@ -398,7 +400,7 @@ Before/after: dropping the stored `value` column and swapping `@value@` for `@ro
 inline const juce::String @entry:toCamel@ { "@value@" };
 ```
 ```cpp
-// generated — @entry@ resolves the relations.md cell against the lexicon (case-insensitive);
+// generated — @entry@ resolves the relations.md cell against the lexicon (byte-exact);
 // @entry:toCamel@ projects the declared name; @value@ fills the lexicon's own value column
 inline const juce::String failHazardURI { "contains URI scheme" };
 ```
@@ -476,8 +478,8 @@ There are no warnings. Every failure is **FATAL**.
     >   available here: @row:begin@ @row:end@ @row:index@ @entry@ @string@ @table@ @table:toPascal@ @brief@
     > ```
     The classic cause: the template says `@key@` but the table's column 0 is `entry` (or vice versa) — the *available here* list shows which one the table actually provides.
-*   A duplicate declaration names both the offender and the original:
-    > `tables/cssCodePoints.md: duplicate "closeParen" already declared at tables/cast.md`
+*   A duplicate declaration names both the offender and the original, each at its true `file:row (column)` location:
+    > `tables/cssCodePoints.md:9 (name): duplicate "closeParen" already declared at tables/cast.md:41 (name)`
 *   A lexicon `name` failing declaration validation names the violated rule and the offending name:
     > `tables/lexicon.md:5 (name): name is a plain number: 123`
     > `tables/lexicon.md:6 (name): name starts with a digit: 1abc`

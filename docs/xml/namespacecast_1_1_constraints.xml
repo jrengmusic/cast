@@ -3,10 +3,10 @@
   <compounddef id="namespacecast_1_1_constraints" kind="namespace" language="C++">
     <compoundname>cast::Constraints</compoundname>
     <sectiondef kind="func">
-      <memberdef kind="function" id="namespacecast_1_1_constraints_1afcd3bcdd0cab1a56f213e2991f96b8db" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="namespacecast_1_1_constraints_1aa35ecc701cecdaf0ae40c1a7bacea961" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
         <definition>static juce::Result cast::Constraints::validate</definition>
-        <argsstring>(const juce::String &amp;predicateName, const juce::String &amp;predicateArgs, const juce::String &amp;columnName, const jam::MarkdownDocument &amp;root, const juce::String &amp;tableName, const jam::Array&lt; jam::MarkdownDocument &gt; &amp;roots, const juce::File &amp;dir, const jam::MarkdownDocument &amp;manifestDoc, const juce::String &amp;sourceFile)</argsstring>
+        <argsstring>(const juce::String &amp;predicateName, const juce::String &amp;predicateArgs, const juce::String &amp;columnName, const jam::MarkdownDocument &amp;root, const juce::String &amp;tableName, const jam::MarkdownDocument &amp;castDocument, const juce::File &amp;dir, const jam::MarkdownDocument &amp;manifestDoc, const juce::String &amp;sourceFile)</argsstring>
         <name>validate</name>
         <qualifiedname>cast::Constraints::validate</qualifiedname>
         <param>
@@ -30,8 +30,8 @@
           <declname>tableName</declname>
         </param>
         <param>
-          <type>const <ref refid="classjam_1_1Array" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Array</ref>&lt; <ref refid="structjam_1_1MarkdownDocument" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::MarkdownDocument</ref> &gt; &amp;</type>
-          <declname>roots</declname>
+          <type>const <ref refid="structjam_1_1MarkdownDocument" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::MarkdownDocument</ref> &amp;</type>
+          <declname>castDocument</declname>
         </param>
         <param>
           <type>const <ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref> &amp;</type>
@@ -92,10 +92,10 @@
 </parameteritem>
 <parameteritem>
 <parameternamelist>
-<parametername>roots</parametername>
+<parametername>castDocument</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Every parsed relation for this output (scope-scoped predicates). </para>
+<para>The master document, holding every table (scope-scoped predicates). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -129,26 +129,26 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Validator.h" line="1037" column="21" bodyfile="Validator.h" bodystart="1037" bodyend="1102"/>
-        <references refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" compoundref="_validator_8h" startline="982" endline="1010">cast::buildPredicateMap</references>
+        <location file="Validator.h" line="914" column="21" bodyfile="Validator.h" bodystart="914" bodyend="979"/>
+        <references refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" compoundref="_validator_8h" startline="859" endline="887">cast::buildPredicateMap</references>
         <references refid="structjam_1_1Function_1_1Map_1a4c650e66d077dc454ba2f9c528e9ce76">jam::Function::Map&lt; typename KeyType, typename ReturnType &gt;::contains</references>
         <references refid="namespaceId_1a5e729b9864fd096462b3f08ef1eb4b1a" compoundref="_identifiers_8h" startline="74" endline="74">Id::diagnosticSeparator</references>
         <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
         <references refid="namespacetext_1_1en_1acb1a891d30279dd9197a1ab139b3ca8d" compoundref="_text_8h" startline="33" endline="33">text::en::failUnknownPredicate</references>
         <references refid="structjam_1_1Function_1_1Map_1a8453a5bf3a0d89b7e854b734d20338a2">jam::Function::Map&lt; typename KeyType, typename ReturnType &gt;::get</references>
-        <references refid="namespacecast_1a1b825f5fa6bf704c170c9656f4ae6a80" compoundref="_validator_8h" startline="60" endline="63">cast::isSeparatorRow</references>
+        <references refid="namespacecast_1a1b825f5fa6bf704c170c9656f4ae6a80" compoundref="_validator_8h" startline="36" endline="39">cast::isSeparatorRow</references>
         <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
-        <references refid="namespacecast_1ab676d052a0f3efb4062591b54ffc1604" compoundref="_validator_8h" startline="973" endline="975">cast::perColumnPredicates</references>
-        <references refid="namespacecast_1_1_constraints_1afcd3bcdd0cab1a56f213e2991f96b8db" compoundref="_validator_8h" startline="1037" endline="1102">validate</references>
-        <referencedby refid="namespacecast_1_1_constraints_1afcd3bcdd0cab1a56f213e2991f96b8db" compoundref="_validator_8h" startline="1037" endline="1102">validate</referencedby>
-        <referencedby refid="namespacecast_1aa32a96862abb414232edc0577e0f44d6" compoundref="_validator_8h" startline="1430" endline="1467">cast::validatePerColumnConstraints</referencedby>
-        <referencedby refid="namespacecast_1abfd95b65e28823faa07409946e38c161" compoundref="_validator_8h" startline="1334" endline="1414">cast::validateRoots</referencedby>
+        <references refid="namespacecast_1ab676d052a0f3efb4062591b54ffc1604" compoundref="_validator_8h" startline="850" endline="852">cast::perColumnPredicates</references>
+        <references refid="namespacecast_1_1_constraints_1aa35ecc701cecdaf0ae40c1a7bacea961" compoundref="_validator_8h" startline="914" endline="979">validate</references>
+        <referencedby refid="namespacecast_1a8684cc7a4d974c6a593e61462b9e6e49" compoundref="_validator_8h" startline="1212" endline="1323">cast::isValid</referencedby>
+        <referencedby refid="namespacecast_1_1_constraints_1aa35ecc701cecdaf0ae40c1a7bacea961" compoundref="_validator_8h" startline="914" endline="979">validate</referencedby>
+        <referencedby refid="namespacecast_1ac510c3a8929cca911b34c5df621ab683" compoundref="_validator_8h" startline="1339" endline="1376">cast::validatePerColumnConstraints</referencedby>
       </memberdef>
     </sectiondef>
     <briefdescription>
     </briefdescription>
     <detaileddescription>
     </detaileddescription>
-    <location file="Validator.h" line="1012" column="1"/>
+    <location file="Validator.h" line="889" column="1"/>
   </compounddef>
 </doxygen>

@@ -101,10 +101,10 @@
 **Project-Specific Principles (per Sprint 5 & active handoff):**
 1. **SSOT:** tables declare each identifier once; all engine outputs reference via Id:: (no magic strings)
 2. **Engine Contract:** Constraint scope = column set; one enumeration pass per (constraint, root, table) tuple; no duplicate application
-3. **Two-Phase Atomic:** Parse all roots → validate → write-if-different (fixpoint-safe, diff-minimal)
-4. **Vocabulary:** Identifier-addressed queries only (getScannedTables, getConstraintTargetTables); no ad-hoc string parsing outside jam::Markdown::parse()
+3. **Master State:** Parse all files in parallel → splice into ONE MarkdownDocument (castDocument) → validate the master → write-if-different (fixpoint-safe, diff-minimal)
+4. **Vocabulary:** No precomputed name-lists — manifest rows are the addresses; validation entry points are `isValid` predicates returning juce::Result; no ad-hoc string parsing outside jam::MarkdownDocument::parse(); no "scan"/"target" query vocabulary — names state what things are (optimistic semantics)
 5. **Fragment Naming:** Singular (Identifier.h, HashMap.h, Char.h, Bimap.h) — no "Row" suffix
-6. **Engine Reading:** jam::Markdown::parse() only; no manual line parsing or XML construction
+6. **Engine Reading:** jam::MarkdownDocument::parse() only; no manual line parsing or XML construction; documents are immutable after construction — provenance (Id::path/Id::line) is stamped at parse, never after
 
 ---
 

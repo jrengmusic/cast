@@ -272,11 +272,18 @@
       <arglist>(const juce::String &amp;cellValue, const juce::String &amp;rowKey, int rowIndex)</arglist>
     </member>
     <member kind="function" static="yes">
+      <type>static juce::String</type>
+      <name>getDeclaredValue</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>aa54d108b8889dddd57b54a8aa749693f</anchor>
+      <arglist>(const jam::MarkdownDocument &amp;castDocument, const jam::Document::Element &amp;row)</arglist>
+    </member>
+    <member kind="function" static="yes">
       <type>static SubstitutionMap</type>
       <name>buildPerRowMap</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a90dab422d99b869eda0bea5dc8d9d9eb</anchor>
-      <arglist>(const jam::MarkdownDocument &amp;root, const juce::String &amp;tableName, const jam::Document::Element &amp;row, const jam::MarkdownDocument &amp;manifestDoc, const juce::String &amp;templateText, int rowIndex, const juce::String &amp;projectionValue, const juce::String &amp;fromValue, const juce::String &amp;toValue, const jam::HashMap&lt; juce::String, std::tuple&lt; juce::String, juce::String, juce::Identifier &gt; &gt; &amp;lexicon)</arglist>
+      <anchor>a2f261fe39fd500d07b7a344df447103a</anchor>
+      <arglist>(const jam::MarkdownDocument &amp;root, const juce::String &amp;tableName, const jam::Document::Element &amp;row, const jam::MarkdownDocument &amp;manifestDoc, const juce::String &amp;templateText, int rowIndex, const juce::String &amp;projectionValue, const juce::String &amp;fromValue, const juce::String &amp;toValue)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static SubstitutionMap</type>
@@ -289,8 +296,8 @@
       <type>static juce::String</type>
       <name>expandRowRegions</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>ad81170ef4a6c508c892f69f92951a7e9</anchor>
-      <arglist>(const juce::String &amp;templateText, const jam::MarkdownDocument &amp;root, const juce::String &amp;tableName, const jam::Array&lt; jam::Document::Element * &gt; &amp;rows, const jam::MarkdownDocument &amp;manifestDoc, const juce::String &amp;columnName, const juce::String &amp;typeValue, const juce::String &amp;projectionValue, const juce::String &amp;fromValue, const juce::String &amp;toValue, const juce::String &amp;symbolValue, const jam::HashMap&lt; juce::String, std::tuple&lt; juce::String, juce::String, juce::Identifier &gt; &gt; &amp;lexicon, SubstitutionMap &amp;availablePlaceholders, const juce::File &amp;sourceFile, juce::Result &amp;regionResult)</arglist>
+      <anchor>aca018fb878084e5746d3e3f538709e4b</anchor>
+      <arglist>(const juce::String &amp;templateText, const jam::MarkdownDocument &amp;root, const juce::String &amp;tableName, const jam::Array&lt; jam::Document::Element * &gt; &amp;rows, const jam::MarkdownDocument &amp;manifestDoc, const juce::String &amp;columnName, const juce::String &amp;typeValue, const juce::String &amp;projectionValue, const juce::String &amp;fromValue, const juce::String &amp;toValue, const juce::String &amp;symbolValue, SubstitutionMap &amp;availablePlaceholders, const juce::File &amp;sourceFile, juce::Result &amp;regionResult)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::String</type>
@@ -303,8 +310,8 @@
       <type>static juce::Result</type>
       <name>buildSlotResults</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a34db78a09891e7a161e7ad228d380d8a</anchor>
-      <arglist>(const jam::MarkdownDocument &amp;manifestDoc, const juce::File &amp;manifestFile, const juce::File &amp;dir, const jam::Array&lt; jam::Document::Element * &gt; &amp;dispatchRows, const jam::HashMap&lt; juce::String, const jam::MarkdownDocument * &gt; &amp;rootIndex, const jam::HashMap&lt; juce::String, std::tuple&lt; juce::String, juce::String, juce::Identifier &gt; &gt; &amp;lexicon, const jam::Array&lt; jam::MarkdownDocument &gt; &amp;roots, const SlotRegionMap &amp;slotRegions, jam::HashMap&lt; juce::String, juce::StringArray &gt; &amp;slotResults)</arglist>
+      <anchor>aaa7c1fb96ce3e03bec0ec2e35ad0bfb8</anchor>
+      <arglist>(const jam::MarkdownDocument &amp;manifestDoc, const juce::File &amp;manifestFile, const juce::File &amp;dir, const jam::Array&lt; jam::Document::Element * &gt; &amp;dispatchRows, const SlotRegionMap &amp;slotRegions, jam::HashMap&lt; juce::String, juce::StringArray &gt; &amp;slotResults)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::Result</type>
@@ -326,13 +333,6 @@
       <anchorfile>namespacecast.html</anchorfile>
       <anchor>afb20cc8ccd65bbfce56cc5014cb8cd11</anchor>
       <arglist>(const juce::String &amp;sourceFile, int rowNumber, const juce::String &amp;columnName)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static int</type>
-      <name>getRowLineNumber</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a5032fcd975ffe6cb3867626688b70b7a</anchor>
-      <arglist>(const jam::MarkdownDocument &amp;root, const juce::String &amp;tableName, const juce::String &amp;rowKey)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static bool</type>
@@ -363,25 +363,11 @@
       <arglist>(const juce::String &amp;name, const juce::String &amp;value)</arglist>
     </member>
     <member kind="function" static="yes">
-      <type>static jam::Array&lt; juce::String &gt;</type>
-      <name>getConstraintTargetTables</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a1297eec1f1b80f432676369911dafb64</anchor>
-      <arglist>(const jam::MarkdownDocument &amp;manifestDoc, const jam::Array&lt; juce::String &gt; &amp;constraintKeys)</arglist>
-    </member>
-    <member kind="function" static="yes">
       <type>static juce::String</type>
       <name>getDispatchCell</name>
       <anchorfile>namespacecast.html</anchorfile>
       <anchor>ae92ac60be535ee1f1f0befb302d3a4ec</anchor>
       <arglist>(const jam::MarkdownDocument &amp;manifestDoc, const jam::Document::Element &amp;row, const juce::Identifier &amp;columnId)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static jam::Array&lt; juce::String &gt;</type>
-      <name>getScannedTables</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a13cb63fc804e4d4a67283306336bab2e</anchor>
-      <arglist>(const jam::MarkdownDocument &amp;root, const jam::Array&lt; juce::String &gt; &amp;dispatchKeys, const jam::Array&lt; juce::String &gt; &amp;targetTables)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static int</type>
@@ -415,57 +401,57 @@
       <type>static juce::Result</type>
       <name>predicateMatches</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>ac9ebae313ae8a1928ea660f94fab083e</anchor>
-      <arglist>(const juce::String &amp;value, const juce::String &amp;args, const juce::String &amp;rowKey, const juce::String &amp;columnName, const jam::MarkdownDocument &amp;root, const juce::String &amp;tableName, const jam::Array&lt; jam::MarkdownDocument &gt; &amp;, const juce::File &amp;, const jam::MarkdownDocument &amp;, const juce::String &amp;sourceFile)</arglist>
+      <anchor>abaa85f828c4cc75b8236458337bcac9e</anchor>
+      <arglist>(const juce::String &amp;value, const juce::String &amp;args, const juce::String &amp;rowKey, const juce::String &amp;columnName, const jam::MarkdownDocument &amp;root, const juce::String &amp;tableName, const jam::MarkdownDocument &amp;, const juce::File &amp;, const jam::MarkdownDocument &amp;, const juce::String &amp;sourceFile)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::Result</type>
       <name>predicateUnique</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>aa82a34598a4a032c10a0fb831ec3128b</anchor>
-      <arglist>(const juce::String &amp;, const juce::String &amp;, const juce::String &amp;, const juce::String &amp;columnName, const jam::MarkdownDocument &amp;, const juce::String &amp;, const jam::Array&lt; jam::MarkdownDocument &gt; &amp;roots, const juce::File &amp;, const jam::MarkdownDocument &amp;, const juce::String &amp;)</arglist>
+      <anchor>afc2246d5944f23f03ef3e4ab6e7b8b79</anchor>
+      <arglist>(const juce::String &amp;, const juce::String &amp;, const juce::String &amp;, const juce::String &amp;columnName, const jam::MarkdownDocument &amp;, const juce::String &amp;, const jam::MarkdownDocument &amp;castDocument, const juce::File &amp;, const jam::MarkdownDocument &amp;, const juce::String &amp;)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::Result</type>
       <name>predicateExistsIn</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a060679a35e907f3a532d9c48cfa2bfe2</anchor>
-      <arglist>(const juce::String &amp;value, const juce::String &amp;args, const juce::String &amp;rowKey, const juce::String &amp;columnName, const jam::MarkdownDocument &amp;root, const juce::String &amp;tableName, const jam::Array&lt; jam::MarkdownDocument &gt; &amp;roots, const juce::File &amp;, const jam::MarkdownDocument &amp;, const juce::String &amp;sourceFile)</arglist>
+      <anchor>adcaac27c6c5c01b3929f7af7c5c3fd97</anchor>
+      <arglist>(const juce::String &amp;value, const juce::String &amp;args, const juce::String &amp;rowKey, const juce::String &amp;columnName, const jam::MarkdownDocument &amp;root, const juce::String &amp;tableName, const jam::MarkdownDocument &amp;castDocument, const juce::File &amp;, const jam::MarkdownDocument &amp;, const juce::String &amp;sourceFile)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::Result</type>
       <name>predicateOneOf</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a3cfba6bcfc3d536deae405fdd8cd471c</anchor>
-      <arglist>(const juce::String &amp;value, const juce::String &amp;args, const juce::String &amp;rowKey, const juce::String &amp;columnName, const jam::MarkdownDocument &amp;root, const juce::String &amp;tableName, const jam::Array&lt; jam::MarkdownDocument &gt; &amp;, const juce::File &amp;, const jam::MarkdownDocument &amp;, const juce::String &amp;sourceFile)</arglist>
+      <anchor>aecf0a3f1c70cba1a7c5ec9809f65b73d</anchor>
+      <arglist>(const juce::String &amp;value, const juce::String &amp;args, const juce::String &amp;rowKey, const juce::String &amp;columnName, const jam::MarkdownDocument &amp;root, const juce::String &amp;tableName, const jam::MarkdownDocument &amp;, const juce::File &amp;, const jam::MarkdownDocument &amp;, const juce::String &amp;sourceFile)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::Result</type>
       <name>predicateRange</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>ab9635851253e417e211df509f422f464</anchor>
-      <arglist>(const juce::String &amp;value, const juce::String &amp;args, const juce::String &amp;rowKey, const juce::String &amp;columnName, const jam::MarkdownDocument &amp;root, const juce::String &amp;tableName, const jam::Array&lt; jam::MarkdownDocument &gt; &amp;, const juce::File &amp;, const jam::MarkdownDocument &amp;, const juce::String &amp;sourceFile)</arglist>
+      <anchor>ade18ba5ffac7f784dc16e6b71a5e8c90</anchor>
+      <arglist>(const juce::String &amp;value, const juce::String &amp;args, const juce::String &amp;rowKey, const juce::String &amp;columnName, const jam::MarkdownDocument &amp;root, const juce::String &amp;tableName, const jam::MarkdownDocument &amp;, const juce::File &amp;, const jam::MarkdownDocument &amp;, const juce::String &amp;sourceFile)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::Result</type>
       <name>predicateParity</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>aac0f96b4683bd2ec643a11d3fe97356b</anchor>
-      <arglist>(const juce::String &amp;, const juce::String &amp;args, const juce::String &amp;, const juce::String &amp;columnName, const jam::MarkdownDocument &amp;, const juce::String &amp;, const jam::Array&lt; jam::MarkdownDocument &gt; &amp;roots, const juce::File &amp;, const jam::MarkdownDocument &amp;manifestDoc, const juce::String &amp;)</arglist>
+      <anchor>ae997badfb441ede5cb8daef34d52d81d</anchor>
+      <arglist>(const juce::String &amp;, const juce::String &amp;args, const juce::String &amp;, const juce::String &amp;columnName, const jam::MarkdownDocument &amp;, const juce::String &amp;, const jam::MarkdownDocument &amp;castDocument, const juce::File &amp;, const jam::MarkdownDocument &amp;, const juce::String &amp;)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::Result</type>
       <name>predicateFileExists</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a853d32417c68bfddf44d161b1a0b1313</anchor>
-      <arglist>(const juce::String &amp;value, const juce::String &amp;args, const juce::String &amp;rowKey, const juce::String &amp;columnName, const jam::MarkdownDocument &amp;root, const juce::String &amp;tableName, const jam::Array&lt; jam::MarkdownDocument &gt; &amp;, const juce::File &amp;dir, const jam::MarkdownDocument &amp;, const juce::String &amp;sourceFile)</arglist>
+      <anchor>a1a6a1898c748510c768cd4a91a782705</anchor>
+      <arglist>(const juce::String &amp;value, const juce::String &amp;args, const juce::String &amp;rowKey, const juce::String &amp;columnName, const jam::MarkdownDocument &amp;root, const juce::String &amp;tableName, const jam::MarkdownDocument &amp;, const juce::File &amp;dir, const jam::MarkdownDocument &amp;, const juce::String &amp;sourceFile)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::Result</type>
       <name>predicateOnePerGroup</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>ae2e99b3d0a712ea029fb72b202dcce47</anchor>
-      <arglist>(const juce::String &amp;, const juce::String &amp;args, const juce::String &amp;, const juce::String &amp;columnName, const jam::MarkdownDocument &amp;, const juce::String &amp;, const jam::Array&lt; jam::MarkdownDocument &gt; &amp;roots, const juce::File &amp;, const jam::MarkdownDocument &amp;manifestDoc, const juce::String &amp;)</arglist>
+      <anchor>a000550660e0ff037624122a930c4db63</anchor>
+      <arglist>(const juce::String &amp;, const juce::String &amp;args, const juce::String &amp;, const juce::String &amp;columnName, const jam::MarkdownDocument &amp;, const juce::String &amp;, const jam::MarkdownDocument &amp;castDocument, const juce::File &amp;, const jam::MarkdownDocument &amp;, const juce::String &amp;)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static jam::Function::Map&lt; juce::String, juce::Result &gt;</type>
@@ -497,17 +483,17 @@
     </member>
     <member kind="function" static="yes">
       <type>static juce::Result</type>
-      <name>validateRoots</name>
+      <name>isValid</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>abfd95b65e28823faa07409946e38c161</anchor>
-      <arglist>(const jam::Array&lt; jam::MarkdownDocument &gt; &amp;roots, const jam::MarkdownDocument &amp;manifestDoc, const jam::Array&lt; juce::String &gt; &amp;dispatchKeys, const jam::Array&lt; juce::String &gt; &amp;constraintKeys, const juce::File &amp;dir)</arglist>
+      <anchor>a8684cc7a4d974c6a593e61462b9e6e49</anchor>
+      <arglist>(const jam::MarkdownDocument &amp;castDocument, const jam::MarkdownDocument &amp;manifestDoc, const jam::Array&lt; juce::String &gt; &amp;dispatchKeys, const jam::Array&lt; juce::String &gt; &amp;constraintKeys, const juce::File &amp;dir)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::Result</type>
       <name>validatePerColumnConstraints</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>aa32a96862abb414232edc0577e0f44d6</anchor>
-      <arglist>(const jam::MarkdownDocument &amp;manifestDoc, const jam::Array&lt; juce::String &gt; &amp;constraintKeys, const jam::Array&lt; jam::MarkdownDocument &gt; &amp;roots, const juce::File &amp;dir, const juce::String &amp;manifestPath)</arglist>
+      <anchor>ac510c3a8929cca911b34c5df621ab683</anchor>
+      <arglist>(const jam::MarkdownDocument &amp;manifestDoc, const jam::Array&lt; juce::String &gt; &amp;constraintKeys, const jam::MarkdownDocument &amp;castDocument, const juce::File &amp;dir, const juce::String &amp;manifestPath)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::String</type>
@@ -577,6 +563,13 @@
       <name>extensionsNamespace</name>
       <anchorfile>namespacecast.html</anchorfile>
       <anchor>adb79723de64557769aedad2bb645b4d8</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static const jam::Array&lt; juce::Identifier &gt;</type>
+      <name>registryTableIds</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>a93932d46c0f27e70ef538a9d5a3412de</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable" static="yes">
@@ -671,8 +664,8 @@
       <type>static juce::Result</type>
       <name>validate</name>
       <anchorfile>namespacecast_1_1_constraints.html</anchorfile>
-      <anchor>afcd3bcdd0cab1a56f213e2991f96b8db</anchor>
-      <arglist>(const juce::String &amp;predicateName, const juce::String &amp;predicateArgs, const juce::String &amp;columnName, const jam::MarkdownDocument &amp;root, const juce::String &amp;tableName, const jam::Array&lt; jam::MarkdownDocument &gt; &amp;roots, const juce::File &amp;dir, const jam::MarkdownDocument &amp;manifestDoc, const juce::String &amp;sourceFile)</arglist>
+      <anchor>aa35ecc701cecdaf0ae40c1a7bacea961</anchor>
+      <arglist>(const juce::String &amp;predicateName, const juce::String &amp;predicateArgs, const juce::String &amp;columnName, const jam::MarkdownDocument &amp;root, const juce::String &amp;tableName, const jam::MarkdownDocument &amp;castDocument, const juce::File &amp;dir, const jam::MarkdownDocument &amp;manifestDoc, const juce::String &amp;sourceFile)</arglist>
     </member>
   </compound>
   <compound kind="namespace">

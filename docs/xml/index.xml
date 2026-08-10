@@ -32,6 +32,7 @@
     <member refid="namespacecast_1a50bdcdd4506a781583342ee768feb9a8" kind="variable"><name>defaultKeyType</name></member>
     <member refid="namespacecast_1a5b60e1e50e89edb1e09b1aa96f6f9f00" kind="variable"><name>formatColumn</name></member>
     <member refid="namespacecast_1adb79723de64557769aedad2bb645b4d8" kind="variable"><name>extensionsNamespace</name></member>
+    <member refid="namespacecast_1a93932d46c0f27e70ef538a9d5a3412de" kind="variable"><name>registryTableIds</name></member>
     <member refid="namespacecast_1a864c9b0890d921f63b9b4ff36c05b61a" kind="variable"><name>widthCap</name></member>
     <member refid="namespacecast_1a5a1fa6426a004c80b6ecd43651375c0c" kind="variable"><name>documentMargin</name></member>
     <member refid="namespacecast_1a03d4737086d1615cb278fb06991ee933" kind="variable"><name>intType</name></member>
@@ -48,45 +49,43 @@
     <member refid="namespacecast_1a31cea864865670bad11688a5eeb5a90a" kind="function"><name>isLiteralCell</name></member>
     <member refid="namespacecast_1ac2885d637faed6ad209af70b5fad0fa3" kind="function"><name>getLiteralValue</name></member>
     <member refid="namespacecast_1af0d52fad0aaf66beec04f2ac8222ecb1" kind="function"><name>getResolvedCell</name></member>
-    <member refid="namespacecast_1a90dab422d99b869eda0bea5dc8d9d9eb" kind="function"><name>buildPerRowMap</name></member>
+    <member refid="namespacecast_1aa54d108b8889dddd57b54a8aa749693f" kind="function"><name>getDeclaredValue</name></member>
+    <member refid="namespacecast_1a2f261fe39fd500d07b7a344df447103a" kind="function"><name>buildPerRowMap</name></member>
     <member refid="namespacecast_1a1923b512425ff12f555a9cd2b9363f22" kind="function"><name>buildTableMap</name></member>
-    <member refid="namespacecast_1ad81170ef4a6c508c892f69f92951a7e9" kind="function"><name>expandRowRegions</name></member>
+    <member refid="namespacecast_1aca018fb878084e5746d3e3f538709e4b" kind="function"><name>expandRowRegions</name></member>
     <member refid="namespacecast_1add0f8c9cb726218885ab9e41ab975006" kind="function"><name>substituteSlotRegions</name></member>
-    <member refid="namespacecast_1a34db78a09891e7a161e7ad228d380d8a" kind="function"><name>buildSlotResults</name></member>
+    <member refid="namespacecast_1aaa7c1fb96ce3e03bec0ec2e35ad0bfb8" kind="function"><name>buildSlotResults</name></member>
     <member refid="namespacecast_1a1898e0a4b4b84bf3d720ca0168ee7d60" kind="function"><name>processOutput</name></member>
     <member refid="namespacecast_1af452b934f2fca601c8a4dca14ac46701" kind="function"><name>printHelp</name></member>
     <member refid="namespacecast_1afb20cc8ccd65bbfce56cc5014cb8cd11" kind="function"><name>getLocation</name></member>
-    <member refid="namespacecast_1a5032fcd975ffe6cb3867626688b70b7a" kind="function"><name>getRowLineNumber</name></member>
     <member refid="namespacecast_1a1b825f5fa6bf704c170c9656f4ae6a80" kind="function"><name>isSeparatorRow</name></member>
     <member refid="namespacecast_1af72aa95234f3857f0da4f63e91384f76" kind="function"><name>isTooLong</name></member>
     <member refid="namespacecast_1a301f9a9f21f53f0bbb8d34c7ccad4786" kind="function"><name>validateLexiconName</name></member>
     <member refid="namespacecast_1ac556dfec02cf11201b862c4f5bf81180" kind="function"><name>validateLexiconValueRedundancy</name></member>
-    <member refid="namespacecast_1a1297eec1f1b80f432676369911dafb64" kind="function"><name>getConstraintTargetTables</name></member>
     <member refid="namespacecast_1ae92ac60be535ee1f1f0befb302d3a4ec" kind="function"><name>getDispatchCell</name></member>
-    <member refid="namespacecast_1a13cb63fc804e4d4a67283306336bab2e" kind="function"><name>getScannedTables</name></member>
     <member refid="namespacecast_1a7f4d220598cd937be80122ade833bf3a" kind="function"><name>getTextLineNumber</name></member>
     <member refid="namespacecast_1aa3f61e880ffdcd0ce8b187d510c54bf5" kind="function"><name>findRegionBeginMarkers</name></member>
     <member refid="namespacecast_1a444068d8337f2000e3100d307ba95d47" kind="function"><name>collectSlotRegions</name></member>
     <member refid="namespacecast_1aac4b3ca2e1cb6142f624b8a8d6bcc79c" kind="function"><name>validateDispatchRegionPairing</name></member>
-    <member refid="namespacecast_1ac9ebae313ae8a1928ea660f94fab083e" kind="function"><name>predicateMatches</name></member>
-    <member refid="namespacecast_1aa82a34598a4a032c10a0fb831ec3128b" kind="function"><name>predicateUnique</name></member>
-    <member refid="namespacecast_1a060679a35e907f3a532d9c48cfa2bfe2" kind="function"><name>predicateExistsIn</name></member>
-    <member refid="namespacecast_1a3cfba6bcfc3d536deae405fdd8cd471c" kind="function"><name>predicateOneOf</name></member>
-    <member refid="namespacecast_1ab9635851253e417e211df509f422f464" kind="function"><name>predicateRange</name></member>
-    <member refid="namespacecast_1aac0f96b4683bd2ec643a11d3fe97356b" kind="function"><name>predicateParity</name></member>
-    <member refid="namespacecast_1a853d32417c68bfddf44d161b1a0b1313" kind="function"><name>predicateFileExists</name></member>
-    <member refid="namespacecast_1ae2e99b3d0a712ea029fb72b202dcce47" kind="function"><name>predicateOnePerGroup</name></member>
+    <member refid="namespacecast_1abaa85f828c4cc75b8236458337bcac9e" kind="function"><name>predicateMatches</name></member>
+    <member refid="namespacecast_1afc2246d5944f23f03ef3e4ab6e7b8b79" kind="function"><name>predicateUnique</name></member>
+    <member refid="namespacecast_1adcaac27c6c5c01b3929f7af7c5c3fd97" kind="function"><name>predicateExistsIn</name></member>
+    <member refid="namespacecast_1aecf0a3f1c70cba1a7c5ec9809f65b73d" kind="function"><name>predicateOneOf</name></member>
+    <member refid="namespacecast_1ade18ba5ffac7f784dc16e6b71a5e8c90" kind="function"><name>predicateRange</name></member>
+    <member refid="namespacecast_1ae997badfb441ede5cb8daef34d52d81d" kind="function"><name>predicateParity</name></member>
+    <member refid="namespacecast_1a1a6a1898c748510c768cd4a91a782705" kind="function"><name>predicateFileExists</name></member>
+    <member refid="namespacecast_1a000550660e0ff037624122a930c4db63" kind="function"><name>predicateOnePerGroup</name></member>
     <member refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" kind="function"><name>buildPredicateMap</name></member>
     <member refid="namespacecast_1ac5e2f17a8a15866b3e04d834d4bd0583" kind="function"><name>getHazardMessage</name></member>
     <member refid="namespacecast_1a797901aeab14d7fc1222baed0aff018d" kind="function"><name>validateTableHazards</name></member>
     <member refid="namespacecast_1a8b0b668faf943d54d84ac338bd213c94" kind="function"><name>validateManifest</name></member>
-    <member refid="namespacecast_1abfd95b65e28823faa07409946e38c161" kind="function"><name>validateRoots</name></member>
-    <member refid="namespacecast_1aa32a96862abb414232edc0577e0f44d6" kind="function"><name>validatePerColumnConstraints</name></member>
+    <member refid="namespacecast_1a8684cc7a4d974c6a593e61462b9e6e49" kind="function"><name>isValid</name></member>
+    <member refid="namespacecast_1ac510c3a8929cca911b34c5df621ab683" kind="function"><name>validatePerColumnConstraints</name></member>
     <member refid="namespacecast_1a7af720d1640fe65643611ff6c946f447" kind="function"><name>getPlaceholderValue</name></member>
     <member refid="namespacecast_1a414124be1e7c908ca60ad16f0dc77751" kind="function"><name>validatePlaceholders</name></member>
   </compound>
   <compound refid="namespacecast_1_1_constraints" kind="namespace"><name>cast::Constraints</name>
-    <member refid="namespacecast_1_1_constraints_1afcd3bcdd0cab1a56f213e2991f96b8db" kind="function"><name>validate</name></member>
+    <member refid="namespacecast_1_1_constraints_1aa35ecc701cecdaf0ae40c1a7bacea961" kind="function"><name>validate</name></member>
   </compound>
   <compound refid="namespacecast_1_1_driver" kind="namespace"><name>cast::Driver</name>
     <member refid="namespacecast_1_1_driver_1a66a1e5cc96f2d517f8f93bb5ac5a3931" kind="function"><name>run</name></member>
