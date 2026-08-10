@@ -22,10 +22,10 @@
 <para>Expands <computeroutput>text</computeroutput>, substituting every placeholder in <computeroutput>values</computeroutput>. </para>
         </briefdescription>
         <detaileddescription>
-<para>Each substitution uses <ref refid="structjam_1_1Format_1a84331a5a2d98640edc7b93bb4d09e072" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Format::replaceholder()</ref> to fill the <computeroutput>@placeholderName@</computeroutput> construct; line endings are normalized to LF (SPEC §5).</para>
+<para>Each substitution uses <ref refid="structjam_1_1Format_1a055c523626845987c793b72d460fa3ab" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Format::replaceholder()</ref> to fill the <computeroutput>@placeholderName@</computeroutput> construct; line endings are normalized to LF (SPEC §5).</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
-<parametername>text</parametername>
+<parametername><ref refid="namespacetext" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">text</ref></parametername>
 </parameternamelist>
 <parameterdescription>
 <para>The template text to expand. </para>
@@ -47,13 +47,15 @@
         <inbodydescription>
         </inbodydescription>
         <location file="Writer.h" line="106" column="25" bodyfile="Writer.h" bodystart="106" bodyend="115"/>
-        <references refid="namespaceId_1a4ff5eedceb8a1b3c71706e3e13fc3cb4" compoundref="g_2_identifiers_8h" startline="70" endline="70">Id::charCarriageReturn</references>
-        <references refid="namespaceId_1ac402f14db451dbacbf11958e45c2d8c3" compoundref="g_2_identifiers_8h" startline="65" endline="65">Id::charNewline</references>
+        <references refid="namespacechars_1ae30ce73175bb7c82212d372a5be6e4a9">chars::carriageReturn</references>
+        <references refid="classjuce_1_1String_1a128e862810bc5e3f16cb70c3c9751867">juce::String::charToString</references>
         <references refid="namespacecast_1a7af720d1640fe65643611ff6c946f447" compoundref="_writer_8h" startline="26" endline="39">cast::getPlaceholderValue</references>
-        <references refid="structjam_1_1Format_1a84331a5a2d98640edc7b93bb4d09e072">jam::Format::replaceholder</references>
-        <referencedby refid="namespacecast_1aaaf20bd724ca3615da68b33db5b8d077" compoundref="_generator_8h" startline="376" endline="521">cast::buildSlotResults</referencedby>
+        <references refid="namespacechars_1a2b2645fbc35de446253aa71b0dc4ca25">chars::newline</references>
+        <references refid="structjam_1_1Format_1a055c523626845987c793b72d460fa3ab">jam::Format::replaceholder</references>
+        <referencedby refid="namespacecast_1a34db78a09891e7a161e7ad228d380d8a" compoundref="_generator_8h" startline="850" endline="1219">cast::buildSlotResults</referencedby>
         <referencedby refid="structcast_1_1_template_engine_1a17663684abc84ea95042ef3ba089526c" compoundref="_writer_8h" startline="124" endline="127">expand</referencedby>
-        <referencedby refid="namespacecast_1a7ce05456bfec2ccd8efd3f205506c97a" compoundref="_generator_8h" startline="237" endline="336">cast::expandRowRegions</referencedby>
+        <referencedby refid="namespacecast_1ad81170ef4a6c508c892f69f92951a7e9" compoundref="_generator_8h" startline="372" endline="783">cast::expandRowRegions</referencedby>
+        <referencedby refid="namespacecast_1a1898e0a4b4b84bf3d720ca0168ee7d60" compoundref="_generator_8h" startline="1241" endline="1320">cast::processOutput</referencedby>
       </memberdef>
       <memberdef kind="function" id="structcast_1_1_template_engine_1a17663684abc84ea95042ef3ba089526c" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
         <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
@@ -99,7 +101,6 @@
         <location file="Writer.h" line="124" column="25" bodyfile="Writer.h" bodystart="124" bodyend="127"/>
         <references refid="structcast_1_1_template_engine_1ac43683fd26a78559d8a7460a933eed94" compoundref="_writer_8h" startline="106" endline="115">expandText</references>
         <references refid="classjuce_1_1File_1aa65d2fa50370357bf93658d6447c296d">juce::File::loadFileAsString</references>
-        <referencedby refid="namespacecast_1a7bbd7fef86ca13e3d456605a1f0eb5f4" compoundref="_generator_8h" startline="349" endline="359">cast::getOutput</referencedby>
       </memberdef>
     </sectiondef>
     <briefdescription>

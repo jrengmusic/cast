@@ -1,0 +1,490 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
+  <compounddef id="namespacetext_1_1en" kind="namespace" language="C++">
+    <compoundname>text::en</compoundname>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="namespacetext_1_1en_1ae75b4afbd44ef1a01d46f3b9cfb7ef00" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failNoMatch</definition>
+        <argsstring></argsstring>
+        <name>failNoMatch</name>
+        <qualifiedname>text::en::failNoMatch</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;value does not match&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="22" column="27" bodyfile="generated/Texts.h" bodystart="22" bodyend="22"/>
+        <referencedby refid="namespacecast_1ac9ebae313ae8a1928ea660f94fab083e" compoundref="_validator_8h" startline="215" endline="234">cast::predicateMatches</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1a256b78afc70d3e2a1e5501e853b3b2e0" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failDuplicate</definition>
+        <argsstring></argsstring>
+        <name>failDuplicate</name>
+        <qualifiedname>text::en::failDuplicate</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;duplicate \&quot;&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="23" column="27" bodyfile="generated/Texts.h" bodystart="23" bodyend="23"/>
+        <referencedby refid="namespacecast_1aa82a34598a4a032c10a0fb831ec3128b" compoundref="_validator_8h" startline="250" endline="321">cast::predicateUnique</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1a344ae40597f41e03578b99cd29ce5386" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failForeignKeyMissing</definition>
+        <argsstring></argsstring>
+        <name>failForeignKeyMissing</name>
+        <qualifiedname>text::en::failForeignKeyMissing</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;value not found in &quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="24" column="27" bodyfile="generated/Texts.h" bodystart="24" bodyend="24"/>
+        <referencedby refid="namespacecast_1a060679a35e907f3a532d9c48cfa2bfe2" compoundref="_validator_8h" startline="330" endline="362">cast::predicateExistsIn</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1a18d01cda6343ff61300d1fee9cc5ce58" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failNotInSet</definition>
+        <argsstring></argsstring>
+        <name>failNotInSet</name>
+        <qualifiedname>text::en::failNotInSet</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;value not in {&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="25" column="27" bodyfile="generated/Texts.h" bodystart="25" bodyend="25"/>
+        <referencedby refid="namespacecast_1a3cfba6bcfc3d536deae405fdd8cd471c" compoundref="_validator_8h" startline="370" endline="392">cast::predicateOneOf</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1a044820fdee08e5dc7a46ab8af35d4e5b" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failOutOfRange</definition>
+        <argsstring></argsstring>
+        <name>failOutOfRange</name>
+        <qualifiedname>text::en::failOutOfRange</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot; outside [&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="26" column="27" bodyfile="generated/Texts.h" bodystart="26" bodyend="26"/>
+        <referencedby refid="namespacecast_1ab9635851253e417e211df509f422f464" compoundref="_validator_8h" startline="400" endline="429">cast::predicateRange</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1afadcb493dea5b1ecff32d20a01204678" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failLocalMissing</definition>
+        <argsstring></argsstring>
+        <name>failLocalMissing</name>
+        <qualifiedname>text::en::failLocalMissing</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;local <ref refid="Text_8h_1a93a405d829985a2ab7f24f28b76171d4" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">key</ref> not in ref&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="27" column="27" bodyfile="generated/Texts.h" bodystart="27" bodyend="27"/>
+        <referencedby refid="namespacecast_1aac0f96b4683bd2ec643a11d3fe97356b" compoundref="_validator_8h" startline="439" endline="550">cast::predicateParity</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1a2a63f9dfdf4e43957d5591eeb98623a6" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failRefMissing</definition>
+        <argsstring></argsstring>
+        <name>failRefMissing</name>
+        <qualifiedname>text::en::failRefMissing</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;ref <ref refid="Text_8h_1a93a405d829985a2ab7f24f28b76171d4" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">key</ref> not in local&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="28" column="27" bodyfile="generated/Texts.h" bodystart="28" bodyend="28"/>
+        <referencedby refid="namespacecast_1aac0f96b4683bd2ec643a11d3fe97356b" compoundref="_validator_8h" startline="439" endline="550">cast::predicateParity</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1adf2178d6d627388bf2bd3749ddc1fdb2" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failNotFound</definition>
+        <argsstring></argsstring>
+        <name>failNotFound</name>
+        <qualifiedname>text::en::failNotFound</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;not found&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="29" column="27" bodyfile="generated/Texts.h" bodystart="29" bodyend="29"/>
+        <referencedby refid="_cast_c_l_i_8cpp_1a0ddf1224851353fc92bfbff6f499fa97" compoundref="_cast_c_l_i_8cpp" startline="117" endline="165">main</referencedby>
+        <referencedby refid="namespacecast_1a853d32417c68bfddf44d161b1a0b1313" compoundref="_validator_8h" startline="558" endline="577">cast::predicateFileExists</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1a76e13f4a7883f3c6b4d94dcb0f921caa" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failGroupOpen</definition>
+        <argsstring></argsstring>
+        <name>failGroupOpen</name>
+        <qualifiedname>text::en::failGroupOpen</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;group &apos;&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="30" column="27" bodyfile="generated/Texts.h" bodystart="30" bodyend="30"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1a64dec02a18dc1fb6b38c3a0a7255c77c" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failGroupClose</definition>
+        <argsstring></argsstring>
+        <name>failGroupClose</name>
+        <qualifiedname>text::en::failGroupClose</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;&apos; does not have exactly one marked row&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="31" column="27" bodyfile="generated/Texts.h" bodystart="31" bodyend="31"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1acb1a891d30279dd9197a1ab139b3ca8d" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failUnknownPredicate</definition>
+        <argsstring></argsstring>
+        <name>failUnknownPredicate</name>
+        <qualifiedname>text::en::failUnknownPredicate</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;unknown predicate&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="32" column="27" bodyfile="generated/Texts.h" bodystart="32" bodyend="32"/>
+        <referencedby refid="namespacecast_1_1_constraints_1afcd3bcdd0cab1a56f213e2991f96b8db" compoundref="_validator_8h" startline="752" endline="817">cast::Constraints::validate</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1a5c7880cea87cce36dfaac52b4f6fd90a" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failHazardUri</definition>
+        <argsstring></argsstring>
+        <name>failHazardUri</name>
+        <qualifiedname>text::en::failHazardUri</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;contains URI scheme&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="33" column="27" bodyfile="generated/Texts.h" bodystart="33" bodyend="33"/>
+        <referencedby refid="namespacecast_1ac5e2f17a8a15866b3e04d834d4bd0583" compoundref="_validator_8h" startline="833" endline="853">cast::getHazardMessage</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1afc7aefe9de7bc1f7659fdf4aaba7505b" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failHazardAngleBrackets</definition>
+        <argsstring></argsstring>
+        <name>failHazardAngleBrackets</name>
+        <qualifiedname>text::en::failHazardAngleBrackets</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;contains &apos;&lt;&apos; or &apos;&gt;&apos;&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="34" column="27" bodyfile="generated/Texts.h" bodystart="34" bodyend="34"/>
+        <referencedby refid="namespacecast_1ac5e2f17a8a15866b3e04d834d4bd0583" compoundref="_validator_8h" startline="833" endline="853">cast::getHazardMessage</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1aeade2d9a4d5fc46b3a596b3129e31123" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failUnknownTransform</definition>
+        <argsstring></argsstring>
+        <name>failUnknownTransform</name>
+        <qualifiedname>text::en::failUnknownTransform</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;unknown transform&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="35" column="27" bodyfile="generated/Texts.h" bodystart="35" bodyend="35"/>
+        <referencedby refid="namespacecast_1a8b0b668faf943d54d84ac338bd213c94" compoundref="_validator_8h" startline="917" endline="1013">cast::validateManifest</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1ab7a98f301729cf5bb763ed21d129f271" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failTemplateMissing</definition>
+        <argsstring></argsstring>
+        <name>failTemplateMissing</name>
+        <qualifiedname>text::en::failTemplateMissing</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;template not found&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="36" column="27" bodyfile="generated/Texts.h" bodystart="36" bodyend="36"/>
+        <referencedby refid="namespacecast_1a8b0b668faf943d54d84ac338bd213c94" compoundref="_validator_8h" startline="917" endline="1013">cast::validateManifest</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1ae7cb38c667f7ff54badf75cc88253d62" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failFragmentMissing</definition>
+        <argsstring></argsstring>
+        <name>failFragmentMissing</name>
+        <qualifiedname>text::en::failFragmentMissing</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;fragment not found&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="37" column="27" bodyfile="generated/Texts.h" bodystart="37" bodyend="37"/>
+        <referencedby refid="namespacecast_1a8b0b668faf943d54d84ac338bd213c94" compoundref="_validator_8h" startline="917" endline="1013">cast::validateManifest</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1a7061a03bec6a79b4b90d5e204668aa1c" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failOrphan</definition>
+        <argsstring></argsstring>
+        <name>failOrphan</name>
+        <qualifiedname>text::en::failOrphan</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;orphan template&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="38" column="27" bodyfile="generated/Texts.h" bodystart="38" bodyend="38"/>
+        <referencedby refid="namespacecast_1a8b0b668faf943d54d84ac338bd213c94" compoundref="_validator_8h" startline="917" endline="1013">cast::validateManifest</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1a478053388800957dbc0526a7cde67901" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failNoSource</definition>
+        <argsstring></argsstring>
+        <name>failNoSource</name>
+        <qualifiedname>text::en::failNoSource</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;placeholder has no source&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="39" column="27" bodyfile="generated/Texts.h" bodystart="39" bodyend="39"/>
+        <referencedby refid="namespacecast_1a414124be1e7c908ca60ad16f0dc77751" compoundref="_writer_8h" startline="55" endline="91">cast::validatePlaceholders</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1a49a4c51515767f56cf49195fa483ea54" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failTableMissing</definition>
+        <argsstring></argsstring>
+        <name>failTableMissing</name>
+        <qualifiedname>text::en::failTableMissing</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;table not found&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="40" column="27" bodyfile="generated/Texts.h" bodystart="40" bodyend="40"/>
+        <referencedby refid="namespacecast_1a461a1eba27da5f89c7d41e83e9461289" compoundref="_generator_8h" startline="448" endline="671">cast::buildSlotResults</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1a4c407e98f6b004c8d0074551b9cb2c99" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failTableAmbiguous</definition>
+        <argsstring></argsstring>
+        <name>failTableAmbiguous</name>
+        <qualifiedname>text::en::failTableAmbiguous</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;table declared in multiple files&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="41" column="27" bodyfile="generated/Texts.h" bodystart="41" bodyend="41"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1a9f97dc060c0e17dc93036370d837e75d" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failAlreadyDeclared</definition>
+        <argsstring></argsstring>
+        <name>failAlreadyDeclared</name>
+        <qualifiedname>text::en::failAlreadyDeclared</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;\&quot; already declared at &quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="42" column="27" bodyfile="generated/Texts.h" bodystart="42" bodyend="42"/>
+        <referencedby refid="namespacecast_1aa82a34598a4a032c10a0fb831ec3128b" compoundref="_validator_8h" startline="250" endline="321">cast::predicateUnique</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1ae61a96058723b21d256b7695e9496104" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failEntityMissing</definition>
+        <argsstring></argsstring>
+        <name>failEntityMissing</name>
+        <qualifiedname>text::en::failEntityMissing</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;entity not declared in lexicon&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="43" column="27" bodyfile="generated/Texts.h" bodystart="43" bodyend="43"/>
+        <referencedby refid="namespacecast_1a461a1eba27da5f89c7d41e83e9461289" compoundref="_generator_8h" startline="448" endline="671">cast::buildSlotResults</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1af7a5ba20c068736a4495a451def2ea5b" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failOutputMissing</definition>
+        <argsstring></argsstring>
+        <name>failOutputMissing</name>
+        <qualifiedname>text::en::failOutputMissing</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;output not found&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="44" column="27" bodyfile="generated/Texts.h" bodystart="44" bodyend="44"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1a21d1b07eeb5bb3a769ced24dbdab84f2" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failNameNumeric</definition>
+        <argsstring></argsstring>
+        <name>failNameNumeric</name>
+        <qualifiedname>text::en::failNameNumeric</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;name is a plain number&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="45" column="27" bodyfile="generated/Texts.h" bodystart="45" bodyend="45"/>
+        <referencedby refid="namespacecast_1a301f9a9f21f53f0bbb8d34c7ccad4786" compoundref="_validator_8h" startline="85" endline="109">cast::validateLexiconName</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1a690a25f5a0dfe601e9a24e9ec068656f" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failNameLeadingDigit</definition>
+        <argsstring></argsstring>
+        <name>failNameLeadingDigit</name>
+        <qualifiedname>text::en::failNameLeadingDigit</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;name starts with a digit&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="46" column="27" bodyfile="generated/Texts.h" bodystart="46" bodyend="46"/>
+        <referencedby refid="namespacecast_1a301f9a9f21f53f0bbb8d34c7ccad4786" compoundref="_validator_8h" startline="85" endline="109">cast::validateLexiconName</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1af5b51e1edb05a1bfb035685709696c9a" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failNameInvalidChar</definition>
+        <argsstring></argsstring>
+        <name>failNameInvalidChar</name>
+        <qualifiedname>text::en::failNameInvalidChar</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;name contains an invalid character&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="47" column="27" bodyfile="generated/Texts.h" bodystart="47" bodyend="47"/>
+        <referencedby refid="namespacecast_1a301f9a9f21f53f0bbb8d34c7ccad4786" compoundref="_validator_8h" startline="85" endline="109">cast::validateLexiconName</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1afb16943752e12d93cb90cb21d270964b" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failTooLong</definition>
+        <argsstring></argsstring>
+        <name>failTooLong</name>
+        <qualifiedname>text::en::failTooLong</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;exceeds &quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="48" column="27" bodyfile="generated/Texts.h" bodystart="48" bodyend="48"/>
+        <referencedby refid="namespacecast_1a301f9a9f21f53f0bbb8d34c7ccad4786" compoundref="_validator_8h" startline="85" endline="109">cast::validateLexiconName</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1a6a2e9f9fc5c3c3dc6f7337796464a474" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failTooLongSuffix</definition>
+        <argsstring></argsstring>
+        <name>failTooLongSuffix</name>
+        <qualifiedname>text::en::failTooLongSuffix</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot; characters&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="49" column="27" bodyfile="generated/Texts.h" bodystart="49" bodyend="49"/>
+        <referencedby refid="namespacecast_1a301f9a9f21f53f0bbb8d34c7ccad4786" compoundref="_validator_8h" startline="85" endline="109">cast::validateLexiconName</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1a1018c925b8bfa22d31be928171ebaeaf" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failRedundantValue</definition>
+        <argsstring></argsstring>
+        <name>failRedundantValue</name>
+        <qualifiedname>text::en::failRedundantValue</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot;value byte-equals &quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="50" column="27" bodyfile="generated/Texts.h" bodystart="50" bodyend="50"/>
+        <referencedby refid="namespacecast_1ac556dfec02cf11201b862c4f5bf81180" compoundref="_validator_8h" startline="132" endline="146">cast::validateLexiconValueRedundancy</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetext_1_1en_1a670582b4ed284c72b6b09b279ccb1d12" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
+        <definition>const juce::String text::en::failRedundantValueSuffix</definition>
+        <argsstring></argsstring>
+        <name>failRedundantValueSuffix</name>
+        <qualifiedname>text::en::failRedundantValueSuffix</qualifiedname>
+        <initializer>{ <ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref> (&quot; projection of <ref refid="juce__UnityPluginInterface_8h_1a010e50efcb9d6d393b9414f09f368dbc" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">name</ref>; delete it, let the template project it&quot;) }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Texts.h" line="51" column="27" bodyfile="generated/Texts.h" bodystart="51" bodyend="51"/>
+        <referencedby refid="namespacecast_1ac556dfec02cf11201b862c4f5bf81180" compoundref="_validator_8h" startline="132" endline="146">cast::validateLexiconValueRedundancy</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="generated/Texts.h" line="19" column="1"/>
+  </compounddef>
+</doxygen>

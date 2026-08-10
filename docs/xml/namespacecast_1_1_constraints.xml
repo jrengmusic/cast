@@ -129,25 +129,26 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="Validator.h" line="613" column="21" bodyfile="Validator.h" bodystart="613" bodyend="675"/>
-        <references refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" compoundref="_validator_8h" startline="558" endline="586">cast::buildPredicateMap</references>
+        <location file="Validator.h" line="1037" column="21" bodyfile="Validator.h" bodystart="1037" bodyend="1102"/>
+        <references refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" compoundref="_validator_8h" startline="982" endline="1010">cast::buildPredicateMap</references>
         <references refid="structjam_1_1Function_1_1Map_1a4c650e66d077dc454ba2f9c528e9ce76">jam::Function::Map&lt; typename KeyType, typename ReturnType &gt;::contains</references>
-        <references refid="namespaceId_1a5e729b9864fd096462b3f08ef1eb4b1a" compoundref="g_2_identifiers_8h" startline="92" endline="92">Id::diagnosticSeparator</references>
+        <references refid="namespaceId_1a5e729b9864fd096462b3f08ef1eb4b1a" compoundref="_identifiers_8h" startline="74" endline="74">Id::diagnosticSeparator</references>
         <references refid="classjuce_1_1Result_1a27205a4dc7a973aebd1976270867be80">juce::Result::fail</references>
-        <references refid="namespaceId_1a05e0f09a795d9e11f4b8f132a862d0f8" compoundref="g_2_identifiers_8h" startline="103" endline="103">Id::failUnknownPredicate</references>
+        <references refid="namespacetext_1_1en_1acb1a891d30279dd9197a1ab139b3ca8d" compoundref="_text_8h" startline="33" endline="33">text::en::failUnknownPredicate</references>
         <references refid="structjam_1_1Function_1_1Map_1a8453a5bf3a0d89b7e854b734d20338a2">jam::Function::Map&lt; typename KeyType, typename ReturnType &gt;::get</references>
+        <references refid="namespacecast_1a1b825f5fa6bf704c170c9656f4ae6a80" compoundref="_validator_8h" startline="60" endline="63">cast::isSeparatorRow</references>
         <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
-        <references refid="namespacecast_1ab676d052a0f3efb4062591b54ffc1604" compoundref="_validator_8h" startline="549" endline="551">cast::perColumnPredicates</references>
-        <references refid="namespacecast_1_1_constraints_1afcd3bcdd0cab1a56f213e2991f96b8db" compoundref="_validator_8h" startline="613" endline="675">validate</references>
-        <referencedby refid="namespacecast_1_1_constraints_1afcd3bcdd0cab1a56f213e2991f96b8db" compoundref="_validator_8h" startline="613" endline="675">validate</referencedby>
-        <referencedby refid="namespacecast_1aa32a96862abb414232edc0577e0f44d6" compoundref="_validator_8h" startline="974" endline="1011">cast::validatePerColumnConstraints</referencedby>
-        <referencedby refid="namespacecast_1abfd95b65e28823faa07409946e38c161" compoundref="_validator_8h" startline="878" endline="958">cast::validateRoots</referencedby>
+        <references refid="namespacecast_1ab676d052a0f3efb4062591b54ffc1604" compoundref="_validator_8h" startline="973" endline="975">cast::perColumnPredicates</references>
+        <references refid="namespacecast_1_1_constraints_1afcd3bcdd0cab1a56f213e2991f96b8db" compoundref="_validator_8h" startline="1037" endline="1102">validate</references>
+        <referencedby refid="namespacecast_1_1_constraints_1afcd3bcdd0cab1a56f213e2991f96b8db" compoundref="_validator_8h" startline="1037" endline="1102">validate</referencedby>
+        <referencedby refid="namespacecast_1aa32a96862abb414232edc0577e0f44d6" compoundref="_validator_8h" startline="1430" endline="1467">cast::validatePerColumnConstraints</referencedby>
+        <referencedby refid="namespacecast_1abfd95b65e28823faa07409946e38c161" compoundref="_validator_8h" startline="1334" endline="1414">cast::validateRoots</referencedby>
       </memberdef>
     </sectiondef>
     <briefdescription>
     </briefdescription>
     <detaileddescription>
     </detaileddescription>
-    <location file="Validator.h" line="588" column="1"/>
+    <location file="Validator.h" line="1012" column="1"/>
   </compounddef>
 </doxygen>

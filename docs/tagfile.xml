@@ -4,7 +4,7 @@
     <name>CastCLI.cpp</name>
     <path></path>
     <filename>_cast_c_l_i_8cpp.html</filename>
-    <includes id="generated_2_c_a_s_t_8h" name="CAST.h" local="yes" import="no" module="no" objc="no">generated/CAST.h</includes>
+    <includes id="_c_a_s_t_8h" name="CAST.h" local="yes" import="no" module="no" objc="no">generated/CAST.h</includes>
     <includes id="_generator_8h" name="Generator.h" local="yes" import="no" module="no" objc="no">Generator.h</includes>
     <includes id="_help_8h" name="Help.h" local="yes" import="no" module="no" objc="no">Help.h</includes>
     <member kind="function" static="yes">
@@ -45,39 +45,41 @@
   </compound>
   <compound kind="file">
     <name>CAST.h</name>
-    <path>g/</path>
-    <filename>g_2_c_a_s_t_8h.html</filename>
-    <includes id="g_2_identifiers_8h" name="Identifiers.h" local="yes" import="no" module="no" objc="no">Identifiers.h</includes>
-    <includes id="g_2_hash_maps_8h" name="HashMaps.h" local="yes" import="no" module="no" objc="no">HashMaps.h</includes>
-  </compound>
-  <compound kind="file">
-    <name>CAST.h</name>
     <path>generated/</path>
-    <filename>generated_2_c_a_s_t_8h.html</filename>
-    <includes id="generated_2_identifiers_8h" name="Identifiers.h" local="yes" import="no" module="no" objc="no">Identifiers.h</includes>
-    <includes id="generated_2_hash_maps_8h" name="HashMaps.h" local="yes" import="no" module="no" objc="no">HashMaps.h</includes>
+    <filename>_c_a_s_t_8h.html</filename>
+    <includes id="_identifiers_8h" name="Identifiers.h" local="yes" import="no" module="no" objc="no">Identifiers.h</includes>
+    <includes id="_text_8h" name="Text.h" local="yes" import="no" module="no" objc="no">Text.h</includes>
+    <includes id="_files_8h" name="Files.h" local="yes" import="no" module="no" objc="no">Files.h</includes>
+    <includes id="_hash_maps_8h" name="HashMaps.h" local="yes" import="no" module="no" objc="no">HashMaps.h</includes>
+    <includes id="_generated_8h" name="Generated.h" local="yes" import="no" module="no" objc="no">Generated.h</includes>
   </compound>
   <compound kind="file">
-    <name>HashMaps.h</name>
-    <path>g/</path>
-    <filename>g_2_hash_maps_8h.html</filename>
+    <name>Files.h</name>
+    <path>generated/</path>
+    <filename>_files_8h.html</filename>
+  </compound>
+  <compound kind="file">
+    <name>Generated.h</name>
+    <path>generated/</path>
+    <filename>_generated_8h.html</filename>
+    <class kind="struct">cast::Generated</class>
     <namespace>cast</namespace>
   </compound>
   <compound kind="file">
     <name>HashMaps.h</name>
     <path>generated/</path>
-    <filename>generated_2_hash_maps_8h.html</filename>
+    <filename>_hash_maps_8h.html</filename>
     <namespace>cast</namespace>
   </compound>
   <compound kind="file">
     <name>Identifiers.h</name>
-    <path>g/</path>
-    <filename>g_2_identifiers_8h.html</filename>
+    <path>generated/</path>
+    <filename>_identifiers_8h.html</filename>
   </compound>
   <compound kind="file">
-    <name>Identifiers.h</name>
+    <name>Text.h</name>
     <path>generated/</path>
-    <filename>generated_2_identifiers_8h.html</filename>
+    <filename>_text_8h.html</filename>
   </compound>
   <compound kind="file">
     <name>Generator.h</name>
@@ -107,6 +109,8 @@
     <path></path>
     <filename>_validator_8h.html</filename>
     <includes id="_operators_8h" name="Operators.h" local="yes" import="no" module="no" objc="no">Operators.h</includes>
+    <class kind="struct">cast::RegionMarkerOccurrence</class>
+    <class kind="struct">cast::SlotRegion</class>
     <namespace>cast</namespace>
     <namespace>cast::Constraints</namespace>
   </compound>
@@ -117,6 +121,53 @@
     <includes id="_validator_8h" name="Validator.h" local="yes" import="no" module="no" objc="no">Validator.h</includes>
     <class kind="struct">cast::TemplateEngine</class>
     <namespace>cast</namespace>
+  </compound>
+  <compound kind="struct">
+    <name>cast::Generated</name>
+    <filename>structcast_1_1_generated.html</filename>
+    <member kind="variable">
+      <type>jam::Generated</type>
+      <name>jam</name>
+      <anchorfile>structcast_1_1_generated.html</anchorfile>
+      <anchor>ac5eefa6412847bc19a964fc77408d1cb</anchor>
+      <arglist></arglist>
+    </member>
+  </compound>
+  <compound kind="struct">
+    <name>cast::RegionMarkerOccurrence</name>
+    <filename>structcast_1_1_region_marker_occurrence.html</filename>
+    <member kind="variable">
+      <type>juce::String</type>
+      <name>name</name>
+      <anchorfile>structcast_1_1_region_marker_occurrence.html</anchorfile>
+      <anchor>a38369f672de1277da0ea8cb66ddef665</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>int</type>
+      <name>index</name>
+      <anchorfile>structcast_1_1_region_marker_occurrence.html</anchorfile>
+      <anchor>a3fd88a764a7d0a026a9999c78181a461</anchor>
+      <arglist></arglist>
+    </member>
+  </compound>
+  <compound kind="struct">
+    <name>cast::SlotRegion</name>
+    <filename>structcast_1_1_slot_region.html</filename>
+    <member kind="variable">
+      <type>juce::String</type>
+      <name>rootTemplatePath</name>
+      <anchorfile>structcast_1_1_slot_region.html</anchorfile>
+      <anchor>a543a1d3811c73ec724b66cabf594b068</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>juce::String</type>
+      <name>body</name>
+      <anchorfile>structcast_1_1_slot_region.html</anchorfile>
+      <anchor>a6f568f3e1832c14592b96dd6a41d0732</anchor>
+      <arglist></arglist>
+    </member>
   </compound>
   <compound kind="struct">
     <name>cast::TemplateEngine</name>
@@ -160,14 +211,31 @@
       <anchor>a93b2c0c5df5cd0cee07e79263c3cfb84</anchor>
       <arglist>() noexcept</arglist>
     </member>
+    <member kind="function" static="yes">
+      <type>static const jam::HashMap&lt; juce::String, juce::String &gt; &amp;</type>
+      <name>getTypes</name>
+      <anchorfile>structcast_1_1_transforms.html</anchorfile>
+      <anchor>a6bf6f9223f1eb54743ee919fdc1d7e4a</anchor>
+      <arglist>() noexcept</arglist>
+    </member>
   </compound>
   <compound kind="namespace">
     <name>cast</name>
     <filename>namespacecast.html</filename>
     <namespace>cast::Driver</namespace>
     <namespace>cast::Constraints</namespace>
+    <class kind="struct">cast::Generated</class>
     <class kind="struct">cast::Transforms</class>
+    <class kind="struct">cast::RegionMarkerOccurrence</class>
+    <class kind="struct">cast::SlotRegion</class>
     <class kind="struct">cast::TemplateEngine</class>
+    <member kind="typedef">
+      <type>jam::HashMap&lt; juce::String, SlotRegion &gt;</type>
+      <name>SlotRegionMap</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>a8e14967c571bd256059e520b01bfde80</anchor>
+      <arglist></arglist>
+    </member>
     <member kind="typedef">
       <type>jam::HashMap&lt; juce::String, std::variant&lt; juce::String, juce::StringArray &gt; &gt;</type>
       <name>SubstitutionMap</name>
@@ -191,17 +259,24 @@
     </member>
     <member kind="function" static="yes">
       <type>static juce::String</type>
+      <name>getLiteralValue</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>ac2885d637faed6ad209af70b5fad0fa3</anchor>
+      <arglist>(const jam::Document::Element &amp;cell)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static juce::String</type>
       <name>getResolvedCell</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a4d619a2cebf05e5d2e8764475cd0e19e</anchor>
-      <arglist>(const juce::String &amp;cellValue, const juce::String &amp;rowKey)</arglist>
+      <anchor>af0d52fad0aaf66beec04f2ac8222ecb1</anchor>
+      <arglist>(const juce::String &amp;cellValue, const juce::String &amp;rowKey, int rowIndex)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static SubstitutionMap</type>
       <name>buildPerRowMap</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a2ac57925bfc1273fc03de595f51bfae5</anchor>
-      <arglist>(const jam::MarkdownDocument &amp;root, const juce::String &amp;tableName, const juce::String &amp;rowKey, const jam::MarkdownDocument &amp;manifestDoc, const juce::String &amp;templateText)</arglist>
+      <anchor>a90dab422d99b869eda0bea5dc8d9d9eb</anchor>
+      <arglist>(const jam::MarkdownDocument &amp;root, const juce::String &amp;tableName, const jam::Document::Element &amp;row, const jam::MarkdownDocument &amp;manifestDoc, const juce::String &amp;templateText, int rowIndex, const juce::String &amp;projectionValue, const juce::String &amp;fromValue, const juce::String &amp;toValue, const jam::HashMap&lt; juce::String, std::tuple&lt; juce::String, juce::String, juce::Identifier &gt; &gt; &amp;lexicon)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static SubstitutionMap</type>
@@ -214,22 +289,22 @@
       <type>static juce::String</type>
       <name>expandRowRegions</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a7ce05456bfec2ccd8efd3f205506c97a</anchor>
-      <arglist>(const juce::String &amp;templateText, const jam::MarkdownDocument &amp;root, const juce::String &amp;tableName, const jam::Array&lt; juce::String &gt; &amp;rowKeys, const jam::MarkdownDocument &amp;manifestDoc, const juce::String &amp;columnName, const jam::HashMap&lt; juce::String, std::pair&lt; juce::String, juce::String &gt; &gt; &amp;lexicon, SubstitutionMap &amp;availablePlaceholders)</arglist>
+      <anchor>ad81170ef4a6c508c892f69f92951a7e9</anchor>
+      <arglist>(const juce::String &amp;templateText, const jam::MarkdownDocument &amp;root, const juce::String &amp;tableName, const jam::Array&lt; jam::Document::Element * &gt; &amp;rows, const jam::MarkdownDocument &amp;manifestDoc, const juce::String &amp;columnName, const juce::String &amp;typeValue, const juce::String &amp;projectionValue, const juce::String &amp;fromValue, const juce::String &amp;toValue, const juce::String &amp;symbolValue, const jam::HashMap&lt; juce::String, std::tuple&lt; juce::String, juce::String, juce::Identifier &gt; &gt; &amp;lexicon, SubstitutionMap &amp;availablePlaceholders, const juce::File &amp;sourceFile, juce::Result &amp;regionResult)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::String</type>
-      <name>getOutput</name>
+      <name>substituteSlotRegions</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a7bbd7fef86ca13e3d456605a1f0eb5f4</anchor>
-      <arglist>(const juce::File &amp;dir, const juce::String &amp;rootTemplatePath, const jam::HashMap&lt; juce::String, juce::StringArray &gt; &amp;slotResults)</arglist>
+      <anchor>add0f8c9cb726218885ab9e41ab975006</anchor>
+      <arglist>(const juce::String &amp;rootText, const jam::HashMap&lt; juce::String, juce::StringArray &gt; &amp;slotResults)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::Result</type>
       <name>buildSlotResults</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>aaaf20bd724ca3615da68b33db5b8d077</anchor>
-      <arglist>(const jam::MarkdownDocument &amp;manifestDoc, const juce::File &amp;manifestFile, const juce::File &amp;dir, const jam::Array&lt; juce::String &gt; &amp;dispatchKeys, const jam::HashMap&lt; juce::String, const jam::MarkdownDocument * &gt; &amp;rootIndex, const jam::HashMap&lt; juce::String, std::pair&lt; juce::String, juce::String &gt; &gt; &amp;lexicon, jam::HashMap&lt; juce::String, juce::StringArray &gt; &amp;slotResults)</arglist>
+      <anchor>a34db78a09891e7a161e7ad228d380d8a</anchor>
+      <arglist>(const jam::MarkdownDocument &amp;manifestDoc, const juce::File &amp;manifestFile, const juce::File &amp;dir, const jam::Array&lt; jam::Document::Element * &gt; &amp;dispatchRows, const jam::HashMap&lt; juce::String, const jam::MarkdownDocument * &gt; &amp;rootIndex, const jam::HashMap&lt; juce::String, std::tuple&lt; juce::String, juce::String, juce::Identifier &gt; &gt; &amp;lexicon, const jam::Array&lt; jam::MarkdownDocument &gt; &amp;roots, const SlotRegionMap &amp;slotRegions, jam::HashMap&lt; juce::String, juce::StringArray &gt; &amp;slotResults)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::Result</type>
@@ -247,76 +322,6 @@
     </member>
     <member kind="function" static="yes">
       <type>static juce::String</type>
-      <name>symbolFromFile</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>adb327ef93074cf86a7237a38aa438749</anchor>
-      <arglist>(const juce::String &amp;input) noexcept</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static juce::String</type>
-      <name>qualifySymbol</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a138ed53d479b1eacc02f35ff83b03c36</anchor>
-      <arglist>(const juce::String &amp;input) noexcept</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static juce::juce_wchar</type>
-      <name>parseCodepoint</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a5f27fb7dd55ed862809801e09939f591</anchor>
-      <arglist>(const juce::String &amp;input) noexcept</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static juce::String</type>
-      <name>encodeCodepointAsEscapedUtf8</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>ae9317df5c117df4a9e674e28495aa65d</anchor>
-      <arglist>(juce::juce_wchar codepoint) noexcept</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static juce::String</type>
-      <name>escapeCpp</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>aa4156e4c51c1b067d961bdfcb6d2b4ea</anchor>
-      <arglist>(const juce::String &amp;input) noexcept</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static juce::String</type>
-      <name>encodeUPlusToken</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a39b9915aa885fb195f1d5305fc9a9b32</anchor>
-      <arglist>(const juce::String &amp;token) noexcept</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static juce::String</type>
-      <name>utf8Bytes</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a4404a9c79c3e961484d6e8e1fe6ec2d5</anchor>
-      <arglist>(const juce::String &amp;input) noexcept</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static juce::String</type>
-      <name>codepointHex</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a905b20792d61b5991d5029270c82cac7</anchor>
-      <arglist>(const juce::String &amp;input) noexcept</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static juce::String</type>
-      <name>codepointLabel</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a20db922e27c5c0c48bce61607be87089</anchor>
-      <arglist>(const juce::String &amp;input) noexcept</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static juce::String</type>
-      <name>toString</name>
-      <anchorfile>namespacecast.html</anchorfile>
-      <anchor>ac720336ac8445391244c118c1c61cd28</anchor>
-      <arglist>(const juce::String &amp;input) noexcept</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static juce::String</type>
       <name>getLocation</name>
       <anchorfile>namespacecast.html</anchorfile>
       <anchor>afb20cc8ccd65bbfce56cc5014cb8cd11</anchor>
@@ -324,10 +329,38 @@
     </member>
     <member kind="function" static="yes">
       <type>static int</type>
-      <name>getRowNumber</name>
+      <name>getRowLineNumber</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>afb4f8ca77c3a09b0ac0d7ac6b083519d</anchor>
+      <anchor>a5032fcd975ffe6cb3867626688b70b7a</anchor>
       <arglist>(const jam::MarkdownDocument &amp;root, const juce::String &amp;tableName, const juce::String &amp;rowKey)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static bool</type>
+      <name>isSeparatorRow</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>a1b825f5fa6bf704c170c9656f4ae6a80</anchor>
+      <arglist>(const juce::String &amp;rowKey) noexcept</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static bool</type>
+      <name>isTooLong</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>af72aa95234f3857f0da4f63e91384f76</anchor>
+      <arglist>(const juce::String &amp;text) noexcept</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static juce::Result</type>
+      <name>validateLexiconName</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>a301f9a9f21f53f0bbb8d34c7ccad4786</anchor>
+      <arglist>(const juce::String &amp;name)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static juce::Result</type>
+      <name>validateLexiconValueRedundancy</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>ac556dfec02cf11201b862c4f5bf81180</anchor>
+      <arglist>(const juce::String &amp;name, const juce::String &amp;value)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static jam::Array&lt; juce::String &gt;</type>
@@ -337,11 +370,46 @@
       <arglist>(const jam::MarkdownDocument &amp;manifestDoc, const jam::Array&lt; juce::String &gt; &amp;constraintKeys)</arglist>
     </member>
     <member kind="function" static="yes">
+      <type>static juce::String</type>
+      <name>getDispatchCell</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>ae92ac60be535ee1f1f0befb302d3a4ec</anchor>
+      <arglist>(const jam::MarkdownDocument &amp;manifestDoc, const jam::Document::Element &amp;row, const juce::Identifier &amp;columnId)</arglist>
+    </member>
+    <member kind="function" static="yes">
       <type>static jam::Array&lt; juce::String &gt;</type>
       <name>getScannedTables</name>
       <anchorfile>namespacecast.html</anchorfile>
       <anchor>a13cb63fc804e4d4a67283306336bab2e</anchor>
       <arglist>(const jam::MarkdownDocument &amp;root, const jam::Array&lt; juce::String &gt; &amp;dispatchKeys, const jam::Array&lt; juce::String &gt; &amp;targetTables)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static int</type>
+      <name>getTextLineNumber</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>a7f4d220598cd937be80122ade833bf3a</anchor>
+      <arglist>(const juce::String &amp;text, int charOffset) noexcept</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static jam::Array&lt; RegionMarkerOccurrence &gt;</type>
+      <name>findRegionBeginMarkers</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>aa3f61e880ffdcd0ce8b187d510c54bf5</anchor>
+      <arglist>(const juce::String &amp;text)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static juce::Result</type>
+      <name>collectSlotRegions</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>a444068d8337f2000e3100d307ba95d47</anchor>
+      <arglist>(const jam::MarkdownDocument &amp;manifestDoc, const juce::File &amp;manifestFile, const juce::File &amp;dir, const jam::Array&lt; juce::String &gt; &amp;slotNames, SlotRegionMap &amp;slotRegions)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static juce::Result</type>
+      <name>validateDispatchRegionPairing</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>aac4b3ca2e1cb6142f624b8a8d6bcc79c</anchor>
+      <arglist>(const jam::MarkdownDocument &amp;manifestDoc, const juce::File &amp;manifestFile, const jam::Array&lt; jam::Document::Element * &gt; &amp;dispatchRows, const SlotRegionMap &amp;slotRegions)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static juce::Result</type>
@@ -459,14 +527,14 @@
       <type>const jam::HashMap&lt; juce::String, juce::String &gt;</type>
       <name>banner</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>adb5b4c3c76f199cecb443a32fe7361db</anchor>
+      <anchor>abe65a5f539a491ebfa4698a24ee34ee5</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable" static="yes">
       <type>static const juce::String</type>
-      <name>rowRegionBegin</name>
+      <name>rowRegionBeginPrefix</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a685bc2023753baad66af489ca6822320</anchor>
+      <anchor>a0dda3bc57ece1b9a1fe763639323669e</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable" static="yes">
@@ -484,6 +552,34 @@
       <arglist></arglist>
     </member>
     <member kind="variable" static="yes">
+      <type>static const juce::String</type>
+      <name>rowMarker</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>adfe17e70aad5ab0481b756737a6cb0fa</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static const juce::String</type>
+      <name>defaultKeyType</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>a50bdcdd4506a781583342ee768feb9a8</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static const juce::String</type>
+      <name>formatColumn</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>a5b60e1e50e89edb1e09b1aa96f6f9f00</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static const juce::String</type>
+      <name>extensionsNamespace</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>adb79723de64557769aedad2bb645b4d8</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" static="yes">
       <type>static constexpr int</type>
       <name>widthCap</name>
       <anchorfile>namespacecast.html</anchorfile>
@@ -498,31 +594,66 @@
       <arglist></arglist>
     </member>
     <member kind="variable" static="yes">
-      <type>static constexpr int</type>
-      <name>asciiMax</name>
+      <type>static const juce::String</type>
+      <name>intType</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a7722f3d29ae52d835338854f09d53640</anchor>
+      <anchor>a03d4737086d1615cb278fb06991ee933</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static const juce::String</type>
+      <name>stringType</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>a97a46df955200fdec1a9d9416d8e1187</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static const juce::String</type>
+      <name>identifierType</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>a7407bd8acd4ae8009c68d522048a74ac</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable" static="yes">
       <type>static constexpr int</type>
-      <name>byteHexDigits</name>
+      <name>maxLexiconNameLength</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a29721d2cd56af7406b281ad5ec3c40ac</anchor>
+      <anchor>aca8cec8faff107b36a1a4663a6d4a0d3</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable" static="yes">
-      <type>static constexpr int</type>
-      <name>codepointHexDigits</name>
+      <type>static const juce::String</type>
+      <name>regionBeginSuffix</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>a48f262209228c67deedea228387cc2e8</anchor>
+      <anchor>accf9cb96dae9454951da0b1ada0b5fcc</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable" static="yes">
-      <type>static constexpr size_t</type>
-      <name>hexEscapeCharsPerByte</name>
+      <type>static const juce::String</type>
+      <name>regionEndSuffix</name>
       <anchorfile>namespacecast.html</anchorfile>
-      <anchor>add544a4ce94bcfa1c64956b21ac5f186</anchor>
+      <anchor>ac17416f9b360393222385c294db0e048</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static const juce::String</type>
+      <name>regionBeginKeySuffix</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>aa25d8654496d82ef2a85e72deb168bc2</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static const juce::String</type>
+      <name>regionEndKeySuffix</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>a67e1ba2144b5504d07943bcc68f09e2d</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static const std::regex</type>
+      <name>regionBeginPattern</name>
+      <anchorfile>namespacecast.html</anchorfile>
+      <anchor>a2a6f8468cf97af833e25eb17b5c329ba</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable" static="yes">
@@ -560,19 +691,14 @@
     <filename>namespacestd.html</filename>
   </compound>
   <compound kind="dir">
-    <name>g</name>
-    <path>g/</path>
-    <filename>dir_7221087907367cd1faffa6ad29fe4f51.html</filename>
-    <file>CAST.h</file>
-    <file>HashMaps.h</file>
-    <file>Identifiers.h</file>
-  </compound>
-  <compound kind="dir">
     <name>generated</name>
     <path>generated/</path>
     <filename>dir_84fc5dba3506812825191c0c043e3c97.html</filename>
     <file>CAST.h</file>
+    <file>Files.h</file>
+    <file>Generated.h</file>
     <file>HashMaps.h</file>
     <file>Identifiers.h</file>
+    <file>Text.h</file>
   </compound>
 </tagfile>

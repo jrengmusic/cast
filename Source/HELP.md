@@ -41,7 +41,7 @@ The column-0 **header** declares what kind of table this is. Pick exactly one:
 Rules of thumb:
 *   Vocabulary tables (identifiers, chars, strings, operators) **declare** → `key`.
 *   Relational tables (bimaps, classification maps, lookup tables, anything whose column 0 names things that already exist) **reference** → `entry`.
-*   The fragment template must address column 0 by the same name: a `key` table fills `@key@`, an `entry` table fills `@entry@`. A mismatch fails with the *placeholder has no source* diagnostic below.
+*   The fragment template may address column 0 by its authored header — a `key` table fills `@key@`, an `entry` table fills `@entry@` — or by the canonical `@entry@`, which fills with column 0 of *any* table whatever that column's header is. `@entry@` is what lets one fragment serve `key`-headed and `entry`-headed tables alike; the header still decides declaration versus reference, and lexicon resolution still applies only to `entry`/`name` headers.
 
 Getting this wrong is loud. Declaring `closeParen` in an `entry`-style table under a `key` header fails like this:
 
@@ -52,6 +52,7 @@ Getting this wrong is loud. Declaring `closeParen` in an `entry`-style table und
 #### Cell Resolution
 Before a declared transform (from `## transforms`) is applied, each cell value is resolved against the row key:
 *   An **empty cell** resolves to the row key (column-0 value).
+*   A cell of exactly `@row@` resolves to the row's 0-based index.
 *   A cell whose text **names a transform** (e.g. `toUpper`) resolves to that transform applied to the row key.
 *   Any **other cell** is its own literal value.
 *   A cell **wrapped in backticks** is a literal and is never resolved — no transform lookup, no empty-cell fallback.
@@ -72,7 +73,7 @@ When `lexicon.md` is present in the tables directory and a dispatched source tab
 ### 2. Templates (Formatting)
 Templates are plain text files containing exactly one special construct: `@placeholder@`. There are no loops, no `if` statements, and no expressions.
 *   **Scalar Placeholder:** Replaced by a single cell value or a single manifest value.
-*   **Aggregate Placeholder:** Replaced by an entire table, projected through fragment templates, in the order you authored the rows.
+*   **Aggregate Placeholder:** Replaced by an entire table, projected through fragment templates, in the order you authored the rows. Consecutive fragments are joined by the output's separator template (see `## generated`), or by nothing when that cell is empty.
 *   **Root Templates:** Used to generate exactly one output file.
 *   **Fragment Templates:** Used for per-row expansions inside Root Templates. Fragments never generate files themselves.
 *   **Logic:** Any actual code logic (function bodies, framework calls) lives as plain text in the template. Templates do not execute logic.
@@ -84,6 +85,9 @@ A fragment template containing `@row:begin@` and `@row:end@` is a *row-region te
 *   `@row:index@` — inside a row region, fills with the zero-based position of the row within the matched row set. It is not a table-level placeholder and is not available outside a row region.
 *   `@cell@` — the current row's value in the dispatch row's filter column (per-row; transforms apply, e.g. `@cell:toPascal@`). Available in both row-region and per-row fragment expansion.
 *   Text outside the region sees *table-level placeholders* (see below) rather than per-row placeholders.
+*   A fragment may contain **several regions**; each is expanded in turn against the same matched table.
+
+**Column regions.** A region in a fragment may be named after a column instead of after `row`: `@win:begin@` … `@win:end@`. Such a region emits only the rows whose cell in that column is non-empty, and inside it `@cell@` is that column's cell rather than the dispatch filter column's. A region whose rows are all empty emits nothing at all — which is how a platform section with no data yet still compiles. Three column regions over `mac`, `win` and `linux`, wrapped in the language's own conditional-compilation text, are how one fragment serves every platform without a line of engine logic. Naming a column that the matched table does not have is FATAL, and `@row:begin@` takes no column — writing `@row:begin:win@` is FATAL and tells you to use the column's own name.
 
 **Table-level placeholders** (valid outside a row region in a row-region template):
 *   `@table@` — the table's name (the heading text).
@@ -92,37 +96,80 @@ A fragment template containing `@row:begin@` and `@row:end@` is a *row-region te
 *   `@columnName@` — for any column header, the column-0 key of the *first* row whose cell in that column is non-empty. Useful for a `default` marker column: if one row has `yes` in that column, `@default@` fills with that row's key.
 *   `@column@` — the dispatch row's filter column name (transforms apply, e.g. `@column:toPascal@`). Available in both row-region and per-row fragment expansion.
 
+#### Slot Regions
+A slot in a root template may be written as a region — `@identifier:begin@ … @identifier:end@` — instead of the bare `@identifier@`. The text between the two marker lines is the body that a fragment file would otherwise hold, and it expands exactly as that fragment would: once per row, with every per-row placeholder available. A dispatch row leaves its `template` cell **empty** to say "my body is the region in the root".
+
+This is the answer to the one-line fragment. A file whose entire content is a single line of output is a file for the sake of a file: the manifest already says which table feeds which slot, so the line belongs where it is emitted. Objects with real structure — a struct with a map, an enum and methods — still earn a fragment file, because their body is the thing being maintained.
+
+Both sources feed one slot: a slot may be filled by region rows and fragment-file rows at the same time, and their output concatenates in manifest order at the region's location.
+
+**The region's name is read by the file's role.** The manifest already declares which files are roots (`## generated`) and which are fragments (`## dispatch`), so there is nothing to guess: in a **root**, a region name is a **slot**; in a **fragment**, a region name is a **column**, and `@row@` means every row. One spelling, one meaning per role.
+
+**Enforcement.** All five are FATAL:
+*   A region in a root names something that is not a declared slot.
+*   A region in a fragment names something that is not a column of the matched table.
+*   A dispatch row has neither source — its `template` cell is empty and no root declares a region for its slot — or a slot's region exists but no dispatch row ever feeds it.
+*   `row` is used as a slot name. It is reserved for the all-rows region.
+*   A slot appears in more than one root, or in none.
+
 ### 3. Manifest (`CAST.md`)
 The manifest is the "brain" of the operation. It contains four specific GFM tables that tell CAST how to combine Relations and Templates:
 
-*   `## outputs` — Maps a **Root Template** → **Output File Path** (columns: `template | output`, output right-most). Relations are always the `.md` files directly inside the `tables` directory beside the manifest.
+*   `## generated` — Maps a **Root Template** → **Output File Path** → **Separator Template** (columns: `template | output | separator`). Relations are always the `.md` files directly inside the `tables` directory beside the manifest. The `separator` cell names a template whose expanded text is placed between consecutive fragments of every slot in that output; leave it empty for no separator. Because the separator is a template rather than an engine constant, each language supplies its own — a C++ manifest points at a rule comment, another language at whatever its convention is.
 *   `## dispatch` — Maps a **(Table, Column, Value or Presence)** → **Fragment Template** → **Slot Name**. This is how you tell CAST to use different fragments based on a cell's value (or simply if a cell exists).
+    A dispatch row may also carry a `type` cell. Its text fills `@type@` in that row's fragment and root expansion, and defaults to `int` when the cell or the whole column is absent. `@type@` keeps one fragment serving tables whose keys are of different types — the type is a parameter of the dispatch, not a reason to copy the template.
+    A dispatch row may also carry a `symbol` cell naming a transform from the vocabulary below. `@symbol@` fills with that transform applied to the **table name**; an absent cell or column fills it with the table name exactly as authored. A template hardcodes a transform — `@table:toPascal@` — only where that transform is **uniform** across every table the fragment serves. The moment one table needs a different projection, the transform belongs in the dispatch row and the fragment writes `@symbol@`, because a format that varies per table is data, not layout.
+    A dispatch row may also carry a `projection` cell naming a transform from the vocabulary below. It applies to **empty cells only**: an empty cell normally resolves to the row key verbatim, and under a declared projection it resolves to that transform applied to the row key. Authored cells — literal text, a transform name, `@row@`, a backtick literal — are never touched, and column 0 is never touched. This is how a table states "every unstated cell is the key in this shape" once, instead of repeating the shape in every row.
+    A dispatch row may also carry `from` and `to` cells, each naming an **expression transform** (the `from*` family in the vocabulary below). They let one fragment serve every map-shaped table: `@from@` fills with the from-transform applied to the row's key source — the `format` cell when the table has one and it resolves non-empty, the column-0 cell otherwise — and `@to@` fills with the to-transform applied to the row's `value` cell. Each expression transform also implies the C++ type of the expression it emits, and `@from:type@` / `@to:type@` fill with those types, so a fragment spells `jam::HashMap<@from:type@, @to:type@>` and the type pair is derived from the emission — never authored, never able to drift. Empty `from`/`to` cells publish nothing; rows without them are untouched.
 *   `## transforms` — Maps a **Column** to a specific text transformation (see Transform Vocabulary below).
 *   `## constraints` — Maps a **Column** to a validation rule (see Predicate Vocabulary below), such as Foreign Keys.
 
 > **FATAL MANIFEST ERRORS:** CAST will immediately crash if it detects:
 > *   An **Orphan template** (a template file not referenced by the manifest).
-> *   An **Undeclared output** (an output file generated outside of `## outputs`).
-> *   An **Unmapped fragment** (a fragment missing from dispatch, or a dispatch pointing to a non-existent fragment).
+> *   An **Undeclared output** (an output file generated outside of `## generated`).
+> *   A **Missing separator template** (a `## generated` row naming a separator file that does not exist).
+> *   An **Unmapped fragment** (a fragment missing from dispatch, or a dispatch naming a fragment file that does not exist). A dispatch row with an **empty** `template` cell names no file by design — it is fed by its slot's region in the root (see Slot Regions).
 
 ---
 
 ## Canon Files
 
-Every CAST-driven project declares its generation inputs in three canon files:
+Every CAST-driven project declares its generation inputs in the canon files:
 
 | File | Role |
 |------|------|
 | `CAST.md` | Codegen Annotated Source of Truth — the manifest |
 | `lexicon.md` | Every entity declared once: `\| name \| value \|` |
 | `relations.md` | m:n mappings between lexicon entities |
+| `chars.md` | Single characters — framework-owned, generates `namespace chars` |
+| `files.md` | Filenames with extensions — generates `namespace files` |
+| `extensions.md` | File-extension / info-string tokens, one per row — generates `namespace extensions` (framework-owned; projects consume `extensions::` directly) |
+| `localisation-lang.md` | The only long-text home, one file per language — generates `namespace text::lang` |
+
+The reference registry is the union of the declaration tables — `## lexicon`, `## chars`, `## files`, `## extensions`. A relation cell may reference an entity from any of them; the word is declared exactly once, in exactly one table.
 
 **Entity rules:**
 *   An entity is unique, whole, and opaque. `UI`, `scale`, and `UI scale` are three independent declarations — CAST never decomposes or derives one from another.
 *   Uniqueness is global and case-insensitive. First declaration wins and fixes the casing.
-*   Word boundaries (spaces) and per-word casing are stored data — the declaration is the single source of every projected form.
+*   Word boundaries (spaces) and per-word casing are stored data — the declaration is the single source of every projected form. The declared casing is exactly what `@entry@` emits.
+*   Casing at emission belongs to the template, via transform tags backed by the closed Transform Vocabulary's case family (`toTitle`/`toPascal`/`toCamel`/`toKebab`). An all-uppercase declared word is an abbreviation and passes through `toTitle`/`toPascal`/`toCamel` intact — see Transform Vocabulary below for the full rule and examples (`fail hazard URI` → `failHazardURI`).
+*   A value wrapped in backticks is a byte-exact literal — every authored character, including leading/trailing spaces and raw non-ASCII bytes, survives untouched. This holds even though `lexicon.md`/`relations.md` are themselves markdown: CAST reads a backtick-wrapped cell's pre-formatting source text, not markdown's rendered form, so authored whitespace is never trimmed and multi-byte glyphs are never corrupted by markdown's own inline rules.
 *   Every use outside the declaration — relation cells, template tags — is a reference, resolved case-insensitively. Referencing an undeclared entity is a **FATAL** generation error:
     > `tables/relations.md: entity not declared in lexicon: myMissingEntity`
+*   A row whose column-0 cell is solely dash characters (one or more `-`, nothing else) is a visual separator, not data. GFM parses it as an ordinary row, but CAST skips it everywhere a row is enumerated — the lexicon registry, dispatch row-matching, and uniqueness/constraint scans:
+    ```markdown
+    | name    | value |
+    | ------- | ----- |
+    | alpha   | 1     |
+    | ------- |       |
+    | beta    | 2     |
+    ```
+    The `| ------- |` row above is invisible to CAST — `alpha` and `beta` are the only two entities declared.
+*   A `name` column entry is validated at declaration: **FATAL** if it is a plain number, starts with a digit, contains any character outside `[a-z A-Z 0-9 space]`, or exceeds 40 characters.
+*   A `value` that byte-equals a case-family projection of its own `name` (`toTitle`/`toPascal`/`toCamel`/`toKebab`/`toSnake`/`toScreamingSnake`) is **FATAL** — redundant data the template already projects. Delete the value and let the template project the name:
+    > `tables/lexicon.md:12 (name): value byte-equals toPascal projection of name; delete it, let the template project it`
+
+**Division of labor:** the table is the mapping. The template is a cookie cutter — placeholder substitution only. Logic belongs to the engine, never the table or the template.
 
 ---
 
@@ -151,26 +198,7 @@ inline const juce::Identifier blockQuote { "blockquote" };
 inline const juce::Identifier dataWidth { "data-width" };
 ```
 
-### 2. Char constants — per-placeholder transforms
-
-```markdown
-## characters
-| key   | glyph |
-| ----- | ----- |
-| at    | @     |
-| space | 0x20  |
-```
-```cpp
-// template/Char.h
-inline constexpr juce::juce_wchar @key@ { @glyph:codepointHex@ };///< @glyph:codepointLabel@
-```
-```cpp
-// generated — one column, two projections via @column:transform@
-inline constexpr juce::juce_wchar at { 0x40 };///< U+0040
-inline constexpr juce::juce_wchar space { 0x20 };///< U+0020
-```
-
-### 3. String constants — literals survive via backticks
+### 2. String constants — literals survive via backticks
 
 ```markdown
 ## localisationText
@@ -188,7 +216,7 @@ inline const juce::String buttonOk { "OK" };
 inline const juce::String cliPrefix { "--" };
 ```
 
-### 4. Operator struct — row region + `@table:toPascal@`
+### 3. Operator struct — row region + `@table:toPascal@`
 
 ```markdown
 ## xmlOperators
@@ -222,20 +250,20 @@ struct XmlOperators
 ```
 One template, many structs: give each dispatch row a unique key and point its `source` column at a different table — `xmlOperatorStruct → xmlOperators`, `cssOperatorStruct → cssOperators` — all through the same `template/Operator.h`.
 
-### 5. Bimap — `entry` table + table-level placeholders
+### 4. Bimap — `entry` table + table-level placeholders
 
 ```markdown
 ## Screen
-| entry | value | views | default |
-| ----- | ----- | ----- | ------- |
-| main  | 0     |       | yes     |
-| alt   | 1     |       |         |
+| entry | value | format | default |
+| ----- | ----- | ------ | ------- |
+| main  | 0     |        | yes     |
+| alt   | 1     |        |         |
 ```
 ```cpp
 // template/Bimap.h (excerpt) — @default@ fills with the key of the first row marked in that column
-struct @table@ : public jam::Bimap<@table@>
+struct @table@ : public jam::Bimap<@table@, juce::String, @type@>
 {
-    enum value
+    enum value : @type@
     {
 @row:begin@
         @entry@ = @value@,
@@ -246,9 +274,9 @@ struct @table@ : public jam::Bimap<@table@>
 };
 ```
 ```cpp
-struct Screen : public jam::Bimap<Screen>
+struct Screen : public jam::Bimap<Screen, juce::String, int>
 {
-    enum value
+    enum value : int
     {
         main = 0,
         alt = 1,
@@ -259,7 +287,30 @@ struct Screen : public jam::Bimap<Screen>
 ```
 Column 0 is `entry` because `main` and `alt` are declared once in a `key` table elsewhere — the bimap only references them.
 
-### 6. Relational HashMap — `entry` + `toString`
+**Ordinal derivation:** an enum's ordinals derive from its relation row's authored position — never a stored column. The lexicon and relation tables carry no ordinal data at all; `@row:index@` (SPEC §3.2, zero-based, scoped to the matched row set of one dispatch row) supplies the position directly, so a `value` column like example 5's above becomes unnecessary:
+
+```markdown
+## Screen
+| entry | default |
+| ----- | ------- |
+| main  | yes     |
+| alt   |         |
+```
+```cpp
+// template/Bimap.h (excerpt) — @row:index@ replaces a stored `value` column
+        @entry@ = @row:index@,
+```
+```cpp
+        main = 0,
+        alt = 1,
+```
+Before/after: dropping the stored `value` column and swapping `@value@` for `@row:index@` in the fragment produces byte-identical output — the ordinals were always just row position.
+
+**One fragment, every shape.** Nothing above is specific to `Screen`. A table whose keys are declared elsewhere and a table whose keys are its own declarations both fill `@entry@`; tables with different key types both fill `@type@` from the dispatch row; a key that is a symbol rather than a number is just another `value` cell; a column of unstated strings is a `projection` on the dispatch row. Where two tables of the same kind differ, the difference belongs in the table, the dispatch row, or a placeholder — never in a second copy of the template. A fragment legitimately forks only when it differs in *structure*: platform-conditional output, for instance, is one fragment whose body is three filtered row regions over `mac`/`win`/`linux` columns.
+
+`@row:index@` is zero-based **per dispatch row**, not per table: a dispatch table with a `platform` column filtering `mac` rows through one dispatch row and `win` rows through another gives each platform's matched row set its own independent 0-based sequence (`expandRowRegions()` resets `rowIndex` to 0 on every call, and `buildSlotResults()` calls it once per dispatch row). Two platform-filtered Bimaps each start at `0` — the intended shape for per-platform enums.
+
+### 5. Relational HashMap — `from`/`to` on the dispatch row
 
 ```markdown
 ## atRuleType
@@ -268,15 +319,46 @@ Column 0 is `entry` because `main` and `alt` are declared once in a `key` table 
 | atRuleMedia   | CssRuleType::mediaRule   |
 | atRuleCharset | CssRuleType::charsetRule |
 ```
-```cpp
-// template/IdToIntDefaultHashMap.h (row body)
-            { @entry:toString@, Id::@value@ },
+```markdown
+## dispatch (excerpt)
+| table      | column | from   | to      | template           | placeholder |
+| atRuleType | entry  | fromId | fromMap | template/HashMap.h | hashmap     |
 ```
 ```cpp
-// generated — runtime map keyed by identifier strings
-            { Id::atRuleMedia.toString(), Id::CssRuleType::mediaRule },
-            { Id::atRuleCharset.toString(), Id::CssRuleType::charsetRule },
+// template/HashMap.h (row body) — the one fragment for every map shape
+            { @from@, @to@ },
 ```
+```cpp
+// generated — jam::HashMap<juce::String, int>, both spellings and both types derived from the transforms
+            { Id::atRuleMedia.toString(), map::CssRuleType::mediaRule },
+            { Id::atRuleCharset.toString(), map::CssRuleType::charsetRule },
+```
+
+### 6. Spec key table — component words + `format` override
+
+```markdown
+## Entity
+| key              | value  | format        |
+| ----------------- | ------ | ------------- |
+| aacute             | U+00E1 |               |
+| Aacute             | U+00C1 |               |
+| measured angle     | U+2221 | join          |
+| Long Left Arrow    | U+27F5 | join          |
+| differential d     | U+2146 | DifferentialD |
+```
+```cpp
+// dispatch row: from `fromLiteral`, to `fromCodepoint` — template/HashMap.h row body
+            { @from@, @to@ },
+```
+```cpp
+// generated — the from-transform reads the key source (format-else-key), the to-transform the value cell
+            { juce::String::fromUTF8 ("aacute"), ... },
+            { juce::String::fromUTF8 ("Aacute"), ... },
+            { juce::String::fromUTF8 ("measuredangle"), ... },
+            { juce::String::fromUTF8 ("LongLeftArrow"), ... },
+            { juce::String::fromUTF8 ("DifferentialD"), ... },
+```
+`key` carries the wire token split into its component words, each word keeping the spec's exact casing — case is the differentiator for a spec pair (`aacute` / `Aacute`), never a baked-in transform. `format` resolves the wire form: empty leaves `key` verbatim for a single-word token; `join` removes the spaces for a multi-word token, reassembling it byte-exact because every word already carries its true casing; a literal wire token (`DifferentialD`) overrides both when the readable `key` deliberately diverges from mechanical reconstruction.
 
 ### 7. LookupTable — `entry` + fixed prefix in the template
 
@@ -296,29 +378,65 @@ Column 0 is `entry` because `main` and `alt` are declared once in a `key` table 
             { Id::CssTokenType::comma, Chars::comma },
 ```
 
+### 8. Lexicon + Relations — declare once, reference by `entry`
+
+```markdown
+## lexicon
+| name             | value                |
+| ----------------- | --------------------- |
+| fail hazard URI   | contains URI scheme  |
+| hex prefix        | 0x                    |
+```
+```markdown
+## string
+| entry            |
+| ------------------ |
+| fail hazard URI   |
+```
+```cpp
+// template/String.h
+inline const juce::String @entry:toCamel@ { "@value@" };
+```
+```cpp
+// generated — @entry@ resolves the relations.md cell against the lexicon (case-insensitive);
+// @entry:toCamel@ projects the declared name; @value@ fills the lexicon's own value column
+inline const juce::String failHazardURI { "contains URI scheme" };
+```
+`fail hazard URI`'s all-uppercase word (`URI`) survives `toCamel` intact — the abbreviation rule (Canon Files, above), not a special case for this entity. The relation table names its column `entry` — never `name` or `key` — because it is a pure reference into the lexicon; the lexicon is the only place a `name` column ever appears.
+
 ---
 
 ## Transform Vocabulary (Closed Set)
-These are the only text transformations CAST can perform, applied via the `## transforms` table:
+These are the only text transformations CAST can perform, applied via the `## transforms` table. All six case-family transforms (`toTitle`, `toPascal`, `toCamel`, `toKebab`, `toSnake`, `toScreamingSnake`) share one rule: **an all-uppercase declared word is an abbreviation and is case-invariant — in every projection, every position** — `UI`, `URI`, `ID` never get title-cased, Pascal-cased, or lowercased into `Ui`/`Uri`/`Id`, whether they sit first, last, or anywhere between. Every other word normalizes strictly per each projection's own rule; position rules apply to normal words only. The entire vocabulary is owned by `jam::Format` — no transform is reimplemented cast-side; the engine registers the shared functions directly.
 
 1.  `toUpper` — Converts the value to uppercase.
-2.  `toTitle` — Converts to titlecase (useful for display names).
-3.  `toKebab` — Converts to kebab-case (e.g., `my-variable`). Space-separated words are lowercased and hyphen-joined: `data width` becomes `data-width`. Non-spaced input uses the existing kebab conversion.
-4.  `escapeCpp` — Escapes for C string literals: `"` becomes `\"`, `\` becomes `\\`, non-ASCII bytes become `\xNN`.
-5.  `utf8Bytes` — Converts `U+XXXX` codepoint tokens into UTF-8 `\xNN` byte escape sequences.
-6.  `codepointHex` — Converts a glyph or `0xNN` cell into a minimal lowercase `0xNN` integer literal.
-7.  `codepointLabel` — Converts a codepoint into a zero-padded `U+XXXX` notation.
-8.  `qualifySymbol` — Adds a namespace to a two-part symbol (e.g., `A::b` becomes `juce::A::b`). Leaves three-or-more part symbols verbatim.
-9.  `symbolFromFile` — Replaces dots with underscores to create a `BinaryData` symbol from a filename.
-10. `toPascal` — Uppercases the first character of each space-separated word and joins them: `xml operators` becomes `XmlOperators`; `UI scale` becomes `UIScale`. Single-word input uppercases the first character only, preserving the rest.
-11. `toString` — Wraps a bare identifier word as an identifier-string expression: `charset` becomes `Id::charset.toString()`. Used by relational templates whose runtime maps are keyed by identifier strings.
-12. `toCamel` — Joins space-separated words into camelCase: first word entirely lowercased, each remaining word's first character uppercased. `hex prefix` becomes `hexPrefix`; `UI scale` becomes `uiScale`. Single words are lowercased: `Generated` becomes `generated`.
+2.  `toTitle` — Converts to titlecase (useful for display names). Each word's first letter uppercases, the rest lowercases — except abbreviations, which stay exactly as declared: `ui scale` becomes `UI Scale`.
+3.  `toKebab` — Converts to kebab-case (e.g., `my-variable`). Non-abbreviation words lowercase and hyphen-join; abbreviations pass through intact: `data width` becomes `data-width`; `fail hazard URI` becomes `fail-hazard-URI`. Non-spaced input uses the existing kebab conversion.
+4.  `toLiteral` — Renders the value as string-literal text: a bare `"` becomes `\"`, non-ASCII bytes become `\xNN`. Cells carry escape semantics: an authored backslash and the character after it pass through as one untouched pair, so `\n` means a newline, `\\` means one literal backslash, and `\"` means one quote — the author writes escape sequences, the transform never re-escapes them.
+5.  `toUTF8` — Converts `U+XXXX` codepoint tokens into UTF-8 `\xNN` byte escape sequences.
+6.  `toHex` — Converts a glyph or `0xNN` cell into a minimal lowercase `0xNN` integer literal.
+7.  `toCodepoint` — Converts a glyph or `0xNN` cell into zero-padded `U+XXXX` codepoint notation.
+8.  `toSymbol` — Qualifies a two-part symbol with its owning namespace (e.g., `A::b` becomes `juce::A::b`). Leaves three-or-more part symbols verbatim.
+9.  `toPascal` — Uppercases the first letter of each space-separated word and joins them, abbreviations passing through whole: `xml operators` becomes `XmlOperators`; `UI scale` becomes `UIScale`; `fail hazard URI` becomes `FailHazardURI`. Single-word input follows the same rule — a non-abbreviation word capitalizes its first letter, an abbreviation is already correct.
+10. `fromId` — Expression transform: emits the referenced entity's **own declared symbol**, resolved by its declaring table — a lexicon-declared entity projects `Id::charset.toString()`; an extensions-declared entity projects `extensions::cpp`. One declaration, one generated constant, every reference emits it. Implied type `juce::String` in every case.
+11. `toCamel` — Joins space-separated words into camelCase: a non-abbreviation first word lowercases in full; an abbreviation first word passes through intact — an abbreviation never lowercases, in any position. Every remaining word Pascal-joins per the `toPascal` rule above. `hex prefix` becomes `hexPrefix`; `UI scale` becomes `UIScale`; `fail hazard URI` becomes `failHazardURI`. Single non-abbreviation words lowercase in full: `Generated` becomes `generated`.
+12. `toSnake` — Underscore-joins space-separated words: non-abbreviation words lowercase; abbreviations pass through intact: `clamp to border` becomes `clamp_to_border`; `scale X` becomes `scale_X`. A wire format that demands a lowercased abbreviation authors the literal value instead of projecting.
+13. `toScreamingSnake` — Uppercases space-separated words and underscore-joins them: `clamp to border` becomes `CLAMP_TO_BORDER`.
+14. `join` — Removes the spaces between words, case untouched: `Long left arrow` becomes `Longleftarrow`. Used by spec key tables (Cookbook, above), where each word already carries its own exact casing.
+15. `fromMap` — Expression transform: prefixes the cell verbatim with `map::` — `BlockType::document` becomes `map::BlockType::document`. Implied type `int`.
+16. `fromIdentifier` — Expression transform: `Id::` plus the cell's camel projection — `body` becomes `Id::body`. Implied type `juce::Identifier`.
+17. `fromLiteral` — Expression transform: wraps the cell's `toLiteral` escaping in a `juce::String::fromUTF8 ("…")` constructor. Implied type `juce::String`.
+18. `fromCodepoint` — Expression transform: wraps the cell's `toUTF8` conversion in a `juce::String::fromUTF8 ("…")` constructor. Implied type `juce::String`.
+
+**Expression transforms.** The `from*` family emits C++ expressions rather than text: each member fixes both the spelling of the emitted expression and the C++ type it evaluates to. The dispatch `from`/`to` cells consume them (Manifest, above), and `@from:type@` / `@to:type@` publish the implied types — one declaration site for the emission-type pairing.
+
+**Non-ASCII keys.** A table key may contain any character — accented colour names, subscripts, symbols. Two separate rules keep the generated source portable. The identifier-producing transforms (the case family) fold each non-ASCII character to its ASCII equivalent before joining, so `Blanc Cassé` projects `blancCasse`; a character with no known equivalent collapses to a single underscore. The string-producing path leaves the characters alone and lets an escaping transform render them as byte escapes, so the authored spelling survives verbatim in the emitted literal. Generated source therefore need never carry a raw byte above 127, whatever the tables hold.
 
 ### Per-Placeholder Transforms
 A placeholder may name a transform after a colon — `@column:transformName@` — and fills with that transform applied to the column's resolved cell value for the row being expanded. A transform named in the placeholder applies to that placeholder only; the `## transforms` table continues to govern the plain `@column@` placeholder. The transform name must be in the closed transform vocabulary above.
 
 ```cpp
-inline constexpr juce::juce_wchar @key@ { @glyph:codepointHex@ };///< @glyph:codepointLabel@
+inline constexpr juce::juce_wchar @key@ { @glyph:toHex@ };///< @glyph:toCodepoint@
 ```
 
 ---
@@ -360,6 +478,14 @@ There are no warnings. Every failure is **FATAL**.
     The classic cause: the template says `@key@` but the table's column 0 is `entry` (or vice versa) — the *available here* list shows which one the table actually provides.
 *   A duplicate declaration names both the offender and the original:
     > `tables/cssCodePoints.md: duplicate "closeParen" already declared at tables/cast.md`
+*   A lexicon `name` failing declaration validation names the violated rule and the offending name:
+    > `tables/lexicon.md:5 (name): name is a plain number: 123`
+    > `tables/lexicon.md:6 (name): name starts with a digit: 1abc`
+    > `tables/lexicon.md:7 (name): name contains a character outside [a-zA-Z0-9 space]: bad$name`
+    > `tables/lexicon.md:8 (name): name exceeds 40 characters: aVeryLongNameThatOverflowsTheFortyCharacterLimit`
+*   A redundant lexicon value names the matching transform:
+    > `tables/lexicon.md:12 (name): value byte-equals toPascal projection of name; delete it, let the template project it`
+*   Every `file:row` in a diagnostic is the row's true physical line in the source file — not its ordinal position among the table's rows. A table preceded by prose, blank lines, or separator rows still reports the line you'd land on in an editor.
 
 *(Note: Because CAST fails during the configure phase, a failing CAST run will prevent your compilation toolchain from even starting.)*
 

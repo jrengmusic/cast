@@ -76,14 +76,14 @@ static juce::Result validatePlaceholders (const juce::File& templateFile,
             juce::StringArray availableKeys;
 
             for (const auto& [availableName, availableValue] : values)
-                availableKeys.add (Id::charAt + availableName + Id::charAt);
+                availableKeys.add (juce::String::charToString (chars::at) + availableName + juce::String::charToString (chars::at));
 
             return juce::Result::fail (getLocation (templateFile.getFullPathName(), row, placeholderName)
-                                       + Id::diagnosticSeparator + Id::failNoSource
+                                       + Id::diagnosticSeparator + text::en::failNoSource
                                        + Id::diagnosticSeparator + placeholderName
-                                       + Id::charNewline + context
-                                       + Id::charNewline + Id::availableLabel
-                                       + availableKeys.joinIntoString (Id::charSpace));
+                                       + juce::String::charToString (chars::newline) + context
+                                       + juce::String::charToString (chars::newline) + Id::availableLabel
+                                       + availableKeys.joinIntoString (juce::String::charToString (chars::space)));
         }
     }
 
@@ -110,8 +110,8 @@ struct TemplateEngine
         for (const auto& [placeholderName, placeholderValue] : values)
             result = jam::Format::replaceholder (result, placeholderName, getPlaceholderValue (placeholderValue));
 
-        return result.replace (Id::charCarriageReturn + Id::charNewline, Id::charNewline)
-            .replace (Id::charCarriageReturn, Id::charNewline);
+        return result.replace (juce::String::charToString (chars::carriageReturn) + juce::String::charToString (chars::newline), juce::String::charToString (chars::newline))
+            .replace (juce::String::charToString (chars::carriageReturn), juce::String::charToString (chars::newline));
     }
 
     /**

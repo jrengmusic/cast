@@ -17,24 +17,125 @@ namespace cast
 static juce::String
 getLocation (const juce::String& sourceFile, int rowNumber, const juce::String& columnName)
 {
-    return sourceFile + Id::charColon + juce::String (rowNumber) + Id::charSpace + Id::charOpenParen
-           + columnName + Id::charCloseParen;
+    return sourceFile + juce::String::charToString (chars::colon) + juce::String (rowNumber) + juce::String::charToString (chars::space) + juce::String::charToString (chars::openParen)
+           + columnName + juce::String::charToString (chars::closeParen);
 }
 
 /**
- * @brief Resolves a row key to its 1-based authored row number.
+ * @brief Resolves a row key to its 1-based physical file line number.
+ *
+ * Reads the row's own byte offset (jam::MarkdownDocument stamps every table
+ * row with Id::offset at parse time) via a keyed getTableRow() probe, then
+ * resolves it to a line number against jam::Document's line-start cache
+ * (built once per parse()) -- O(1) probe plus a binary search, zero
+ * allocation, no re-scan of the source text.
  *
  * @param root      The parsed relation document.
  * @param tableName The relation (table) name.
  * @param rowKey    The row's column-0 key.
- * @return The row's 1-based position in authored order.
+ * @return The row's 1-based physical file line number.
  */
 static int
-getRowNumber (const jam::MarkdownDocument& root, const juce::String& tableName, const juce::String& rowKey)
+getRowLineNumber (const jam::MarkdownDocument& root, const juce::String& tableName, const juce::String& rowKey)
 {
-    const auto rowIndex { root.getTableRowKeys (juce::Identifier (tableName)).indexOf (rowKey) };
+    const auto* row { root.getTableRow (juce::Identifier (tableName), juce::Identifier (rowKey)) };
+    jassert (row != nullptr);
 
-    return rowIndex < 0 ? 0 : rowIndex + 1;
+    const auto offset { static_cast<uint32_t> (*row->get<int> (Id::offset)) };
+    return static_cast<int> (root.getLineNumber (offset));
+}
+
+/**
+ * @brief SPEC (Canon Files): reports whether a row is a visual separator.
+ *
+ * A row whose column-0 key consists solely of dash characters (one or
+ * more `-`, nothing else) is authored for readability, not data -- GFM
+ * parses it as an ordinary row, but CAST skips it everywhere a row is
+ * enumerated: the lexicon registry, dispatch row-matching, and
+ * uniqueness/constraint scans.
+ *
+ * @param rowKey The row's column-0 key.
+ * @return True when @p rowKey is a non-empty run of dash characters.
+ */
+static bool isSeparatorRow (const juce::String& rowKey) noexcept
+{
+    return rowKey.isNotEmpty() and rowKey.containsOnly (juce::String::charToString (chars::dash));
+}
+
+static constexpr int maxLexiconNameLength { 40 };
+
+/** @brief SPEC (Canon Files): reports whether @p text exceeds maxLexiconNameLength. */
+static bool isTooLong (const juce::String& text) noexcept
+{
+    return text.length() > maxLexiconNameLength;
+}
+
+/**
+ * @brief SPEC (Canon Files): validates a lexicon `name` column entry.
+ *
+ * FATAL when the name is a plain number, starts with a digit, contains a
+ * character outside [a-zA-Z0-9 space], or exceeds maxLexiconNameLength.
+ * The returned failure carries no location prefix -- the caller wraps
+ * getErrorMessage() with a lazily computed SPEC §8 location.
+ *
+ * @param name The lexicon entry's row key (its declared name).
+ * @return juce::Result::ok() when @p name satisfies every rule; otherwise
+ *         the first violated rule's failure.
+ */
+static juce::Result validateLexiconName (const juce::String& name)
+{
+    const auto isDigit { [] (juce::juce_wchar character) noexcept
+                         { return character >= chars::zero and character <= chars::nine; } };
+    const auto isNameChar { [&isDigit] (juce::juce_wchar character) noexcept
+                            { return isDigit (character)
+                                     or (character >= chars::lowerA and character <= chars::lowerZ)
+                                     or (character >= chars::upperA and character <= chars::upperZ)
+                                     or character == chars::space; } };
+
+    if (std::all_of (name.begin(), name.end(), isDigit))
+        return juce::Result::fail (text::en::failNameNumeric + Id::diagnosticSeparator + name);
+
+    if (isDigit (name[0]))
+        return juce::Result::fail (text::en::failNameLeadingDigit + Id::diagnosticSeparator + name);
+
+    if (not std::all_of (name.begin(), name.end(), isNameChar))
+        return juce::Result::fail (text::en::failNameInvalidChar + Id::diagnosticSeparator + name);
+
+    if (isTooLong (name))
+        return juce::Result::fail (text::en::failTooLong + juce::String (maxLexiconNameLength)
+                                   + text::en::failTooLongSuffix + Id::diagnosticSeparator + name);
+
+    return juce::Result::ok();
+}
+
+
+/**
+ * @brief SPEC (Canon Files): FATAL when a lexicon value byte-equals a
+ *        case-family projection of its own name.
+ *
+ * The value is then redundant -- the author should delete it and let the
+ * template project the name via a transform tag instead. Checks all six
+ * case-family projections (toTitle, toPascal, toCamel, toKebab, toSnake,
+ * toScreamingSnake) via the registered Transforms::.
+ *
+ * @param name  The lexicon entry's declared name.
+ * @param value The entry's stored, non-empty, non-backtick-literal value.
+ * @return juce::Result::ok() when @p value matches none of the six
+ *         projections; otherwise the first match's failure, naming the
+ *         matching transform. The returned failure carries no location
+ *         prefix -- the caller wraps getErrorMessage() with a lazily
+ *         computed SPEC §8 location.
+ */
+static juce::Result
+validateLexiconValueRedundancy (const juce::String& name, const juce::String& value)
+{
+    for (const auto& transformName :
+        { Id::toTitle.toString(), Id::toPascal.toString(), Id::toCamel.toString(), Id::toKebab.toString(),
+          Id::toSnake.toString(), Id::toScreamingSnake.toString() })
+        if (value == Transforms::getTransformed (transformName, name))
+            return juce::Result::fail (text::en::failRedundantValue + transformName + text::en::failRedundantValueSuffix);
+
+    return juce::Result::ok();
 }
 
 /**
@@ -57,16 +158,48 @@ static jam::Array<juce::String> getConstraintTargetTables (const jam::MarkdownDo
     {
         const auto predicateArgs {
             manifestDoc.getTableValue (Id::constraints, Id::predicate, constraintKey)
-                .fromFirstOccurrenceOf (Id::charSpace, false, false)
+                .fromFirstOccurrenceOf (juce::String::charToString (chars::space), false, false)
                 .trim()
         };
 
-        if (predicateArgs.containsChar (Chars::dot))
+        if (predicateArgs.containsChar (chars::dot))
             targetTables.addIfNotAlreadyThere (
-                predicateArgs.upToFirstOccurrenceOf (Id::charDot, false, false));
+                predicateArgs.upToFirstOccurrenceOf (juce::String::charToString (chars::dot), false, false));
     }
 
     return targetTables;
+}
+
+/**
+ * @brief Reads one named column's cell text from a `## dispatch` row.
+ *
+ * `## dispatch` rows are addressed by Element*, not by key: the same key
+ * legitimately labels more than one row (a table dispatched twice, once per
+ * template). Resolves @p columnId's position in the dispatch table's header
+ * row, then reads the cell at that position out of @p row, following
+ * buildPerRowMap()'s cells-array-plus-bounds-guard pattern.
+ *
+ * @param manifestDoc The parsed manifest, supplying the `## dispatch` headers.
+ * @param row         The dispatch row to read (see jam::MarkdownDocument::getTableRows()).
+ * @param columnId    The column to read.
+ * @return The cell's plain text, or an empty string when @p columnId is not a
+ *         dispatch column or @p row has fewer cells than that column's index.
+ */
+static juce::String getDispatchCell (const jam::MarkdownDocument& manifestDoc,
+                                     const jam::Document::Element& row,
+                                     const juce::Identifier& columnId)
+{
+    const auto headers { manifestDoc.getTableHeaders (Id::dispatch) };
+    const auto columnIndex { headers.indexOf (columnId.toString()) };
+
+    jam::Array<jam::Document::Element*> cells;
+
+    for (auto* cell : row)
+        cells.add (cell);
+
+    return columnIndex >= 0 and columnIndex < cells.size()
+               ? cells.at (columnIndex)->getAllSubText()
+               : juce::String();
 }
 
 /**
@@ -98,6 +231,266 @@ static jam::Array<juce::String> getScannedTables (const jam::MarkdownDocument& r
     return scannedTables;
 }
 
+static const juce::String regionBeginSuffix { ":begin@" };
+static const juce::String regionEndSuffix { ":end@" };
+static const juce::String regionBeginKeySuffix { ":begin" };
+static const juce::String regionEndKeySuffix { ":end" };
+static const std::regex regionBeginPattern { "@([A-Za-z][A-Za-z0-9]*):begin@" };
+
+/// @brief One `@\<name\>:begin@` occurrence found while scanning a root or fragment template.
+struct RegionMarkerOccurrence
+{
+    juce::String name;
+    int index;
+};
+
+/// @brief A root-owned slot region: the root that declares it, and its per-row body text.
+struct SlotRegion
+{
+    juce::String rootTemplatePath;
+    juce::String body;
+};
+
+using SlotRegionMap = jam::HashMap<juce::String, SlotRegion>;
+
+/**
+ * @brief Resolves a byte offset in plain (non-markdown) template text to its 1-based line number.
+ *
+ * @param text       The template text.
+ * @param charOffset The 0-based character offset within @p text.
+ * @return The 1-based line number containing @p charOffset.
+ */
+static int getTextLineNumber (const juce::String& text, int charOffset) noexcept
+{
+    return juce::jmax (1, juce::StringArray::fromLines (text.substring (0, charOffset)).size());
+}
+
+/**
+ * @brief Finds every `@\<name\>:begin@` region-begin marker in @p text.
+ *
+ * @param text The template text to scan.
+ * @return Every marker found, each carrying its captured name and byte offset.
+ */
+static jam::Array<RegionMarkerOccurrence> findRegionBeginMarkers (const juce::String& text)
+{
+    jam::Array<RegionMarkerOccurrence> markers;
+    const std::string source { text.toStdString() };
+
+    for (auto match { std::sregex_iterator (source.begin(), source.end(), regionBeginPattern) };
+         match != std::sregex_iterator();
+         ++match)
+        markers.add ({ juce::String (match->str (1)), static_cast<int> (match->position (0)) });
+
+    return markers;
+}
+
+/**
+ * @brief Engine feature: locates every root-owned slot region and validates its declaration.
+ *
+ * Rule 1: a region's name must be a slot declared in `## dispatch`'s placeholder column.
+ * Rule 4 (root half): a slot named `row` is reserved.
+ * Rule 5: every declared slot must appear, in exactly one root, either as a plain `@slot@`
+ * placeholder or as a region.
+ *
+ * @param manifestDoc  The parsed manifest.
+ * @param manifestFile The manifest file, for error locations.
+ * @param dir          The manifest's parent directory.
+ * @param slotNames    Every distinct slot name declared across `## dispatch`, in manifest order.
+ * @param slotRegions  Out parameter: every region found, keyed by slot name.
+ * @return juce::Result::ok() on success, or the first SPEC §8 failure.
+ */
+static juce::Result collectSlotRegions (const jam::MarkdownDocument& manifestDoc,
+                                        const juce::File& manifestFile,
+                                        const juce::File& dir,
+                                        const jam::Array<juce::String>& slotNames,
+                                        SlotRegionMap& slotRegions)
+{
+    for (const auto& slotName : slotNames)
+        if (slotName == Id::row.toString())
+            return juce::Result::fail (manifestFile.getFullPathName() + Id::diagnosticSeparator
+                                       + text::en::failRowReserved + Id::diagnosticSeparator + slotName);
+
+    jam::Array<juce::String> rootPaths;
+
+    for (const auto& outputKey : manifestDoc.getTableRowKeys (Id::generated))
+        rootPaths.addIfNotAlreadyThere (
+            manifestDoc.getTableValue (Id::generated, Id::templatePath, outputKey));
+
+    jam::HashMap<juce::String, int> slotRootCount;
+
+    for (const auto& rootPath : rootPaths)
+    {
+        const auto rootFile { dir.getChildFile (rootPath) };
+        const auto rootText { rootFile.loadFileAsString() };
+
+        jam::Array<juce::String> slotsSeenInThisRoot;
+        jam::Array<juce::Range<int>> regionSpans;///< Full line spans of every collected region, for the plain-placeholder scan.
+        int regionBodyEnd { 0 };///< Markers before this offset sit inside a collected region's body -- fragment-domain, not root slots.
+
+        for (const auto& marker : findRegionBeginMarkers (rootText))
+        {
+            if (marker.index < regionBodyEnd)
+                continue;
+
+            if (marker.name == Id::row.toString())
+                return juce::Result::fail (
+                    getLocation (rootFile.getFullPathName(), getTextLineNumber (rootText, marker.index), marker.name)
+                    + Id::diagnosticSeparator + text::en::failRowReserved + Id::diagnosticSeparator + marker.name);
+
+            if (not slotNames.contains (marker.name))
+                return juce::Result::fail (
+                    getLocation (rootFile.getFullPathName(), getTextLineNumber (rootText, marker.index), marker.name)
+                    + Id::diagnosticSeparator + text::en::failSlotUnknown + Id::diagnosticSeparator + marker.name);
+
+            if (slotsSeenInThisRoot.contains (marker.name))
+                continue;
+
+            slotsSeenInThisRoot.add (marker.name);
+            slotRootCount.addOrReplace (marker.name,
+                                        (slotRootCount.contains (marker.name) ? slotRootCount.at (marker.name) : 0) + 1);
+
+            const auto endMarkerText { juce::String::charToString (chars::at) + marker.name + regionEndSuffix };
+            const auto beginIndex { marker.index };
+            const auto bodyStart { rootText.indexOfChar (beginIndex, chars::newline) + 1 };
+            const auto endIndex { rootText.indexOf (bodyStart, endMarkerText) };
+
+            jassert (endIndex >= bodyStart);
+
+            regionBodyEnd = endIndex + endMarkerText.length();
+
+            const auto bodyEnd { rootText.substring (0, endIndex).lastIndexOfChar (chars::newline) + 1 };
+            const auto body { rootText.substring (bodyStart, bodyEnd) };
+
+            const auto spanStart { rootText.substring (0, beginIndex).lastIndexOfChar (chars::newline) + 1 };
+            const auto afterEndLine { rootText.indexOfChar (endIndex, chars::newline) };
+            const auto spanEnd { afterEndLine < 0 ? rootText.length() : afterEndLine + 1 };
+
+            regionSpans.add ({ spanStart, spanEnd });
+            slotRegions.insert ({ marker.name, { rootPath, body } });
+        }
+
+        // Rule 5's plain-placeholder scan reads the root with every region (markers
+        // and body alike) removed -- a region body is fragment-domain, so a plain
+        // @name@ inside one is a column placeholder, never a root slot.
+        juce::String rootOwnText;
+        int copyFrom { 0 };
+
+        for (const auto& span : regionSpans)
+        {
+            rootOwnText += rootText.substring (copyFrom, span.getStart());
+            copyFrom = span.getEnd();
+        }
+
+        rootOwnText += rootText.substring (copyFrom);
+
+        for (const auto& slotName : slotNames)
+        {
+            const auto plainMarker { juce::String::charToString (chars::at) + slotName
+                                    + juce::String::charToString (chars::at) };
+
+            if (not slotsSeenInThisRoot.contains (slotName) and rootOwnText.contains (plainMarker))
+                slotRootCount.addOrReplace (slotName,
+                                            (slotRootCount.contains (slotName) ? slotRootCount.at (slotName) : 0) + 1);
+        }
+    }
+
+    for (const auto& slotName : slotNames)
+    {
+        const auto count { slotRootCount.contains (slotName) ? slotRootCount.at (slotName) : 0 };
+
+        if (count == 0)
+            return juce::Result::fail (manifestFile.getFullPathName() + Id::diagnosticSeparator
+                                       + text::en::failSlotMissing + Id::diagnosticSeparator + slotName);
+
+        if (count > 1)
+            return juce::Result::fail (manifestFile.getFullPathName() + Id::diagnosticSeparator
+                                       + text::en::failSlotAmbiguous + Id::diagnosticSeparator + slotName);
+    }
+
+    return juce::Result::ok();
+}
+
+/**
+ * @brief Engine feature rule 3: every dispatch row must be fed by exactly one source.
+ *
+ * A row with an empty `template` cell is fed by its slot's region; a row with a
+ * non-empty `template` cell is fed by its fragment file. FATAL when a slot has no
+ * region and some row's `template` cell is empty ("neither"), or when a slot has a
+ * region that no row ever feeds because every row for that slot carries a
+ * non-empty `template` cell ("both").
+ *
+ * @param manifestDoc  The parsed manifest.
+ * @param manifestFile The manifest file, for error locations.
+ * @param dispatchRows Rows of the manifest's `## dispatch` table.
+ * @param slotRegions  Every root-owned slot region, keyed by slot name.
+ * @return juce::Result::ok() on success, or the first SPEC §8 failure.
+ */
+static juce::Result validateDispatchRegionPairing (const jam::MarkdownDocument& manifestDoc,
+                                                    const juce::File& manifestFile,
+                                                    const jam::Array<jam::Document::Element*>& dispatchRows,
+                                                    const SlotRegionMap& slotRegions)
+{
+    jam::Array<juce::String> slotNames;
+    jam::Array<juce::String> slotsWithEmptyTemplate;
+    jam::Array<juce::String> slotsWithNonEmptyTemplate;
+    jam::HashMap<juce::String, jam::Document::Element*> firstEmptyRow;
+    jam::HashMap<juce::String, jam::Document::Element*> firstNonEmptyRow;
+
+    for (auto* dispatchRow : dispatchRows)
+    {
+        const auto slotName { getDispatchCell (manifestDoc, *dispatchRow, Id::placeholder) };
+        const auto templateCell { getDispatchCell (manifestDoc, *dispatchRow, Id::templatePath) };
+
+        slotNames.addIfNotAlreadyThere (slotName);
+
+        if (templateCell.isEmpty())
+        {
+            slotsWithEmptyTemplate.addIfNotAlreadyThere (slotName);
+
+            if (not firstEmptyRow.contains (slotName))
+                firstEmptyRow.insert ({ slotName, dispatchRow });
+        }
+        else
+        {
+            slotsWithNonEmptyTemplate.addIfNotAlreadyThere (slotName);
+
+            if (not firstNonEmptyRow.contains (slotName))
+                firstNonEmptyRow.insert ({ slotName, dispatchRow });
+        }
+    }
+
+    for (const auto& slotName : slotNames)
+    {
+        const auto isRegionOwned { slotRegions.contains (slotName) };
+        const auto hasEmpty { slotsWithEmptyTemplate.contains (slotName) };
+        const auto hasNonEmpty { slotsWithNonEmptyTemplate.contains (slotName) };
+
+        if (hasEmpty and not isRegionOwned)
+        {
+            const auto* row { firstEmptyRow.at (slotName) };
+            const auto rowOffset { static_cast<uint32_t> (*row->get<int> (Id::offset)) };
+            const auto rowLine { static_cast<int> (manifestDoc.getLineNumber (rowOffset)) };
+
+            return juce::Result::fail (
+                getLocation (manifestFile.getFullPathName(), rowLine, Id::templatePath.toString())
+                + Id::diagnosticSeparator + text::en::failRegionSourceMissing + Id::diagnosticSeparator + slotName);
+        }
+
+        if (isRegionOwned and hasNonEmpty and not hasEmpty)
+        {
+            const auto* row { firstNonEmptyRow.at (slotName) };
+            const auto rowOffset { static_cast<uint32_t> (*row->get<int> (Id::offset)) };
+            const auto rowLine { static_cast<int> (manifestDoc.getLineNumber (rowOffset)) };
+
+            return juce::Result::fail (
+                getLocation (manifestFile.getFullPathName(), rowLine, Id::templatePath.toString())
+                + Id::diagnosticSeparator + text::en::failRegionUnfed + Id::diagnosticSeparator + slotName);
+        }
+    }
+
+    return juce::Result::ok();
+}
+
 /**
  * @brief SPEC §7.1 `matches \<regex\>` — cell matches the pattern.
  *
@@ -120,18 +513,24 @@ static juce::Result predicateMatches (const juce::String& value,
     return std::regex_match (value.toStdString(), pattern)
                ? juce::Result::ok()
                : juce::Result::fail (
-                     getLocation (sourceFile, getRowNumber (root, tableName, rowKey), columnName)
+                     getLocation (sourceFile, getRowLineNumber (root, tableName, rowKey), columnName)
                      + Id::diagnosticSeparator + Id::matches.toString() + Id::diagnosticSeparator
-                     + Id::failNoMatch + Id::diagnosticSeparator + value);
+                     + text::en::failNoMatch + Id::diagnosticSeparator + value);
 }
 
 /**
- * @brief SPEC §7.2 `unique` — column uniqueness across the declared column set.
+ * @brief SPEC §7.2 `unique` — key uniqueness across the declared column set.
  *
- * Scans every table of every relation that declares the constrained column
- * (dispatched or not) and reports the first repeated value in authored scan
- * order, so uniqueness holds across a single table or a shared registry
- * spanning tables, per the column's own scan scope.
+ * The constrained column is always a table's row-keying column (column 0 --
+ * a row's own id is its column-0 cell's trimmed text, per
+ * jam::MarkdownDocument's table convention), so duplicate detection is a
+ * keyed getTableRow() probe rather than a value scan: iterate every table of
+ * every relation that declares the constrained column (dispatched or not,
+ * in authored scan order) and, for each row, probe first its own table then
+ * every earlier-scanned table for a prior row keyed identically. Canon-table
+ * duplicates (the lexicon/chars/files registry union) are already FATALed
+ * during registry construction (Generator::run()) and are not re-detected
+ * here.
  */
 static juce::Result predicateUnique (const juce::String&,
                                      const juce::String&,
@@ -144,52 +543,66 @@ static juce::Result predicateUnique (const juce::String&,
                                      const jam::MarkdownDocument&,
                                      const juce::String&)
 {
-    jam::HashMap<juce::String, juce::String> seen;
-    juce::String duplicateValue;
-    juce::String duplicateLocation;
-
-    const auto scanTable = [&seen, &duplicateValue, &duplicateLocation, &columnName] (
-                               const jam::MarkdownDocument& candidate,
-                               const juce::String& candidateTableName,
-                               const juce::String& candidateFile)
+    struct ScannedTable
     {
-        const auto candidateTableId { juce::Identifier (candidateTableName) };
-        const auto headers { candidate.getTableHeaders (candidateTableId) };
-
-        if (headers.contains (columnName))
-        {
-            const auto columnId { juce::Identifier (columnName) };
-            const auto rowKeys { candidate.getTableRowKeys (candidateTableId) };
-
-            for (int rowIndex { 0 }; rowIndex < rowKeys.size(); ++rowIndex)
-            {
-                const auto value { candidate.getTableValue (candidateTableId, columnId, rowKeys.at (rowIndex)) };
-
-                if (duplicateValue.isEmpty() and seen.contains (value))
-                {
-                    duplicateValue = value;
-                    duplicateLocation = getLocation (candidateFile, rowIndex + 1, columnName);
-                }
-
-                seen.insert ({ value, getLocation (candidateFile, rowIndex + 1, columnName) });
-            }
-        }
+        const jam::MarkdownDocument* document;
+        const jam::Document::Element* table;
+        juce::String sourceFile;
     };
+
+    jam::Array<ScannedTable> constrainedTables;
 
     for (const auto& root : roots)
     {
-        const auto candidateFile { *root.root->get<juce::String> (Id::path) };
+        const auto sourceFile { *root.root->get<juce::String> (Id::path) };
 
         for (auto* table : root.getTables())
-            scanTable (root, table->id.toString(), candidateFile);
+            if (root.getTableHeaders (table->id).contains (columnName))
+                constrainedTables.add ({ &root, table, sourceFile });
     }
 
-    return duplicateValue.isEmpty()
-               ? juce::Result::ok()
-               : juce::Result::fail (duplicateLocation + Id::diagnosticSeparator
-                                     + Id::failDuplicate + duplicateValue
-                                     + Id::failAlreadyDeclared
-                                     + seen.at (duplicateValue));
+    const auto reportDuplicate = [&columnName] (const ScannedTable& laterTable,
+                                                const jam::Document::Element& laterRow,
+                                                const ScannedTable& earlierTable,
+                                                const jam::Document::Element& earlierRow)
+    {
+        return juce::Result::fail (
+            getLocation (laterTable.sourceFile,
+                        getRowLineNumber (*laterTable.document, laterTable.table->id.toString(), laterRow.id.toString()),
+                        columnName)
+            + Id::diagnosticSeparator + text::en::failDuplicate + laterRow.id.toString()
+            + text::en::failAlreadyDeclared
+            + getLocation (earlierTable.sourceFile,
+                          getRowLineNumber (*earlierTable.document, earlierTable.table->id.toString(), earlierRow.id.toString()),
+                          columnName));
+    };
+
+    for (int tableIndex { 0 }; tableIndex < constrainedTables.size(); ++tableIndex)
+    {
+        const auto& scanned { constrainedTables.at (tableIndex) };
+
+        for (auto* row : *scanned.table)
+        {
+            if (row->isTag (Id::headerRow) or isSeparatorRow (row->id.toString()))
+                continue;
+
+            const auto* withinTableFirst { scanned.document->getTableRow (scanned.table->id, row->id) };
+
+            if (withinTableFirst != row)
+                return reportDuplicate (scanned, *row, scanned, *withinTableFirst);
+
+            for (int earlierIndex { 0 }; earlierIndex < tableIndex; ++earlierIndex)
+            {
+                const auto& earlierTable { constrainedTables.at (earlierIndex) };
+                const auto* crossTableMatch { earlierTable.document->getTableRow (earlierTable.table->id, row->id) };
+
+                if (crossTableMatch != nullptr)
+                    return reportDuplicate (scanned, *row, earlierTable, *crossTableMatch);
+            }
+        }
+    }
+
+    return juce::Result::ok();
 }
 
 /**
@@ -210,7 +623,7 @@ static juce::Result predicateExistsIn (const juce::String& value,
                                        const jam::MarkdownDocument&,
                                        const juce::String& sourceFile)
 {
-    const auto targetTableId { args.upToFirstOccurrenceOf (Id::charDot, false, false) };
+    const auto targetTableId { args.upToFirstOccurrenceOf (juce::String::charToString (chars::dot), false, false) };
     const auto targetTableIdentifier { juce::Identifier (targetTableId) };
 
     const auto found { std::find_if (roots.begin(),
@@ -228,9 +641,9 @@ static juce::Result predicateExistsIn (const juce::String& value,
     return matched
                ? juce::Result::ok()
                : juce::Result::fail (
-                     getLocation (sourceFile, getRowNumber (root, tableName, rowKey), columnName)
+                     getLocation (sourceFile, getRowLineNumber (root, tableName, rowKey), columnName)
                      + Id::diagnosticSeparator + Id::existsIn.toString() + Id::diagnosticSeparator
-                     + Id::failForeignKeyMissing + args + Id::diagnosticSeparator + value);
+                     + text::en::failForeignKeyMissing + args + Id::diagnosticSeparator + value);
 }
 
 /**
@@ -251,15 +664,15 @@ static juce::Result predicateOneOf (const juce::String& value,
                                     const juce::String& sourceFile)
 {
     const auto matched {
-        juce::StringArray::fromTokens (args, Id::charPipe, juce::String()).contains (value)
+        juce::StringArray::fromTokens (args, juce::String::charToString (chars::pipe), juce::String()).contains (value)
     };
 
     return matched
                ? juce::Result::ok()
                : juce::Result::fail (
-                     getLocation (sourceFile, getRowNumber (root, tableName, rowKey), columnName)
+                     getLocation (sourceFile, getRowLineNumber (root, tableName, rowKey), columnName)
                      + Id::diagnosticSeparator + Id::oneOf.toString() + Id::diagnosticSeparator
-                     + Id::failNotInSet + args + Id::charCloseBrace + Id::diagnosticSeparator
+                     + text::en::failNotInSet + args + juce::String::charToString (chars::closeBrace) + Id::diagnosticSeparator
                      + value);
 }
 
@@ -280,8 +693,8 @@ static juce::Result predicateRange (const juce::String& value,
                                     const jam::MarkdownDocument&,
                                     const juce::String& sourceFile)
 {
-    const auto minColumn { args.upToFirstOccurrenceOf (Id::charSpace, false, false) };
-    const auto maxColumn { args.fromFirstOccurrenceOf (Id::charSpace, false, false).trim() };
+    const auto minColumn { args.upToFirstOccurrenceOf (juce::String::charToString (chars::space), false, false) };
+    const auto maxColumn { args.fromFirstOccurrenceOf (juce::String::charToString (chars::space), false, false).trim() };
 
     const auto tableId { juce::Identifier (tableName) };
     const auto lowText { root.getTableValue (tableId, juce::Identifier (minColumn), rowKey) };
@@ -294,10 +707,10 @@ static juce::Result predicateRange (const juce::String& value,
     return (numericValue >= lowValue and numericValue <= highValue)
                ? juce::Result::ok()
                : juce::Result::fail (
-                     getLocation (sourceFile, getRowNumber (root, tableName, rowKey), columnName)
+                     getLocation (sourceFile, getRowLineNumber (root, tableName, rowKey), columnName)
                      + Id::diagnosticSeparator + Id::range.toString() + Id::diagnosticSeparator
-                     + value + Id::failOutOfRange + juce::String (lowValue) + Id::charComma
-                     + Id::charSpace + juce::String (highValue) + Id::charCloseBracket);
+                     + value + text::en::failOutOfRange + juce::String (lowValue) + juce::String::charToString (chars::comma)
+                     + juce::String::charToString (chars::space) + juce::String (highValue) + juce::String::charToString (chars::closeBracket));
 }
 
 /**
@@ -319,8 +732,8 @@ static juce::Result predicateParity (const juce::String&,
                                      const jam::MarkdownDocument& manifestDoc,
                                      const juce::String&)
 {
-    const auto targetTableId { args.upToFirstOccurrenceOf (Id::charDot, false, false) };
-    const auto targetColumn { args.fromFirstOccurrenceOf (Id::charDot, false, false) };
+    const auto targetTableId { args.upToFirstOccurrenceOf (juce::String::charToString (chars::dot), false, false) };
+    const auto targetColumn { args.fromFirstOccurrenceOf (juce::String::charToString (chars::dot), false, false) };
     const auto targetTableIdentifier { juce::Identifier (targetTableId) };
     const auto targetColumnIdentifier { juce::Identifier (targetColumn) };
 
@@ -335,11 +748,15 @@ static juce::Result predicateParity (const juce::String&,
         {
             const auto candidateFile { *root.root->get<juce::String> (Id::path) };
 
-            for (int rowIndex { 0 }; rowIndex < targetRowKeys.size(); ++rowIndex)
+            for (const auto& targetRowKey : targetRowKeys)
             {
-                targetValues.add (root.getTableValue (
-                    targetTableIdentifier, targetColumnIdentifier, targetRowKeys.at (rowIndex)));
-                targetLocations.add (getLocation (candidateFile, rowIndex + 1, targetColumn));
+                if (isSeparatorRow (targetRowKey))
+                    continue;
+
+                targetValues.add (
+                    root.getTableValue (targetTableIdentifier, targetColumnIdentifier, targetRowKey));
+                targetLocations.add (
+                    getLocation (candidateFile, getRowLineNumber (root, targetTableId, targetRowKey), targetColumn));
             }
         }
     }
@@ -362,16 +779,20 @@ static juce::Result predicateParity (const juce::String&,
             const auto columnId { juce::Identifier (columnName) };
             const auto rowKeys { candidate.getTableRowKeys (candidateTableId) };
 
-            for (int rowIndex { 0 }; rowIndex < rowKeys.size(); ++rowIndex)
+            for (const auto& rowKey : rowKeys)
             {
-                const auto value { candidate.getTableValue (candidateTableId, columnId, rowKeys.at (rowIndex)) };
+                if (isSeparatorRow (rowKey))
+                    continue;
+
+                const auto value { candidate.getTableValue (candidateTableId, columnId, rowKey) };
 
                 localValues.addIfNotAlreadyThere (value);
 
                 if (missingLocalValue.isEmpty() and not targetValues.contains (value))
                 {
                     missingLocalValue = value;
-                    missingLocalLocation = getLocation (candidateFile, rowIndex + 1, columnName);
+                    missingLocalLocation =
+                        getLocation (candidateFile, getRowLineNumber (candidate, candidateTableName, rowKey), columnName);
                 }
             }
         }
@@ -392,7 +813,7 @@ static juce::Result predicateParity (const juce::String&,
     if (missingLocalValue.isNotEmpty())
         return juce::Result::fail (missingLocalLocation + Id::diagnosticSeparator
                                    + Id::parity.toString() + Id::diagnosticSeparator
-                                   + Id::failLocalMissing + Id::diagnosticSeparator
+                                   + text::en::failLocalMissing + Id::diagnosticSeparator
                                    + missingLocalValue);
 
     const auto missingTarget { std::find_if (targetValues.begin(),
@@ -410,7 +831,7 @@ static juce::Result predicateParity (const juce::String&,
 
     return juce::Result::fail (targetLocations.at (missingIndex) + Id::diagnosticSeparator
                                + Id::parity.toString() + Id::diagnosticSeparator
-                               + Id::failRefMissing + Id::diagnosticSeparator + *missingTarget);
+                               + text::en::failRefMissing + Id::diagnosticSeparator + *missingTarget);
 }
 
 /**
@@ -435,9 +856,9 @@ static juce::Result predicateFileExists (const juce::String& value,
     return target.existsAsFile()
                ? juce::Result::ok()
                : juce::Result::fail (
-                     getLocation (sourceFile, getRowNumber (root, tableName, rowKey), columnName)
+                     getLocation (sourceFile, getRowLineNumber (root, tableName, rowKey), columnName)
                      + Id::diagnosticSeparator + Id::fileExists.toString() + Id::diagnosticSeparator
-                     + Id::failNotFound + Id::diagnosticSeparator + target.getFullPathName());
+                     + text::en::failNotFound + Id::diagnosticSeparator + target.getFullPathName());
 }
 
 /**
@@ -472,7 +893,12 @@ static juce::Result predicateOnePerGroup (const juce::String&,
 
         if (headers.contains (columnName) and headers.contains (args))
         {
-            const auto rowKeysInOrder { candidate.getTableRowKeys (candidateTableId) };
+            jam::Array<juce::String> rowKeysInOrder;
+
+            for (const auto& rowKey : candidate.getTableRowKeys (candidateTableId))
+                if (not isSeparatorRow (rowKey))
+                    rowKeysInOrder.add (rowKey);
+
             const auto argColumn { juce::Identifier (args) };
             const auto markColumn { juce::Identifier (columnName) };
 
@@ -511,10 +937,8 @@ static juce::Result predicateOnePerGroup (const juce::String&,
                     }) };
 
                 badGroupName = *badGroup;
-                badGroupLocation = getLocation (candidateFile,
-                                                static_cast<int> (std::distance (rowKeysInOrder.begin(), firstMatch))
-                                                    + 1,
-                                                columnName);
+                badGroupLocation = getLocation (
+                    candidateFile, getRowLineNumber (candidate, candidateTableName, *firstMatch), columnName);
             }
         }
     };
@@ -536,7 +960,7 @@ static juce::Result predicateOnePerGroup (const juce::String&,
                ? juce::Result::ok()
                : juce::Result::fail (badGroupLocation + Id::diagnosticSeparator
                                      + Id::onePerGroup.toString() + Id::diagnosticSeparator
-                                     + Id::failGroupOpen + badGroupName + Id::failGroupClose);
+                                     + text::en::failGroupOpen + badGroupName + text::en::failGroupClose);
 }
 
 /**
@@ -623,7 +1047,7 @@ static juce::Result validate (const juce::String& predicateName,
     static jam::Function::Map<juce::String, juce::Result> predicates { buildPredicateMap() };
 
     if (not predicates.contains (predicateName))
-        return juce::Result::fail (sourceFile + Id::diagnosticSeparator + Id::failUnknownPredicate
+        return juce::Result::fail (sourceFile + Id::diagnosticSeparator + text::en::failUnknownPredicate
                                    + Id::diagnosticSeparator + predicateName);
 
     if (perColumnPredicates.contains (predicateName))
@@ -653,6 +1077,9 @@ static juce::Result validate (const juce::String& predicateName,
 
         for (const auto& rowKey : root.getTableRowKeys (tableId))
         {
+            if (isSeparatorRow (rowKey))
+                continue;
+
             const auto value { root.getTableValue (tableId, columnId, rowKey) };
             const auto result { predicates.get (predicateName,
                                                 value,
@@ -695,13 +1122,16 @@ static juce::String getHazardMessage (const jam::Document::Element& cell) noexce
     cell.applyFunctionRecursively (
         [&hazard] (const jam::Document::Element& node) -> bool
         {
+            if (node.isTag (Id::code))
+                return false;
+
             if (node.isTag (Id::a))
-                hazard = Id::failHazardURI;
+                hazard = text::en::failHazardUri;
             else if (node.isTag (Id::text)
                      and node.get<juce::String> (Id::text)->containsAnyOf (Id::hazardChars))
-                hazard = Id::failHazardAngleBrackets;
+                hazard = text::en::failHazardAngleBrackets;
 
-            return not node.isTag (Id::code);
+            return true;
         });
 
     return hazard;
@@ -726,22 +1156,26 @@ static juce::Result validateTableHazards (const jam::MarkdownDocument& root,
     {
         const auto headers { root.getTableHeaders (tableId) };
 
-        for (int rowIndex { 0 }; rowIndex < rowKeys.size(); ++rowIndex)
+        for (const auto& rowKey : rowKeys)
         {
-            const auto& rowKey { rowKeys.at (rowIndex) };
+            if (isSeparatorRow (rowKey))
+                continue;
 
             for (const auto& header : headers)
             {
                 const auto* cell { root.getTableCell (
                     tableId, juce::Identifier (header), juce::Identifier (rowKey)) };
 
-                if (cell != nullptr)
+                if (cell != nullptr
+                    and not std::any_of (cell->begin(), cell->end(),
+                                         [] (const auto* child) { return child->isTag (Id::code); }))
                 {
                     const auto hazard { getHazardMessage (*cell) };
 
                     if (hazard.isNotEmpty())
-                        return juce::Result::fail (getLocation (sourceFile, rowIndex + 1, header)
-                                                   + Id::diagnosticSeparator + hazard);
+                        return juce::Result::fail (
+                            getLocation (sourceFile, getRowLineNumber (root, tableId.toString(), rowKey), header)
+                            + Id::diagnosticSeparator + hazard);
                 }
             }
         }
@@ -780,12 +1214,12 @@ validateManifest (const jam::MarkdownDocument& manifestDoc, const juce::File& ma
         if (not Transforms::contains (transformName))
             return juce::Result::fail (
                 getLocation (path, transformKeys.indexOf (transformKey) + 1, transformKey)
-                + Id::diagnosticSeparator + Id::failUnknownTransform + Id::diagnosticSeparator
+                + Id::diagnosticSeparator + text::en::failUnknownTransform + Id::diagnosticSeparator
                 + transformName);
     }
 
     const auto outputKeys { manifestDoc.getTableRowKeys (Id::generated) };
-    const auto dispatchKeys { manifestDoc.getTableRowKeys (Id::dispatch) };
+    const auto dispatchRows { manifestDoc.getTableRows (Id::dispatch) };
     juce::StringArray referencedTemplates;
 
     for (const auto& outputKey : outputKeys)
@@ -796,23 +1230,42 @@ validateManifest (const jam::MarkdownDocument& manifestDoc, const juce::File& ma
         if (not dir.getChildFile (templatePath).existsAsFile())
             return juce::Result::fail (
                 getLocation (path, outputKeys.indexOf (outputKey) + 1, Id::templatePath.toString())
-                + Id::diagnosticSeparator + Id::failTemplateMissing + Id::diagnosticSeparator
+                + Id::diagnosticSeparator + text::en::failTemplateMissing + Id::diagnosticSeparator
                 + templatePath);
 
         referencedTemplates.addIfNotAlreadyThere (templatePath);
+
+        const auto separatorPath { manifestDoc.getTableValue (
+            Id::generated, Id::separator, outputKey) };
+
+        if (separatorPath.isNotEmpty())
+        {
+            if (not dir.getChildFile (separatorPath).existsAsFile())
+                return juce::Result::fail (
+                    getLocation (path, outputKeys.indexOf (outputKey) + 1, Id::separator.toString())
+                    + Id::diagnosticSeparator + text::en::failTemplateMissing + Id::diagnosticSeparator
+                    + separatorPath);
+
+            referencedTemplates.addIfNotAlreadyThere (separatorPath);
+        }
     }
 
-    for (const auto& dispatchKey : dispatchKeys)
+    for (auto* dispatchRow : dispatchRows)
     {
-        const auto fragmentPath { manifestDoc.getTableValue (
-            Id::dispatch, Id::templatePath, dispatchKey) };
+        const auto fragmentPath { getDispatchCell (manifestDoc, *dispatchRow, Id::templatePath) };
+
+        if (fragmentPath.isEmpty())
+            continue;
 
         if (not dir.getChildFile (fragmentPath).existsAsFile())
-            return juce::Result::fail (getLocation (path,
-                                                    dispatchKeys.indexOf (dispatchKey) + 1,
-                                                    Id::templatePath.toString())
-                                       + Id::diagnosticSeparator + Id::failFragmentMissing
+        {
+            const auto rowOffset { static_cast<uint32_t> (*dispatchRow->get<int> (Id::offset)) };
+            const auto rowLine { static_cast<int> (manifestDoc.getLineNumber (rowOffset)) };
+
+            return juce::Result::fail (getLocation (path, rowLine, Id::templatePath.toString())
+                                       + Id::diagnosticSeparator + text::en::failFragmentMissing
                                        + Id::diagnosticSeparator + fragmentPath);
+        }
 
         referencedTemplates.addIfNotAlreadyThere (fragmentPath);
     }
@@ -835,6 +1288,9 @@ validateManifest (const jam::MarkdownDocument& manifestDoc, const juce::File& ma
 
     for (const auto& templateDir : templateDirs)
     {
+        if (not templateDir.isAChildOf (dir))
+            continue;
+
         juce::Array<juce::File> siblingFiles;
         templateDir.findChildFiles (siblingFiles, juce::File::findFiles, false);
 
@@ -851,7 +1307,7 @@ validateManifest (const jam::MarkdownDocument& manifestDoc, const juce::File& ma
                                                      }) };
 
                 if (not referenced)
-                    return juce::Result::fail (path + Id::diagnosticSeparator + Id::failOrphan
+                    return juce::Result::fail (path + Id::diagnosticSeparator + text::en::failOrphan
                                                + Id::diagnosticSeparator
                                                + siblingFile.getFullPathName());
             }
@@ -918,9 +1374,9 @@ static juce::Result validateRoots (const jam::Array<jam::MarkdownDocument>& root
                     const auto predicateSpec { manifestDoc.getTableValue (
                         Id::constraints, Id::predicate, constraintKey) };
                     const auto predicateName { predicateSpec.upToFirstOccurrenceOf (
-                        Id::charSpace, false, false) };
+                        juce::String::charToString (chars::space), false, false) };
                     const auto predicateArgs {
-                        predicateSpec.fromFirstOccurrenceOf (Id::charSpace, false, false).trim()
+                        predicateSpec.fromFirstOccurrenceOf (juce::String::charToString (chars::space), false, false).trim()
                     };
 
                     if (not perColumnPredicates.contains (predicateName))
@@ -982,9 +1438,9 @@ static juce::Result validatePerColumnConstraints (const jam::MarkdownDocument& m
         const auto predicateSpec { manifestDoc.getTableValue (
             Id::constraints, Id::predicate, constraintKey) };
         const auto predicateName { predicateSpec.upToFirstOccurrenceOf (
-            Id::charSpace, false, false) };
+            juce::String::charToString (chars::space), false, false) };
         const auto predicateArgs {
-            predicateSpec.fromFirstOccurrenceOf (Id::charSpace, false, false).trim()
+            predicateSpec.fromFirstOccurrenceOf (juce::String::charToString (chars::space), false, false).trim()
         };
 
         if (perColumnPredicates.contains (predicateName))

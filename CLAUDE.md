@@ -10,12 +10,9 @@
 
 ## Current State
 
-**Last Sprint:** Sprint 5 — Eliminate Magic Strings ✅ (2026-08-04)
+**Last Sprint:** Sprint 7 — Lexicon Canon Redesign ✅ (checkpoint, 2026-08-09)
 
-**Active Work:** Handoff — Cast-Local Generated Output Fix (PLAN-cast-local-fix.md)
-- Steps 1–6 complete: engine banner injection, template renaming, manifest update, interim generated files
-- Step 7 pending: ARCHITECT build + fixpoint validation; two decisions open (SPEC amendment, version stamp in banner)
-- Status: Ready for implementation after ARCHITECT rulings
+**Active Work:** None — checkpoint completed. Deferred work: LC7 doxygen prose + Auditor sweep (post-plan step [11]); HELP.md transform-vocabulary wording amendment; jam table migration to canon shape (separate sprint)
 
 **Active ODE:** None
 

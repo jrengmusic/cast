@@ -1,5 +1,16 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
 <doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="1.16.1" xml:lang="en-US">
+  <compound refid="structcast_1_1_generated" kind="struct"><name>cast::Generated</name>
+    <member refid="structcast_1_1_generated_1ac5eefa6412847bc19a964fc77408d1cb" kind="variable"><name>jam</name></member>
+  </compound>
+  <compound refid="structcast_1_1_region_marker_occurrence" kind="struct"><name>cast::RegionMarkerOccurrence</name>
+    <member refid="structcast_1_1_region_marker_occurrence_1a38369f672de1277da0ea8cb66ddef665" kind="variable"><name>name</name></member>
+    <member refid="structcast_1_1_region_marker_occurrence_1a3fd88a764a7d0a026a9999c78181a461" kind="variable"><name>index</name></member>
+  </compound>
+  <compound refid="structcast_1_1_slot_region" kind="struct"><name>cast::SlotRegion</name>
+    <member refid="structcast_1_1_slot_region_1a543a1d3811c73ec724b66cabf594b068" kind="variable"><name>rootTemplatePath</name></member>
+    <member refid="structcast_1_1_slot_region_1a6f568f3e1832c14592b96dd6a41d0732" kind="variable"><name>body</name></member>
+  </compound>
   <compound refid="structcast_1_1_template_engine" kind="struct"><name>cast::TemplateEngine</name>
     <member refid="structcast_1_1_template_engine_1ac43683fd26a78559d8a7460a933eed94" kind="function"><name>expandText</name></member>
     <member refid="structcast_1_1_template_engine_1a17663684abc84ea95042ef3ba089526c" kind="function"><name>expand</name></member>
@@ -8,44 +19,55 @@
     <member refid="structcast_1_1_transforms_1abc1476003fb5b3b90ab6fdc040d5de3d" kind="function"><name>contains</name></member>
     <member refid="structcast_1_1_transforms_1a8f205eb5ba5a4a87c4241d3a73a10ede" kind="function"><name>getTransformed</name></member>
     <member refid="structcast_1_1_transforms_1a93b2c0c5df5cd0cee07e79263c3cfb84" kind="function"><name>getTransforms</name></member>
+    <member refid="structcast_1_1_transforms_1a6bf6f9223f1eb54743ee919fdc1d7e4a" kind="function"><name>getTypes</name></member>
   </compound>
   <compound refid="namespacecast" kind="namespace"><name>cast</name>
+    <member refid="namespacecast_1a8e14967c571bd256059e520b01bfde80" kind="typedef"><name>SlotRegionMap</name></member>
     <member refid="namespacecast_1a54f69242eb732ad6931adc8a6ba9874c" kind="typedef"><name>SubstitutionMap</name></member>
-    <member refid="namespacecast_1adb5b4c3c76f199cecb443a32fe7361db" kind="variable"><name>banner</name></member>
-    <member refid="namespacecast_1a685bc2023753baad66af489ca6822320" kind="variable"><name>rowRegionBegin</name></member>
+    <member refid="namespacecast_1abe65a5f539a491ebfa4698a24ee34ee5" kind="variable"><name>banner</name></member>
+    <member refid="namespacecast_1a0dda3bc57ece1b9a1fe763639323669e" kind="variable"><name>rowRegionBeginPrefix</name></member>
     <member refid="namespacecast_1ac432738e84fbb375a0d3cc91d46a95b0" kind="variable"><name>rowRegionEnd</name></member>
     <member refid="namespacecast_1a2944d0cbe565e88a6c165e7ee9452196" kind="variable"><name>rowRegionIndex</name></member>
+    <member refid="namespacecast_1adfe17e70aad5ab0481b756737a6cb0fa" kind="variable"><name>rowMarker</name></member>
+    <member refid="namespacecast_1a50bdcdd4506a781583342ee768feb9a8" kind="variable"><name>defaultKeyType</name></member>
+    <member refid="namespacecast_1a5b60e1e50e89edb1e09b1aa96f6f9f00" kind="variable"><name>formatColumn</name></member>
+    <member refid="namespacecast_1adb79723de64557769aedad2bb645b4d8" kind="variable"><name>extensionsNamespace</name></member>
     <member refid="namespacecast_1a864c9b0890d921f63b9b4ff36c05b61a" kind="variable"><name>widthCap</name></member>
     <member refid="namespacecast_1a5a1fa6426a004c80b6ecd43651375c0c" kind="variable"><name>documentMargin</name></member>
-    <member refid="namespacecast_1a7722f3d29ae52d835338854f09d53640" kind="variable"><name>asciiMax</name></member>
-    <member refid="namespacecast_1a29721d2cd56af7406b281ad5ec3c40ac" kind="variable"><name>byteHexDigits</name></member>
-    <member refid="namespacecast_1a48f262209228c67deedea228387cc2e8" kind="variable"><name>codepointHexDigits</name></member>
-    <member refid="namespacecast_1add544a4ce94bcfa1c64956b21ac5f186" kind="variable"><name>hexEscapeCharsPerByte</name></member>
+    <member refid="namespacecast_1a03d4737086d1615cb278fb06991ee933" kind="variable"><name>intType</name></member>
+    <member refid="namespacecast_1a97a46df955200fdec1a9d9416d8e1187" kind="variable"><name>stringType</name></member>
+    <member refid="namespacecast_1a7407bd8acd4ae8009c68d522048a74ac" kind="variable"><name>identifierType</name></member>
+    <member refid="namespacecast_1aca8cec8faff107b36a1a4663a6d4a0d3" kind="variable"><name>maxLexiconNameLength</name></member>
+    <member refid="namespacecast_1accf9cb96dae9454951da0b1ada0b5fcc" kind="variable"><name>regionBeginSuffix</name></member>
+    <member refid="namespacecast_1ac17416f9b360393222385c294db0e048" kind="variable"><name>regionEndSuffix</name></member>
+    <member refid="namespacecast_1aa25d8654496d82ef2a85e72deb168bc2" kind="variable"><name>regionBeginKeySuffix</name></member>
+    <member refid="namespacecast_1a67e1ba2144b5504d07943bcc68f09e2d" kind="variable"><name>regionEndKeySuffix</name></member>
+    <member refid="namespacecast_1a2a6f8468cf97af833e25eb17b5c329ba" kind="variable"><name>regionBeginPattern</name></member>
     <member refid="namespacecast_1ab676d052a0f3efb4062591b54ffc1604" kind="variable"><name>perColumnPredicates</name></member>
     <member refid="namespacecast_1a8cacd457dc5d41367ee1f590f036750e" kind="function"><name>getOutputBanner</name></member>
     <member refid="namespacecast_1a31cea864865670bad11688a5eeb5a90a" kind="function"><name>isLiteralCell</name></member>
-    <member refid="namespacecast_1a4d619a2cebf05e5d2e8764475cd0e19e" kind="function"><name>getResolvedCell</name></member>
-    <member refid="namespacecast_1a2ac57925bfc1273fc03de595f51bfae5" kind="function"><name>buildPerRowMap</name></member>
+    <member refid="namespacecast_1ac2885d637faed6ad209af70b5fad0fa3" kind="function"><name>getLiteralValue</name></member>
+    <member refid="namespacecast_1af0d52fad0aaf66beec04f2ac8222ecb1" kind="function"><name>getResolvedCell</name></member>
+    <member refid="namespacecast_1a90dab422d99b869eda0bea5dc8d9d9eb" kind="function"><name>buildPerRowMap</name></member>
     <member refid="namespacecast_1a1923b512425ff12f555a9cd2b9363f22" kind="function"><name>buildTableMap</name></member>
-    <member refid="namespacecast_1a7ce05456bfec2ccd8efd3f205506c97a" kind="function"><name>expandRowRegions</name></member>
-    <member refid="namespacecast_1a7bbd7fef86ca13e3d456605a1f0eb5f4" kind="function"><name>getOutput</name></member>
-    <member refid="namespacecast_1aaaf20bd724ca3615da68b33db5b8d077" kind="function"><name>buildSlotResults</name></member>
+    <member refid="namespacecast_1ad81170ef4a6c508c892f69f92951a7e9" kind="function"><name>expandRowRegions</name></member>
+    <member refid="namespacecast_1add0f8c9cb726218885ab9e41ab975006" kind="function"><name>substituteSlotRegions</name></member>
+    <member refid="namespacecast_1a34db78a09891e7a161e7ad228d380d8a" kind="function"><name>buildSlotResults</name></member>
     <member refid="namespacecast_1a1898e0a4b4b84bf3d720ca0168ee7d60" kind="function"><name>processOutput</name></member>
     <member refid="namespacecast_1af452b934f2fca601c8a4dca14ac46701" kind="function"><name>printHelp</name></member>
-    <member refid="namespacecast_1adb327ef93074cf86a7237a38aa438749" kind="function"><name>symbolFromFile</name></member>
-    <member refid="namespacecast_1a138ed53d479b1eacc02f35ff83b03c36" kind="function"><name>qualifySymbol</name></member>
-    <member refid="namespacecast_1a5f27fb7dd55ed862809801e09939f591" kind="function"><name>parseCodepoint</name></member>
-    <member refid="namespacecast_1ae9317df5c117df4a9e674e28495aa65d" kind="function"><name>encodeCodepointAsEscapedUtf8</name></member>
-    <member refid="namespacecast_1aa4156e4c51c1b067d961bdfcb6d2b4ea" kind="function"><name>escapeCpp</name></member>
-    <member refid="namespacecast_1a39b9915aa885fb195f1d5305fc9a9b32" kind="function"><name>encodeUPlusToken</name></member>
-    <member refid="namespacecast_1a4404a9c79c3e961484d6e8e1fe6ec2d5" kind="function"><name>utf8Bytes</name></member>
-    <member refid="namespacecast_1a905b20792d61b5991d5029270c82cac7" kind="function"><name>codepointHex</name></member>
-    <member refid="namespacecast_1a20db922e27c5c0c48bce61607be87089" kind="function"><name>codepointLabel</name></member>
-    <member refid="namespacecast_1ac720336ac8445391244c118c1c61cd28" kind="function"><name>toString</name></member>
     <member refid="namespacecast_1afb20cc8ccd65bbfce56cc5014cb8cd11" kind="function"><name>getLocation</name></member>
-    <member refid="namespacecast_1afb4f8ca77c3a09b0ac0d7ac6b083519d" kind="function"><name>getRowNumber</name></member>
+    <member refid="namespacecast_1a5032fcd975ffe6cb3867626688b70b7a" kind="function"><name>getRowLineNumber</name></member>
+    <member refid="namespacecast_1a1b825f5fa6bf704c170c9656f4ae6a80" kind="function"><name>isSeparatorRow</name></member>
+    <member refid="namespacecast_1af72aa95234f3857f0da4f63e91384f76" kind="function"><name>isTooLong</name></member>
+    <member refid="namespacecast_1a301f9a9f21f53f0bbb8d34c7ccad4786" kind="function"><name>validateLexiconName</name></member>
+    <member refid="namespacecast_1ac556dfec02cf11201b862c4f5bf81180" kind="function"><name>validateLexiconValueRedundancy</name></member>
     <member refid="namespacecast_1a1297eec1f1b80f432676369911dafb64" kind="function"><name>getConstraintTargetTables</name></member>
+    <member refid="namespacecast_1ae92ac60be535ee1f1f0befb302d3a4ec" kind="function"><name>getDispatchCell</name></member>
     <member refid="namespacecast_1a13cb63fc804e4d4a67283306336bab2e" kind="function"><name>getScannedTables</name></member>
+    <member refid="namespacecast_1a7f4d220598cd937be80122ade833bf3a" kind="function"><name>getTextLineNumber</name></member>
+    <member refid="namespacecast_1aa3f61e880ffdcd0ce8b187d510c54bf5" kind="function"><name>findRegionBeginMarkers</name></member>
+    <member refid="namespacecast_1a444068d8337f2000e3100d307ba95d47" kind="function"><name>collectSlotRegions</name></member>
+    <member refid="namespacecast_1aac4b3ca2e1cb6142f624b8a8d6bcc79c" kind="function"><name>validateDispatchRegionPairing</name></member>
     <member refid="namespacecast_1ac9ebae313ae8a1928ea660f94fab083e" kind="function"><name>predicateMatches</name></member>
     <member refid="namespacecast_1aa82a34598a4a032c10a0fb831ec3128b" kind="function"><name>predicateUnique</name></member>
     <member refid="namespacecast_1a060679a35e907f3a532d9c48cfa2bfe2" kind="function"><name>predicateExistsIn</name></member>
@@ -78,17 +100,17 @@
     <member refid="_cast_c_l_i_8cpp_1a7beba094c25e9aa5626e49384e647202" kind="function"><name>runManifest</name></member>
     <member refid="_cast_c_l_i_8cpp_1a0ddf1224851353fc92bfbff6f499fa97" kind="function"><name>main</name></member>
   </compound>
-  <compound refid="g_2_c_a_s_t_8h" kind="file"><name>CAST.h</name>
+  <compound refid="_c_a_s_t_8h" kind="file"><name>CAST.h</name>
   </compound>
-  <compound refid="generated_2_c_a_s_t_8h" kind="file"><name>CAST.h</name>
+  <compound refid="_files_8h" kind="file"><name>Files.h</name>
   </compound>
-  <compound refid="g_2_hash_maps_8h" kind="file"><name>HashMaps.h</name>
+  <compound refid="_generated_8h" kind="file"><name>Generated.h</name>
   </compound>
-  <compound refid="generated_2_hash_maps_8h" kind="file"><name>HashMaps.h</name>
+  <compound refid="_hash_maps_8h" kind="file"><name>HashMaps.h</name>
   </compound>
-  <compound refid="g_2_identifiers_8h" kind="file"><name>Identifiers.h</name>
+  <compound refid="_identifiers_8h" kind="file"><name>Identifiers.h</name>
   </compound>
-  <compound refid="generated_2_identifiers_8h" kind="file"><name>Identifiers.h</name>
+  <compound refid="_text_8h" kind="file"><name>Text.h</name>
   </compound>
   <compound refid="_generator_8h" kind="file"><name>Generator.h</name>
   </compound>
@@ -99,8 +121,6 @@
   <compound refid="_validator_8h" kind="file"><name>Validator.h</name>
   </compound>
   <compound refid="_writer_8h" kind="file"><name>Writer.h</name>
-  </compound>
-  <compound refid="dir_7221087907367cd1faffa6ad29fe4f51" kind="dir"><name>g</name>
   </compound>
   <compound refid="dir_84fc5dba3506812825191c0c043e3c97" kind="dir"><name>generated</name>
   </compound>

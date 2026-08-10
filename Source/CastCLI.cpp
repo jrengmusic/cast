@@ -24,10 +24,8 @@ static void paintBanner (jam::terminal::GraphicsContext& context)
 
     for (const auto& [name, text] : cast::banner)
     {
-        const juce::Colour rowColour { map::ColourNames::colours[map::ColourNames::get (name)] };
-        const juce::Colour priorColour {
-            map::ColourNames::colours[map::ColourNames::get (priorName)]
-        };
+        const juce::Colour rowColour { map::ColourNames::get (name) };
+        const juce::Colour priorColour { map::ColourNames::get (priorName) };
 
         auto* stamp { jam::Stamp::getInstance() };
 
@@ -80,16 +78,14 @@ static void printBanner()
 static void printBannerAndHelp()
 {
     printBanner();
-    printf ("%s", Id::charNewline.toRawUTF8());
-    cast::printHelp (BinaryData::getString (Id::castHelp.toString()));
+    printf ("%s", juce::String::charToString (chars::newline).toRawUTF8());
+    cast::printHelp (BinaryData::getString (files::castHelp.toString()));
 }
 
 /**
- * @brief Runs cast::Driver::run() and reports the result on stdout/stderr.
+ * @brief Runs cast::Driver::run() and reports failures on stderr.
  *
- * On success, renders the manifest itself through cast::printHelp(), so the
- * run reports the relations, dispatch, transforms, and constraints it was
- * driven by.
+ * A successful run is silent.
  *
  * @param manifest     The `CAST.md` manifest to run.
  * @param outputFilter When non-empty, restricts regeneration to the named output row.
@@ -103,13 +99,9 @@ static int runManifest (const juce::File& manifest, const juce::String& outputFi
     const auto result { cast::Driver::run (manifest, outputFilter) };
 
     if (result.wasOk())
-    {
-        cast::printHelp (manifest.loadFileAsString());
-
         return 0;
-    }
 
-    const auto errorLine { Id::programName + Id::diagnosticSeparator + result.getErrorMessage() };
+    const auto errorLine { ProjectInfo::projectName + Id::diagnosticSeparator + result.getErrorMessage() };
     fprintf (stderr, "%s\n", errorLine.toRawUTF8());
     return 1;
 }
@@ -120,22 +112,21 @@ int main (int argc, char* argv[])
 
     jam::Stamp stamp;
     jam::Hyperlink hyperlink;
-    map::ColourNames colourNames;
     jam::Grapheme grapheme;
-    Id::Instances instances;
+    cast::Generated generated;
 
     jam::Stamp::getInstance()->addIfNotAlreadyThere (jam::Stamp::Entry {});
 
-    if (argc == 2 and juce::String { argv[1] } == Id::cliPrefix + Id::version.toString())
+    if (argc == 2 and juce::String::fromUTF8 (argv[1]) == Id::doubleDash + Id::version.toString())
     {
-        const auto versionLine { Id::programName + Id::charSpace + ProjectInfo::versionString
-                                 + Id::charSpace + Id::charOpenParen + CAST_COMMIT
-                                 + Id::charCloseParen };
+        const auto versionLine { ProjectInfo::projectName + juce::String::charToString (chars::space) + ProjectInfo::versionString
+                                 + juce::String::charToString (chars::space) + juce::String::charToString (chars::openParen) + CAST_COMMIT
+                                 + juce::String::charToString (chars::closeParen) };
         printf ("%s\n", versionLine.toRawUTF8());
         return 0;
     }
 
-    if (argc == 2 and juce::String { argv[1] } == Id::cliPrefix + Id::castHelp.toString())
+    if (argc == 2 and juce::String::fromUTF8 (argv[1]) == Id::doubleDash + files::castHelp.toString())
     {
         printBannerAndHelp();
         return 0;
@@ -144,22 +135,22 @@ int main (int argc, char* argv[])
     if (argc == 3)
     {
         return runManifest (
-            juce::File::getCurrentWorkingDirectory().getChildFile (juce::String { argv[1] }),
-            juce::String { argv[2] });
+            juce::File::getCurrentWorkingDirectory().getChildFile (juce::String::fromUTF8 (argv[1])),
+            juce::String::fromUTF8 (argv[2]));
     }
 
     const juce::File manifestFile {
         (argc == 2)
-            ? juce::File::getCurrentWorkingDirectory().getChildFile (juce::String { argv[1] })
-            : juce::File::getCurrentWorkingDirectory().getChildFile (Id::cast.toString())
+            ? juce::File::getCurrentWorkingDirectory().getChildFile (juce::String::fromUTF8 (argv[1]))
+            : juce::File::getCurrentWorkingDirectory().getChildFile (files::cast.toString())
     };
 
     if (manifestFile.existsAsFile())
         return runManifest (manifestFile);
 
     printBannerAndHelp();
-    const auto noManifestLine { Id::programName + Id::diagnosticSeparator + Id::failNotFound
-                                + Id::diagnosticSeparator + Id::cast.toString() };
+    const auto noManifestLine { ProjectInfo::projectName + Id::diagnosticSeparator + text::en::failNotFound
+                                + Id::diagnosticSeparator + files::cast.toString() };
     fprintf (stderr, "%s\n", noManifestLine.toRawUTF8());
     return 1;
 }
