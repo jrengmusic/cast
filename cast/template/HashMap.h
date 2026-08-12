@@ -1,1 +1,1 @@
-    { "@key@", juce::String::fromUTF8 ("@string@") },
+    { ":::key:::", juce::String::fromUTF8 (":::string:::") },

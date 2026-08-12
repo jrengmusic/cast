@@ -6,7 +6,7 @@ namespace cast
 
 inline const jam::HashMap<juce::String, juce::String> banner
 {
-@banner@};
+:::banner:::};
 
 /**______________________________END OF NAMESPACE______________________________*/
 }// namespace cast

@@ -1,0 +1,190 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
+  <compounddef id="struct_writer" kind="struct" language="C++" prot="public">
+    <compoundname>Writer</compoundname>
+    <includes refid="_writer_8h" local="no">Writer.h</includes>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="struct_writer_1abacfafff2304784fb812048e4d8dc03c" prot="private" static="no" mutable="no">
+        <type>const <ref refid="class_document" kindref="compound">Document</ref> &amp;</type>
+        <definition>const Document&amp; Writer::document</definition>
+        <argsstring></argsstring>
+        <name>document</name>
+        <qualifiedname>Writer::document</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Writer.h" line="26" column="20" bodyfile="Writer.h" bodystart="26" bodyend="-1"/>
+        <referencedby refid="struct_writer_1abc620ecd78eb4a6223611e2000de9cde" compoundref="_writer_8h" startline="10" endline="23">toFile</referencedby>
+        <referencedby refid="struct_writer_1af327505e5c158c91e6d954fe4892b49e" compoundref="_writer_8h" startline="8" endline="8">Writer</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="struct_writer_1af327505e5c158c91e6d954fe4892b49e" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>Writer::Writer</definition>
+        <argsstring>(const Document &amp;castDocument)</argsstring>
+        <name>Writer</name>
+        <qualifiedname>Writer::Writer</qualifiedname>
+        <param>
+          <type>const <ref refid="class_document" kindref="compound">Document</ref> &amp;</type>
+          <declname>castDocument</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Writer.h" line="8" column="5" bodyfile="Writer.h" bodystart="8" bodyend="8"/>
+        <references refid="struct_writer_1abacfafff2304784fb812048e4d8dc03c" compoundref="_writer_8h" startline="26">document</references>
+      </memberdef>
+      <memberdef kind="function" id="struct_writer_1abc620ecd78eb4a6223611e2000de9cde" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool Writer::toFile</definition>
+        <argsstring>(const juce::File &amp;generatedOutputPath)</argsstring>
+        <name>toFile</name>
+        <qualifiedname>Writer::toFile</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref> &amp;</type>
+          <declname>generatedOutputPath</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Writer.h" line="10" column="10" bodyfile="Writer.h" bodystart="10" bodyend="23"/>
+        <references refid="struct_writer_1abacfafff2304784fb812048e4d8dc03c" compoundref="_writer_8h" startline="26">document</references>
+        <references refid="namespaceId_1a0c3b93c379d7b579079b2a649a33c040" compoundref="_identifiers_8h" startline="21" endline="21">Id::generated</references>
+        <references refid="namespaceId_1a56531ef8a997e8a2fc8d53cf8b543459" compoundref="_identifiers_8h" startline="64" endline="64">Id::templatePath</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>Document</label>
+        <link refid="class_document"/>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+        <childnode refid="15" relation="usage">
+          <edgelabel>path</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>Writer</label>
+        <link refid="struct_writer"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>document</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>jam::Array&lt; jam::Document::Property&lt; Value &gt; &gt;</label>
+        <link refid="classjam_1_1Array" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="8" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="14">
+        <label>jam::Array&lt; jam::Document::Token &gt;</label>
+        <link refid="classjam_1_1Array" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="8" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="10">
+        <label>jam::Array&lt; std::unique_ptr&lt; ObjectClass &gt; &gt;</label>
+        <link refid="classjam_1_1Array" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="8" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="13">
+        <label>jam::Array&lt; uint32_t &gt;</label>
+        <link refid="classjam_1_1Array" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="8" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="4">
+        <label>jam::Document</label>
+        <link refid="structjam_1_1Document" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>root</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>elements</edgelabel>
+        </childnode>
+        <childnode refid="11" relation="usage">
+          <edgelabel>source</edgelabel>
+        </childnode>
+        <childnode refid="13" relation="usage">
+          <edgelabel>lineOffsets</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>jam::Document::Element</label>
+        <link refid="structjam_1_1Document_1_1Element" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>id</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>firstChild</edgelabel>
+          <edgelabel>lastChild</edgelabel>
+          <edgelabel>nextSibling</edgelabel>
+          <edgelabel>parent</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>properties</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>jam::MarkdownDocument</label>
+        <link refid="structjam_1_1MarkdownDocument" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="public-inheritance">
+        </childnode>
+        <childnode refid="14" relation="usage">
+          <edgelabel>tokens</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>jam::Owner&lt; jam::Document::Element &gt;</label>
+        <link refid="classjam_1_1Owner" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="10" relation="usage">
+          <edgelabel>entries</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>juce::DummyCriticalSection</label>
+        <link refid="classjuce_1_1DummyCriticalSection" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml"/>
+      </node>
+      <node id="15">
+        <label>juce::File</label>
+        <link refid="classjuce_1_1File" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml"/>
+      </node>
+      <node id="6">
+        <label>juce::Identifier</label>
+        <link refid="classjuce_1_1Identifier" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>null</edgelabel>
+        </childnode>
+      </node>
+      <node id="12">
+        <label>std::basic_string&lt; Char &gt;</label>
+      </node>
+      <node id="11">
+        <label>std::string</label>
+        <childnode refid="12" relation="public-inheritance">
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="Writer.h" line="6" column="1" bodyfile="Writer.h" bodystart="7" bodyend="29"/>
+    <listofallmembers>
+      <member refid="struct_writer_1abacfafff2304784fb812048e4d8dc03c" prot="private" virt="non-virtual"><scope>Writer</scope><name>document</name></member>
+      <member refid="struct_writer_1abc620ecd78eb4a6223611e2000de9cde" prot="public" virt="non-virtual"><scope>Writer</scope><name>toFile</name></member>
+      <member refid="struct_writer_1af327505e5c158c91e6d954fe4892b49e" prot="public" virt="non-virtual"><scope>Writer</scope><name>Writer</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

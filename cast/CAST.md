@@ -1,28 +1,28 @@
 ## generated
 
-| template               | output                            | separator        |
-| ---------------------- | --------------------------------- | ---------------- |
-| template/Identifiers.h | ../Source/generated/Identifiers.h | template/Break.h |
-| template/Text.h        | ../Source/generated/Text.h        | template/Break.h |
-| template/Files.h       | ../Source/generated/Files.h       | template/Break.h |
-| template/HashMaps.h    | ../Source/generated/HashMaps.h    | template/Break.h |
-| template/CAST.h        | ../Source/generated/CAST.h        |                  |
-| template/Generated.h   | ../Source/generated/Generated.h   |                  |
+| template               | output                       | separator        |
+| ---------------------- | ---------------------------- | ---------------- |
+| template/Identifiers.h | ../Source/diff/Identifiers.h | template/Break.h |
+| template/Text.h        | ../Source/diff/Text.h        | template/Break.h |
+| template/Files.h       | ../Source/diff/Files.h       | template/Break.h |
+| template/HashMaps.h    | ../Source/diff/HashMaps.h    | template/Break.h |
+| template/CAST.h        | ../Source/diff/CAST.h        |                  |
+| template/Generated.h   | ../Source/diff/Generated.h   |                  |
 
-## dispatch
+## patch
 
-| table     | column | value | template                             | placeholder   |
-| --------- | ------ | ----- | ------------------------------------ | ------------- |
-| section   | entry  |       |                                      | section       |
-| predicate | entry  |       |                                      | predicate     |
-| transform | entry  |       |                                      | transform     |
-| files     | name   |       |                                      | file          |
-| column    | entry  |       |                                      | column        |
-| string    | entry  |       |                                      | string        |
-| text      | key    |       |                                      | localisation  |
-| banner    | key    |       | template/HashMap.h                   | banner        |
-| files     | module |       |                                      | moduleInclude |
-| files     | module |       |                                      | module        |
+| source       | fragment           | placeholder   |
+| ------------ | ------------------ | ------------- |
+| section      |                    | section       |
+| predicate    |                    | predicate     |
+| transform    |                    | transform     |
+| column       |                    | column        |
+| string       |                    | string        |
+| files        |                    | file          |
+| files.module |                    | moduleInclude |
+| files.module |                    | module        |
+| text         |                    | localisation  |
+| banner       | template/HashMap.h | banner        |
 
 ## constraints
 

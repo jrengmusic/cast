@@ -1,0 +1,399 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
+  <compounddef id="struct_code" kind="struct" language="C++" prot="public">
+    <compoundname>Code</compoundname>
+    <includes refid="_code_8h" local="no">Code.h</includes>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="struct_code_1a0e0d5eba45571cbf59d77a3dad6ea958" prot="private" static="no" mutable="no">
+        <type><ref refid="struct_generated" kindref="compound">Generated</ref></type>
+        <definition>Generated Code::generated</definition>
+        <argsstring></argsstring>
+        <name>generated</name>
+        <qualifiedname>Code::generated</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Code.h" line="29" column="15" bodyfile="Code.h" bodystart="29" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_code_1aed52522927c9568379e286c2f297ee0b" prot="private" static="no" mutable="no">
+        <type><ref refid="structjam_1_1Stamp" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Stamp</ref></type>
+        <definition>jam::Stamp Code::stamp</definition>
+        <argsstring></argsstring>
+        <name>stamp</name>
+        <qualifiedname>Code::stamp</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Code.h" line="30" column="16" bodyfile="Code.h" bodystart="30" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_code_1ae381eed02d5e2dc0dbc51b37553bb13d" prot="private" static="no" mutable="no">
+        <type><ref refid="structjam_1_1Hyperlink" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Hyperlink</ref></type>
+        <definition>jam::Hyperlink Code::hyperlink</definition>
+        <argsstring></argsstring>
+        <name>hyperlink</name>
+        <qualifiedname>Code::hyperlink</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Code.h" line="31" column="20" bodyfile="Code.h" bodystart="31" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_code_1ac0bf499b0722a2f094a6b7a7d970eac2" prot="private" static="no" mutable="no">
+        <type><ref refid="structjam_1_1Grapheme" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Grapheme</ref></type>
+        <definition>jam::Grapheme Code::grapheme</definition>
+        <argsstring></argsstring>
+        <name>grapheme</name>
+        <qualifiedname>Code::grapheme</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Code.h" line="32" column="19" bodyfile="Code.h" bodystart="32" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_code_1a8d1ba1fe2cca44852eb130e914789213" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; <ref refid="class_document" kindref="compound">Document</ref> &gt;</type>
+        <definition>std::unique_ptr&lt;Document&gt; Code::document</definition>
+        <argsstring></argsstring>
+        <name>document</name>
+        <qualifiedname>Code::document</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Code.h" line="35" column="21" bodyfile="Code.h" bodystart="35" bodyend="-1"/>
+        <referencedby refid="struct_code_1a4f4879eaf315854ff08cd0959f4631ea" compoundref="_code_8h" startline="9" endline="15">Code</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="struct_code_1a82720c0e12986be2cc4aba06c4e45a66" prot="private" static="no" mutable="no">
+        <type><ref refid="struct_writer" kindref="compound">Writer</ref></type>
+        <definition>Writer Code::writer</definition>
+        <argsstring></argsstring>
+        <name>writer</name>
+        <qualifiedname>Code::writer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Code.h" line="36" column="12" bodyfile="Code.h" bodystart="36" bodyend="-1"/>
+        <referencedby refid="struct_code_1a4f4879eaf315854ff08cd0959f4631ea" compoundref="_code_8h" startline="9" endline="15">Code</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="struct_code_1a4f4879eaf315854ff08cd0959f4631ea" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>Code::Code</definition>
+        <argsstring>(const juce::File &amp;documentFile)</argsstring>
+        <name>Code</name>
+        <qualifiedname>Code::Code</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref> &amp;</type>
+          <declname>documentFile</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Code.h" line="9" column="5" bodyfile="Code.h" bodystart="9" bodyend="15"/>
+        <references refid="struct_code_1a8d1ba1fe2cca44852eb130e914789213" compoundref="_code_8h" startline="35">document</references>
+        <references refid="structjam_1_1Instance_1ad5d2bbb58e37d8d260b428b334823140">jam::Instance&lt; Derived &gt;::getInstance</references>
+        <references refid="struct_code_1a82720c0e12986be2cc4aba06c4e45a66" compoundref="_code_8h" startline="36">writer</references>
+      </memberdef>
+      <memberdef kind="function" id="struct_code_1a114d17ae1ef85555df03eb5dd9a87702" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
+        <definition>juce::Result Code::generate</definition>
+        <argsstring>(const juce::String &amp;output={})</argsstring>
+        <name>generate</name>
+        <qualifiedname>Code::generate</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &amp;</type>
+          <declname>output</declname>
+          <defval>{}</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Code.h" line="17" column="18" bodyfile="Code.h" bodystart="17" bodyend="26"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>Code</label>
+        <link refid="struct_code"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>generated</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>stamp</edgelabel>
+        </childnode>
+        <childnode refid="12" relation="usage">
+          <edgelabel>hyperlink</edgelabel>
+        </childnode>
+        <childnode refid="14" relation="usage">
+          <edgelabel>grapheme</edgelabel>
+        </childnode>
+        <childnode refid="16" relation="usage">
+          <edgelabel>document</edgelabel>
+        </childnode>
+        <childnode refid="31" relation="usage">
+          <edgelabel>writer</edgelabel>
+        </childnode>
+      </node>
+      <node id="17">
+        <label>Document</label>
+        <link refid="class_document"/>
+        <childnode refid="18" relation="public-inheritance">
+        </childnode>
+        <childnode refid="30" relation="usage">
+          <edgelabel>path</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>Generated</label>
+        <link refid="struct_generated"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>jam</edgelabel>
+        </childnode>
+      </node>
+      <node id="31">
+        <label>Writer</label>
+        <link refid="struct_writer"/>
+        <childnode refid="17" relation="usage">
+          <edgelabel>document</edgelabel>
+        </childnode>
+      </node>
+      <node id="22">
+        <label>jam::Array&lt; jam::Document::Property&lt; Value &gt; &gt;</label>
+        <link refid="classjam_1_1Array" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="23" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="29">
+        <label>jam::Array&lt; jam::Document::Token &gt;</label>
+        <link refid="classjam_1_1Array" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="23" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="25">
+        <label>jam::Array&lt; std::unique_ptr&lt; ObjectClass &gt; &gt;</label>
+        <link refid="classjam_1_1Array" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="23" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="28">
+        <label>jam::Array&lt; uint32_t &gt;</label>
+        <link refid="classjam_1_1Array" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="23" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="19">
+        <label>jam::Document</label>
+        <link refid="structjam_1_1Document" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="20" relation="usage">
+          <edgelabel>root</edgelabel>
+        </childnode>
+        <childnode refid="24" relation="usage">
+          <edgelabel>elements</edgelabel>
+        </childnode>
+        <childnode refid="26" relation="usage">
+          <edgelabel>source</edgelabel>
+        </childnode>
+        <childnode refid="28" relation="usage">
+          <edgelabel>lineOffsets</edgelabel>
+        </childnode>
+      </node>
+      <node id="20">
+        <label>jam::Document::Element</label>
+        <link refid="structjam_1_1Document_1_1Element" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="21" relation="usage">
+          <edgelabel>id</edgelabel>
+        </childnode>
+        <childnode refid="20" relation="usage">
+          <edgelabel>firstChild</edgelabel>
+          <edgelabel>lastChild</edgelabel>
+          <edgelabel>nextSibling</edgelabel>
+          <edgelabel>parent</edgelabel>
+        </childnode>
+        <childnode refid="22" relation="usage">
+          <edgelabel>properties</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>jam::Generated</label>
+        <link refid="structjam_1_1Generated" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+      </node>
+      <node id="14">
+        <label>jam::Grapheme</label>
+        <link refid="structjam_1_1Grapheme" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="15" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="11">
+        <label>jam::HashMap&lt; jam::SharedResource *, int, jam::SharedResources::ContentHash, jam::SharedResources::ContentEqual &gt;</label>
+        <link refid="classjam_1_1HashMap" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+      </node>
+      <node id="12">
+        <label>jam::Hyperlink</label>
+        <link refid="structjam_1_1Hyperlink" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="13" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>jam::Instance&lt; Derived &gt;</label>
+        <link refid="structjam_1_1Instance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+      </node>
+      <node id="18">
+        <label>jam::MarkdownDocument</label>
+        <link refid="structjam_1_1MarkdownDocument" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="19" relation="public-inheritance">
+        </childnode>
+        <childnode refid="29" relation="usage">
+          <edgelabel>tokens</edgelabel>
+        </childnode>
+      </node>
+      <node id="24">
+        <label>jam::Owner&lt; jam::Document::Element &gt;</label>
+        <link refid="classjam_1_1Owner" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="25" relation="usage">
+          <edgelabel>entries</edgelabel>
+        </childnode>
+      </node>
+      <node id="15">
+        <label>jam::SharedResources&lt; Grapheme &gt;</label>
+        <link refid="structjam_1_1SharedResources" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="6" relation="public-inheritance">
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>chunks</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>count</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>writeMutex</edgelabel>
+        </childnode>
+        <childnode refid="11" relation="usage">
+          <edgelabel>lookup</edgelabel>
+        </childnode>
+      </node>
+      <node id="13">
+        <label>jam::SharedResources&lt; Hyperlink &gt;</label>
+        <link refid="structjam_1_1SharedResources" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="6" relation="public-inheritance">
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>chunks</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>count</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>writeMutex</edgelabel>
+        </childnode>
+        <childnode refid="11" relation="usage">
+          <edgelabel>lookup</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>jam::SharedResources&lt; Stamp &gt;</label>
+        <link refid="structjam_1_1SharedResources" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="6" relation="public-inheritance">
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>chunks</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>count</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>writeMutex</edgelabel>
+        </childnode>
+        <childnode refid="11" relation="usage">
+          <edgelabel>lookup</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>jam::Stamp</label>
+        <link refid="structjam_1_1Stamp" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="5" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="23">
+        <label>juce::DummyCriticalSection</label>
+        <link refid="classjuce_1_1DummyCriticalSection" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml"/>
+      </node>
+      <node id="30">
+        <label>juce::File</label>
+        <link refid="classjuce_1_1File" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml"/>
+      </node>
+      <node id="21">
+        <label>juce::Identifier</label>
+        <link refid="classjuce_1_1Identifier" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml"/>
+        <childnode refid="21" relation="usage">
+          <edgelabel>null</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>std::array&lt; std::unique_ptr&lt; Chunk &gt;, maxChunks &gt;</label>
+        <childnode refid="8" relation="usage">
+          <edgelabel>elements</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>std::atomic&lt; int &gt;</label>
+      </node>
+      <node id="27">
+        <label>std::basic_string&lt; Char &gt;</label>
+      </node>
+      <node id="10">
+        <label>std::mutex</label>
+      </node>
+      <node id="26">
+        <label>std::string</label>
+        <childnode refid="27" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="8">
+        <label>std::unique_ptr&lt; Chunk &gt;</label>
+      </node>
+      <node id="16">
+        <label>std::unique_ptr&lt; Document &gt;</label>
+        <childnode refid="17" relation="usage">
+          <edgelabel>ptr</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="Code.h" line="7" column="1" bodyfile="Code.h" bodystart="8" bodyend="39"/>
+    <listofallmembers>
+      <member refid="struct_code_1a4f4879eaf315854ff08cd0959f4631ea" prot="public" virt="non-virtual"><scope>Code</scope><name>Code</name></member>
+      <member refid="struct_code_1a8d1ba1fe2cca44852eb130e914789213" prot="private" virt="non-virtual"><scope>Code</scope><name>document</name></member>
+      <member refid="struct_code_1a114d17ae1ef85555df03eb5dd9a87702" prot="public" virt="non-virtual"><scope>Code</scope><name>generate</name></member>
+      <member refid="struct_code_1a0e0d5eba45571cbf59d77a3dad6ea958" prot="private" virt="non-virtual"><scope>Code</scope><name>generated</name></member>
+      <member refid="struct_code_1ac0bf499b0722a2f094a6b7a7d970eac2" prot="private" virt="non-virtual"><scope>Code</scope><name>grapheme</name></member>
+      <member refid="struct_code_1ae381eed02d5e2dc0dbc51b37553bb13d" prot="private" virt="non-virtual"><scope>Code</scope><name>hyperlink</name></member>
+      <member refid="struct_code_1aed52522927c9568379e286c2f297ee0b" prot="private" virt="non-virtual"><scope>Code</scope><name>stamp</name></member>
+      <member refid="struct_code_1a82720c0e12986be2cc4aba06c4e45a66" prot="private" virt="non-virtual"><scope>Code</scope><name>writer</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

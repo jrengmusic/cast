@@ -205,7 +205,7 @@
           <defval>{}</defval>
         </param>
         <briefdescription>
-<para>Runs <ref refid="namespacecast_1_1_driver_1a66a1e5cc96f2d517f8f93bb5ac5a3931" kindref="member">cast::Driver::run()</ref> and reports failures on stderr. </para>
+<para>Runs cast::Driver::run() and reports failures on stderr. </para>
         </briefdescription>
         <detaileddescription>
 <para>A successful run is silent.</para>
@@ -358,7 +358,7 @@
 <codeline lineno="96"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>JUCE_DEBUG</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="97"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structjam_1_1debug_1_1Log_1_1Scope" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::debug::Log::Scope</ref><sp/>logScope<sp/>{<sp/><ref refid="structjam_1_1File_1a3cd5af5371a85f9fa5681fe061f80fe6" kindref="member" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::File::getDebugLog</ref>()<sp/>};</highlight></codeline>
 <codeline lineno="98"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>result<sp/>{<sp/><ref refid="namespacecast_1_1_driver_1a66a1e5cc96f2d517f8f93bb5ac5a3931" kindref="member">cast::Driver::run</ref><sp/>(manifest,<sp/>outputFilter)<sp/>};</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>result<sp/>{<sp/>cast::Driver::run<sp/>(manifest,<sp/>outputFilter)<sp/>};</highlight></codeline>
 <codeline lineno="100"><highlight class="normal"></highlight></codeline>
 <codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(result.wasOk())</highlight></codeline>
 <codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>

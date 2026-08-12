@@ -23,10 +23,7 @@
         </inbodydescription>
         <location file="Operators.h" line="16" column="17" bodyfile="Operators.h" bodystart="16" bodyend="19"/>
         <references refid="structcast_1_1_transforms_1a93b2c0c5df5cd0cee07e79263c3cfb84" compoundref="_operators_8h" startline="38" endline="67">getTransforms</references>
-        <referencedby refid="namespacecast_1aaa7c1fb96ce3e03bec0ec2e35ad0bfb8" compoundref="_generator_8h" startline="846" endline="1199">cast::buildSlotResults</referencedby>
-        <referencedby refid="namespacecast_1af0d52fad0aaf66beec04f2ac8222ecb1" compoundref="_generator_8h" startline="112" endline="124">cast::getResolvedCell</referencedby>
         <referencedby refid="structcast_1_1_transforms_1a8f205eb5ba5a4a87c4241d3a73a10ede" compoundref="_operators_8h" startline="30" endline="35">getTransformed</referencedby>
-        <referencedby refid="namespacecast_1a8b0b668faf943d54d84ac338bd213c94" compoundref="_validator_8h" startline="1081" endline="1191">cast::validateManifest</referencedby>
       </memberdef>
       <memberdef kind="function" id="structcast_1_1_transforms_1a8f205eb5ba5a4a87c4241d3a73a10ede" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
         <type><ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref></type>
@@ -74,12 +71,6 @@
         <location file="Operators.h" line="30" column="25" bodyfile="Operators.h" bodystart="30" bodyend="35"/>
         <references refid="structcast_1_1_transforms_1abc1476003fb5b3b90ab6fdc040d5de3d" compoundref="_operators_8h" startline="16" endline="19">contains</references>
         <references refid="structcast_1_1_transforms_1a93b2c0c5df5cd0cee07e79263c3cfb84" compoundref="_operators_8h" startline="38" endline="67">getTransforms</references>
-        <referencedby refid="namespacecast_1a2f261fe39fd500d07b7a344df447103a" compoundref="_generator_8h" startline="168" endline="274">cast::buildPerRowMap</referencedby>
-        <referencedby refid="namespacecast_1aaa7c1fb96ce3e03bec0ec2e35ad0bfb8" compoundref="_generator_8h" startline="846" endline="1199">cast::buildSlotResults</referencedby>
-        <referencedby refid="namespacecast_1a1923b512425ff12f555a9cd2b9363f22" compoundref="_generator_8h" startline="289" endline="365">cast::buildTableMap</referencedby>
-        <referencedby refid="namespacecast_1aca018fb878084e5746d3e3f538709e4b" compoundref="_generator_8h" startline="394" endline="781">cast::expandRowRegions</referencedby>
-        <referencedby refid="namespacecast_1af0d52fad0aaf66beec04f2ac8222ecb1" compoundref="_generator_8h" startline="112" endline="124">cast::getResolvedCell</referencedby>
-        <referencedby refid="namespacecast_1ac556dfec02cf11201b862c4f5bf81180" compoundref="_validator_8h" startline="106" endline="115">cast::validateLexiconValueRedundancy</referencedby>
       </memberdef>
       <memberdef kind="function" id="structcast_1_1_transforms_1a93b2c0c5df5cd0cee07e79263c3cfb84" prot="public" static="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
         <type>const <ref refid="structjam_1_1Function_1_1Map" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Function::Map</ref>&lt; <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref>, <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &gt; &amp;</type>
@@ -131,11 +122,7 @@
         <references refid="structjam_1_1Format_1ab83f0446d82a0fbe8bc5590631922125">jam::Format::toUpperCase</references>
         <references refid="namespaceId_1a1521c8f937285dee8792e06601d5ba8e" compoundref="_identifiers_8h" startline="41" endline="41">Id::toUTF8</references>
         <references refid="structjam_1_1Format_1aec1797de688fbd1f2a2c34cb59b23151">jam::Format::toUTF8</references>
-        <referencedby refid="namespacecast_1a2f261fe39fd500d07b7a344df447103a" compoundref="_generator_8h" startline="168" endline="274">cast::buildPerRowMap</referencedby>
-        <referencedby refid="namespacecast_1aaa7c1fb96ce3e03bec0ec2e35ad0bfb8" compoundref="_generator_8h" startline="846" endline="1199">cast::buildSlotResults</referencedby>
-        <referencedby refid="namespacecast_1a1923b512425ff12f555a9cd2b9363f22" compoundref="_generator_8h" startline="289" endline="365">cast::buildTableMap</referencedby>
         <referencedby refid="structcast_1_1_transforms_1abc1476003fb5b3b90ab6fdc040d5de3d" compoundref="_operators_8h" startline="16" endline="19">contains</referencedby>
-        <referencedby refid="namespacecast_1aca018fb878084e5746d3e3f538709e4b" compoundref="_generator_8h" startline="394" endline="781">cast::expandRowRegions</referencedby>
         <referencedby refid="structcast_1_1_transforms_1a8f205eb5ba5a4a87c4241d3a73a10ede" compoundref="_operators_8h" startline="30" endline="35">getTransformed</referencedby>
       </memberdef>
       <memberdef kind="function" id="structcast_1_1_transforms_1a6bf6f9223f1eb54743ee919fdc1d7e4a" prot="public" static="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
@@ -159,8 +146,6 @@
         <references refid="namespacecast_1a7407bd8acd4ae8009c68d522048a74ac" compoundref="_operators_8h" startline="10" endline="10">cast::identifierType</references>
         <references refid="namespacecast_1a03d4737086d1615cb278fb06991ee933" compoundref="_operators_8h" startline="8" endline="8">cast::intType</references>
         <references refid="namespacecast_1a97a46df955200fdec1a9d9416d8e1187" compoundref="_operators_8h" startline="9" endline="9">cast::stringType</references>
-        <referencedby refid="namespacecast_1a2f261fe39fd500d07b7a344df447103a" compoundref="_generator_8h" startline="168" endline="274">cast::buildPerRowMap</referencedby>
-        <referencedby refid="namespacecast_1aca018fb878084e5746d3e3f538709e4b" compoundref="_generator_8h" startline="394" endline="781">cast::expandRowRegions</referencedby>
       </memberdef>
     </sectiondef>
     <briefdescription>

@@ -31,11 +31,12 @@
 | fail too long suffix        | ` characters`                                                        |
 | fail redundant value        | `value byte-equals `                                                 |
 | fail redundant value suffix | ` projection of name; delete it, let the template project it`        |
-| fail slot unknown           | region names a slot not declared in dispatch                         |
+| fail placeholder unknown    | region names a placeholder not declared in dispatch                  |
 | fail column unknown         | region names a column not in the matched table                       |
 | fail row reserved           | row is a reserved name                                               |
 | fail row region column      | row region takes no column; use the column's name as the region name |
-| fail slot missing           | slot has no placeholder or region in any root                        |
-| fail slot ambiguous         | slot declared in multiple roots                                      |
-| fail region source missing  | dispatch row has no template and its slot has no region              |
-| fail region unfed           | slot region is declared but no dispatch row feeds it                 |
+| fail placeholder missing    | placeholder has no placeholder or region in any root                 |
+| fail placeholder ambiguous  | placeholder declared in multiple roots                                |
+| fail region source missing  | dispatch row has no template and its placeholder has no region       |
+| fail region unfed           | placeholder region is declared but no dispatch row feeds it          |
+| fail template chain depth   | template chain exceeds maximum depth of 2                            |

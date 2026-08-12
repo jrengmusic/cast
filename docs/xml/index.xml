@@ -1,103 +1,43 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
 <doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="1.16.1" xml:lang="en-US">
-  <compound refid="structcast_1_1_generated" kind="struct"><name>cast::Generated</name>
-    <member refid="structcast_1_1_generated_1ac5eefa6412847bc19a964fc77408d1cb" kind="variable"><name>jam</name></member>
+  <compound refid="class_document" kind="class"><name>Document</name>
+    <member refid="class_document_1ad45fc761b44af57d0fbe019e9d39753b" kind="variable"><name>path</name></member>
+    <member refid="class_document_1ad5cd402607209b3e4c11dd183628c596" kind="function"><name>Document</name></member>
+    <member refid="class_document_1af755a9de5a4da38bee95d64ef6540160" kind="function"><name>getTemplate</name></member>
+    <member refid="class_document_1acb717b70e015d90230cff5cd2a6fb1ed" kind="function"><name>getOutput</name></member>
+    <member refid="class_document_1a41285a408d1efafcbb423c50178ab903" kind="function"><name>parse</name></member>
   </compound>
-  <compound refid="structcast_1_1_region_marker_occurrence" kind="struct"><name>cast::RegionMarkerOccurrence</name>
-    <member refid="structcast_1_1_region_marker_occurrence_1a38369f672de1277da0ea8cb66ddef665" kind="variable"><name>name</name></member>
-    <member refid="structcast_1_1_region_marker_occurrence_1a3fd88a764a7d0a026a9999c78181a461" kind="variable"><name>index</name></member>
+  <compound refid="struct_generated" kind="struct"><name>Generated</name>
+    <member refid="struct_generated_1a0c534995b7d284f3e1c17e3620c729b7" kind="variable"><name>jam</name></member>
   </compound>
-  <compound refid="structcast_1_1_slot_region" kind="struct"><name>cast::SlotRegion</name>
-    <member refid="structcast_1_1_slot_region_1a543a1d3811c73ec724b66cabf594b068" kind="variable"><name>rootTemplatePath</name></member>
-    <member refid="structcast_1_1_slot_region_1a6f568f3e1832c14592b96dd6a41d0732" kind="variable"><name>body</name></member>
+  <compound refid="struct_processor" kind="struct"><name>Processor</name>
+    <member refid="struct_processor_1a97c129fdf75007070476c40a8d86860d" kind="variable"><name>libraryInitialiser</name></member>
+    <member refid="struct_processor_1ab6e3cb53c8ae5bf2fa70ea5275a43e71" kind="variable"><name>stamp</name></member>
+    <member refid="struct_processor_1a7c20bee503ef602164c9dd0266cabeb0" kind="variable"><name>hyperlink</name></member>
+    <member refid="struct_processor_1a1e503fac49808e2f2c1ac96f36c3f266" kind="variable"><name>grapheme</name></member>
+    <member refid="struct_processor_1a86e4c836d4dc4de2ba52249155688062" kind="variable"><name>generated</name></member>
+    <member refid="struct_processor_1a606b6fc1ff23cc9a9390447c1977eb82" kind="variable"><name>document</name></member>
+    <member refid="struct_processor_1ae107b0131266b6d1496141a68cb919ec" kind="variable"><name>writer</name></member>
+    <member refid="struct_processor_1a6e18aefdf2ecdf8e03b558a9445f7d25" kind="function"><name>Processor</name></member>
+    <member refid="struct_processor_1a2e86a18cd81c0399acd6c74bdd5b8aa3" kind="function"><name>generate</name></member>
   </compound>
-  <compound refid="structcast_1_1_template_engine" kind="struct"><name>cast::TemplateEngine</name>
-    <member refid="structcast_1_1_template_engine_1ac43683fd26a78559d8a7460a933eed94" kind="function"><name>expandText</name></member>
-    <member refid="structcast_1_1_template_engine_1a17663684abc84ea95042ef3ba089526c" kind="function"><name>expand</name></member>
+  <compound refid="struct_transforms" kind="struct"><name>Transforms</name>
+    <member refid="struct_transforms_1a60fab7c7614b4f88bab66dfabc16e61a" kind="function"><name>contains</name></member>
+    <member refid="struct_transforms_1a86fd31845ebfb608344f8aace136afe0" kind="function"><name>getTransformed</name></member>
+    <member refid="struct_transforms_1a9de731e0c1afd1870b6d8f97bfbf3049" kind="function"><name>getTransforms</name></member>
+    <member refid="struct_transforms_1a756f1aa92d952ec7e27f0f2663e8ab8e" kind="function"><name>getTypes</name></member>
   </compound>
-  <compound refid="structcast_1_1_transforms" kind="struct"><name>cast::Transforms</name>
-    <member refid="structcast_1_1_transforms_1abc1476003fb5b3b90ab6fdc040d5de3d" kind="function"><name>contains</name></member>
-    <member refid="structcast_1_1_transforms_1a8f205eb5ba5a4a87c4241d3a73a10ede" kind="function"><name>getTransformed</name></member>
-    <member refid="structcast_1_1_transforms_1a93b2c0c5df5cd0cee07e79263c3cfb84" kind="function"><name>getTransforms</name></member>
-    <member refid="structcast_1_1_transforms_1a6bf6f9223f1eb54743ee919fdc1d7e4a" kind="function"><name>getTypes</name></member>
+  <compound refid="struct_validator" kind="struct"><name>Validator</name>
+    <member refid="struct_validator_1af9ba9c4dea2607e7bed6ca8332e46e48" kind="function"><name>isValid</name></member>
   </compound>
-  <compound refid="namespacecast" kind="namespace"><name>cast</name>
-    <member refid="namespacecast_1a8e14967c571bd256059e520b01bfde80" kind="typedef"><name>SlotRegionMap</name></member>
-    <member refid="namespacecast_1a54f69242eb732ad6931adc8a6ba9874c" kind="typedef"><name>SubstitutionMap</name></member>
-    <member refid="namespacecast_1abe65a5f539a491ebfa4698a24ee34ee5" kind="variable"><name>banner</name></member>
-    <member refid="namespacecast_1a0dda3bc57ece1b9a1fe763639323669e" kind="variable"><name>rowRegionBeginPrefix</name></member>
-    <member refid="namespacecast_1ac432738e84fbb375a0d3cc91d46a95b0" kind="variable"><name>rowRegionEnd</name></member>
-    <member refid="namespacecast_1a2944d0cbe565e88a6c165e7ee9452196" kind="variable"><name>rowRegionIndex</name></member>
-    <member refid="namespacecast_1adfe17e70aad5ab0481b756737a6cb0fa" kind="variable"><name>rowMarker</name></member>
-    <member refid="namespacecast_1a50bdcdd4506a781583342ee768feb9a8" kind="variable"><name>defaultKeyType</name></member>
-    <member refid="namespacecast_1a5b60e1e50e89edb1e09b1aa96f6f9f00" kind="variable"><name>formatColumn</name></member>
-    <member refid="namespacecast_1adb79723de64557769aedad2bb645b4d8" kind="variable"><name>extensionsNamespace</name></member>
-    <member refid="namespacecast_1a93932d46c0f27e70ef538a9d5a3412de" kind="variable"><name>registryTableIds</name></member>
-    <member refid="namespacecast_1a864c9b0890d921f63b9b4ff36c05b61a" kind="variable"><name>widthCap</name></member>
-    <member refid="namespacecast_1a5a1fa6426a004c80b6ecd43651375c0c" kind="variable"><name>documentMargin</name></member>
-    <member refid="namespacecast_1a03d4737086d1615cb278fb06991ee933" kind="variable"><name>intType</name></member>
-    <member refid="namespacecast_1a97a46df955200fdec1a9d9416d8e1187" kind="variable"><name>stringType</name></member>
-    <member refid="namespacecast_1a7407bd8acd4ae8009c68d522048a74ac" kind="variable"><name>identifierType</name></member>
-    <member refid="namespacecast_1aca8cec8faff107b36a1a4663a6d4a0d3" kind="variable"><name>maxLexiconNameLength</name></member>
-    <member refid="namespacecast_1accf9cb96dae9454951da0b1ada0b5fcc" kind="variable"><name>regionBeginSuffix</name></member>
-    <member refid="namespacecast_1ac17416f9b360393222385c294db0e048" kind="variable"><name>regionEndSuffix</name></member>
-    <member refid="namespacecast_1aa25d8654496d82ef2a85e72deb168bc2" kind="variable"><name>regionBeginKeySuffix</name></member>
-    <member refid="namespacecast_1a67e1ba2144b5504d07943bcc68f09e2d" kind="variable"><name>regionEndKeySuffix</name></member>
-    <member refid="namespacecast_1a2a6f8468cf97af833e25eb17b5c329ba" kind="variable"><name>regionBeginPattern</name></member>
-    <member refid="namespacecast_1ab676d052a0f3efb4062591b54ffc1604" kind="variable"><name>perColumnPredicates</name></member>
-    <member refid="namespacecast_1a8cacd457dc5d41367ee1f590f036750e" kind="function"><name>getOutputBanner</name></member>
-    <member refid="namespacecast_1a31cea864865670bad11688a5eeb5a90a" kind="function"><name>isLiteralCell</name></member>
-    <member refid="namespacecast_1ac2885d637faed6ad209af70b5fad0fa3" kind="function"><name>getLiteralValue</name></member>
-    <member refid="namespacecast_1af0d52fad0aaf66beec04f2ac8222ecb1" kind="function"><name>getResolvedCell</name></member>
-    <member refid="namespacecast_1aa54d108b8889dddd57b54a8aa749693f" kind="function"><name>getDeclaredValue</name></member>
-    <member refid="namespacecast_1a2f261fe39fd500d07b7a344df447103a" kind="function"><name>buildPerRowMap</name></member>
-    <member refid="namespacecast_1a1923b512425ff12f555a9cd2b9363f22" kind="function"><name>buildTableMap</name></member>
-    <member refid="namespacecast_1aca018fb878084e5746d3e3f538709e4b" kind="function"><name>expandRowRegions</name></member>
-    <member refid="namespacecast_1add0f8c9cb726218885ab9e41ab975006" kind="function"><name>substituteSlotRegions</name></member>
-    <member refid="namespacecast_1aaa7c1fb96ce3e03bec0ec2e35ad0bfb8" kind="function"><name>buildSlotResults</name></member>
-    <member refid="namespacecast_1a1898e0a4b4b84bf3d720ca0168ee7d60" kind="function"><name>processOutput</name></member>
-    <member refid="namespacecast_1af452b934f2fca601c8a4dca14ac46701" kind="function"><name>printHelp</name></member>
-    <member refid="namespacecast_1afb20cc8ccd65bbfce56cc5014cb8cd11" kind="function"><name>getLocation</name></member>
-    <member refid="namespacecast_1a1b825f5fa6bf704c170c9656f4ae6a80" kind="function"><name>isSeparatorRow</name></member>
-    <member refid="namespacecast_1af72aa95234f3857f0da4f63e91384f76" kind="function"><name>isTooLong</name></member>
-    <member refid="namespacecast_1a301f9a9f21f53f0bbb8d34c7ccad4786" kind="function"><name>validateLexiconName</name></member>
-    <member refid="namespacecast_1ac556dfec02cf11201b862c4f5bf81180" kind="function"><name>validateLexiconValueRedundancy</name></member>
-    <member refid="namespacecast_1ae92ac60be535ee1f1f0befb302d3a4ec" kind="function"><name>getDispatchCell</name></member>
-    <member refid="namespacecast_1a7f4d220598cd937be80122ade833bf3a" kind="function"><name>getTextLineNumber</name></member>
-    <member refid="namespacecast_1aa3f61e880ffdcd0ce8b187d510c54bf5" kind="function"><name>findRegionBeginMarkers</name></member>
-    <member refid="namespacecast_1a444068d8337f2000e3100d307ba95d47" kind="function"><name>collectSlotRegions</name></member>
-    <member refid="namespacecast_1aac4b3ca2e1cb6142f624b8a8d6bcc79c" kind="function"><name>validateDispatchRegionPairing</name></member>
-    <member refid="namespacecast_1abaa85f828c4cc75b8236458337bcac9e" kind="function"><name>predicateMatches</name></member>
-    <member refid="namespacecast_1afc2246d5944f23f03ef3e4ab6e7b8b79" kind="function"><name>predicateUnique</name></member>
-    <member refid="namespacecast_1adcaac27c6c5c01b3929f7af7c5c3fd97" kind="function"><name>predicateExistsIn</name></member>
-    <member refid="namespacecast_1aecf0a3f1c70cba1a7c5ec9809f65b73d" kind="function"><name>predicateOneOf</name></member>
-    <member refid="namespacecast_1ade18ba5ffac7f784dc16e6b71a5e8c90" kind="function"><name>predicateRange</name></member>
-    <member refid="namespacecast_1ae997badfb441ede5cb8daef34d52d81d" kind="function"><name>predicateParity</name></member>
-    <member refid="namespacecast_1a1a6a1898c748510c768cd4a91a782705" kind="function"><name>predicateFileExists</name></member>
-    <member refid="namespacecast_1a000550660e0ff037624122a930c4db63" kind="function"><name>predicateOnePerGroup</name></member>
-    <member refid="namespacecast_1a8f2ba9626c72998e9c450fecb9c8205d" kind="function"><name>buildPredicateMap</name></member>
-    <member refid="namespacecast_1ac5e2f17a8a15866b3e04d834d4bd0583" kind="function"><name>getHazardMessage</name></member>
-    <member refid="namespacecast_1a797901aeab14d7fc1222baed0aff018d" kind="function"><name>validateTableHazards</name></member>
-    <member refid="namespacecast_1a8b0b668faf943d54d84ac338bd213c94" kind="function"><name>validateManifest</name></member>
-    <member refid="namespacecast_1a8684cc7a4d974c6a593e61462b9e6e49" kind="function"><name>isValid</name></member>
-    <member refid="namespacecast_1ac510c3a8929cca911b34c5df621ab683" kind="function"><name>validatePerColumnConstraints</name></member>
-    <member refid="namespacecast_1a7af720d1640fe65643611ff6c946f447" kind="function"><name>getPlaceholderValue</name></member>
-    <member refid="namespacecast_1a414124be1e7c908ca60ad16f0dc77751" kind="function"><name>validatePlaceholders</name></member>
-  </compound>
-  <compound refid="namespacecast_1_1_constraints" kind="namespace"><name>cast::Constraints</name>
-    <member refid="namespacecast_1_1_constraints_1aa35ecc701cecdaf0ae40c1a7bacea961" kind="function"><name>validate</name></member>
-  </compound>
-  <compound refid="namespacecast_1_1_driver" kind="namespace"><name>cast::Driver</name>
-    <member refid="namespacecast_1_1_driver_1a66a1e5cc96f2d517f8f93bb5ac5a3931" kind="function"><name>run</name></member>
+  <compound refid="struct_writer" kind="struct"><name>Writer</name>
+    <member refid="struct_writer_1abacfafff2304784fb812048e4d8dc03c" kind="variable"><name>document</name></member>
+    <member refid="struct_writer_1af327505e5c158c91e6d954fe4892b49e" kind="function"><name>Writer</name></member>
+    <member refid="struct_writer_1abc620ecd78eb4a6223611e2000de9cde" kind="function"><name>toFile</name></member>
   </compound>
   <compound refid="namespacestd" kind="namespace"><name>std</name>
   </compound>
-  <compound refid="_cast_c_l_i_8cpp" kind="file"><name>CastCLI.cpp</name>
-    <member refid="_cast_c_l_i_8cpp_1a53749567f657bb9a9a4b0efe5d094749" kind="function"><name>paintBanner</name></member>
-    <member refid="_cast_c_l_i_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" kind="function"><name>printBanner</name></member>
-    <member refid="_cast_c_l_i_8cpp_1a7f683cefdf7f675f09e36661ce8df7cc" kind="function"><name>printBannerAndHelp</name></member>
-    <member refid="_cast_c_l_i_8cpp_1a7beba094c25e9aa5626e49384e647202" kind="function"><name>runManifest</name></member>
-    <member refid="_cast_c_l_i_8cpp_1a0ddf1224851353fc92bfbff6f499fa97" kind="function"><name>main</name></member>
+  <compound refid="_document_8h" kind="file"><name>Document.h</name>
   </compound>
   <compound refid="_c_a_s_t_8h" kind="file"><name>CAST.h</name>
   </compound>
@@ -106,16 +46,29 @@
   <compound refid="_generated_8h" kind="file"><name>Generated.h</name>
   </compound>
   <compound refid="_hash_maps_8h" kind="file"><name>HashMaps.h</name>
+    <member refid="_hash_maps_8h_1a49c32659098bca5c569b3adc0077f2db" kind="variable"><name>banner</name></member>
   </compound>
   <compound refid="_identifiers_8h" kind="file"><name>Identifiers.h</name>
   </compound>
   <compound refid="_text_8h" kind="file"><name>Text.h</name>
   </compound>
-  <compound refid="_generator_8h" kind="file"><name>Generator.h</name>
-  </compound>
   <compound refid="_help_8h" kind="file"><name>Help.h</name>
+    <member refid="_help_8h_1a442c2220ca93fa4e22906b5647155712" kind="variable"><name>widthCap</name></member>
+    <member refid="_help_8h_1ac76273da3f8184b8fe45300ae8407f76" kind="variable"><name>documentMargin</name></member>
+    <member refid="_help_8h_1a62669dc5317f85714713b82a120b55b9" kind="function"><name>printHelp</name></member>
+  </compound>
+  <compound refid="main_8cpp" kind="file"><name>main.cpp</name>
+    <member refid="main_8cpp_1a53749567f657bb9a9a4b0efe5d094749" kind="function"><name>paintBanner</name></member>
+    <member refid="main_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" kind="function"><name>printBanner</name></member>
+    <member refid="main_8cpp_1a7f683cefdf7f675f09e36661ce8df7cc" kind="function"><name>printBannerAndHelp</name></member>
+    <member refid="main_8cpp_1a0ddf1224851353fc92bfbff6f499fa97" kind="function"><name>main</name></member>
   </compound>
   <compound refid="_operators_8h" kind="file"><name>Operators.h</name>
+    <member refid="_operators_8h_1a8d572fa00b69876eeffa602dc75e1296" kind="variable"><name>intType</name></member>
+    <member refid="_operators_8h_1ada6f052a9757af2fe4b790c9bf30a6d9" kind="variable"><name>stringType</name></member>
+    <member refid="_operators_8h_1a897b356777c42f5955ed222ad0600437" kind="variable"><name>identifierType</name></member>
+  </compound>
+  <compound refid="_processor_8h" kind="file"><name>Processor.h</name>
   </compound>
   <compound refid="_validator_8h" kind="file"><name>Validator.h</name>
   </compound>

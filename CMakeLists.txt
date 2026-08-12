@@ -22,10 +22,25 @@ configure_app(
     PRODUCT_NAME cast
     VERSION      "${PROJECT_VERSION}"
     MODULES      juce_core
+    # P8b: full jam surface for generated-header validation — slim back after doxygen pass
     JAM_MODULES  jam_core
                  jam_style
                  jam_terminal
                  jam_markdown
+                 jam_animation
+                 jam_audio_devices
+                 jam_clap
+                 jam_data_structures
+                 jam_debug
+                 jam_dsp
+                 jam_freetype
+                 jam_fuzzy
+                 jam_graphics
+                 jam_gui
+                 jam_lua
+                 jam_subprocess
+                 jam_vulkan
+                 jam_web
 )
 
 target_include_directories(cast_App PRIVATE

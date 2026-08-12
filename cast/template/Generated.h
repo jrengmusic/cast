@@ -1,8 +1,8 @@
 #pragma once
 
-@moduleInclude:begin@
-#include @value@
-@moduleInclude:end@
+:::moduleInclude:begin:::
+#include :::value:::
+:::moduleInclude:end:::
 
 namespace cast
 {
@@ -10,9 +10,9 @@ namespace cast
 
 struct Generated
 {
-@module:begin@
-    @cell@::Generated @cell@;
-@module:end@
+:::module:begin:::
+    :::cell:::::Generated :::cell:::;
+:::module:end:::
 };
 
 /**______________________________END OF NAMESPACE______________________________*/

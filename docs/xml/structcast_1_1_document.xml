@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
+  <compounddef id="structcast_1_1_document" kind="struct" language="C++" prot="public">
+    <compoundname>cast::Document</compoundname>
+    <includes refid="_document_8h" local="no">Document.h</includes>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="structcast_1_1_document_1ab8d4898b9c63b1a5c379b0592d2d8c87" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::unique_ptr&lt; <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> &gt;</type>
+        <definition>std::unique_ptr&lt; jam::Document &gt; cast::Document::parse</definition>
+        <argsstring>(const juce::File &amp;manifest)</argsstring>
+        <name>parse</name>
+        <qualifiedname>cast::Document::parse</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref> &amp;</type>
+          <declname>manifest</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Document.h" line="10" column="28" bodyfile="Document.h" bodystart="13" bodyend="17"/>
+        <references refid="namespacejuce_1a86deae84ff8b95d7e40214a493b3dfe0">juce::ignoreUnused</references>
+        <referencedby refid="structcast_1_1_code_1ac9ce6de487b7ad83755fb8323e6446f5" compoundref="_code_8h" startline="22" endline="35">cast::Code::run</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="Document.h" line="8" column="1" bodyfile="Document.h" bodystart="9" bodyend="11"/>
+    <listofallmembers>
+      <member refid="structcast_1_1_document_1ab8d4898b9c63b1a5c379b0592d2d8c87" prot="public" virt="non-virtual"><scope>cast::Document</scope><name>parse</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

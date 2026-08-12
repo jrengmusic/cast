@@ -4,6 +4,7 @@
 | ------------------------ | ------------------ |
 | generated                |                    |
 | dispatch                 |                    |
+| patch                    |                    |
 | transforms               |                    |
 | constraints              |                    |
 | brief                    |                    |
@@ -43,17 +44,14 @@
 | predicate                |                    |
 | tables                   |                    |
 | template path            | template           |
-| source table             | source             |
 | separator                |                    |
 | entry                    |                    |
-| projection               |                    |
 | symbol                   |                    |
-| from                     |                    |
 | to                       |                    |
+| capacity                 |                    |
 | hazard chars             | `<>`               |
 | diagnostic separator     | `: `               |
 | dispatch row label       | ` dispatch row:`   |
-| source table open        | `(source table:`   |
 | output row label         | ` output row:`     |
 | available label          | ` available here:` |
 | row region begin         | row:begin          |

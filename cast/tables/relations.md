@@ -58,13 +58,13 @@
 | predicate     |
 | tables        |
 | template path |
-| source table  |
+| patch         |
 | separator     |
 | entry         |
-| projection    |
 | symbol        |
 | from          |
 | to            |
+| capacity      |
 
 ## string
 
@@ -73,7 +73,6 @@
 | hazard chars             |
 | diagnostic separator     |
 | dispatch row label       |
-| source table open        |
 | output row label         |
 | available label          |
 | row region begin         |

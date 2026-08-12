@@ -1,0 +1,667 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
+  <compounddef id="struct_generated" kind="struct" language="C++" prot="public">
+    <compoundname>Generated</compoundname>
+    <includes refid="_generated_8h" local="no">Generated.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_generated_1a0c534995b7d284f3e1c17e3620c729b7" prot="public" static="no" mutable="no">
+        <type><ref refid="structjam_1_1Generated" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Generated</ref></type>
+        <definition>jam::Generated Generated::jam</definition>
+        <argsstring></argsstring>
+        <name>jam</name>
+        <qualifiedname>Generated::jam</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/Generated.h" line="21" column="20" bodyfile="generated/Generated.h" bodystart="21" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>Generated</label>
+        <link refid="struct_generated"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>jam</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>jam::Generated</label>
+        <link refid="structjam_1_1Generated" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>screen</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>taperMap</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>xmlTokenType</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>segment</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>buttonState</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>position</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>orientation</edgelabel>
+        </childnode>
+        <childnode refid="11" relation="usage">
+          <edgelabel>windowFX</edgelabel>
+        </childnode>
+        <childnode refid="12" relation="usage">
+          <edgelabel>blockType</edgelabel>
+        </childnode>
+        <childnode refid="13" relation="usage">
+          <edgelabel>markdownTokenType</edgelabel>
+        </childnode>
+        <childnode refid="14" relation="usage">
+          <edgelabel>documentTokenType</edgelabel>
+        </childnode>
+        <childnode refid="15" relation="usage">
+          <edgelabel>byte</edgelabel>
+        </childnode>
+        <childnode refid="16" relation="usage">
+          <edgelabel>headingLevel</edgelabel>
+        </childnode>
+        <childnode refid="17" relation="usage">
+          <edgelabel>htmlType1Tag</edgelabel>
+        </childnode>
+        <childnode refid="18" relation="usage">
+          <edgelabel>htmlBlockTag</edgelabel>
+        </childnode>
+        <childnode refid="19" relation="usage">
+          <edgelabel>syntaxTokenType</edgelabel>
+        </childnode>
+        <childnode refid="20" relation="usage">
+          <edgelabel>family</edgelabel>
+        </childnode>
+        <childnode refid="21" relation="usage">
+          <edgelabel>openBlock</edgelabel>
+        </childnode>
+        <childnode refid="22" relation="usage">
+          <edgelabel>cppKeyword</edgelabel>
+        </childnode>
+        <childnode refid="23" relation="usage">
+          <edgelabel>jsKeyword</edgelabel>
+        </childnode>
+        <childnode refid="24" relation="usage">
+          <edgelabel>pythonKeyword</edgelabel>
+        </childnode>
+        <childnode refid="25" relation="usage">
+          <edgelabel>requirementDiagramNode</edgelabel>
+        </childnode>
+        <childnode refid="26" relation="usage">
+          <edgelabel>requirementDiagramEdge</edgelabel>
+        </childnode>
+        <childnode refid="27" relation="usage">
+          <edgelabel>diagramType</edgelabel>
+        </childnode>
+        <childnode refid="28" relation="usage">
+          <edgelabel>flowDirection</edgelabel>
+        </childnode>
+        <childnode refid="29" relation="usage">
+          <edgelabel>nodeShape</edgelabel>
+        </childnode>
+        <childnode refid="30" relation="usage">
+          <edgelabel>edgeStroke</edgelabel>
+        </childnode>
+        <childnode refid="31" relation="usage">
+          <edgelabel>edgeArrowhead</edgelabel>
+        </childnode>
+        <childnode refid="32" relation="usage">
+          <edgelabel>edgeDecoration</edgelabel>
+        </childnode>
+        <childnode refid="33" relation="usage">
+          <edgelabel>ganttStatus</edgelabel>
+        </childnode>
+        <childnode refid="34" relation="usage">
+          <edgelabel>seriesType</edgelabel>
+        </childnode>
+        <childnode refid="35" relation="usage">
+          <edgelabel>commitType</edgelabel>
+        </childnode>
+        <childnode refid="36" relation="usage">
+          <edgelabel>blockArrowDirection</edgelabel>
+        </childnode>
+        <childnode refid="37" relation="usage">
+          <edgelabel>kanbanPriority</edgelabel>
+        </childnode>
+        <childnode refid="38" relation="usage">
+          <edgelabel>architectureSide</edgelabel>
+        </childnode>
+        <childnode refid="39" relation="usage">
+          <edgelabel>c4Type</edgelabel>
+        </childnode>
+        <childnode refid="40" relation="usage">
+          <edgelabel>cssTokenType</edgelabel>
+        </childnode>
+        <childnode refid="41" relation="usage">
+          <edgelabel>cssRuleType</edgelabel>
+        </childnode>
+        <childnode refid="42" relation="usage">
+          <edgelabel>htmlTokenType</edgelabel>
+        </childnode>
+        <childnode refid="43" relation="usage">
+          <edgelabel>htmlVoidTag</edgelabel>
+        </childnode>
+        <childnode refid="44" relation="usage">
+          <edgelabel>mouseTracking</edgelabel>
+        </childnode>
+        <childnode refid="45" relation="usage">
+          <edgelabel>variDisplayMode</edgelabel>
+        </childnode>
+        <childnode refid="46" relation="usage">
+          <edgelabel>pluginWrapper</edgelabel>
+        </childnode>
+        <childnode refid="47" relation="usage">
+          <edgelabel>analyzerMode</edgelabel>
+        </childnode>
+        <childnode refid="48" relation="usage">
+          <edgelabel>appearance</edgelabel>
+        </childnode>
+        <childnode refid="49" relation="usage">
+          <edgelabel>audioParameter</edgelabel>
+        </childnode>
+        <childnode refid="50" relation="usage">
+          <edgelabel>display</edgelabel>
+        </childnode>
+        <childnode refid="51" relation="usage">
+          <edgelabel>fontRasterizerBackend</edgelabel>
+        </childnode>
+        <childnode refid="52" relation="usage">
+          <edgelabel>imageResample</edgelabel>
+        </childnode>
+        <childnode refid="53" relation="usage">
+          <edgelabel>mouseButton</edgelabel>
+        </childnode>
+        <childnode refid="54" relation="usage">
+          <edgelabel>oversampling</edgelabel>
+        </childnode>
+        <childnode refid="55" relation="usage">
+          <edgelabel>uiScaleMap</edgelabel>
+        </childnode>
+        <childnode refid="56" relation="usage">
+          <edgelabel>htmlStandardTag</edgelabel>
+        </childnode>
+        <childnode refid="57" relation="usage">
+          <edgelabel>parameterPage</edgelabel>
+        </childnode>
+        <childnode refid="58" relation="usage">
+          <edgelabel>viewOrientation</edgelabel>
+        </childnode>
+        <childnode refid="59" relation="usage">
+          <edgelabel>colourNames</edgelabel>
+        </childnode>
+        <childnode refid="60" relation="usage">
+          <edgelabel>colourIdMap</edgelabel>
+        </childnode>
+        <childnode refid="61" relation="usage">
+          <edgelabel>atRuleType</edgelabel>
+        </childnode>
+        <childnode refid="62" relation="usage">
+          <edgelabel>blockTag</edgelabel>
+        </childnode>
+        <childnode refid="63" relation="usage">
+          <edgelabel>headingTag</edgelabel>
+        </childnode>
+        <childnode refid="64" relation="usage">
+          <edgelabel>sharps</edgelabel>
+        </childnode>
+        <childnode refid="65" relation="usage">
+          <edgelabel>flats</edgelabel>
+        </childnode>
+      </node>
+      <node id="47">
+        <label>jam::SharedInstance&lt; map::AnalyzerMode &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="48">
+        <label>jam::SharedInstance&lt; map::Appearance &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="38">
+        <label>jam::SharedInstance&lt; map::ArchitectureSide &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="61">
+        <label>jam::SharedInstance&lt; map::AtRuleType &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="49">
+        <label>jam::SharedInstance&lt; map::AudioParameter &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="36">
+        <label>jam::SharedInstance&lt; map::BlockArrowDirection &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="62">
+        <label>jam::SharedInstance&lt; map::BlockTag &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="12">
+        <label>jam::SharedInstance&lt; map::BlockType &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>jam::SharedInstance&lt; map::ButtonState &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="15">
+        <label>jam::SharedInstance&lt; map::Byte &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="39">
+        <label>jam::SharedInstance&lt; map::C4Type &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="60">
+        <label>jam::SharedInstance&lt; map::ColourIdMap &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="59">
+        <label>jam::SharedInstance&lt; map::ColourNames &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="35">
+        <label>jam::SharedInstance&lt; map::CommitType &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="22">
+        <label>jam::SharedInstance&lt; map::CppKeyword &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="41">
+        <label>jam::SharedInstance&lt; map::CssRuleType &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="40">
+        <label>jam::SharedInstance&lt; map::CssTokenType &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="27">
+        <label>jam::SharedInstance&lt; map::DiagramType &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="50">
+        <label>jam::SharedInstance&lt; map::Display &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="14">
+        <label>jam::SharedInstance&lt; map::DocumentTokenType &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="31">
+        <label>jam::SharedInstance&lt; map::EdgeArrowhead &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="32">
+        <label>jam::SharedInstance&lt; map::EdgeDecoration &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="30">
+        <label>jam::SharedInstance&lt; map::EdgeStroke &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="20">
+        <label>jam::SharedInstance&lt; map::Family &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="65">
+        <label>jam::SharedInstance&lt; map::Flats &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="28">
+        <label>jam::SharedInstance&lt; map::FlowDirection &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="51">
+        <label>jam::SharedInstance&lt; map::FontRasterizerBackend &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="33">
+        <label>jam::SharedInstance&lt; map::GanttStatus &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="16">
+        <label>jam::SharedInstance&lt; map::HeadingLevel &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="63">
+        <label>jam::SharedInstance&lt; map::HeadingTag &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="18">
+        <label>jam::SharedInstance&lt; map::HtmlBlockTag &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="56">
+        <label>jam::SharedInstance&lt; map::HtmlStandardTag &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="42">
+        <label>jam::SharedInstance&lt; map::HtmlTokenType &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="17">
+        <label>jam::SharedInstance&lt; map::HtmlType1Tag &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="43">
+        <label>jam::SharedInstance&lt; map::HtmlVoidTag &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="52">
+        <label>jam::SharedInstance&lt; map::ImageResample &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="23">
+        <label>jam::SharedInstance&lt; map::JsKeyword &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="37">
+        <label>jam::SharedInstance&lt; map::KanbanPriority &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="13">
+        <label>jam::SharedInstance&lt; map::MarkdownTokenType &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="53">
+        <label>jam::SharedInstance&lt; map::MouseButton &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="44">
+        <label>jam::SharedInstance&lt; map::MouseTracking &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="29">
+        <label>jam::SharedInstance&lt; map::NodeShape &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="21">
+        <label>jam::SharedInstance&lt; map::OpenBlock &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="10">
+        <label>jam::SharedInstance&lt; map::Orientation &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="54">
+        <label>jam::SharedInstance&lt; map::Oversampling &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="57">
+        <label>jam::SharedInstance&lt; map::ParameterPage &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="46">
+        <label>jam::SharedInstance&lt; map::PluginWrapper &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>jam::SharedInstance&lt; map::Position &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="24">
+        <label>jam::SharedInstance&lt; map::PythonKeyword &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="26">
+        <label>jam::SharedInstance&lt; map::RequirementDiagramEdge &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="25">
+        <label>jam::SharedInstance&lt; map::RequirementDiagramNode &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>jam::SharedInstance&lt; map::Screen &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>jam::SharedInstance&lt; map::Segment &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="34">
+        <label>jam::SharedInstance&lt; map::SeriesType &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="64">
+        <label>jam::SharedInstance&lt; map::Sharps &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="19">
+        <label>jam::SharedInstance&lt; map::SyntaxTokenType &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>jam::SharedInstance&lt; map::TaperMap &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="55">
+        <label>jam::SharedInstance&lt; map::UIScaleMap &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="45">
+        <label>jam::SharedInstance&lt; map::VariDisplayMode &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="58">
+        <label>jam::SharedInstance&lt; map::ViewOrientation &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="11">
+        <label>jam::SharedInstance&lt; map::WindowFX &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>jam::SharedInstance&lt; map::XmlTokenType &gt;</label>
+        <link refid="classjam_1_1SharedInstance" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>object</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>std::shared_ptr&lt; ObjectType &gt;</label>
+      </node>
+    </collaborationgraph>
+    <location file="generated/Generated.h" line="19" column="1" bodyfile="generated/Generated.h" bodystart="20" bodyend="22"/>
+    <listofallmembers>
+      <member refid="struct_generated_1a0c534995b7d284f3e1c17e3620c729b7" prot="public" virt="non-virtual"><scope>Generated</scope><name>jam</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

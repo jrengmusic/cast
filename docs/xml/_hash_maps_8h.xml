@@ -5,8 +5,10 @@
     <includedby refid="_c_a_s_t_8h" local="yes">generated/CAST.h</includedby>
     <invincdepgraph>
       <node id="3">
-        <label>CastCLI.cpp</label>
-        <link refid="_cast_c_l_i_8cpp"/>
+        <label>Processor.h</label>
+        <link refid="_processor_8h"/>
+        <childnode refid="4" relation="include">
+        </childnode>
       </node>
       <node id="2">
         <label>generated/CAST.h</label>
@@ -20,8 +22,28 @@
         <childnode refid="2" relation="include">
         </childnode>
       </node>
+      <node id="4">
+        <label>main.cpp</label>
+        <link refid="main_8cpp"/>
+      </node>
     </invincdepgraph>
-    <innernamespace refid="namespacecast">cast</innernamespace>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="_hash_maps_8h_1a49c32659098bca5c569b3adc0077f2db" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classjam_1_1HashMap" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::HashMap</ref>&lt; <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref>, <ref refid="classjuce_1_1String" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String</ref> &gt;</type>
+        <definition>const jam::HashMap&lt;juce::String, juce::String&gt; banner</definition>
+        <argsstring></argsstring>
+        <name>banner</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="generated/HashMaps.h" line="17" column="27" bodyfile="generated/HashMaps.h" bodystart="18" bodyend="48"/>
+        <referencedby refid="main_8cpp_1a53749567f657bb9a9a4b0efe5d094749" compoundref="main_8cpp" startline="18" endline="59">paintBanner</referencedby>
+        <referencedby refid="main_8cpp_1a2c040b6a8eba42513dfa5b2a261f442d" compoundref="main_8cpp" startline="62" endline="82">printBanner</referencedby>
+      </memberdef>
+    </sectiondef>
     <briefdescription>
     </briefdescription>
     <detaileddescription>
@@ -43,44 +65,38 @@
 <codeline lineno="14"><highlight class="normal"></highlight></codeline>
 <codeline lineno="15"><highlight class="normal"></highlight><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="16"><highlight class="normal"></highlight></codeline>
-<codeline lineno="17"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespacecast" kindref="compound">cast</ref></highlight></codeline>
+<codeline lineno="17" refid="_hash_maps_8h_1a49c32659098bca5c569b3adc0077f2db" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classjam_1_1HashMap" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::HashMap&lt;juce::String, juce::String&gt;</ref><sp/><ref refid="_hash_maps_8h_1a49c32659098bca5c569b3adc0077f2db" kindref="member">banner</ref></highlight></codeline>
 <codeline lineno="18"><highlight class="normal">{</highlight></codeline>
-<codeline lineno="19"><highlight class="normal"></highlight><highlight class="comment">/*____________________________________________________________________________*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;blueMana&quot;</highlight><highlight class="normal">,<sp/><ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████████████<sp/><sp/>████████████<sp/><sp/>████████████<sp/><sp/>████████████&quot;</highlight><highlight class="normal">)<sp/>},</highlight></codeline>
 <codeline lineno="20"><highlight class="normal"></highlight></codeline>
-<codeline lineno="21" refid="namespacecast_1abe65a5f539a491ebfa4698a24ee34ee5" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classjam_1_1HashMap" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::HashMap&lt;juce::String, juce::String&gt;</ref><sp/><ref refid="namespacecast_1abe65a5f539a491ebfa4698a24ee34ee5" kindref="member">banner</ref></highlight></codeline>
-<codeline lineno="22"><highlight class="normal">{</highlight></codeline>
-<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;Blue<sp/>Mana&quot;</highlight><highlight class="normal">,<sp/><ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████████████<sp/><sp/>████████████<sp/><sp/>████████████<sp/><sp/>████████████&quot;</highlight><highlight class="normal">)<sp/>},</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;helloSummer&quot;</highlight><highlight class="normal">,<sp/><ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████░░░░████<sp/><sp/>████░░░░████<sp/><sp/>████░░░░████<sp/><sp/>░░░░████░░░░&quot;</highlight><highlight class="normal">)<sp/>},</highlight></codeline>
 <codeline lineno="24"><highlight class="normal"></highlight></codeline>
 <codeline lineno="25"><highlight class="normal"></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="26"><highlight class="normal"></highlight></codeline>
-<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;Hello<sp/>Summer&quot;</highlight><highlight class="normal">,<sp/><ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████░░░░████<sp/><sp/>████░░░░████<sp/><sp/>████░░░░████<sp/><sp/>░░░░████░░░░&quot;</highlight><highlight class="normal">)<sp/>},</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;highBlue&quot;</highlight><highlight class="normal">,<sp/><ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████<sp/><sp/><sp/><sp/>░░░░<sp/><sp/>████<sp/><sp/><sp/><sp/>████<sp/><sp/>████<sp/><sp/><sp/><sp/>░░░░<sp/><sp/><sp/><sp/><sp/><sp/>████<sp/><sp/><sp/><sp/>&quot;</highlight><highlight class="normal">)<sp/>},</highlight></codeline>
 <codeline lineno="28"><highlight class="normal"></highlight></codeline>
 <codeline lineno="29"><highlight class="normal"></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="30"><highlight class="normal"></highlight></codeline>
-<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;High<sp/>Blue&quot;</highlight><highlight class="normal">,<sp/><ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████<sp/><sp/><sp/><sp/>░░░░<sp/><sp/>████<sp/><sp/><sp/><sp/>████<sp/><sp/>████<sp/><sp/><sp/><sp/>░░░░<sp/><sp/><sp/><sp/><sp/><sp/>████<sp/><sp/><sp/><sp/>&quot;</highlight><highlight class="normal">)<sp/>},</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;aquarius&quot;</highlight><highlight class="normal">,<sp/><ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>████████████<sp/><sp/>████████████<sp/><sp/><sp/><sp/><sp/><sp/>████<sp/><sp/><sp/><sp/>&quot;</highlight><highlight class="normal">)<sp/>},</highlight></codeline>
 <codeline lineno="32"><highlight class="normal"></highlight></codeline>
 <codeline lineno="33"><highlight class="normal"></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="34"><highlight class="normal"></highlight></codeline>
-<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;Aquarius&quot;</highlight><highlight class="normal">,<sp/><ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>████████████<sp/><sp/>████████████<sp/><sp/><sp/><sp/><sp/><sp/>████<sp/><sp/><sp/><sp/>&quot;</highlight><highlight class="normal">)<sp/>},</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;homeworld&quot;</highlight><highlight class="normal">,<sp/><ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>████░░░░████<sp/><sp/>░░░░░░░░████<sp/><sp/><sp/><sp/><sp/><sp/>████<sp/><sp/><sp/><sp/>&quot;</highlight><highlight class="normal">)<sp/>},</highlight></codeline>
 <codeline lineno="36"><highlight class="normal"></highlight></codeline>
 <codeline lineno="37"><highlight class="normal"></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="38"><highlight class="normal"></highlight></codeline>
-<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;Homeworld&quot;</highlight><highlight class="normal">,<sp/><ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>████░░░░████<sp/><sp/>░░░░░░░░████<sp/><sp/><sp/><sp/><sp/><sp/>████<sp/><sp/><sp/><sp/>&quot;</highlight><highlight class="normal">)<sp/>},</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;oceanBlue&quot;</highlight><highlight class="normal">,<sp/><ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████<sp/><sp/><sp/><sp/>████<sp/><sp/>████<sp/><sp/><sp/><sp/>████<sp/><sp/>████<sp/><sp/><sp/><sp/>████<sp/><sp/><sp/><sp/><sp/><sp/>████<sp/><sp/><sp/><sp/>&quot;</highlight><highlight class="normal">)<sp/>},</highlight></codeline>
 <codeline lineno="40"><highlight class="normal"></highlight></codeline>
 <codeline lineno="41"><highlight class="normal"></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="42"><highlight class="normal"></highlight></codeline>
-<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;Ocean<sp/>Blue&quot;</highlight><highlight class="normal">,<sp/><ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████<sp/><sp/><sp/><sp/>████<sp/><sp/>████<sp/><sp/><sp/><sp/>████<sp/><sp/>████<sp/><sp/><sp/><sp/>████<sp/><sp/><sp/><sp/><sp/><sp/>████<sp/><sp/><sp/><sp/>&quot;</highlight><highlight class="normal">)<sp/>},</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;swimmer&quot;</highlight><highlight class="normal">,<sp/><ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████████████<sp/><sp/>████<sp/><sp/><sp/><sp/>████<sp/><sp/>████████████<sp/><sp/><sp/><sp/><sp/><sp/>████<sp/><sp/><sp/><sp/>&quot;</highlight><highlight class="normal">)<sp/>},</highlight></codeline>
 <codeline lineno="44"><highlight class="normal"></highlight></codeline>
 <codeline lineno="45"><highlight class="normal"></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="46"><highlight class="normal"></highlight></codeline>
-<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;Swimmer&quot;</highlight><highlight class="normal">,<sp/><ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;████████████<sp/><sp/>████<sp/><sp/><sp/><sp/>████<sp/><sp/>████████████<sp/><sp/><sp/><sp/><sp/><sp/>████<sp/><sp/><sp/><sp/>&quot;</highlight><highlight class="normal">)<sp/>},</highlight></codeline>
-<codeline lineno="48"><highlight class="normal"></highlight></codeline>
-<codeline lineno="49"><highlight class="normal"></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="50"><highlight class="normal"></highlight></codeline>
-<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;Way<sp/>Beyond<sp/>the<sp/>Blue&quot;</highlight><highlight class="normal">,<sp/><ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;░░░░░░░░░░░░<sp/><sp/>░░░░<sp/><sp/><sp/><sp/>░░░░<sp/><sp/>░░░░░░░░░░░░<sp/><sp/><sp/><sp/><sp/><sp/>░░░░<sp/><sp/><sp/><sp/>&quot;</highlight><highlight class="normal">)<sp/>},</highlight></codeline>
-<codeline lineno="52"><highlight class="normal">};</highlight></codeline>
-<codeline lineno="53"><highlight class="normal"></highlight></codeline>
-<codeline lineno="55"><highlight class="normal">}</highlight><highlight class="comment">//<sp/>namespace<sp/>cast</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/>{<sp/></highlight><highlight class="stringliteral">&quot;wayBeyondTheBlue&quot;</highlight><highlight class="normal">,<sp/><ref refid="classjuce_1_1String_1ae26e2af88f5237fd0b23de58cb168223" kindref="member" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::String::fromUTF8</ref><sp/>(</highlight><highlight class="stringliteral">&quot;░░░░░░░░░░░░<sp/><sp/>░░░░<sp/><sp/><sp/><sp/>░░░░<sp/><sp/>░░░░░░░░░░░░<sp/><sp/><sp/><sp/><sp/><sp/>░░░░<sp/><sp/><sp/><sp/>&quot;</highlight><highlight class="normal">)<sp/>},</highlight></codeline>
+<codeline lineno="48"><highlight class="normal">};</highlight></codeline>
     </programlisting>
     <location file="generated/HashMaps.h"/>
   </compounddef>

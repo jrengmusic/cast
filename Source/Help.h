@@ -1,10 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
 
-namespace cast
-{
-/*____________________________________________________________________________*/
-
 static constexpr int widthCap { 80 };
 static constexpr int documentMargin { 2 };
 
@@ -47,6 +43,3 @@ static inline void printHelp (const juce::String& specText)
         component.paint (graphics);
     }
 }
-
-/**______________________________END OF NAMESPACE______________________________*/
-}// namespace cast

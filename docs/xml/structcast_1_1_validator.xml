@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
+  <compounddef id="structcast_1_1_validator" kind="struct" language="C++" prot="public">
+    <compoundname>cast::Validator</compoundname>
+    <includes refid="_validator_8h" local="no">Validator.h</includes>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="structcast_1_1_validator_1ae1a09c33a01c3108fd64cca0c2889a7e" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="classjuce_1_1Result" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::Result</ref></type>
+        <definition>juce::Result cast::Validator::isValid</definition>
+        <argsstring>(const jam::Document &amp;document)</argsstring>
+        <name>isValid</name>
+        <qualifiedname>cast::Validator::isValid</qualifiedname>
+        <param>
+          <type>const <ref refid="structjam_1_1Document" kindref="compound" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml">jam::Document</ref> &amp;</type>
+          <declname>document</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Validator.h" line="10" column="25" bodyfile="Validator.h" bodystart="13" bodyend="17"/>
+        <references refid="namespacejuce_1a86deae84ff8b95d7e40214a493b3dfe0">juce::ignoreUnused</references>
+        <references refid="classjuce_1_1Result_1ac2133128eeba510367bfe1b83383ae0f">juce::Result::ok</references>
+        <referencedby refid="structcast_1_1_code_1ac9ce6de487b7ad83755fb8323e6446f5" compoundref="_code_8h" startline="22" endline="35">cast::Code::run</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="Validator.h" line="8" column="1" bodyfile="Validator.h" bodystart="9" bodyend="11"/>
+    <listofallmembers>
+      <member refid="structcast_1_1_validator_1ae1a09c33a01c3108fd64cca0c2889a7e" prot="public" virt="non-virtual"><scope>cast::Validator</scope><name>isValid</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

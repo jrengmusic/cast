@@ -1,10 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
 
-namespace cast
-{
-/*____________________________________________________________________________*/
-
 static const juce::String intType { "int" };
 static const juce::String stringType { "juce::String" };
 static const juce::String identifierType { "juce::Identifier" };
@@ -84,6 +80,3 @@ struct Transforms
         return types;
     }
 };
-
-/**______________________________END OF NAMESPACE______________________________*/
-}// namespace cast

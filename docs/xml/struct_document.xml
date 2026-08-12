@@ -1,0 +1,272 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.16.1" xml:lang="en-US">
+  <compounddef id="struct_document" kind="struct" language="C++" prot="public">
+    <compoundname>Document</compoundname>
+    <basecompoundref refid="structjam_1_1MarkdownDocument" prot="public" virt="non-virtual">jam::MarkdownDocument</basecompoundref>
+    <includes refid="_document_8h" local="no">Document.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_document_1a0019e8d5acf8d24e1defdb142b1b240b" prot="public" static="no" mutable="no">
+        <type><ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref></type>
+        <definition>juce::File Document::manifestDirectory</definition>
+        <argsstring></argsstring>
+        <name>manifestDirectory</name>
+        <qualifiedname>Document::manifestDirectory</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Document.h" line="7" column="16" bodyfile="Document.h" bodystart="7" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="struct_document_1af1a3f836d87a8a60247424596a80e533" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::unique_ptr&lt; <ref refid="struct_document" kindref="compound">Document</ref> &gt;</type>
+        <definition>std::unique_ptr&lt; Document &gt; Document::parse</definition>
+        <argsstring>(const juce::File &amp;manifest)</argsstring>
+        <name>parse</name>
+        <qualifiedname>Document::parse</qualifiedname>
+        <param>
+          <type>const <ref refid="classjuce_1_1File" kindref="compound" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml">juce::File</ref> &amp;</type>
+          <declname>manifest</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Document.h" line="9" column="28" bodyfile="Document.h" bodystart="12" bodyend="37"/>
+        <references refid="namespacechars_1aa0cbd26f5ad222416a0e5a1b0180bd54">chars::asterisk</references>
+        <references refid="classjuce_1_1String_1a128e862810bc5e3f16cb70c3c9751867">juce::String::charToString</references>
+        <references refid="namespacechars_1a298aa987ab28deca8631bcc9db163b0b">chars::dot</references>
+        <references refid="classjuce_1_1File_1a37e88fbc390d78f3d79675974f53fa78">juce::File::existsAsFile</references>
+        <references refid="classjuce_1_1File_1a7f2a6dd2500753c44eaa5febc68fe435afcc07481192152404da0e5e807a697bd">juce::File::findFiles</references>
+        <references refid="classjuce_1_1File_1ab6bec65fbcf19ce10e38cf9d1015770d">juce::File::getParentDirectory</references>
+        <references refid="classjuce_1_1File_1a773feb2495cdc3472c515264f02246e2">juce::File::getRelativePathFrom</references>
+        <references refid="classjuce_1_1File_1aa65d2fa50370357bf93658d6447c296d">juce::File::loadFileAsString</references>
+        <references refid="namespaceextensions_1ae4e26ea84fae9528da180bb92ea5690d">extensions::md</references>
+        <references refid="structjam_1_1MarkdownDocument_1a9f7a5dd4ac878cc4a6c3717c11753eb4">jam::MarkdownDocument::parse</references>
+        <references refid="namespaceId_1a0c21715610ba99996860a3a00d7c1561" compoundref="_identifiers_8h" startline="63" endline="63">Id::tables</references>
+        <referencedby refid="struct_code_1a739eefb0c5019175d0097346ec36ef58" compoundref="_code_8h" startline="280" endline="288">Code::run</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>Document</label>
+        <link refid="struct_document"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>jam::Document</label>
+        <link refid="structjam_1_1Document" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+      </node>
+      <node id="2">
+        <label>jam::MarkdownDocument</label>
+        <link refid="structjam_1_1MarkdownDocument" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>Document</label>
+        <link refid="struct_document"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="14" relation="usage">
+          <edgelabel>manifestDirectory</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>jam::Array&lt; jam::Document::Property&lt; Value &gt; &gt;</label>
+        <link refid="classjam_1_1Array" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="7" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="13">
+        <label>jam::Array&lt; jam::Document::Token &gt;</label>
+        <link refid="classjam_1_1Array" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="7" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="9">
+        <label>jam::Array&lt; std::unique_ptr&lt; ObjectClass &gt; &gt;</label>
+        <link refid="classjam_1_1Array" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="7" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="12">
+        <label>jam::Array&lt; uint32_t &gt;</label>
+        <link refid="classjam_1_1Array" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="7" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>jam::Document</label>
+        <link refid="structjam_1_1Document" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>root</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>elements</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>source</edgelabel>
+        </childnode>
+        <childnode refid="12" relation="usage">
+          <edgelabel>lineOffsets</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>jam::Document::Element</label>
+        <link refid="structjam_1_1Document_1_1Element" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>id</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>firstChild</edgelabel>
+          <edgelabel>lastChild</edgelabel>
+          <edgelabel>nextSibling</edgelabel>
+          <edgelabel>parent</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>properties</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>jam::MarkdownDocument</label>
+        <link refid="structjam_1_1MarkdownDocument" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+        <childnode refid="13" relation="usage">
+          <edgelabel>tokens</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>jam::Owner&lt; jam::Document::Element &gt;</label>
+        <link refid="classjam_1_1Owner" external="/Users/jreng/Documents/Poems/dev/jam/docs/tagfile.xml"/>
+        <childnode refid="9" relation="usage">
+          <edgelabel>entries</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>juce::DummyCriticalSection</label>
+        <link refid="classjuce_1_1DummyCriticalSection" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml"/>
+      </node>
+      <node id="14">
+        <label>juce::File</label>
+        <link refid="classjuce_1_1File" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml"/>
+      </node>
+      <node id="5">
+        <label>juce::Identifier</label>
+        <link refid="classjuce_1_1Identifier" external="/Users/jreng/Documents/Poems/JUCE/docs/tagfile.xml"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>null</edgelabel>
+        </childnode>
+      </node>
+      <node id="11">
+        <label>std::basic_string&lt; Char &gt;</label>
+      </node>
+      <node id="10">
+        <label>std::string</label>
+        <childnode refid="11" relation="public-inheritance">
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="Document.h" line="5" column="1" bodyfile="Document.h" bodystart="6" bodyend="10"/>
+    <listofallmembers>
+      <member refid="structjam_1_1Document_1a87e5c7f223cfbd94cb3694520e71e30a" prot="public" virt="non-virtual"><scope>Document</scope><name>addChild</name></member>
+      <member refid="structjam_1_1Document_1af07f857024719a25488aeb28f44a08d0" prot="private" virt="non-virtual"><scope>Document</scope><name>addCommentToken</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a1df1e4bcea2f57c957c213cc48551fe0" prot="private" virt="non-virtual"><scope>Document</scope><name>advance</name></member>
+      <member refid="structjam_1_1Document_1a9dff44624ba3628051534d6124ab24df" prot="public" virt="non-virtual"><scope>Document</scope><name>appendChild</name></member>
+      <member refid="structjam_1_1Document_1a5cf9c201886f26f6cf3ba28ddb026dd0" prot="public" virt="non-virtual"><scope>Document</scope><name>appendChildren</name></member>
+      <member refid="structjam_1_1Document_1a7178b41f8ba02dd5a32786ebc5f2a988" prot="public" virt="non-virtual"><scope>Document</scope><name>begin</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a77b1a2b5f9ef82c284701421a602eae2" prot="protected" virt="virtual"><scope>Document</scope><name>build</name></member>
+      <member refid="structjam_1_1Document_1a282b55ff4292ce8608e8fa7af3c708e2" prot="public" virt="non-virtual"><scope>Document</scope><name>decimalRadix</name></member>
+      <member refid="structjam_1_1Document_1abcefdfe237db04a64c9e9a226418c6e9" prot="public" virt="non-virtual"><scope>Document</scope><name>Document</name></member>
+      <member refid="structjam_1_1Document_1aab8ca3f0276742b48a833249bf75d74d" prot="public" virt="non-virtual"><scope>Document</scope><name>Document</name></member>
+      <member refid="structjam_1_1Document_1a713b369f0ad1c7aa1493070a61f6255c" prot="protected" virt="non-virtual"><scope>Document</scope><name>elements</name></member>
+      <member refid="structjam_1_1Document_1a6f5010206384880f081c68c9fbc72f9c" prot="public" virt="non-virtual"><scope>Document</scope><name>end</name></member>
+      <member refid="structjam_1_1Document_1a298dac01a3f093703117a40b2b92cf7f" prot="public" virt="non-virtual"><scope>Document</scope><name>eofCodePoint</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1ae69977422e0f5184109692f23912329a" prot="private" virt="non-virtual"><scope>Document</scope><name>getBareDestination</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1aae60f4141345296dd12d5ea16f5f7c51" prot="private" virt="non-virtual"><scope>Document</scope><name>getBracketedDestination</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a40ae2e4fccbafab1f97968dfeaaa6989" prot="private" virt="non-virtual"><scope>Document</scope><name>getEndOfClosingTag</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1aaf9c9070a37dbb58536c8532a59d27a1" prot="private" virt="non-virtual"><scope>Document</scope><name>getEndOfLinkTail</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a54a10e6668d612ad3f4937ab361a3660" prot="private" virt="non-virtual"><scope>Document</scope><name>getEndOfOpenTag</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a73d8f02412a478b9120f5f6b1a59bcbf" prot="private" virt="non-virtual"><scope>Document</scope><name>getEndOfRawAttribute</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1aa3b3fe3181d16db857cb653d233f1156" prot="private" virt="non-virtual"><scope>Document</scope><name>getEndOfRawAttributeValue</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1aa708fd05463e6dbf9febee085da67f6f" prot="private" virt="non-virtual"><scope>Document</scope><name>getEndOfRawTagName</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1acd2a4d6eb9143e4c8ed1d8977b7c5f71" prot="private" virt="non-virtual"><scope>Document</scope><name>getInlineTail</name></member>
+      <member refid="structjam_1_1Document_1afc26cd1da23ba0b9eaaef1548fc2120b" prot="public" virt="non-virtual"><scope>Document</scope><name>getLineNumber</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1ade082f148356417484b33dd92964f2b1" prot="private" virt="non-virtual"><scope>Document</scope><name>getLinkDestination</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a4e14c5d72b27fc0f8a35d56d3929b229" prot="private" virt="non-virtual"><scope>Document</scope><name>getLinkTitle</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1ab58644eb3f36e0ff2f34599f25546c46" prot="private" virt="non-virtual"><scope>Document</scope><name>getMarkdownVocabulary</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1ada0f1c1807356b44c214f1613105b57c" prot="private" virt="non-virtual"><scope>Document</scope><name>getOperatorToken</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1ab79a3705f23517d3ccf1cb1309a9ce56" prot="public" virt="non-virtual"><scope>Document</scope><name>getOrCreate</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1af8d623106367499abc7d051ed8f962d7" prot="private" virt="non-virtual"><scope>Document</scope><name>getQuotedTitle</name></member>
+      <member refid="structjam_1_1Document_1a59ad4370c003a29d4bd38d9dab736a71" prot="public" virt="non-virtual"><scope>Document</scope><name>getSource</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a7f2c37273a291b61a7407c0fc321eab8" prot="private" virt="non-virtual"><scope>Document</scope><name>getTable</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a387b9ec22c34f1ee5cdc97df6c536748" prot="public" virt="non-virtual"><scope>Document</scope><name>getTableCell</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a243454de8d7bb0ff35d86b2e7c00bc61" prot="public" virt="non-virtual"><scope>Document</scope><name>getTableCell</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a699c47c3f7b7daf5b1db69f95b3e4b60" prot="private" virt="non-virtual"><scope>Document</scope><name>getTableHeaderRow</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a004d8a13df60ecc435c10b0c38751541" prot="public" virt="non-virtual"><scope>Document</scope><name>getTableHeaders</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a4220f8e2b52e56aceb402e93b5b9749a" prot="public" virt="non-virtual"><scope>Document</scope><name>getTableHeaders</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1ae0bdbe8f125dee08cd9cbbfd61015171" prot="public" virt="non-virtual"><scope>Document</scope><name>getTableRow</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a065864c0b8bfee337055e295508e6f73" prot="public" virt="non-virtual"><scope>Document</scope><name>getTableRow</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a08d31e393d29a3c777a55479d823282f" prot="public" virt="non-virtual"><scope>Document</scope><name>getTableRowKeys</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1ac90706c21043931bf12e7bf4072e72d0" prot="public" virt="non-virtual"><scope>Document</scope><name>getTableRows</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1aac82a8dcaa44d21d7121791df8ead809" prot="public" virt="non-virtual"><scope>Document</scope><name>getTableRows</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a3579dcce934844a8ee0deb927f9d2605" prot="public" virt="non-virtual"><scope>Document</scope><name>getTables</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a03bee5631532bee14828b5e039b8fd1b" prot="public" virt="non-virtual"><scope>Document</scope><name>getTables</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a8ec1ddbed0a40a277e9201266a7a8a14" prot="public" virt="non-virtual"><scope>Document</scope><name>getTableValue</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a840c99aed3516ce201bc9123f2121ee7" prot="public" virt="non-virtual"><scope>Document</scope><name>getTableValue</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1ae9cd2d36b96da45887f0d4c0d6c4bef8" prot="public" virt="non-virtual"><scope>Document</scope><name>getTableValues</name></member>
+      <member refid="structjam_1_1Document_1a67e65a29647faa906d56a87d691e8bcb" prot="public" virt="non-virtual"><scope>Document</scope><name>getText</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a40d9230d269cfae687ac84645315e6b6" prot="private" virt="non-virtual"><scope>Document</scope><name>getTextToken</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1ad592dd94042c05bab21afa94b65427a2" prot="protected" virt="virtual"><scope>Document</scope><name>getToken</name></member>
+      <member refid="structjam_1_1Document_1a6feb97925ff68ac72f6ceec1ed2b865c" prot="public" virt="non-virtual"><scope>Document</scope><name>getTokens</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a13e7578701687f9d9640222cd0077a44" prot="protected" virt="virtual"><scope>Document</scope><name>getVocabulary</name></member>
+      <member refid="structjam_1_1Document_1a48b10427aac754686928738fb3d96c8f" prot="public" virt="non-virtual"><scope>Document</scope><name>hexadecimalRadix</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1aaf5427a6629c3af8338e75515fe2eae0" prot="private" virt="non-virtual"><scope>Document</scope><name>isAsciiLetter</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a1f7c3681de450ec568acec1834dbd96a" prot="private" virt="non-virtual"><scope>Document</scope><name>isAsciiPunctuation</name></member>
+      <member refid="structjam_1_1Document_1a4e2d39346edd803eb0f25ab34525ef59" prot="public" virt="non-virtual"><scope>Document</scope><name>isDigit</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a1869fb4f8440360025b99445902ba59e" prot="private" virt="non-virtual"><scope>Document</scope><name>isHarfBuzzPunctuationOrSymbol</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1ab1da734ab536942f93a285405fce2b00" prot="private" virt="non-virtual"><scope>Document</scope><name>isHarfBuzzSpaceSeparator</name></member>
+      <member refid="structjam_1_1Document_1a57c9f9d94fb1aae0fa3603eb706bb149" prot="public" virt="non-virtual"><scope>Document</scope><name>isHexDigit</name></member>
+      <member refid="structjam_1_1Document_1a828edec30682b167466478f1f4b7129a" prot="public" virt="non-virtual"><scope>Document</scope><name>isLetter</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1ad1ad6362e0cb14aef59247f9d9b0ddbc" prot="private" virt="non-virtual"><scope>Document</scope><name>isMarkdownOperatorChar</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1aa3f6aac4236f67cff1140831f276fdc0" prot="private" virt="non-virtual"><scope>Document</scope><name>isTagNameChar</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1ab378a6de4ef31a5bd43b505d8483eb8b" prot="private" virt="non-virtual"><scope>Document</scope><name>isUnicodePunctuation</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a285cfc8a7e61bd7d083bc06b32562470" prot="private" virt="non-virtual"><scope>Document</scope><name>isUnicodeWhitespace</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a091fa57e5e73453783e50a0d021f11b1" prot="private" virt="non-virtual"><scope>Document</scope><name>isUnquotedAttributeChar</name></member>
+      <member refid="structjam_1_1Document_1a11991605b6a02c6637034dba73d0aaa1" prot="public" virt="non-virtual"><scope>Document</scope><name>isWhitespace</name></member>
+      <member refid="structjam_1_1Document_1a442652edca083880dc1454ee3ec5925e" prot="protected" virt="non-virtual"><scope>Document</scope><name>lineOffsets</name></member>
+      <member refid="struct_document_1a0019e8d5acf8d24e1defdb142b1b240b" prot="public" virt="non-virtual"><scope>Document</scope><name>manifestDirectory</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1ad4c20025668e911960911919c8f92c92" prot="public" virt="non-virtual"><scope>Document</scope><name>MarkdownDocument</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a7fce6ae53cb52f0a1dc77745341b031a" prot="private" virt="non-virtual"><scope>Document</scope><name>maxAsciiCodepoint</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a5e34e3a9089c75f38469e8bdef246c45" prot="private" virt="non-virtual"><scope>Document</scope><name>maxLabelLength</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a84e2adc666ebdc99768ae25d0cc6c1ae" prot="private" virt="non-virtual"><scope>Document</scope><name>normalizeLabel</name></member>
+      <member refid="structjam_1_1Document_1a0ee5d6c14d756a1d42d7622d0a0e88d6" prot="public" virt="non-virtual"><scope>Document</scope><name>operator=</name></member>
+      <member refid="struct_document_1af1a3f836d87a8a60247424596a80e533" prot="public" virt="non-virtual"><scope>Document</scope><name>parse</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a9f7a5dd4ac878cc4a6c3717c11753eb4" prot="public" virt="non-virtual" ambiguityscope="jam::MarkdownDocument::"><scope>Document</scope><name>parse</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a0289db5676a32555438bfb4601ce0511" prot="public" virt="non-virtual" ambiguityscope="jam::MarkdownDocument::"><scope>Document</scope><name>parse</name></member>
+      <member refid="structjam_1_1Document_1ad50d3e0d352b601d13ccc0d543fbf994" prot="protected" virt="non-virtual" ambiguityscope="jam::Document::"><scope>Document</scope><name>parse</name></member>
+      <member refid="structjam_1_1Document_1ac72fb46116c739a134d64f17430521ff" prot="public" virt="non-virtual"><scope>Document</scope><name>preprocess</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1aeaad9f1216b3fb37eb9e3d5d8a3d349a" prot="private" virt="non-virtual"><scope>Document</scope><name>rawCharAt</name></member>
+      <member refid="structjam_1_1Document_1a6769e080ce9c92b9cf1c786f821f298e" prot="public" virt="non-virtual"><scope>Document</scope><name>root</name></member>
+      <member refid="structjam_1_1Document_1aa09176dda6777d8bf66a68ea1ad2fd51" prot="protected" virt="non-virtual"><scope>Document</scope><name>source</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1aff2da6805e4969975f5dd173f6209daa" prot="private" virt="non-virtual"><scope>Document</scope><name>spanStartsWith</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1a3c3c8c532e6eb09cff1c151b1e540f41" prot="private" virt="non-virtual"><scope>Document</scope><name>toCharArray</name></member>
+      <member refid="structjam_1_1MarkdownDocument_1ae6e22486de5120802c594d5a1bed4e5b" prot="private" virt="non-virtual"><scope>Document</scope><name>tokens</name></member>
+      <member refid="structjam_1_1Document_1a2733dbe01ffa302cda83301273df3ab9" prot="public" virt="non-virtual"><scope>Document</scope><name>Value</name></member>
+      <member refid="structjam_1_1Document_1aae4fd41f6cc392b6eb52400c858b6950" prot="public" virt="virtual"><scope>Document</scope><name>~Document</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>
