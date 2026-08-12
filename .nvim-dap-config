@@ -4,5 +4,5 @@ return {
   format = "Standalone",        -- Plugin format (framework-dependent, see detectAvailableFormats)
   daw = "",           -- DAW name (for display/killall)
   dawPath = "",       -- Absolute path to DAW executable
-  scheme = "Debug",        -- Debug or Release, last written by buildDebugAndRun/buildReleaseAndRun
+  scheme = "Release",        -- Debug or Release, last written by buildDebugAndRun/buildReleaseAndRun
 }

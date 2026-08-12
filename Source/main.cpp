@@ -85,7 +85,7 @@ static void printBannerAndHelp()
 {
     printBanner();
     printf ("%s", juce::String::charToString (chars::newline).toRawUTF8());
-    printHelp (BinaryData::getString (files::castHelp.toString()));
+    printHelp (BinaryData::getString (files::castHelp));
 }
 
 int main (int argc, char* argv[])
@@ -97,7 +97,7 @@ int main (int argc, char* argv[])
     const juce::File documentFile {
         (argc >= 2) ? juce::File::getCurrentWorkingDirectory().getChildFile (
                           juce::String::fromUTF8 (argv[1]))
-                    : juce::File::getCurrentWorkingDirectory().getChildFile (files::cast.toString())
+                    : juce::File::getCurrentWorkingDirectory().getChildFile (files::cast)
     };
 
     Processor processor { documentFile };
@@ -115,7 +115,7 @@ int main (int argc, char* argv[])
     }
 
     if (argc == 2
-        and juce::String::fromUTF8 (argv[1]) == Id::doubleDash + files::castHelp.toString())
+        and juce::String::fromUTF8 (argv[1]) == Id::doubleDash + files::castHelp)
     {
         printBannerAndHelp();
         return 0;

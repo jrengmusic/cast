@@ -1,21 +1,21 @@
 #pragma once
 #include <JuceHeader.h>
 #include "generated/CAST.h"
-#include "Document.h"
+#include "Model.h"
 #include "Writer.h"
 
 struct Processor
 {
     Processor (const juce::File& documentFile)
-        : document (Document::parse (documentFile))
-        , writer (*document)
+        : model (Document::parse (documentFile))
+        , writer (*model)
     {
         jam::Stamp::getInstance()->addIfNotAlreadyThere (jam::Stamp::Entry {});
     }
 
     juce::Result generate (const juce::String& output = {})
     {
-        if (writer.toFile (document->getOutput (output)))
+        if (writer.toFile (model->getOutput (output)))
             return juce::Result::ok();
 
         return juce::Result::fail ({});
@@ -29,7 +29,7 @@ private:
     Generated generated;
 
     //==============================================================================
-    std::unique_ptr<Document> document;
+    std::unique_ptr<Document> model;
     Writer writer;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Processor)

@@ -2,59 +2,61 @@
 
 | name                     | value              |
 | ------------------------ | ------------------ |
-| generated                |                    |
-| dispatch                 |                    |
-| patch                    |                    |
-| transforms               |                    |
-| constraints              |                    |
+| available label          | ` available here:` |
+| banner                   |                    |
 | brief                    |                    |
-| lexicon                  |                    |
+| capacity                 |                    |
+| cell                     |                    |
 | chars                    |                    |
-| files                    |                    |
-| extensions               |                    |
-| matches                  |                    |
-| unique                   |                    |
+| column                   |                    |
+| constraints              |                    |
+| diagnostic separator     | `: `               |
+| dispatch                 |                    |
+| dispatch row label       | ` dispatch row:`   |
+| entry                    |                    |
 | exists in                | `existsIn`         |
-| one of                   | `oneOf`            |
-| range                    |                    |
-| parity                   |                    |
+| extensions               |                    |
 | file exists              | `fileExists`       |
-| one per group            | `onePerGroup`      |
-| to upper                 | `toUpper`          |
-| to UTF8                  | `toUTF8`           |
-| to title                 | `toTitle`          |
-| to kebab                 | `toKebab`          |
-| to literal               | `toLiteral`        |
-| to hex                   | `toHex`            |
-| to codepoint             | `toCodepoint`      |
-| to symbol                | `toSymbol`         |
+| files                    |                    |
+| from codepoint           | `fromCodepoint`    |
 | from id                  | `fromId`           |
-| from map                 | `fromMap`          |
 | from identifier          | `fromIdentifier`   |
 | from literal             | `fromLiteral`      |
-| from codepoint           | `fromCodepoint`    |
-| to pascal                | `toPascal`         |
-| to camel                 | `toCamel`          |
-| to snake                 | `toSnake`          |
-| to screaming snake       | `toScreamingSnake` |
-| join                     | `join`             |
-| column                   |                    |
-| placeholder              |                    |
-| transform                |                    |
-| predicate                |                    |
-| tables                   |                    |
-| template path            | template           |
-| separator                |                    |
-| entry                    |                    |
-| symbol                   |                    |
-| to                       |                    |
-| capacity                 |                    |
+| from map                 | `fromMap`          |
+| generated                |                    |
 | hazard chars             | `<>`               |
-| diagnostic separator     | `: `               |
-| dispatch row label       | ` dispatch row:`   |
+| join                     | `join`             |
+| lexicon                  |                    |
+| matches                  |                    |
+| one of                   | `oneOf`            |
+| one per group            | `onePerGroup`      |
 | output row label         | ` output row:`     |
-| available label          | ` available here:` |
+| parity                   |                    |
+| patch                    |                    |
+| placeholder              |                    |
+| pragma once              | `#pragma once`     |
+| predicate                |                    |
+| range                    |                    |
 | row region begin         | row:begin          |
 | row region end           | row:end            |
 | row region index         | row:index          |
-| cell                     |                    |
+| separator                |                    |
+| symbol                   |                    |
+| tables                   |                    |
+| template path            | template           |
+| to                       |                    |
+| to camel                 | `toCamel`          |
+| to codepoint             | `toCodepoint`      |
+| to hex                   | `toHex`            |
+| to kebab                 | `toKebab`          |
+| to literal               | `toLiteral`        |
+| to pascal                | `toPascal`         |
+| to screaming snake       | `toScreamingSnake` |
+| to snake                 | `toSnake`          |
+| to symbol                | `toSymbol`         |
+| to title                 | `toTitle`          |
+| to upper                 | `toUpper`          |
+| to UTF8                  | `toUTF8`           |
+| transform                |                    |
+| transforms               |                    |
+| unique                   |                    |
