@@ -28,7 +28,8 @@ struct Writer
                     [this, &path, &rows, &written, i]
                     {
                         auto* row { rows[i] };
-                        written[i] = toFile (path, model.getTableValue (*row, Id::output), getTemplate (*row));
+                        written[i] = toFile (
+                            path, model.getTableValue (*row, Id::output), getTemplate (*row));
                     });
 
             while (writePool.getNumJobs() > 0)
@@ -39,7 +40,8 @@ struct Writer
             if (not result)
                 return false;
 
-        return toFile (path.getChildFile (model.getTableValue (**rows.begin(), Id::output)).getParentDirectory(),
+        return toFile (path.getChildFile (model.getTableValue (**rows.begin(), Id::output))
+                           .getParentDirectory(),
                        files::castGenerated,
                        getTemplate (BinaryData::getString (files::castGenerated), {}));
     }
@@ -48,7 +50,8 @@ private:
     const Document& model;
 
     //==============================================================================
-    bool toFile (const juce::File& path, const juce::String& filename, const juce::String& content) const
+    bool
+    toFile (const juce::File& path, const juce::String& filename, const juce::String& content) const
     {
         auto file { path.getChildFile (filename) };
         file.create();
@@ -73,16 +76,18 @@ private:
         {
             const auto placeholder { model.getTableValue (*patch, Id::placeholder) };
 
-            if (model.getTableValue (*patch, Id::fragment).isEmpty())
-                code = jam::Format::replaceSection (code, placeholder, getPatch (*patch, code, {}));
+            if (model.hasTableValue (*patch, Id::fragment))
+                code = jam::Format::replaceholder (
+                    code, placeholder, getPatch (*patch, code, separator));
             else
-                code = jam::Format::replaceholder (code, placeholder, getPatch (*patch, code, separator));
+                code = jam::Format::replaceSection (code, placeholder, getPatch (*patch, code, {}));
         }
 
         return code;
     }
 
-    juce::String getPatch (Element& patch, juce::StringRef code, juce::StringRef separator) const noexcept
+    juce::String
+    getPatch (Element& patch, juce::StringRef code, juce::StringRef separator) const noexcept
     {
         const juce::Identifier source { model.getTableValue (patch, Id::source) };
         const auto placeholder { model.getTableValue (patch, Id::placeholder) };
@@ -92,9 +97,8 @@ private:
 
         for (auto* row : model.getTableRows (source))
         {
-            const auto code { getCode (*row, fragment, placeholder, columns) };
-
-            if (code.isNotEmpty())
+            if (const auto code { getCode (source, *row, fragment, placeholder, columns) };
+                code.isNotEmpty())
             {
                 if (expansion.isEmpty())
                     expansion = code;
@@ -108,21 +112,21 @@ private:
 
     juce::String getFragment (Element& patch, juce::StringRef code) const noexcept
     {
-        const auto file { model.getTableValue (patch, Id::fragment) };
+        if (model.hasTableValue (patch, Id::fragment))
+            return model.getTemplate (model.getTableValue (patch, Id::fragment));
 
-        if (file.isEmpty())
-            return jam::Format::getSection (code, model.getTableValue (patch, Id::placeholder));
-
-        return model.getTemplate (file);
+        return jam::Format::getSection (code, model.getTableValue (patch, Id::placeholder));
     }
 
-    juce::String getCode (Element& row,
+    juce::String getCode (const juce::Identifier& source,
+                          Element& row,
                           juce::StringRef fragment,
                           const juce::String& placeholder,
                           const jam::Array<juce::String>& columns) const noexcept
     {
         for (const auto& column : columns)
             if (not model.hasTableValue (row, column)
+                and not (source == Id::lexicon and column.compare (Id::value.toString()) == 0)
                 and (placeholder.startsWith (column) or hasColumn (fragment, column)))
                 return {};
 
@@ -131,12 +135,18 @@ private:
         for (const auto& column : columns)
         {
             const auto cell { model.getTableValue (row, column) };
-            code = getSubstituted (code, column, cell);
+            const auto resolved { source == Id::lexicon and column.compare (Id::value.toString()) == 0 and cell.isEmpty()
+                                      ? model.getTableValue (row, Id::name)
+                                      : cell };
+            code = getSubstituted (code, column, resolved);
 
-            if (column == Id::entry.toString())
+            if (column.compare (Id::entry) == 0)
             {
-                const auto value { model.getTableValue (Id::lexicon, Id::value, juce::Identifier (cell)) };
+                const auto value { model.getTableValue (
+                    Id::lexicon, Id::value, juce::Identifier (cell)) };
                 code = getSubstituted (code, Id::value.toString(), value.isEmpty() ? cell : value);
+                code = getSubstituted (code, Id::type.toString(),
+                                       model.getTableValue (Id::lexicon, Id::type, juce::Identifier (cell)));
             }
         }
 
@@ -154,8 +164,8 @@ private:
             const auto placeholder { column + juce::String::charToString (chars::colon) + name };
 
             if (jam::Format::hasPlaceholder (code, placeholder))
-                code = jam::Format::replaceholder (code, placeholder,
-                                                   Transforms::getTransformed (name, cell));
+                code = jam::Format::replaceholder (
+                    code, placeholder, Transforms::getTransformed (name, cell));
         }
 
         return code;
@@ -167,7 +177,8 @@ private:
             return true;
 
         for (const auto& [name, transform] : Transforms::getTransforms())
-            if (jam::Format::hasPlaceholder (fragment, column + juce::String::charToString (chars::colon) + name))
+            if (jam::Format::hasPlaceholder (
+                    fragment, column + juce::String::charToString (chars::colon) + name))
                 return true;
 
         return false;

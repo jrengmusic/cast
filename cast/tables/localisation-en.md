@@ -36,7 +36,7 @@
 | fail row reserved           | row is a reserved name                                               |
 | fail row region column      | row region takes no column; use the column's name as the region name |
 | fail placeholder missing    | placeholder has no placeholder or region in any root                 |
-| fail placeholder ambiguous  | placeholder declared in multiple roots                                |
+| fail placeholder ambiguous  | placeholder declared in multiple roots                               |
 | fail region source missing  | dispatch row has no template and its placeholder has no region       |
 | fail region unfed           | placeholder region is declared but no dispatch row feeds it          |
 | fail template chain depth   | template chain exceeds maximum depth of 2                            |

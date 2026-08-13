@@ -11,11 +11,7 @@
 
 | source    | fragment | placeholder   |
 | --------- | -------- | ------------- |
-| section   |          | section       |
-| predicate |          | predicate     |
-| transform |          | transform     |
-| column    |          | column        |
-| string    |          | string        |
+| lexicon   |          | lexicon       |
 | files     |          | file          |
 | files     |          | moduleInclude |
 | files     |          | module        |

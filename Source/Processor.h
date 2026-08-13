@@ -2,6 +2,7 @@
 #include <JuceHeader.h>
 #include "generated/Generated.h"
 #include "Model.h"
+#include "Validator.h"
 #include "Writer.h"
 
 struct Processor
@@ -15,6 +16,9 @@ struct Processor
 
     juce::Result generate (const juce::String& output = {})
     {
+        if (const auto validation { Validator::isValid (*model) }; not validation.wasOk())
+            return validation;
+
         if (writer.toFile (model->getOutput (output)))
             return juce::Result::ok();
 
