@@ -29,10 +29,28 @@ public:
                                                               wildcard) };
             tableFiles.sort();
 
-            for (const auto& file : tableFiles)
-                document->appendChildren (
-                    jam::MarkdownDocument::parse (
-                        file.loadFileAsString(), file.getRelativePathFrom (parent)));
+            jam::Array<jam::MarkdownDocument> parsedTables;
+            parsedTables.resize (tableFiles.size());
+
+            {
+                juce::ThreadPool parsePool;
+
+                for (int i { 0 }; i < tableFiles.size(); ++i)
+                    parsePool.addJob (
+                        [&tableFiles, &parsedTables, &parent, i]
+                        {
+                            const auto& file { tableFiles.getReference (i) };
+
+                            parsedTables[i] = jam::MarkdownDocument::parse (
+                                file.loadFileAsString(), file.getRelativePathFrom (parent));
+                        });
+
+                while (parsePool.getNumJobs() > 0)
+                    juce::Thread::sleep (1);
+            }
+
+            for (auto& table : parsedTables)
+                document->appendChildren (std::move (table));
         }
 
         return document;
