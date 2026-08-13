@@ -17,11 +17,11 @@
  */
 static void paintBanner (jam::terminal::GraphicsContext& context)
 {
-    const auto& [firstName, firstText] { *banner.begin() };
+    const auto& [firstName, firstText] { *map::banner.begin() };
     auto priorName { firstName };
     int row { 0 };
 
-    for (const auto& [name, text] : banner)
+    for (const auto& [name, text] : map::banner)
     {
         const juce::Colour rowColour { map::ColourNames::get (name) };
         const juce::Colour priorColour { map::ColourNames::get (priorName) };
@@ -61,9 +61,9 @@ static void paintBanner (jam::terminal::GraphicsContext& context)
 /// @brief Renders the generated banner offscreen and prints it to stdout.
 static void printBanner()
 {
-    const auto& [firstName, firstText] { *banner.begin() };
+    const auto& [firstName, firstText] { *map::banner.begin() };
     const auto cols { firstText.length() };
-    const auto rows { static_cast<int> (banner.size()) };
+    const auto rows { static_cast<int> (map::banner.size()) };
 
     jam::terminal::GraphicsEngine engine { stdout };
     engine.resize (widthCap, rows);

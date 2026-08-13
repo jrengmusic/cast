@@ -1,6 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
-#include "generated/CAST.h"
+#include "generated/Generated.h"
 #include "Model.h"
 #include "Writer.h"
 

@@ -6,6 +6,7 @@
 | dispatch    |
 | transforms  |
 | constraints |
+| banner      |
 | brief       |
 | lexicon     |
 | chars       |
@@ -47,6 +48,7 @@
 | to snake           |
 | to screaming snake |
 | join               |
+| to file name       |
 
 ## column
 
@@ -62,7 +64,6 @@
 | separator     |
 | entry         |
 | symbol        |
-| from          |
 | to            |
 | capacity      |
 

@@ -13,7 +13,7 @@ inline const juce::Identifier :::entry:toCamel::: { ":::value:::" };
 :::predicate:end:::
 
 :::transform:begin:::
-inline const juce::Identifier :::entry:toCamel::: { ":::value:::" };
+inline const juce::String :::entry:toCamel::: { ":::value:toLiteral:::" };
 :::transform:end:::
 
 :::column:begin:::
@@ -23,5 +23,6 @@ inline const juce::Identifier :::entry:toCamel::: { ":::value:::" };
 :::string:begin:::
 inline const juce::String :::entry:toCamel::: { ":::value:toLiteral:::" };
 :::string:end:::
+
 /**______________________________END OF NAMESPACE______________________________*/
 }// namespace Id

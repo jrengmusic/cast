@@ -53,10 +53,11 @@ target_compile_definitions(cast_App PRIVATE
 )
 
 juce_add_binary_data(
-    cast_BinaryData 
-    SOURCES Source/HELP.md 
+    cast_BinaryData
+    SOURCES Source/HELP.md
             Source/style.css
-            Source/banner/cast-output.md
+            Source/resources/cast-output.md
+            Source/resources/Generated.h
 )
 
 target_link_libraries(cast_App PRIVATE cast_BinaryData)
