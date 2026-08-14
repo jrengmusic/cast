@@ -1,73 +1,66 @@
 #pragma once
 #include <JuceHeader.h>
 #include "Model.h"
-#include "Operators.h"
+#include "TemplateDocument.h"
 
 struct Validator
 {
     using Element = jam::Document::Element;
 
-    static juce::Result isValid (const Document& model)
+    static juce::Result isValid (const Model& model)
     {
         juce::Result firstFailure { isManifest (model) };
 
         if (firstFailure.wasOk())
         {
-            juce::ThreadPool validatePool;
             juce::CriticalSection failureLock;
+            const auto tables { model.getTables() };
 
-            for (auto* table : model.getTables())
-                validatePool.addJob (
-                    [&model, table, &failureLock, &firstFailure]
+            runJobs (tables.size(),
+                [&model, &tables, &failureLock, &firstFailure] (int index)
+                {
+                    if (const auto result { isTable (model, *tables.at (index)) }; not result.wasOk())
                     {
-                        if (const auto result { isTable (model, *table) }; not result.wasOk())
-                        {
-                            const juce::ScopedLock lock { failureLock };
+                        const juce::ScopedLock lock { failureLock };
 
-                            if (firstFailure.wasOk())
-                                firstFailure = result;
-                        }
-                    });
+                        if (firstFailure.wasOk())
+                            firstFailure = result;
+                    }
+                });
 
-            for (auto* row : model.getTableRows (Id::constraints))
-                validatePool.addJob (
-                    [&model, row, &failureLock, &firstFailure]
+            const auto constraintRows { model.getTableRows (Id::constraints) };
+
+            runJobs (constraintRows.size(),
+                [&model, &constraintRows, &failureLock, &firstFailure] (int index)
+                {
+                    auto* row { constraintRows.at (index) };
+                    const auto column { model.getTableValue (*row, Id::column) };
+                    const auto predicateCell { model.getTableValue (*row, Id::predicate) };
+                    const auto name { predicateCell.upToFirstOccurrenceOf (
+                        juce::String::charToString (chars::space), false, false) };
+                    const auto args { predicateCell.fromFirstOccurrenceOf (
+                        juce::String::charToString (chars::space), false, false).trim() };
+
+                    const auto result { getPredicates().contains (name)
+                                            ? getPredicates().get (name, model, column, args)
+                                            : juce::Result::fail (text::en::failUnknownPredicate
+                                                                  + Id::diagnosticSeparator + name) };
+
+                    if (not result.wasOk())
                     {
-                        const auto column { model.getTableValue (*row, Id::column) };
-                        const auto predicateCell { model.getTableValue (*row, Id::predicate) };
-                        const auto name { predicateCell.upToFirstOccurrenceOf (
-                            juce::String::charToString (chars::space), false, false) };
-                        const auto args {
-                            predicateCell
-                                .fromFirstOccurrenceOf (
-                                    juce::String::charToString (chars::space), false, false)
-                                .trim()
-                        };
+                        const juce::ScopedLock lock { failureLock };
 
-                        const auto result { getPredicates().contains (name)
-                                                ? getPredicates().get (name, model, column, args)
-                                                : juce::Result::fail (text::en::failUnknownPredicate
-                                                                      + Id::diagnosticSeparator
-                                                                      + name) };
-
-                        if (not result.wasOk())
-                        {
-                            const juce::ScopedLock lock { failureLock };
-
-                            if (firstFailure.wasOk())
-                                firstFailure = result;
-                        }
-                    });
-
-            while (validatePool.getNumJobs() > 0)
-                juce::Thread::sleep (1);
+                        if (firstFailure.wasOk())
+                            firstFailure = result;
+                    }
+                });
         }
 
         return firstFailure;
     }
 
     static juce::Result
-    matches (const Document& model, const juce::String& column, const juce::String& args)
+    matches (const Model& model, const juce::String& column, const juce::String& args)
     {
         const std::regex pattern { args.toStdString() };
 
@@ -78,17 +71,17 @@ struct Validator
                     const auto value { model.getTableValue (*row, juce::Identifier (column)) };
 
                     if (not std::regex_match (value.toStdString(), pattern))
-                        return juce::Result::fail (
-                            getLocation (*table, *row, column) + Id::diagnosticSeparator
-                            + Id::matches + Id::diagnosticSeparator
-                            + text::en::failNoMatch + Id::diagnosticSeparator + value);
+                        return juce::Result::fail (getLocation (*table, *row, column)
+                                                   + Id::diagnosticSeparator + Id::matches
+                                                   + Id::diagnosticSeparator + text::en::failNoMatch
+                                                   + Id::diagnosticSeparator + value);
                 }
 
         return juce::Result::ok();
     }
 
     static juce::Result
-    unique (const Document& model, const juce::String& column, const juce::String& args)
+    unique (const Model& model, const juce::String& column, const juce::String& args)
     {
         juce::StringArray seen;
 
@@ -102,7 +95,8 @@ struct Validator
                         return juce::Result::fail (getLocation (*table, *row, column)
                                                    + Id::diagnosticSeparator + Id::unique
                                                    + Id::diagnosticSeparator
-                                                   + text::en::failDuplicate + value);
+                                                   + text::en::failDuplicate + value
+                                                   + juce::String::charToString (chars::doubleQuote));
 
                     seen.add (value);
                 }
@@ -111,7 +105,7 @@ struct Validator
     }
 
     static juce::Result
-    existsIn (const Document& model, const juce::String& column, const juce::String& args)
+    existsIn (const Model& model, const juce::String& column, const juce::String& args)
     {
         const juce::Identifier targetTable { args.upToFirstOccurrenceOf (
             juce::String::charToString (chars::dot), false, false) };
@@ -124,17 +118,17 @@ struct Validator
                     const auto value { model.getTableValue (*row, juce::Identifier (column)) };
 
                     if (not targetKeys.contains (value))
-                        return juce::Result::fail (
-                            getLocation (*table, *row, column) + Id::diagnosticSeparator
-                            + Id::existsIn + Id::diagnosticSeparator
-                            + text::en::failForeignKeyMissing + args);
+                        return juce::Result::fail (getLocation (*table, *row, column)
+                                                   + Id::diagnosticSeparator + Id::existsIn
+                                                   + Id::diagnosticSeparator
+                                                   + text::en::failForeignKeyMissing + args);
                 }
 
         return juce::Result::ok();
     }
 
     static juce::Result
-    oneOf (const Document& model, const juce::String& column, const juce::String& args)
+    oneOf (const Model& model, const juce::String& column, const juce::String& args)
     {
         const auto choices { juce::StringArray::fromTokens (
             args, juce::String::charToString (chars::pipe), {}) };
@@ -146,17 +140,16 @@ struct Validator
                     const auto value { model.getTableValue (*row, juce::Identifier (column)) };
 
                     if (not choices.contains (value))
-                        return juce::Result::fail (getLocation (*table, *row, column)
-                                                   + Id::diagnosticSeparator + Id::oneOf
-                                                   + Id::diagnosticSeparator
-                                                   + text::en::failNotInSet + value);
+                        return juce::Result::fail (
+                            getLocation (*table, *row, column) + Id::diagnosticSeparator + Id::oneOf
+                            + Id::diagnosticSeparator + text::en::failNotInSet + value);
                 }
 
         return juce::Result::ok();
     }
 
     static juce::Result
-    range (const Document& model, const juce::String& column, const juce::String& args)
+    range (const Model& model, const juce::String& column, const juce::String& args)
     {
         for (auto* table : model.getTables())
             if (model.getTableHeaders (*table).contains (column))
@@ -170,16 +163,16 @@ struct Validator
 
                     if (value < minValue or value > maxValue)
                         return juce::Result::fail (
-                            getLocation (*table, *row, column) + Id::diagnosticSeparator
-                            + Id::range + Id::diagnosticSeparator
-                            + text::en::failOutOfRange + juce::String (maxValue));
+                            getLocation (*table, *row, column) + Id::diagnosticSeparator + Id::range
+                            + Id::diagnosticSeparator + text::en::failOutOfRange
+                            + juce::String (maxValue));
                 }
 
         return juce::Result::ok();
     }
 
     static juce::Result
-    parity (const Document& model, const juce::String& column, const juce::String& args)
+    parity (const Model& model, const juce::String& column, const juce::String& args)
     {
         const juce::Identifier targetTable { args.upToFirstOccurrenceOf (
             juce::String::charToString (chars::dot), false, false) };
@@ -213,7 +206,7 @@ struct Validator
     }
 
     static juce::Result
-    fileExists (const Document& model, const juce::String& column, const juce::String& args)
+    fileExists (const Model& model, const juce::String& column, const juce::String& args)
     {
         for (auto* table : model.getTables())
             if (model.getTableHeaders (*table).contains (column))
@@ -224,15 +217,15 @@ struct Validator
                     if (not model.getOutput (args).getChildFile (value).existsAsFile())
                         return juce::Result::fail (
                             getLocation (*table, *row, column) + Id::diagnosticSeparator
-                            + Id::fileExists + Id::diagnosticSeparator
-                            + text::en::failOutputMissing + Id::diagnosticSeparator + value);
+                            + Id::fileExists + Id::diagnosticSeparator + text::en::failOutputMissing
+                            + Id::diagnosticSeparator + value);
                 }
 
         return juce::Result::ok();
     }
 
     static juce::Result
-    onePerGroup (const Document& model, const juce::String& column, const juce::String& args)
+    onePerGroup (const Model& model, const juce::String& column, const juce::String& args)
     {
         const juce::Identifier groupColumn { args };
 
@@ -270,8 +263,8 @@ struct Validator
                     if (not markedGroups.contains (allGroups[index]))
                         return juce::Result::fail (
                             getLocation (*table, *firstRows.at (index), column)
-                            + Id::diagnosticSeparator + Id::onePerGroup
-                            + Id::diagnosticSeparator + text::en::failGroupOpen + allGroups[index]
+                            + Id::diagnosticSeparator + Id::onePerGroup + Id::diagnosticSeparator
+                            + text::en::failGroupOpen + allGroups[index]
                             + text::en::failGroupClose);
             }
 
@@ -285,21 +278,19 @@ struct Validator
             {
                 jam::Function::Map<juce::String, juce::Result> map;
 
-                map.add<const Document&, const juce::String&, const juce::String&> (
+                map.add<const Model&, const juce::String&, const juce::String&> (
                     Id::matches, &matches);
-                map.add<const Document&, const juce::String&, const juce::String&> (
+                map.add<const Model&, const juce::String&, const juce::String&> (
                     Id::unique, &unique);
-                map.add<const Document&, const juce::String&, const juce::String&> (
+                map.add<const Model&, const juce::String&, const juce::String&> (
                     Id::existsIn, &existsIn);
-                map.add<const Document&, const juce::String&, const juce::String&> (
-                    Id::oneOf, &oneOf);
-                map.add<const Document&, const juce::String&, const juce::String&> (
-                    Id::range, &range);
-                map.add<const Document&, const juce::String&, const juce::String&> (
+                map.add<const Model&, const juce::String&, const juce::String&> (Id::oneOf, &oneOf);
+                map.add<const Model&, const juce::String&, const juce::String&> (Id::range, &range);
+                map.add<const Model&, const juce::String&, const juce::String&> (
                     Id::parity, &parity);
-                map.add<const Document&, const juce::String&, const juce::String&> (
+                map.add<const Model&, const juce::String&, const juce::String&> (
                     Id::fileExists, &fileExists);
-                map.add<const Document&, const juce::String&, const juce::String&> (
+                map.add<const Model&, const juce::String&, const juce::String&> (
                     Id::onePerGroup, &onePerGroup);
 
                 return map;
@@ -309,7 +300,7 @@ struct Validator
         return predicates;
     }
 
-    static juce::Result isTable (const Document& model, Element& table)
+    static juce::Result isTable (const Model& model, Element& table)
     {
         const auto headers { model.getTableHeaders (table) };
 
@@ -352,93 +343,189 @@ struct Validator
         return result;
     }
 
-    static juce::Result isTemplates (const Document& model)
+    static juce::Result isTemplates (const Model& model)
     {
-        juce::StringArray referenced;
-        Element& generatedTable { **model.getTables (Id::generated).begin() };
+        const auto templateExtension { juce::String::charToString (chars::dot)
+                                       + extensions::cast };
 
-        for (auto* row : model.getTableRows (Id::generated))
-            for (const auto& fileColumn : { Id::templatePath, Id::separator })
-                if (const auto cell { model.getTableValue (*row, fileColumn) }; cell.isNotEmpty())
-                {
-                    referenced.add (cell);
-
-                    if (not model.getOutput (cell).existsAsFile())
-                        return juce::Result::fail (
-                            getLocation (generatedTable, *row, fileColumn.toString())
-                            + Id::diagnosticSeparator + text::en::failTemplateMissing
-                            + Id::diagnosticSeparator + cell);
-                }
-
-        for (auto* row : model.getTableRows (Id::patch))
-            if (const auto fragmentCell { model.getTableValue (*row, Id::fragment) };
-                fragmentCell.isNotEmpty())
-                referenced.add (fragmentCell);
-
-        const auto wildcard { juce::String::charToString (chars::asterisk)
-                              + juce::String::charToString (chars::dot) + extensions::h };
-        const auto templateDirectory { model.getOutput (Id::templatePath.toString()) };
-
-        for (const auto& templateFile :
-             templateDirectory.findChildFiles (juce::File::findFiles, false, wildcard))
-        {
-            const auto relativePath { templateFile.getRelativePathFrom (model.getOutput ({})) };
-            if (not referenced.contains (relativePath))
-                return juce::Result::fail (text::en::failOrphan + Id::diagnosticSeparator
-                                           + templateFile.getFileName());
-        }
-        return juce::Result::ok();
-    }
-
-    static juce::Result isPatch (const Document& model)
-    {
-        Element& patchTable { **model.getTables (Id::patch).begin() };
-        for (auto* row : model.getTableRows (Id::patch))
-        {
-            const auto sourceCell { model.getTableValue (*row, Id::source) };
-
-            if (const auto fragmentCell { model.getTableValue (*row, Id::fragment) };
-                fragmentCell.isNotEmpty())
+        for (auto* table : model.getTables())
+            if (not table->isTag (Id::index)
+                and model.getTableHeaders (*table).contains (Id::file.toString()))
             {
-                if (not model.getOutput (fragmentCell).existsAsFile())
-                    return juce::Result::fail (
-                        getLocation (patchTable, *row, Id::fragment.toString())
-                        + Id::diagnosticSeparator + text::en::failFragmentMissing
-                        + Id::diagnosticSeparator + fragmentCell);
+                const auto headers { model.getTableHeaders (*table) };
+
+                for (auto* row : model.getTableRows (*table))
+                    for (const auto& header : headers)
+                        if (header.compare (Id::file.toString()) != 0)
+                        {
+                            const auto cell {
+                                model.getTableValue (*row, juce::Identifier (header))
+                            };
+                            const auto resolvedPath { model.getPath (cell) };
+
+                            if (resolvedPath.isNotEmpty() and resolvedPath.endsWith (templateExtension)
+                                and not model.getFile (cell).existsAsFile())
+                                return juce::Result::fail (
+                                    getLocation (*table, *row, header) + Id::diagnosticSeparator
+                                    + text::en::failTemplateMissing + Id::diagnosticSeparator
+                                    + cell);
+                        }
             }
 
-            if (model.getTables (juce::Identifier (sourceCell)).isEmpty())
-                return juce::Result::fail (getLocation (patchTable, *row, Id::source.toString())
-                                           + Id::diagnosticSeparator + text::en::failTableMissing
-                                           + Id::diagnosticSeparator + sourceCell);
-        }
+        return juce::Result::ok();
+    }
+
+    static juce::Result isPlaceholders (const Model& model)
+    {
+        const auto templateExtension { juce::String::charToString (chars::dot)
+                                       + extensions::cast };
+        jam::Array<juce::Identifier> allPlaceholders;
+
+        for (auto* table : model.getTables())
+            if (not table->isTag (Id::index)
+                and model.getTableHeaders (*table).contains (Id::file.toString()))
+            {
+                Element& artifactTable { *table };
+                const auto columns { model.getTableHeaders (artifactTable) };
+                const auto& firstColumn { *columns.begin() };
+
+                for (auto* row : model.getTableRows (artifactTable))
+                {
+                    const auto bodyAlias { model.getTableValue (*row, firstColumn) };
+                    const auto& document { TemplateDocument::getOrCreate (
+                        model.getFile (bodyAlias)) };
+                    auto placeholders { document.getPlaceholders (model, *row) };
+
+                    juce::StringArray wrapperColumns;
+
+                    for (const auto& column : columns)
+                        if (column != firstColumn)
+                        {
+                            const auto cell {
+                                model.getTableValue (*row, juce::Identifier (column))
+                            };
+
+                            if (model.getPath (cell).endsWith (templateExtension))
+                                wrapperColumns.addIfNotAlreadyThere (column);
+                        }
+
+                    for (const auto& wrapperColumn : wrapperColumns)
+                    {
+                        const auto wrapperAlias {
+                            model.getTableValue (*row, juce::Identifier (wrapperColumn))
+                        };
+                        const auto& wrapper { TemplateDocument::getOrCreate (
+                            model.getFile (wrapperAlias)) };
+
+                        for (const auto& placeholder : wrapper.getPlaceholders (model, *row))
+                            placeholders.addIfNotAlreadyThere (placeholder);
+                    }
+
+                    for (const auto& placeholder : placeholders)
+                        allPlaceholders.addIfNotAlreadyThere (placeholder);
+                }
+            }
+
+        for (auto* table : model.getTables())
+            if (not table->isTag (Id::index)
+                and model.getTableHeaders (*table).contains (Id::file.toString()))
+            {
+                Element& artifactTable { *table };
+                const auto columns { model.getTableHeaders (artifactTable) };
+                const auto& firstColumn { *columns.begin() };
+
+                juce::StringArray reserved { firstColumn, Id::file.toString(),
+                                             Id::capacity.toString() };
+
+                for (const auto& column : columns)
+                    if (column.endsWith (Id::lineBreak.toString()))
+                        reserved.addIfNotAlreadyThere (column);
+
+                for (auto* row : model.getTableRows (artifactTable))
+                {
+                    juce::StringArray rowReserved { reserved };
+
+                    for (const auto& column : columns)
+                        if (column != firstColumn)
+                        {
+                            const auto cell {
+                                model.getTableValue (*row, juce::Identifier (column))
+                            };
+
+                            if (model.getPath (cell).endsWith (templateExtension))
+                                rowReserved.addIfNotAlreadyThere (column);
+                        }
+
+                    for (const auto& column : columns)
+                    {
+                        const auto cell { model.getTableValue (*row, juce::Identifier (column)) };
+
+                        if (cell.isNotEmpty() and not rowReserved.contains (column)
+                            and not allPlaceholders.contains (juce::Identifier (column)))
+                            return juce::Result::fail (getLocation (artifactTable, *row, column)
+                                                       + Id::diagnosticSeparator
+                                                       + text::en::failOrphan);
+                    }
+                }
+            }
 
         return juce::Result::ok();
     }
 
-    static juce::Result isTransforms (const Document& model)
+    static juce::Result isIndex (const Model& model)
     {
-        for (auto* row : model.getTableRows (Id::transforms))
+        const auto indexTables { model.getTables (Id::index) };
+
+        if (indexTables.isEmpty())
+            return juce::Result::fail (Id::index.toString() + Id::diagnosticSeparator
+                                       + text::en::failTableMissing);
+
+        Element& indexTable { *indexTables.at (0) };
+        const auto markdownExtension { juce::String::charToString (chars::dot) + extensions::md };
+        const auto templateExtension { juce::String::charToString (chars::dot)
+                                       + extensions::cast };
+
+        for (auto* row : model.getTableRows (indexTable))
         {
-            const auto transformCell { model.getTableValue (*row, Id::transform) };
+            const auto pathCell { model.getTableValue (*row, Id::path) };
 
-            if (not Transforms::contains (transformCell))
-                return juce::Result::fail (text::en::failUnknownTransform + Id::diagnosticSeparator
-                                           + transformCell);
+            if (pathCell.isEmpty())
+                return juce::Result::fail (getLocation (indexTable, *row, Id::path.toString())
+                                           + Id::diagnosticSeparator + text::en::failNotFound);
+
+            if (pathCell.endsWith (markdownExtension)
+                and not model.getOutput (pathCell).existsAsFile())
+                return juce::Result::fail (getLocation (indexTable, *row, Id::path.toString())
+                                           + Id::diagnosticSeparator
+                                           + text::en::failOutputMissing + Id::diagnosticSeparator
+                                           + pathCell);
+
+            if (pathCell.endsWith (templateExtension)
+                and not model.getOutput (pathCell).existsAsFile())
+                return juce::Result::fail (getLocation (indexTable, *row, Id::path.toString())
+                                           + Id::diagnosticSeparator
+                                           + text::en::failTemplateMissing
+                                           + Id::diagnosticSeparator + pathCell);
         }
 
         return juce::Result::ok();
     }
 
-    static juce::Result isManifest (const Document& model)
+    static juce::Result isManifest (const Model& model)
     {
+        if (const auto result { isIndex (model) }; not result.wasOk())
+            return result;
+
         if (const auto result { isTemplates (model) }; not result.wasOk())
             return result;
 
-        if (const auto result { isPatch (model) }; not result.wasOk())
+        if (const auto result { unique (model, Id::name.toString(), {}) }; not result.wasOk())
             return result;
 
-        return isTransforms (model);
+        if (const auto result { unique (model, Id::alias.toString(), {}) }; not result.wasOk())
+            return result;
+
+        return isPlaceholders (model);
     }
 
     static juce::String getLocation (Element& table, Element& row, const juce::String& column)

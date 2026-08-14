@@ -57,7 +57,6 @@ juce_add_binary_data(
     SOURCES Source/HELP.md
             Source/style.css
             Source/resources/cast-output.md
-            Source/resources/Generated.h
 )
 
 target_link_libraries(cast_App PRIVATE cast_BinaryData)

@@ -34,31 +34,45 @@ struct Transforms
             {
                 jam::Function::Map<juce::String, juce::String> map;
 
-                map.add<const juce::String&> (Id::toUpper, &jam::Format::toUpperCase);
-                map.add<const juce::String&> (Id::toUTF8, &jam::Format::toUTF8);
-                map.add<const juce::String&> (Id::toTitle, &jam::Format::toTitleCase);
-                map.add<const juce::String&> (Id::toKebab, &jam::Format::toKebabCase);
-                map.add<const juce::String&> (Id::toPascal, &jam::Format::toPascalCase);
-                map.add<const juce::String&> (Id::toCamel, &jam::Format::toCamelCase);
-                map.add<const juce::String&> (Id::toSnake, &jam::Format::toSnakeCase);
                 map.add<const juce::String&> (
-                    Id::toScreamingSnake, &jam::Format::toScreamingSnakeCase);
-                map.add<const juce::String&> (Id::join, &jam::Format::join);
-                map.add<const juce::String&> (Id::toLiteral, &jam::Format::toLiteral);
-                map.add<const juce::String&> (Id::toHex, &jam::Format::toHex);
+                    jam::Format::toCamelCase (Id::toUpper), &jam::Format::toUpperCase);
                 map.add<const juce::String&> (
-                    Id::toCodepoint, &jam::Format::toCodepoint);
-                map.add<const juce::String&> (Id::toSymbol, &jam::Format::toSymbol);
-                map.add<const juce::String&> (Id::fromId, &jam::Format::fromId);
-                map.add<const juce::String&> (Id::fromMap, &jam::Format::fromMap);
+                    jam::Format::toCamelCase (Id::toUTF8), &jam::Format::toUTF8);
                 map.add<const juce::String&> (
-                    Id::fromIdentifier, &jam::Format::fromIdentifier);
+                    jam::Format::toCamelCase (Id::toTitle), &jam::Format::toTitleCase);
                 map.add<const juce::String&> (
-                    Id::fromLiteral, &jam::Format::fromLiteral);
+                    jam::Format::toCamelCase (Id::toKebab), &jam::Format::toKebabCase);
                 map.add<const juce::String&> (
-                    Id::fromCodepoint, &jam::Format::fromCodepoint);
+                    jam::Format::toCamelCase (Id::toPascal), &jam::Format::toPascalCase);
                 map.add<const juce::String&> (
-                    Id::toFileName,
+                    jam::Format::toCamelCase (Id::toCamel), &jam::Format::toCamelCase);
+                map.add<const juce::String&> (
+                    jam::Format::toCamelCase (Id::toSnake), &jam::Format::toSnakeCase);
+                map.add<const juce::String&> (
+                    jam::Format::toCamelCase (Id::toScreamingSnake),
+                    &jam::Format::toScreamingSnakeCase);
+                map.add<const juce::String&> (
+                    jam::Format::toCamelCase (Id::join), &jam::Format::join);
+                map.add<const juce::String&> (
+                    jam::Format::toCamelCase (Id::toLiteral), &jam::Format::toLiteral);
+                map.add<const juce::String&> (
+                    jam::Format::toCamelCase (Id::toHex), &jam::Format::toHex);
+                map.add<const juce::String&> (
+                    jam::Format::toCamelCase (Id::toCodepoint), &jam::Format::toCodepoint);
+                map.add<const juce::String&> (
+                    jam::Format::toCamelCase (Id::toSymbol), &jam::Format::toSymbol);
+                map.add<const juce::String&> (
+                    jam::Format::toCamelCase (Id::fromId), &jam::Format::fromId);
+                map.add<const juce::String&> (
+                    jam::Format::toCamelCase (Id::fromMap), &jam::Format::fromMap);
+                map.add<const juce::String&> (
+                    jam::Format::toCamelCase (Id::fromIdentifier), &jam::Format::fromIdentifier);
+                map.add<const juce::String&> (
+                    jam::Format::toCamelCase (Id::fromLiteral), &jam::Format::fromLiteral);
+                map.add<const juce::String&> (
+                    jam::Format::toCamelCase (Id::fromCodepoint), &jam::Format::fromCodepoint);
+                map.add<const juce::String&> (
+                    jam::Format::toCamelCase (Id::toFileName),
                     static_cast<juce::String (*) (const juce::String&)> (&jam::Format::toFileName));
 
                 return map;

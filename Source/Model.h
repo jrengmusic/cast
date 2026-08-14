@@ -2,63 +2,106 @@
 #include <JuceHeader.h>
 #include "generated/Identifiers.h"
 
-class Document : public jam::MarkdownDocument
+template <typename Function>
+static void runJobs (int count, Function&& function) noexcept
+{
+    juce::ThreadPool pool;
+
+    for (int index { 0 }; index < count; ++index)
+        pool.addJob ([&function, index] { function (index); });
+
+    while (pool.getNumJobs() > 0)
+        juce::Thread::sleep (1);
+}
+
+class Model : public jam::MarkdownDocument
 {
 public:
-    Document() = default;
+    Model() = default;
 
-    static std::unique_ptr<Document> parse (const juce::File& documentFile)
+    using jam::MarkdownDocument::getTables;
+
+    static std::unique_ptr<Model> parse (const juce::File& documentFile)
     {
-        auto document { std::make_unique<Document>() };
+        auto document { std::make_unique<Model>() };
 
         if (documentFile.existsAsFile())
         {
             const auto parent { documentFile.getParentDirectory() };
 
             document->path = parent;
-            document->appendChildren (
-                jam::MarkdownDocument::parse (
-                    documentFile.loadFileAsString(), documentFile.getRelativePathFrom (parent)));
+            document->appendChildren (jam::MarkdownDocument::parse (
+                documentFile.loadFileAsString(), documentFile.getRelativePathFrom (parent)));
 
-            const auto tablesDirectory { parent.getChildFile (Id::tables.toString()) };
-            const auto wildcard { juce::String::charToString (chars::asterisk)
-                                  + juce::String::charToString (chars::dot) + extensions::md };
+            const auto indexTables { document->getTables (Id::index) };
 
-            auto tableFiles { tablesDirectory.findChildFiles (juce::File::findFiles,
-                                                              false,
-                                                              wildcard) };
-            tableFiles.sort();
-
-            jam::Array<jam::MarkdownDocument> parsedTables;
-            parsedTables.resize (tableFiles.size());
-
+            if (not indexTables.isEmpty())
             {
-                juce::ThreadPool parsePool;
+                const auto indexRows { document->getTableRows (*indexTables.at (0)) };
+                const auto markdownExtension {
+                    juce::String::charToString (chars::dot) + extensions::md
+                };
 
-                for (int i { 0 }; i < tableFiles.size(); ++i)
-                    parsePool.addJob (
-                        [&tableFiles, &parsedTables, &parent, i]
-                        {
-                            const auto& file { tableFiles.getReference (i) };
+                jam::Array<juce::File> tableFiles;
+                jam::Array<juce::String> tableOrigins;
 
-                            parsedTables[i] = jam::MarkdownDocument::parse (
-                                file.loadFileAsString(), file.getRelativePathFrom (parent));
-                        });
+                const auto manifestOrigin { documentFile.getRelativePathFrom (parent) };
 
-                while (parsePool.getNumJobs() > 0)
-                    juce::Thread::sleep (1);
+                for (auto* indexRow : indexRows)
+                {
+                    const auto pathCell { document->getTableValue (*indexRow, Id::path) };
+
+                    if (pathCell.endsWith (markdownExtension) and pathCell != manifestOrigin)
+                    {
+                        tableFiles.add (parent.getChildFile (pathCell));
+                        tableOrigins.add (pathCell);
+                    }
+                }
+
+                jam::Array<jam::MarkdownDocument> parsedTables;
+                parsedTables.resize (tableFiles.size());
+
+                runJobs (tableFiles.size(),
+                    [&tableFiles, &tableOrigins, &parsedTables] (int index)
+                    {
+                        const auto& file { tableFiles.at (index) };
+
+                        parsedTables[index] = jam::MarkdownDocument::parse (
+                            file.loadFileAsString(), tableOrigins.at (index));
+                    });
+
+                for (auto& table : parsedTables)
+                    document->appendChildren (std::move (table));
             }
-
-            for (auto& table : parsedTables)
-                document->appendChildren (std::move (table));
         }
 
         return document;
     }
 
-    juce::String getTemplate (juce::StringRef relativePath) const
+    juce::String getPath (juce::StringRef alias) const
     {
-        return path.getChildFile (relativePath).loadFileAsString();
+        const auto indexTables { getTables (Id::index) };
+
+        if (not indexTables.isEmpty())
+        {
+            for (auto* indexRow : getTableRows (*indexTables.at (0)))
+            {
+                if (getTableValue (*indexRow, Id::alias) == alias)
+                    return getTableValue (*indexRow, Id::path);
+            }
+        }
+
+        return {};
+    }
+
+    juce::File getFile (juce::StringRef alias) const
+    {
+        const auto resolvedPath { getPath (alias) };
+
+        if (resolvedPath.isNotEmpty())
+            return getOutput (resolvedPath);
+
+        return {};
     }
 
     juce::File getOutput (juce::StringRef relativePath) const
@@ -66,9 +109,29 @@ public:
         return path.getChildFile (relativePath);
     }
 
+    Element* getTables (juce::StringRef reference) const
+    {
+        const juce::String referenceText { reference };
+        const auto sourceName { jam::Format::getPreColon (referenceText) };
+        const auto tableName { jam::Format::getPostColon (referenceText) };
+        const auto declaredPath { getPath (sourceName) };
+
+        if (declaredPath.isNotEmpty())
+        {
+            for (auto* candidate : getTables (juce::Identifier (tableName)))
+            {
+                if (candidate->contains (Id::path)
+                    and *candidate->get<juce::String> (Id::path) == declaredPath)
+                    return candidate;
+            }
+        }
+
+        return nullptr;
+    }
+
 private:
     juce::File path;
 
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Document)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Model)
 };

@@ -8,7 +8,7 @@
 struct Processor
 {
     Processor (const juce::File& documentFile)
-        : model (Document::parse (documentFile))
+        : model (Model::parse (documentFile))
         , writer (*model)
     {
         jam::Stamp::getInstance()->addIfNotAlreadyThere (jam::Stamp::Entry {});
@@ -33,7 +33,7 @@ private:
     Generated generated;
 
     //==============================================================================
-    std::unique_ptr<Document> model;
+    std::unique_ptr<Model> model;
     Writer writer;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Processor)
