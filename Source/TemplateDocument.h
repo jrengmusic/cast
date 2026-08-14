@@ -189,19 +189,31 @@ private:
     juce::String
     getCell (const Model& model, Element& row, const jam::Array<juce::String>&, Element& node) const
     {
-        const auto cell { model.getTableValue (row, node.id) };
+        const auto headers { model.getTableHeaders (*row.parent) };
+        const auto cell { headers.contains (node.id.toString()) ? model.getTableValue (row, node.id)
+                                                                 : model.getToken (row, node.id) };
+        const auto alias { node.id == Id::type ? model.getSymbol (cell, Id::lexicon)
+                          : node.id == Id::file ? model.getPath (cell)
+                                                 : juce::String() };
+        const auto resolved { alias.isNotEmpty() ? alias : cell };
+        const auto value { node.id == Id::string and resolved.isEmpty()
+                               ? jam::Format::toCamelCase (row.id.toString())
+                               : resolved };
 
         if (node.contains (Id::transform))
         {
             const auto transform { node.get<juce::Identifier> (Id::transform)->toString() };
 
-            if (cell.containsChar (chars::colon) and model.getTables (juce::StringRef (cell)) != nullptr)
-                return Transforms::getTransformed (transform, jam::Format::getPostColon (cell));
+            if (model.isReference (value))
+                return Transforms::getTransformed (transform, jam::Format::getPostColon (value));
 
-            return Transforms::getTransformed (transform, cell);
+            return Transforms::getTransformed (transform, value);
         }
 
-        return cell;
+        if (const auto format { model.getFormat (row, node.id) }; format.isNotEmpty())
+            return Transforms::getTransformed (format, value);
+
+        return value;
     }
 
     juce::String getCodeText (const Model& model,
@@ -211,10 +223,8 @@ private:
                               const juce::String& code) const
     {
         const auto cell { model.getTableValue (row, node.id) };
-        const auto resolvedPath { model.getPath (cell) };
 
-        if (resolvedPath.isNotEmpty()
-            and resolvedPath.endsWith (juce::String::charToString (chars::dot) + extensions::cast))
+        if (model.isTemplatePath (cell))
         {
             TemplateDocument bodyDocument;
             build (model, row, columns, node, bodyDocument, *bodyDocument.root, code);
@@ -231,11 +241,8 @@ private:
             return wrapperDocument.root->getAllSubText();
         }
 
-        if (cell.containsChar (chars::colon))
-        {
-            if (auto* sourceTable { model.getTables (juce::StringRef (cell)) })
-                return getCodeText (model, row, node, sourceTable->id);
-        }
+        if (auto* sourceTable { model.getTables (juce::StringRef (cell)) })
+            return getCodeText (model, row, node, sourceTable->id);
 
         TemplateDocument document;
         build (model, row, columns, node, document, *document.root, code);
@@ -300,19 +307,15 @@ private:
                 if (child->firstChild != nullptr)
                 {
                     const auto cell { model.getTableValue (row, child->id) };
-                    const auto resolvedPath { model.getPath (cell) };
 
-                    if (resolvedPath.isNotEmpty()
-                        and resolvedPath.endsWith (juce::String::charToString (chars::dot)
-                                                   + extensions::cast))
+                    if (model.isTemplatePath (cell))
                     {
                         getPlaceholders (model, row, *child, placeholders);
 
                         const auto& wrapper { getOrCreate (model.getFile (cell)) };
                         wrapper.getPlaceholders (model, row, *wrapper.root, placeholders);
                     }
-                    else if (not cell.containsChar (chars::colon)
-                             or model.getTables (juce::StringRef (cell)) == nullptr)
+                    else if (not model.isReference (cell))
                     {
                         getPlaceholders (model, row, *child, placeholders);
                     }
@@ -370,9 +373,7 @@ private:
             ++position;
         }
 
-#if JUCE_DEBUG
-        jam::debug::Log::write ("getMarker: unexpected EOF in marker");
-#endif
+        jassertfalse;
         return Document::Token (cursor, position, map::TemplateTokenType::text);
     }
 

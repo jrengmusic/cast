@@ -78,6 +78,17 @@ public:
         return document;
     }
 
+    juce::String getFormat (Element& row, const juce::Identifier& column) const
+    {
+        const juce::Identifier formatColumn { column.toString()
+                                              + juce::String::charToString (chars::space)
+                                              + Id::format };
+
+        return getTableHeaders (*row.parent).contains (formatColumn.toString())
+                  ? getTableValue (row, formatColumn)
+                  : juce::String();
+    }
+
     juce::String getPath (juce::StringRef alias) const
     {
         const auto indexTables { getTables (Id::index) };
@@ -90,6 +101,41 @@ public:
                     return getTableValue (*indexRow, Id::path);
             }
         }
+
+        return {};
+    }
+
+    juce::String getSymbol (juce::StringRef alias, const juce::Identifier& sourceTableId) const
+    {
+        const auto reference { sourceTableId.toString() + juce::String::charToString (chars::colon)
+                               + Id::index.toString() };
+
+        if (auto* indexTable { getTables (juce::StringRef (reference)) })
+        {
+            for (auto* indexRow : getTableRows (*indexTable))
+            {
+                if (getTableValue (*indexRow, Id::alias) == alias)
+                    return getTableValue (*indexRow, Id::symbol);
+            }
+        }
+
+        return {};
+    }
+
+    juce::String getToken (Element& row, const juce::Identifier& name) const
+    {
+        const auto cell { getTableValue (row, Id::token) };
+        const auto commaText { juce::String::charToString (chars::comma) };
+        const auto names {
+            juce::StringArray::fromTokens (jam::Format::getPreColon (cell), commaText, {})
+        };
+        const auto values {
+            juce::StringArray::fromTokens (jam::Format::getPostColon (cell), commaText, {})
+        };
+
+        for (int index { 0 }; index < names.size(); ++index)
+            if (names[index].trim() == name.toString())
+                return values[index].trim();
 
         return {};
     }
@@ -127,6 +173,17 @@ public:
         }
 
         return nullptr;
+    }
+
+    bool isTemplatePath (juce::StringRef cell) const noexcept
+    {
+        return getPath (cell).endsWith (juce::String::charToString (chars::dot) + extensions::cast);
+    }
+
+    bool isReference (juce::StringRef cell) const noexcept
+    {
+        const juce::String cellText { cell };
+        return cellText.containsChar (chars::colon) and getTables (cell) != nullptr;
     }
 
 private:

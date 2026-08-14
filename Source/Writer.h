@@ -31,7 +31,7 @@ struct Writer
 
                 for (auto* row : rows)
                 {
-                    const auto file { model.getTableValue (*row, Id::file) };
+                    const auto file { model.getPath (model.getTableValue (*row, Id::file)) };
                     files.addIfNotAlreadyThere (file);
                     rowsByFile[file].add (row);
                 }
@@ -123,13 +123,13 @@ private:
         static const auto document { jam::MarkdownDocument::parse (
             BinaryData::getString (files::castOutput)) };
 
-        const juce::Identifier extension { jam::Format::onlyExtensionFromFilename (file) };
+        const auto extension { jam::Format::onlyExtensionFromFilename (file) };
         juce::String banner;
 
-        banner << document.getTableValue (Id::extensions, Id::open, extension) << chars::newline
+        banner << map::bannerOpen.at (extension) << chars::newline
                << document.getCodeBlock (Id::banner)->getAllSubText() << chars::newline
-               << document.getTableValue (Id::extensions, Id::close, extension) << chars::newline
-               << chars::newline << document.getTableValue (Id::extensions, Id::pragma, extension)
+               << map::bannerClose.at (extension) << chars::newline
+               << chars::newline << map::pragma.at (extension)
                << chars::newline << chars::newline;
 
         return banner;

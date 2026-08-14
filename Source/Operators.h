@@ -47,6 +47,10 @@ struct Transforms
                 map.add<const juce::String&> (
                     jam::Format::toCamelCase (Id::toCamel), &jam::Format::toCamelCase);
                 map.add<const juce::String&> (
+                    jam::Format::toCamelCase (Id::toComment), &jam::Format::toComment);
+                map.add<const juce::String&> (
+                    jam::Format::toCamelCase (Id::toCommentBlock), &jam::Format::toCommentBlock);
+                map.add<const juce::String&> (
                     jam::Format::toCamelCase (Id::toSnake), &jam::Format::toSnakeCase);
                 map.add<const juce::String&> (
                     jam::Format::toCamelCase (Id::toScreamingSnake),
@@ -61,6 +65,8 @@ struct Transforms
                     jam::Format::toCamelCase (Id::toCodepoint), &jam::Format::toCodepoint);
                 map.add<const juce::String&> (
                     jam::Format::toCamelCase (Id::toSymbol), &jam::Format::toSymbol);
+                map.add<const juce::String&> (
+                    jam::Format::toCamelCase (Id::toUnicode), &jam::Format::toUnicode);
                 map.add<const juce::String&> (
                     jam::Format::toCamelCase (Id::fromId), &jam::Format::fromId);
                 map.add<const juce::String&> (

@@ -1,6 +1,6 @@
 ## text
 
-| key                         | string                                                               |
+| key                         | value                                                                |
 | --------------------------- | -------------------------------------------------------------------- |
 | fail no match               | value does not match                                                 |
 | fail duplicate              | `duplicate "`                                                        |

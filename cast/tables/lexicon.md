@@ -1,63 +1,80 @@
+## index
+
+| alias  | symbol           |
+| ------ | ---------------- |
+| id     | juce::Identifier |
+| string | juce::String     |
+
 ## lexicon
 
-| name                 | value               | type       |
-| -------------------- | ------------------- | ---------- |
-| available label      | ` available here:`  | String     |
-| banner               | banner              | Identifier |
-| brief                | brief               | Identifier |
-| capacity             | capacity            | Identifier |
-| cell                 | cell                | String     |
-| chars                | chars               | Identifier |
-| column               | column              | Identifier |
-| constraints          | constraints         | Identifier |
-| diagnostic separator | `: `                | String     |
-| dispatch             | dispatch            | Identifier |
-| dispatch row label   | ` dispatch row:`    | String     |
-| exists in            | exists in           | String     |
-| extensions           | extensions          | Identifier |
-| file exists          | file exists         | String     |
-| files                | files               | Identifier |
-| from codepoint       | from codepoint      | String     |
-| from id              | from id             | String     |
-| from identifier      | from identifier     | String     |
-| from literal         | from literal        | String     |
-| from map             | from map            | String     |
-| generated            | generated           | Identifier |
-| hazard chars         | `<>`                | String     |
-| join                 | join                | String     |
-| lexicon              | lexicon             | Identifier |
-| matches              | matches             | String     |
-| one of               | one of              | String     |
-| one per group        | one per group       | String     |
-| output row label     | ` output row:`      | String     |
-| parity               | parity              | String     |
-| patch                | patch               | Identifier |
-| placeholder          | placeholder         | Identifier |
-| predicate            | predicate           | Identifier |
-| range                | range               | String     |
-| row region begin     | row:begin           | String     |
-| row region end       | row:end             | String     |
-| row region index     | row:index           | String     |
-| rules                | rules               | Identifier |
-| separator            | separator           | Identifier |
-| symbol               | symbol              | Identifier |
-| tables               | tables              | Identifier |
-| template path        | template            | Identifier |
-| template token type  | template token type | Identifier |
-| to                   | to                  | Identifier |
-| to camel             | to camel            | String     |
-| to codepoint         | to codepoint        | String     |
-| to file name         | to file name        | String     |
-| to hex               | to hex              | String     |
-| to kebab             | to kebab            | String     |
-| to literal           | to literal          | String     |
-| to pascal            | to pascal           | String     |
-| to screaming snake   | to screaming snake  | String     |
-| to snake             | to snake            | String     |
-| to symbol            | to symbol           | String     |
-| to title             | to title            | String     |
-| to upper             | to upper            | String     |
-| to UTF8              | to UTF8             | String     |
-| transform            | transform           | Identifier |
-| transforms           | transforms          | Identifier |
-| unique               | unique              | String     |
+| name                 | value               | type   |
+| -------------------- | ------------------- | ------ |
+| available label      | ` available here:`  | string |
+| banner               | banner              | id     |
+| banner close         | banner close        | id     |
+| banner open          | banner open         | id     |
+| block close          | block close         | id     |
+| block open           | block open          | id     |
+| brief                | brief               | id     |
+| capacity             | capacity            | id     |
+| cell                 | cell                | string |
+| chars                | chars               | id     |
+| column               | column              | id     |
+| constraints          | constraints         | id     |
+| diagnostic separator | `: `                | string |
+| dispatch             | dispatch            | id     |
+| dispatch row label   | ` dispatch row:`    | string |
+| exists in            | exists in           | string |
+| extensions           | extensions          | id     |
+| file exists          | file exists         | string |
+| files                | files               | id     |
+| format               | format              | string |
+| from codepoint       | from codepoint      | string |
+| from id              | from id             | string |
+| from identifier      | from identifier     | string |
+| from literal         | from literal        | string |
+| from map             | from map            | string |
+| generated            | generated           | id     |
+| hazard chars         | `<>`                | string |
+| headers              | headers             | id     |
+| join                 | join                | string |
+| lexicon              | lexicon             | id     |
+| matches              | matches             | string |
+| one of               | one of              | string |
+| one per group        | one per group       | string |
+| output row label     | ` output row:`      | string |
+| parity               | parity              | string |
+| patch                | patch               | id     |
+| placeholder          | placeholder         | id     |
+| predicate            | predicate           | id     |
+| range                | range               | string |
+| row region begin     | row:begin           | string |
+| row region end       | row:end             | string |
+| row region index     | row:index           | string |
+| rules                | rules               | id     |
+| separator            | separator           | id     |
+| special              | special             | id     |
+| symbol               | symbol              | id     |
+| tables               | tables              | id     |
+| template path        | template            | id     |
+| template token type  | template token type | id     |
+| to camel             | to camel            | string |
+| to codepoint         | to codepoint        | string |
+| to comment           | to comment          | string |
+| to comment block     | to comment block    | string |
+| to file name         | to file name        | string |
+| to hex               | to hex              | string |
+| to kebab             | to kebab            | string |
+| to literal           | to literal          | string |
+| to pascal            | to pascal           | string |
+| to screaming snake   | to screaming snake  | string |
+| to snake             | to snake            | string |
+| to symbol            | to symbol           | string |
+| to title             | to title            | string |
+| to unicode           | to unicode          | id     |
+| to upper             | to upper            | string |
+| to UTF8              | to UTF8             | string |
+| token                | token               | id     |
+| transform            | transform           | id     |
+| transforms           | transforms          | id     |
+| unique               | unique              | string |
