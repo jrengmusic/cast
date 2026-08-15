@@ -1,20 +1,19 @@
 ## index
 
++--------+------------------+
 | alias  | symbol           |
-| ------ | ---------------- |
++========+==================+
 | id     | juce::Identifier |
 | string | juce::String     |
++--------+------------------+
 
 ## lexicon
 
++----------------------+---------------------+--------+
 | name                 | value               | type   |
-| -------------------- | ------------------- | ------ |
++======================+=====================+========+
 | available label      | ` available here:`  | string |
 | banner               | banner              | id     |
-| banner close         | banner close        | id     |
-| banner open          | banner open         | id     |
-| block close          | block close         | id     |
-| block open           | block open          | id     |
 | brief                | brief               | id     |
 | capacity             | capacity            | id     |
 | cell                 | cell                | string |
@@ -78,3 +77,4 @@
 | transform            | transform           | id     |
 | transforms           | transforms          | id     |
 | unique               | unique              | string |
++----------------------+---------------------+--------+

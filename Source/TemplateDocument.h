@@ -192,10 +192,7 @@ private:
         const auto headers { model.getTableHeaders (*row.parent) };
         const auto cell { headers.contains (node.id.toString()) ? model.getTableValue (row, node.id)
                                                                  : model.getToken (row, node.id) };
-        const auto alias { node.id == Id::type ? model.getSymbol (cell, Id::lexicon)
-                          : node.id == Id::file ? model.getPath (cell)
-                                                 : juce::String() };
-        const auto resolved { alias.isNotEmpty() ? alias : cell };
+        const auto resolved { model.resolve (cell) };
         const auto value { node.id == Id::string and resolved.isEmpty()
                                ? jam::Format::toCamelCase (row.id.toString())
                                : resolved };
@@ -222,7 +219,13 @@ private:
                               Element& node,
                               const juce::String& code) const
     {
-        const auto cell { model.getTableValue (row, node.id) };
+        const auto headers { model.getTableHeaders (*row.parent) };
+        const auto cell { headers.contains (node.id.toString())
+                              ? model.getTableValue (row, node.id)
+                              : model.getToken (row, node.id) };
+
+        if (cell.isEmpty())
+            return {};
 
         if (model.isTemplatePath (cell))
         {

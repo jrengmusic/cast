@@ -1,7 +1,8 @@
 ## text
 
++-----------------------------+----------------------------------------------------------------------+
 | key                         | value                                                                |
-| --------------------------- | -------------------------------------------------------------------- |
++=============================+======================================================================+
 | fail no match               | value does not match                                                 |
 | fail duplicate              | `duplicate "`                                                        |
 | fail foreign key missing    | `value not found in `                                                |
@@ -40,3 +41,4 @@
 | fail region source missing  | dispatch row has no template and its placeholder has no region       |
 | fail region unfed           | placeholder region is declared but no dispatch row feeds it          |
 | fail template chain depth   | template chain exceeds maximum depth of 2                            |
++-----------------------------+----------------------------------------------------------------------+

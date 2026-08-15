@@ -49,7 +49,7 @@ public:
 
                 for (auto* indexRow : indexRows)
                 {
-                    const auto pathCell { document->getTableValue (*indexRow, Id::path) };
+                    const auto pathCell { document->getTableValue (*indexRow, Id::symbol) };
 
                     if (pathCell.endsWith (markdownExtension) and pathCell != manifestOrigin)
                     {
@@ -98,23 +98,6 @@ public:
             for (auto* indexRow : getTableRows (*indexTables.at (0)))
             {
                 if (getTableValue (*indexRow, Id::alias) == alias)
-                    return getTableValue (*indexRow, Id::path);
-            }
-        }
-
-        return {};
-    }
-
-    juce::String getSymbol (juce::StringRef alias, const juce::Identifier& sourceTableId) const
-    {
-        const auto reference { sourceTableId.toString() + juce::String::charToString (chars::colon)
-                               + Id::index.toString() };
-
-        if (auto* indexTable { getTables (juce::StringRef (reference)) })
-        {
-            for (auto* indexRow : getTableRows (*indexTable))
-            {
-                if (getTableValue (*indexRow, Id::alias) == alias)
                     return getTableValue (*indexRow, Id::symbol);
             }
         }
@@ -134,10 +117,24 @@ public:
         };
 
         for (int index { 0 }; index < names.size(); ++index)
+        {
             if (names[index].trim() == name.toString())
-                return values[index].trim();
+            {
+                const auto value { values[index].trim() };
+                const auto resolved { getPath (value) };
+
+                return resolved.isNotEmpty() ? resolved : value;
+            }
+        }
 
         return {};
+    }
+
+    juce::String resolve (const juce::String& value) const
+    {
+        const auto symbol { getPath (value) };
+
+        return symbol.isNotEmpty() ? symbol : value;
     }
 
     juce::File getFile (juce::StringRef alias) const
@@ -166,8 +163,8 @@ public:
         {
             for (auto* candidate : getTables (juce::Identifier (tableName)))
             {
-                if (candidate->contains (Id::path)
-                    and *candidate->get<juce::String> (Id::path) == declaredPath)
+                if (candidate->contains (Id::symbol)
+                    and *candidate->get<juce::String> (Id::symbol) == declaredPath)
                     return candidate;
             }
         }

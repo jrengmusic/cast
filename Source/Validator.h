@@ -495,22 +495,22 @@ struct Validator
 
         for (auto* row : model.getTableRows (indexTable))
         {
-            const auto pathCell { model.getTableValue (*row, Id::path) };
+            const auto pathCell { model.getTableValue (*row, Id::symbol) };
 
             if (pathCell.isEmpty())
-                return juce::Result::fail (getLocation (indexTable, *row, Id::path.toString())
+                return juce::Result::fail (getLocation (indexTable, *row, Id::symbol.toString())
                                            + Id::diagnosticSeparator + text::en::failNotFound);
 
             if (pathCell.endsWith (markdownExtension)
                 and not model.getOutput (pathCell).existsAsFile())
-                return juce::Result::fail (getLocation (indexTable, *row, Id::path.toString())
+                return juce::Result::fail (getLocation (indexTable, *row, Id::symbol.toString())
                                            + Id::diagnosticSeparator
                                            + text::en::failOutputMissing + Id::diagnosticSeparator
                                            + pathCell);
 
             if (pathCell.endsWith (templateExtension)
                 and not model.getOutput (pathCell).existsAsFile())
-                return juce::Result::fail (getLocation (indexTable, *row, Id::path.toString())
+                return juce::Result::fail (getLocation (indexTable, *row, Id::symbol.toString())
                                            + Id::diagnosticSeparator
                                            + text::en::failTemplateMissing
                                            + Id::diagnosticSeparator + pathCell);
@@ -558,7 +558,7 @@ struct Validator
         juce::String path;
         juce::String line;
 
-        if (const auto* pathProperty { table.get<juce::String> (Id::path) };
+        if (const auto* pathProperty { table.get<juce::String> (Id::symbol) };
             pathProperty != nullptr)
             path = *pathProperty;
 

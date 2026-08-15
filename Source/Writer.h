@@ -126,10 +126,12 @@ private:
         const auto extension { jam::Format::onlyExtensionFromFilename (file) };
         juce::String banner;
 
-        banner << map::bannerOpen.at (extension) << chars::newline
+        const auto& syntax { map::commentSyntax.at (extension) };
+
+        banner << syntax.at (Id::bannerOpen) << chars::newline
                << document.getCodeBlock (Id::banner)->getAllSubText() << chars::newline
-               << map::bannerClose.at (extension) << chars::newline
-               << chars::newline << map::pragma.at (extension)
+               << syntax.at (Id::bannerClose) << chars::newline
+               << chars::newline << syntax.at (Id::pragma)
                << chars::newline << chars::newline;
 
         return banner;

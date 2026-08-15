@@ -4,6 +4,23 @@
 /// @brief SPEC §6 transform vocabulary lookup.
 struct Transforms
 {
+    static juce::String toComment (const juce::String& input) noexcept
+    {
+        if (input.isEmpty())
+            return {};
+
+        return map::clangComment.at (Id::comment) + juce::String::charToString (chars::space) + input;
+    }
+
+    static juce::String toCommentBlock (const juce::String& input) noexcept
+    {
+        if (input.isEmpty())
+            return {};
+
+        return map::clangComment.at (Id::blockOpen) + juce::String::charToString (chars::space) + input
+             + juce::String::charToString (chars::space) + map::clangComment.at (Id::blockClose);
+    }
+
     /** @brief Reports whether @p name is in the closed transform vocabulary (SPEC §6). */
     static bool contains (const juce::String& name) noexcept
     {
@@ -47,9 +64,9 @@ struct Transforms
                 map.add<const juce::String&> (
                     jam::Format::toCamelCase (Id::toCamel), &jam::Format::toCamelCase);
                 map.add<const juce::String&> (
-                    jam::Format::toCamelCase (Id::toComment), &jam::Format::toComment);
+                    jam::Format::toCamelCase (Id::toComment), &Transforms::toComment);
                 map.add<const juce::String&> (
-                    jam::Format::toCamelCase (Id::toCommentBlock), &jam::Format::toCommentBlock);
+                    jam::Format::toCamelCase (Id::toCommentBlock), &Transforms::toCommentBlock);
                 map.add<const juce::String&> (
                     jam::Format::toCamelCase (Id::toSnake), &jam::Format::toSnakeCase);
                 map.add<const juce::String&> (

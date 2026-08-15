@@ -1,12 +1,14 @@
 ## banner
 
-| key                 | value                                                    | key format | value format |
-| ------------------- | -------------------------------------------------------- | ---------- | ------------ |
-| Blue Mana           | `████████████  ████████████  ████████████  ████████████` | fromLiteral | fromLiteral  |
-| Hello Summer        | `████░░░░████  ████░░░░████  ████░░░░████  ░░░░████░░░░` | fromLiteral | fromLiteral  |
-| High Blue           | `████    ░░░░  ████    ████  ████    ░░░░      ████    ` | fromLiteral | fromLiteral  |
-| Aquarius            | `████          ████████████  ████████████      ████    ` | fromLiteral | fromLiteral  |
-| Homeworld           | `████          ████░░░░████  ░░░░░░░░████      ████    ` | fromLiteral | fromLiteral  |
-| Ocean Blue          | `████    ████  ████    ████  ████    ████      ████    ` | fromLiteral | fromLiteral  |
-| Swimmer             | `████████████  ████    ████  ████████████      ████    ` | fromLiteral | fromLiteral  |
-| Way Beyond the Blue | `░░░░░░░░░░░░  ░░░░    ░░░░  ░░░░░░░░░░░░      ░░░░    ` | fromLiteral | fromLiteral  |
++---------------------+----------------------------------------------------------+-------------+--------------+
+| key                 | value                                                    | key format  | value format |
++=====================+==========================================================+=============+==============+
+| blueMana            | `████████████  ████████████  ████████████  ████████████` | fromLiteral | fromLiteral  |
+| helloSummer         | `████░░░░████  ████░░░░████  ████░░░░████  ░░░░████░░░░` | fromLiteral | fromLiteral  |
+| highBlue            | `████    ░░░░  ████    ████  ████    ░░░░      ████    ` | fromLiteral | fromLiteral  |
+| aquarius            | `████          ████████████  ████████████      ████    ` | fromLiteral | fromLiteral  |
+| homeworld           | `████          ████░░░░████  ░░░░░░░░████      ████    ` | fromLiteral | fromLiteral  |
+| oceanBlue           | `████    ████  ████    ████  ████    ████      ████    ` | fromLiteral | fromLiteral  |
+| swimmer             | `████████████  ████    ████  ████████████      ████    ` | fromLiteral | fromLiteral  |
+| wayBeyondTheBlue    | `░░░░░░░░░░░░  ░░░░    ░░░░  ░░░░░░░░░░░░      ░░░░    ` | fromLiteral | fromLiteral  |
++---------------------+----------------------------------------------------------+-------------+--------------+
