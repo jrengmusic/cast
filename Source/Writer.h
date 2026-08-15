@@ -15,7 +15,6 @@ struct Writer
     bool toFile (const juce::File& outputPath)
     {
         std::atomic<bool> written { true };
-        const auto dotCast { juce::String::charToString (chars::dot) + extensions::cast };
 
         for (auto* table : model.getTables())
         {
@@ -31,7 +30,10 @@ struct Writer
 
                 for (auto* row : rows)
                 {
-                    const auto file { model.getPath (model.getTableValue (*row, Id::file)) };
+                    const auto origin { *row->parent->get<juce::String> (Id::path) };
+                    const auto file {
+                        model.getValue (origin, model.getTableValue (*row, Id::file))
+                    };
                     files.addIfNotAlreadyThere (file);
                     rowsByFile[file].add (row);
                 }
@@ -44,7 +46,6 @@ struct Writer
                      &rowsByFile,
                      &columns,
                      &bodyColumn,
-                     &dotCast,
                      &written] (int index)
                     {
                         const auto& file { files.at (index) };
@@ -59,7 +60,7 @@ struct Writer
                             const auto bodyCell { model.getTableValue (
                                 *row, juce::Identifier (bodyColumn)) };
                             const auto& document { TemplateDocument::getOrCreate (
-                                model.getFile (bodyCell)) };
+                                model.getFile (*row, bodyCell)) };
                             const auto body {
                                 document.build (model, *row, {}).root->getAllSubText()
                             };
@@ -73,12 +74,14 @@ struct Writer
                             {
                                 const auto lineBreakCell { model.getTableValue (
                                     *row, Id::lineBreak) };
-                                const auto separator { lineBreakCell.isNotEmpty()
-                                                           ? TemplateDocument::getOrCreate (
-                                                                 model.getFile (lineBreakCell))
-                                                                 .build (model, *row, {})
-                                                                 .root->getAllSubText()
-                                                           : juce::String() };
+                                const auto separator {
+                                    lineBreakCell.isNotEmpty()
+                                        ? TemplateDocument::getOrCreate (
+                                              model.getFile (*row, lineBreakCell))
+                                              .build (model, *row, {})
+                                              .root->getAllSubText()
+                                        : juce::String()
+                                };
 
                                 code << separator << body;
                             }
@@ -92,10 +95,10 @@ struct Writer
                             if (column != bodyColumn and column != Id::file.toString()
                                 and not column.endsWith (Id::lineBreak.toString())
                                 and not placeholders.contains (juce::Identifier (column))
-                                and model.getPath (cell).endsWith (dotCast))
+                                and model.isTemplatePath (*firstRow, cell))
                             {
                                 const auto& wrapper { TemplateDocument::getOrCreate (
-                                    model.getFile (cell)) };
+                                    model.getFile (*firstRow, cell)) };
 
                                 for (const auto& placeholder :
                                      wrapper.getPlaceholders (model, *firstRow))
@@ -107,7 +110,11 @@ struct Writer
                         }
 
                         auto outputFile { jam::File::getOrCreate (outputPath, file) };
-                        written = outputFile.replaceWithText (getBanner (file) + code);
+                        written = outputFile.replaceWithText (
+                            getBanner (file) + code,
+                            false,
+                            false,
+                            juce::String::charToString (chars::newline).toRawUTF8());
                     });
             }
         }

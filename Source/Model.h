@@ -1,6 +1,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include "generated/Identifiers.h"
+#include "Operators.h"
 
 template <typename Function>
 static void runJobs (int count, Function&& function) noexcept
@@ -89,20 +90,38 @@ public:
                   : juce::String();
     }
 
-    juce::String getPath (juce::StringRef alias) const
+    juce::String getValue (juce::StringRef file, juce::StringRef alias) const
     {
-        const auto indexTables { getTables (Id::index) };
+        const juce::String aliasText { alias };
 
-        if (not indexTables.isEmpty())
+        if (juce::Identifier::isValidIdentifier (aliasText))
         {
-            for (auto* indexRow : getTableRows (*indexTables.at (0)))
+            for (auto* table : getTables (Id::index))
             {
-                if (getTableValue (*indexRow, Id::alias) == alias)
-                    return getTableValue (*indexRow, Id::symbol);
+                if (table->contains (Id::path) and *table->get<juce::String> (Id::path) == file)
+                {
+                    const auto symbol {
+                        getTableValue (*table, Id::symbol, juce::Identifier (aliasText))
+                    };
+                    const auto format {
+                        getTableHeaders (*table).contains (Id::format)
+                            ? getTableValue (*table, Id::format, juce::Identifier (aliasText))
+                            : juce::String()
+                    };
+
+                    return format.isNotEmpty() ? Transforms::getTransformed (format, symbol)
+                                               : symbol;
+                }
             }
         }
 
         return {};
+    }
+
+    juce::String getValue (Element& row, juce::StringRef alias) const
+    {
+        const auto origin { *row.parent->get<juce::String> (Id::path) };
+        return getValue (origin, alias);
     }
 
     juce::String getToken (Element& row, const juce::Identifier& name) const
@@ -121,28 +140,21 @@ public:
             if (names[index].trim() == name.toString())
             {
                 const auto value { values[index].trim() };
-                const auto resolved { getPath (value) };
+                const auto symbol { getValue (row, value) };
 
-                return resolved.isNotEmpty() ? resolved : value;
+                return symbol.isNotEmpty() ? symbol : value;
             }
         }
 
         return {};
     }
 
-    juce::String resolve (const juce::String& value) const
+    juce::File getFile (Element& row, juce::StringRef alias) const
     {
-        const auto symbol { getPath (value) };
+        const auto symbolPath { getValue (row, alias) };
 
-        return symbol.isNotEmpty() ? symbol : value;
-    }
-
-    juce::File getFile (juce::StringRef alias) const
-    {
-        const auto resolvedPath { getPath (alias) };
-
-        if (resolvedPath.isNotEmpty())
-            return getOutput (resolvedPath);
+        if (symbolPath.isNotEmpty())
+            return getOutput (symbolPath);
 
         return {};
     }
@@ -152,19 +164,19 @@ public:
         return path.getChildFile (relativePath);
     }
 
-    Element* getTables (juce::StringRef reference) const
+    Element* getTables (Element& row, juce::StringRef reference) const
     {
         const juce::String referenceText { reference };
         const auto sourceName { jam::Format::getPreColon (referenceText) };
         const auto tableName { jam::Format::getPostColon (referenceText) };
-        const auto declaredPath { getPath (sourceName) };
+        const auto declaredPath { getValue (row, sourceName) };
 
         if (declaredPath.isNotEmpty())
         {
             for (auto* candidate : getTables (juce::Identifier (tableName)))
             {
-                if (candidate->contains (Id::symbol)
-                    and *candidate->get<juce::String> (Id::symbol) == declaredPath)
+                if (candidate->contains (Id::path)
+                    and *candidate->get<juce::String> (Id::path) == declaredPath)
                     return candidate;
             }
         }
@@ -172,15 +184,16 @@ public:
         return nullptr;
     }
 
-    bool isTemplatePath (juce::StringRef cell) const noexcept
+    bool isTemplatePath (Element& row, juce::StringRef cell) const noexcept
     {
-        return getPath (cell).endsWith (juce::String::charToString (chars::dot) + extensions::cast);
+        return getValue (row, cell).endsWith (
+            juce::String::charToString (chars::dot) + extensions::cast);
     }
 
-    bool isReference (juce::StringRef cell) const noexcept
+    bool isReference (Element& row, juce::StringRef cell) const noexcept
     {
         const juce::String cellText { cell };
-        return cellText.containsChar (chars::colon) and getTables (cell) != nullptr;
+        return cellText.containsChar (chars::colon) and getTables (row, cell) != nullptr;
     }
 
 private:

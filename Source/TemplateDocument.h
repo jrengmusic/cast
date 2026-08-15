@@ -54,14 +54,17 @@ struct TemplateDocument : jam::Document
     {
         TemplateDocument document;
         document.addText (*document.root, banner);
-        build (model, row, {}, *root, document, *document.root, code);
+        build (model, row, row, {}, *root, document, *document.root, code);
         return document;
     }
 
     bool toFile (const juce::File& file) const
     {
         file.getParentDirectory().createDirectory();
-        return file.replaceWithText (root->getAllSubText());
+        return file.replaceWithText (root->getAllSubText(),
+                                     false,
+                                     false,
+                                     juce::String::charToString (chars::newline).toRawUTF8());
     }
 
 protected:
@@ -168,6 +171,7 @@ private:
 
     void build (const Model& model,
                 Element& row,
+                Element& sourceRow,
                 const jam::Array<juce::String>& columns,
                 Element& node,
                 TemplateDocument& document,
@@ -179,35 +183,44 @@ private:
             if (child->id == Id::text)
                 document.addText (parent, *child->get<juce::String> (Id::text));
             else if (child->firstChild == nullptr)
-                document.addText (
-                    parent, child->id == Id::code ? code : getCell (model, row, columns, *child));
+                document.addText (parent,
+                                  child->id == Id::code
+                                      ? code
+                                      : getCell (model, row, sourceRow, columns, *child));
             else
-                document.addText (parent, getCodeText (model, row, columns, *child, code));
+                document.addText (parent, getCodeText (model, row, sourceRow, columns, *child, code));
         }
     }
 
-    juce::String
-    getCell (const Model& model, Element& row, const jam::Array<juce::String>&, Element& node) const
+    juce::String getCell (const Model& model,
+                          Element& row,
+                          Element& sourceRow,
+                          const jam::Array<juce::String>&,
+                          Element& node) const
     {
-        const auto headers { model.getTableHeaders (*row.parent) };
-        const auto cell { headers.contains (node.id.toString()) ? model.getTableValue (row, node.id)
-                                                                 : model.getToken (row, node.id) };
-        const auto resolved { model.resolve (cell) };
-        const auto value { node.id == Id::string and resolved.isEmpty()
-                               ? jam::Format::toCamelCase (row.id.toString())
-                               : resolved };
+        const auto headers { model.getTableHeaders (*sourceRow.parent) };
+        const auto token { model.getToken (sourceRow, node.id) };
+        const auto cell { headers.contains (node.id.toString())
+                              ? model.getTableValue (sourceRow, node.id)
+                              : token.isNotEmpty() ? token
+                                                   : model.getToken (row, node.id) };
+        const auto symbol { model.getValue (sourceRow, cell) };
+        const auto value { node.id == Id::string and cell.isEmpty()
+                               ? jam::Format::toCamelCase (sourceRow.id.toString())
+                               : symbol.isNotEmpty() ? symbol
+                                                     : cell };
 
         if (node.contains (Id::transform))
         {
             const auto transform { node.get<juce::Identifier> (Id::transform)->toString() };
 
-            if (model.isReference (value))
+            if (model.isReference (sourceRow, value))
                 return Transforms::getTransformed (transform, jam::Format::getPostColon (value));
 
             return Transforms::getTransformed (transform, value);
         }
 
-        if (const auto format { model.getFormat (row, node.id) }; format.isNotEmpty())
+        if (const auto format { model.getFormat (sourceRow, node.id) }; format.isNotEmpty())
             return Transforms::getTransformed (format, value);
 
         return value;
@@ -215,27 +228,31 @@ private:
 
     juce::String getCodeText (const Model& model,
                               Element& row,
+                              Element& sourceRow,
                               const jam::Array<juce::String>& columns,
                               Element& node,
                               const juce::String& code) const
     {
-        const auto headers { model.getTableHeaders (*row.parent) };
+        const auto headers { model.getTableHeaders (*sourceRow.parent) };
+        const auto token { model.getToken (sourceRow, node.id) };
         const auto cell { headers.contains (node.id.toString())
-                              ? model.getTableValue (row, node.id)
-                              : model.getToken (row, node.id) };
+                              ? model.getTableValue (sourceRow, node.id)
+                              : token.isNotEmpty() ? token
+                                                   : model.getToken (row, node.id) };
 
         if (cell.isEmpty())
             return {};
 
-        if (model.isTemplatePath (cell))
+        if (model.isTemplatePath (sourceRow, cell))
         {
             TemplateDocument bodyDocument;
-            build (model, row, columns, node, bodyDocument, *bodyDocument.root, code);
+            build (model, row, sourceRow, columns, node, bodyDocument, *bodyDocument.root, code);
 
-            const auto& wrapper { getOrCreate (model.getFile (cell)) };
+            const auto& wrapper { getOrCreate (model.getFile (sourceRow, cell)) };
             TemplateDocument wrapperDocument;
             wrapper.build (model,
                            row,
+                           sourceRow,
                            columns,
                            *wrapper.root,
                            wrapperDocument,
@@ -244,11 +261,11 @@ private:
             return wrapperDocument.root->getAllSubText();
         }
 
-        if (auto* sourceTable { model.getTables (juce::StringRef (cell)) })
+        if (auto* sourceTable { model.getTables (sourceRow, juce::StringRef (cell)) })
             return getCodeText (model, row, node, sourceTable->id);
 
         TemplateDocument document;
-        build (model, row, columns, node, document, *document.root, code);
+        build (model, row, sourceRow, columns, node, document, *document.root, code);
         return document.root->getAllSubText();
     }
 
@@ -262,7 +279,7 @@ private:
                                                  + Id::lineBreak.toString() };
         const auto separatorPath { model.getTableValue (row, lineBreakColumn) };
         const auto separator { separatorPath.isNotEmpty()
-                                   ? getOrCreate (model.getFile (separatorPath))
+                                   ? getOrCreate (model.getFile (row, separatorPath))
                                          .build (model, row, {})
                                          .root->getAllSubText()
                                    : juce::String() };
@@ -270,13 +287,19 @@ private:
         const auto sourceColumns { model.getTableHeaders (source) };
         jam::Array<juce::String> texts;
 
-        for (auto* sourceRow : model.getTableRows (source))
+        const auto tableRows { model.getTableRows (source) };
+        const auto isTokenRegion { std::any_of (tableRows.begin(), tableRows.end(),
+            [&model, &node] (Element* sourceRow)
+            { return model.getToken (*sourceRow, node.id).isNotEmpty(); }) };
+
+        for (auto* sourceRow : tableRows)
         {
-            if (not sourceColumns.contains (node.id.toString())
-                or model.hasTableValue (*sourceRow, node.id))
+            if (sourceColumns.contains (node.id.toString())
+                    ? model.hasTableValue (*sourceRow, node.id)
+                    : not isTokenRegion or model.getToken (*sourceRow, node.id).isNotEmpty())
             {
                 TemplateDocument document;
-                build (model, *sourceRow, sourceColumns, node, document, *document.root, {});
+                build (model, row, *sourceRow, sourceColumns, node, document, *document.root, {});
 
                 if (const auto text { document.root->getAllSubText() }; text.isNotEmpty())
                     texts.addIfNotAlreadyThere (text);
@@ -311,14 +334,14 @@ private:
                 {
                     const auto cell { model.getTableValue (row, child->id) };
 
-                    if (model.isTemplatePath (cell))
+                    if (model.isTemplatePath (row, cell))
                     {
                         getPlaceholders (model, row, *child, placeholders);
 
-                        const auto& wrapper { getOrCreate (model.getFile (cell)) };
+                        const auto& wrapper { getOrCreate (model.getFile (row, cell)) };
                         wrapper.getPlaceholders (model, row, *wrapper.root, placeholders);
                     }
-                    else if (not model.isReference (cell))
+                    else if (not model.isReference (row, cell))
                     {
                         getPlaceholders (model, row, *child, placeholders);
                     }

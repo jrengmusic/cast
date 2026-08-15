@@ -366,7 +366,8 @@ struct Validator
                                 model.getTableValue (*row, juce::Identifier (header))
                             };
 
-                            if (model.isTemplatePath (cell) and not model.getFile (cell).existsAsFile())
+                            if (model.isTemplatePath (*row, cell)
+                                and not model.getFile (*row, cell).existsAsFile())
                                 return juce::Result::fail (
                                     getLocation (*table, *row, header) + Id::diagnosticSeparator
                                     + text::en::failTemplateMissing + Id::diagnosticSeparator
@@ -391,7 +392,7 @@ struct Validator
                 {
                     const auto bodyAlias { model.getTableValue (*row, firstColumn) };
                     const auto& document { TemplateDocument::getOrCreate (
-                        model.getFile (bodyAlias)) };
+                        model.getFile (*row, bodyAlias)) };
                     auto placeholders { document.getPlaceholders (model, *row) };
 
                     juce::StringArray wrapperColumns;
@@ -403,7 +404,7 @@ struct Validator
                                 model.getTableValue (*row, juce::Identifier (column))
                             };
 
-                            if (model.isTemplatePath (cell))
+                            if (model.isTemplatePath (*row, cell))
                                 wrapperColumns.addIfNotAlreadyThere (column);
                         }
 
@@ -413,7 +414,7 @@ struct Validator
                             model.getTableValue (*row, juce::Identifier (wrapperColumn))
                         };
                         const auto& wrapper { TemplateDocument::getOrCreate (
-                            model.getFile (wrapperAlias)) };
+                            model.getFile (*row, wrapperAlias)) };
 
                         for (const auto& placeholder : wrapper.getPlaceholders (model, *row))
                             placeholders.addIfNotAlreadyThere (placeholder);
@@ -455,7 +456,7 @@ struct Validator
                                 model.getTableValue (*row, juce::Identifier (column))
                             };
 
-                            if (model.isTemplatePath (cell))
+                            if (model.isTemplatePath (*row, cell))
                                 rowReserved.addIfNotAlreadyThere (column);
                         }
 
@@ -558,7 +559,7 @@ struct Validator
         juce::String path;
         juce::String line;
 
-        if (const auto* pathProperty { table.get<juce::String> (Id::symbol) };
+        if (const auto* pathProperty { table.get<juce::String> (Id::path) };
             pathProperty != nullptr)
             path = *pathProperty;
 
