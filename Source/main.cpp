@@ -94,9 +94,15 @@ int main (int argc, char* argv[])
     const jam::debug::Log::Scope logScope { jam::File::getDebugLog() };
 #endif
 
+    const auto formatFlag { Id::doubleDash + Id::format.toString() };
+    const auto noFormatFlag { Id::doubleDash + juce::String::fromUTF8 ("no-format") };
+    const auto isFormatOnly { argc >= 2 and juce::String::fromUTF8 (argv[1]) == formatFlag };
+    const auto isSkipFormat { argc >= 2 and juce::String::fromUTF8 (argv[1]) == noFormatFlag };
+    const auto manifestIndex { (isFormatOnly or isSkipFormat) ? 2 : 1 };
+
     const juce::File documentFile {
-        (argc >= 2) ? juce::File::getCurrentWorkingDirectory().getChildFile (
-                          juce::String::fromUTF8 (argv[1]))
+        (argc > manifestIndex) ? juce::File::getCurrentWorkingDirectory().getChildFile (
+                          juce::String::fromUTF8 (argv[manifestIndex]))
                     : juce::File::getCurrentWorkingDirectory().getChildFile (files::cast)
     };
 
@@ -123,8 +129,14 @@ int main (int argc, char* argv[])
 
     if (documentFile.existsAsFile())
     {
-        const auto result { processor.generate ((argc == 3) ? juce::String::fromUTF8 (argv[2])
-                                                       : juce::String {}) };
+        auto result { isFormatOnly
+                          ? processor.format()
+                          : processor.generate ((argc == 3 and manifestIndex == 1)
+                                                     ? juce::String::fromUTF8 (argv[2])
+                                                     : juce::String {}) };
+
+        if (result.wasOk() and not isFormatOnly and not isSkipFormat)
+            result = processor.format();
 
         if (result.wasOk())
             return 0;

@@ -6,7 +6,7 @@
 | #bimap        | ../../jam/cast/template/Bimap.cast             |
 | #break        | ../../jam/cast/template/Break.cast             |
 | #char         | ../../jam/cast/template/Chars.cast             |
-| #generated         | ../../jam/cast/template/Generated.cast         |
+| #generated    | ../../jam/cast/template/Generated.cast         |
 | #files        | ../../jam/cast/template/Identifiers.cast       |
 | #hashMap      | ../../jam/cast/template/HashMap.cast           |
 | #identifiers  | ../../jam/cast/template/Identifiers.cast       |
@@ -22,12 +22,12 @@
 | #localisation | tables/localisation-en.md                      |
 | #template     | tables/template.md                             |
 +---------------+------------------------------------------------+
-| #Bimaps       | ../Source/generated/Bimaps.h                        |
-| #Files        | ../Source/generated/Files.h                         |
-| #Generated    | ../Source/generated/Generated.h                     |
-| #HashMaps     | ../Source/generated/HashMaps.h                      |
-| #Identifiers  | ../Source/generated/Identifiers.h                   |
-| #Text         | ../Source/generated/Text.h                          |
+| #Bimaps       | ../Source/generated/Bimaps.h                   |
+| #Files        | ../Source/generated/Files.h                    |
+| #Generated    | ../Source/generated/Generated.h                |
+| #HashMaps     | ../Source/generated/HashMaps.h                 |
+| #Identifiers  | ../Source/generated/Identifiers.h              |
+| #Text         | ../Source/generated/Text.h                     |
 +---------------+------------------------------------------------+
 | #commentMap   | `jam::HashMap<juce::Identifier, juce::String>` |
 | #id           | juce::Identifier                               |
@@ -58,8 +58,8 @@
 
 ## output index
 
-+-------+---------+-------------+--------------+----------------------+--------------+------------+
-| code  | struct  | struct name | output       | list                 | instance     | file       |
-+=======+=========+=============+==============+======================+==============+============+
++------------+---------+-------------+--------------+----------------------+--------------+------------+
+| code       | struct  | struct name | output       | list                 | instance     | file       |
++============+=========+=============+==============+======================+==============+============+
 | #generated | #struct | Generated   | #CAST:output | #binaryFiles:headers | #CAST:output | #Generated |
-+-------+---------+-------------+--------------+----------------------+--------------+------------+
++------------+---------+-------------+--------------+----------------------+--------------+------------+

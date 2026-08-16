@@ -4,7 +4,7 @@
 #include "Model.h"
 #include "Operators.h"
 
-struct TemplateDocument : jam::Document
+struct TemplateDocument : jam::Document, jam::Document::Writer
 {
     static std::unique_ptr<TemplateDocument> parse (const juce::String& source)
     {
@@ -58,13 +58,11 @@ struct TemplateDocument : jam::Document
         return document;
     }
 
-    bool toFile (const juce::File& file) const
+    using Document::getText;
+
+    juce::String getText (const Document& document) const override
     {
-        file.getParentDirectory().createDirectory();
-        return file.replaceWithText (root->getAllSubText(),
-                                     false,
-                                     false,
-                                     juce::String::charToString (chars::newline).toRawUTF8());
+        return document.root->getAllSubText();
     }
 
 protected:
@@ -285,7 +283,7 @@ private:
                                    : juce::String() };
 
         const auto sourceColumns { model.getTableHeaders (source) };
-        jam::Array<juce::String> texts;
+        jam::Strings texts;
 
         const auto tableRows { model.getTableRows (source) };
         const auto isTokenRegion { std::any_of (tableRows.begin(), tableRows.end(),
@@ -302,21 +300,11 @@ private:
                 build (model, row, *sourceRow, sourceColumns, node, document, *document.root, {});
 
                 if (const auto text { document.root->getAllSubText() }; text.isNotEmpty())
-                    texts.addIfNotAlreadyThere (text);
+                    texts.addIfNotAlreadyThere (text, false);
             }
         }
 
-        juce::String codeText;
-
-        for (const auto& text : texts)
-        {
-            if (codeText.isEmpty())
-                codeText = text;
-            else
-                codeText << separator << text;
-        }
-
-        return codeText;
+        return texts.joinIntoString (separator, 0, -1);
     }
 
     void getPlaceholders (const Model& model,

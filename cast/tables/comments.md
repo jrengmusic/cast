@@ -1,49 +1,49 @@
 ## clang comment
 
-+--------------+-----------------------------------------------------------------------------------+----------------+--------------+
-| key          | value                                                                             | key format     | value format |
-+==============+===================================================================================+================+==============+
-| comment      | `///<`                                                                            | fromIdentifier | fromLiteral  |
-| block open   | `/**`                                                                             | fromIdentifier | fromLiteral  |
-| block close  | `*/`                                                                              | fromIdentifier | fromLiteral  |
-| banner open  | `/*******************************************************************************` | fromIdentifier | fromLiteral  |
++--------------+-------------------------------------------------------------------------------------+----------------+--------------+
+| key          | value                                                                               | key format     | value format |
++==============+=====================================================================================+================+==============+
+| comment      | `///<`                                                                              | fromIdentifier | fromLiteral  |
+| block open   | `/**`                                                                               | fromIdentifier | fromLiteral  |
+| block close  | `*/`                                                                                | fromIdentifier | fromLiteral  |
+| banner open  | `/*******************************************************************************`  | fromIdentifier | fromLiteral  |
 | banner close | `********************************************************************************/` | fromIdentifier | fromLiteral  |
-| pragma       | #pragma once                                                                      | fromIdentifier | fromLiteral  |
-+--------------+-----------------------------------------------------------------------------------+----------------+--------------+
+| pragma       | #pragma once                                                                        | fromIdentifier | fromLiteral  |
++--------------+-------------------------------------------------------------------------------------+----------------+--------------+
 
 ## css comment
 
-+--------------+-----------------------------------------------------------------------------------+----------------+--------------+
-| key          | value                                                                             | key format     | value format |
-+==============+===================================================================================+================+==============+
-| block open   | `/*`                                                                              | fromIdentifier | fromLiteral  |
-| block close  | `*/`                                                                              | fromIdentifier | fromLiteral  |
-| banner open  | `/*******************************************************************************` | fromIdentifier | fromLiteral  |
++--------------+-------------------------------------------------------------------------------------+----------------+--------------+
+| key          | value                                                                               | key format     | value format |
++==============+=====================================================================================+================+==============+
+| block open   | `/*`                                                                                | fromIdentifier | fromLiteral  |
+| block close  | `*/`                                                                                | fromIdentifier | fromLiteral  |
+| banner open  | `/*******************************************************************************`  | fromIdentifier | fromLiteral  |
 | banner close | `********************************************************************************/` | fromIdentifier | fromLiteral  |
-+--------------+-----------------------------------------------------------------------------------+----------------+--------------+
++--------------+-------------------------------------------------------------------------------------+----------------+--------------+
 
 ## html comment
 
-+--------------+-----------------------------------------------------------------------------------+----------------+--------------+
-| key          | value                                                                             | key format     | value format |
-+==============+===================================================================================+================+==============+
-| block open   | `<!--`                                                                            | fromIdentifier | fromLiteral  |
-| block close  | `-->`                                                                             | fromIdentifier | fromLiteral  |
-| banner open  | `<!--`                                                                            | fromIdentifier | fromLiteral  |
-| banner close | `-->`                                                                             | fromIdentifier | fromLiteral  |
-+--------------+-----------------------------------------------------------------------------------+----------------+--------------+
++--------------+--------+----------------+--------------+
+| key          | value  | key format     | value format |
++==============+========+================+==============+
+| block open   | `<!--` | fromIdentifier | fromLiteral  |
+| block close  | `-->`  | fromIdentifier | fromLiteral  |
+| banner open  | `<!--` | fromIdentifier | fromLiteral  |
+| banner close | `-->`  | fromIdentifier | fromLiteral  |
++--------------+--------+----------------+--------------+
 
 ## lua comment
 
-+--------------+-----------------------------------------------------------------------------------+----------------+--------------+
-| key          | value                                                                             | key format     | value format |
-+==============+===================================================================================+================+==============+
-| comment      | `---`                                                                             | fromIdentifier | fromLiteral  |
-| block open   | `--[[`                                                                            | fromIdentifier | fromLiteral  |
-| block close  | `]]`                                                                              | fromIdentifier | fromLiteral  |
-| banner open  | `--[[`                                                                            | fromIdentifier | fromLiteral  |
-| banner close | `]]`                                                                              | fromIdentifier | fromLiteral  |
-+--------------+-----------------------------------------------------------------------------------+----------------+--------------+
++--------------+--------+----------------+--------------+
+| key          | value  | key format     | value format |
++==============+========+================+==============+
+| comment      | `---`  | fromIdentifier | fromLiteral  |
+| block open   | `--[[` | fromIdentifier | fromLiteral  |
+| block close  | `]]`   | fromIdentifier | fromLiteral  |
+| banner open  | `--[[` | fromIdentifier | fromLiteral  |
+| banner close | `]]`   | fromIdentifier | fromLiteral  |
++--------------+--------+----------------+--------------+
 
 ## mermaid comment
 
@@ -87,33 +87,33 @@
 
 ## comment syntax
 
-+---------+-----------------+-------------+--------------+
-| key     | value           | key format  | value format |
-+=========+=================+=============+==============+
-| .h      | clang comment   | fromLiteral | toCamel      |
-| .cpp    | clang comment   | fromLiteral | toCamel      |
-| .c      | clang comment   | fromLiteral | toCamel      |
-| .js     | clang comment   | fromLiteral | toCamel      |
-| .ts     | clang comment   | fromLiteral | toCamel      |
-| .jsx    | clang comment   | fromLiteral | toCamel      |
-| .tsx    | clang comment   | fromLiteral | toCamel      |
-| .java   | clang comment   | fromLiteral | toCamel      |
-| .go     | clang comment   | fromLiteral | toCamel      |
-| .rs     | clang comment   | fromLiteral | toCamel      |
-| .rust   | clang comment   | fromLiteral | toCamel      |
-| .css    | css comment     | fromLiteral | toCamel      |
-| .html   | html comment    | fromLiteral | toCamel      |
-| .xml    | html comment    | fromLiteral | toCamel      |
-| .lua    | lua comment     | fromLiteral | toCamel      |
-| .py     | python comment  | fromLiteral | toCamel      |
-| .python | python comment  | fromLiteral | toCamel      |
-| .rb     | ruby comment    | fromLiteral | toCamel      |
-| .ruby   | ruby comment    | fromLiteral | toCamel      |
-| .sh     | shell comment   | fromLiteral | toCamel      |
-| .bash   | shell comment   | fromLiteral | toCamel      |
-| .shell  | shell comment   | fromLiteral | toCamel      |
-| .cmake  | shell comment   | fromLiteral | toCamel      |
-| .sql    | shell comment   | fromLiteral | toCamel      |
-| .yaml   | shell comment   | fromLiteral | toCamel      |
-| .yml    | shell comment   | fromLiteral | toCamel      |
-+---------+-----------------+-------------+--------------+
++---------+----------------+-------------+--------------+
+| key     | value          | key format  | value format |
++=========+================+=============+==============+
+| .h      | clang comment  | fromLiteral | toCamel      |
+| .cpp    | clang comment  | fromLiteral | toCamel      |
+| .c      | clang comment  | fromLiteral | toCamel      |
+| .js     | clang comment  | fromLiteral | toCamel      |
+| .ts     | clang comment  | fromLiteral | toCamel      |
+| .jsx    | clang comment  | fromLiteral | toCamel      |
+| .tsx    | clang comment  | fromLiteral | toCamel      |
+| .java   | clang comment  | fromLiteral | toCamel      |
+| .go     | clang comment  | fromLiteral | toCamel      |
+| .rs     | clang comment  | fromLiteral | toCamel      |
+| .rust   | clang comment  | fromLiteral | toCamel      |
+| .css    | css comment    | fromLiteral | toCamel      |
+| .html   | html comment   | fromLiteral | toCamel      |
+| .xml    | html comment   | fromLiteral | toCamel      |
+| .lua    | lua comment    | fromLiteral | toCamel      |
+| .py     | python comment | fromLiteral | toCamel      |
+| .python | python comment | fromLiteral | toCamel      |
+| .rb     | ruby comment   | fromLiteral | toCamel      |
+| .ruby   | ruby comment   | fromLiteral | toCamel      |
+| .sh     | shell comment  | fromLiteral | toCamel      |
+| .bash   | shell comment  | fromLiteral | toCamel      |
+| .shell  | shell comment  | fromLiteral | toCamel      |
+| .cmake  | shell comment  | fromLiteral | toCamel      |
+| .sql    | shell comment  | fromLiteral | toCamel      |
+| .yaml   | shell comment  | fromLiteral | toCamel      |
+| .yml    | shell comment  | fromLiteral | toCamel      |
++---------+----------------+-------------+--------------+

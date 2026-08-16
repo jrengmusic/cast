@@ -8,7 +8,8 @@
 struct Processor
 {
     Processor (const juce::File& documentFile)
-        : model (Model::parse (documentFile))
+        : documentFile (documentFile)
+        , model (Model::parse (documentFile))
         , writer (*model)
     {
         jam::Stamp::getInstance()->addIfNotAlreadyThere (jam::Stamp::Entry {});
@@ -25,6 +26,41 @@ struct Processor
         return juce::Result::fail ({});
     }
 
+    juce::Result format()
+    {
+        static const jam::MarkdownWriter formatter;
+        static const jam::MarkdownValidator validator;
+
+        jam::Array<juce::File> tableFiles { documentFile };
+        const auto markdownExtension { juce::String::charToString (chars::dot) + extensions::md };
+
+        for (auto* row : model->getTableRows (Id::index))
+        {
+            const auto pathCell { model->getTableValue (*row, Id::symbol) };
+
+            if (pathCell.endsWith (markdownExtension))
+                tableFiles.addIfNotAlreadyThere (model->getOutput (pathCell));
+        }
+
+        for (const auto& file : tableFiles)
+        {
+            const auto current { file.loadFileAsString() };
+            const auto document { jam::MarkdownDocument::parse (
+                current, file.getRelativePathFrom (documentFile.getParentDirectory())) };
+
+            if (const auto validation { validator.isValid (document) }; not validation.wasOk())
+                return validation;
+
+            if (const auto canonical { formatter.getText (document) }; canonical != current)
+                file.replaceWithText (canonical,
+                    false,
+                    false,
+                    juce::String::charToString (chars::newline).toRawUTF8());
+        }
+
+        return juce::Result::ok();
+    }
+
 private:
     juce::ScopedJuceInitialiser_GUI libraryInitialiser;
     jam::Stamp stamp;
@@ -33,6 +69,7 @@ private:
     Generated generated;
 
     //==============================================================================
+    juce::File documentFile;
     std::unique_ptr<Model> model;
     Writer writer;
     //==============================================================================

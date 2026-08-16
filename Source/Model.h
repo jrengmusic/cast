@@ -83,7 +83,7 @@ public:
     {
         const juce::Identifier formatColumn { column.toString()
                                               + juce::String::charToString (chars::space)
-                                              + Id::format };
+                                              + Id::format.toString() };
 
         return getTableHeaders (*row.parent).contains (formatColumn.toString())
                   ? getTableValue (row, formatColumn)
@@ -104,7 +104,7 @@ public:
                         getTableValue (*table, Id::symbol, juce::Identifier (aliasText))
                     };
                     const auto format {
-                        getTableHeaders (*table).contains (Id::format)
+                        getTableHeaders (*table).contains (Id::format.toString())
                             ? getTableValue (*table, Id::format, juce::Identifier (aliasText))
                             : juce::String()
                     };
@@ -129,17 +129,17 @@ public:
         const auto cell { getTableValue (row, Id::token) };
         const auto commaText { juce::String::charToString (chars::comma) };
         const auto names {
-            juce::StringArray::fromTokens (jam::Format::getPreColon (cell), commaText, {})
+            jam::Strings::fromTokens (jam::Format::getPreColon (cell), commaText, {})
         };
         const auto values {
-            juce::StringArray::fromTokens (jam::Format::getPostColon (cell), commaText, {})
+            jam::Strings::fromTokens (jam::Format::getPostColon (cell), commaText, {})
         };
 
         for (int index { 0 }; index < names.size(); ++index)
         {
-            if (names[index].trim() == name.toString())
+            if (names.at (index).trim() == name.toString())
             {
-                const auto value { values[index].trim() };
+                const auto value { values.at (index).trim() };
                 const auto symbol { getValue (row, value) };
 
                 return symbol.isNotEmpty() ? symbol : value;

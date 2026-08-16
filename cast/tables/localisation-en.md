@@ -3,16 +3,7 @@
 +-----------------------------+----------------------------------------------------------------------+
 | key                         | value                                                                |
 +=============================+======================================================================+
-| fail no match               | value does not match                                                 |
-| fail duplicate              | `duplicate "`                                                        |
-| fail foreign key missing    | `value not found in `                                                |
-| fail not in set             | `value not in {`                                                     |
-| fail out of range           | ` outside [`                                                         |
-| fail local missing          | local key not in ref                                                 |
-| fail ref missing            | ref key not in local                                                 |
 | fail not found              | not found                                                            |
-| fail group open             | `group '`                                                            |
-| fail group close            | `' does not have exactly one marked row`                             |
 | fail unknown predicate      | unknown predicate                                                    |
 | fail hazard Uri             | contains URI scheme                                                  |
 | fail hazard angle brackets  | `contains '<' or '>'`                                                |
