@@ -124,28 +124,118 @@ public:
         return getValue (origin, alias);
     }
 
-    juce::String getToken (Element& row, const juce::Identifier& name) const
+    Element* getStructure (Element& row) const
     {
-        const auto cell { getTableValue (row, Id::token) };
-        const auto commaText { juce::String::charToString (chars::comma) };
-        const auto names {
-            jam::Strings::fromTokens (jam::Format::getPreColon (cell), commaText, {})
-        };
-        const auto values {
-            jam::Strings::fromTokens (jam::Format::getPostColon (cell), commaText, {})
-        };
+        return getTableHeaders (*row.parent).contains (Id::structure.toString())
+                  ? getTableCell (row, Id::structure)
+                  : nullptr;
+    }
 
-        for (int index { 0 }; index < names.size(); ++index)
+    jam::HashMap<juce::Identifier, juce::String> getListDirectives (Element& row) const
+    {
+        jam::HashMap<juce::Identifier, juce::String> directives;
+
+        if (auto* listCell { getTableCell (row, Id::list) })
         {
-            if (names.at (index).trim() == name.toString())
+            for (auto* block : *listCell)
             {
-                const auto value { values.at (index).trim() };
-                const auto symbol { getValue (row, value) };
+                if (block->isTag (Id::ul))
+                {
+                    for (auto* item : *block)
+                    {
+                        if (item->isTag (Id::li))
+                        {
+                            const auto text { item->getAllSubText() };
+                            const auto key { jam::Format::getPreColon (text).trim() };
+                            const auto value { jam::Format::getPostColon (text).trim() };
+                            directives.try_emplace (juce::Identifier (key), value);
+                        }
+                    }
 
-                return symbol.isNotEmpty() ? symbol : value;
+                    return directives;
+                }
             }
         }
 
+        return directives;
+    }
+
+    bool isOutputTable (Element& table) const noexcept
+    {
+        return not table.isTag (Id::index) and getTableHeaders (table).contains (Id::file.toString());
+    }
+
+    juce::String getToken (Element& row, const juce::Identifier& name) const
+    {
+        if (auto* structure { getStructure (row) })
+            for (auto* block : *structure)
+                if (block->isTag (Id::ul))
+                    for (auto* item : *block)
+                        if (item->isTag (Id::li))
+                        {
+                            const auto text { item->getAllSubText() };
+                            const auto key { jam::Format::getPreColon (text).trim() };
+
+                            if (key == name.toString())
+                            {
+                                const auto value { jam::Format::getPostColon (text).trim() };
+
+                                if (value.startsWithChar (chars::at)
+                                    and jam::Format::getPostColon (value).containsChar (chars::colon))
+                                    return getEntry (row, value);
+
+                                if (value.startsWithChar (chars::at))
+                                {
+                                    const auto symbol { getValue (row, value) };
+                                    return symbol.isNotEmpty() ? symbol : value;
+                                }
+
+                                return value;
+                            }
+                        }
+
+        return {};
+    }
+
+    juce::String getEntry (Element& row, juce::StringRef reference) const
+    {
+        const juce::String referenceText { reference };
+        const auto alias { jam::Format::getPreColon (referenceText) };
+        const auto remainder { jam::Format::getPostColon (referenceText) };
+        const auto table { jam::Format::getPreColon (remainder) };
+        const auto entry { jam::Format::getPostColon (remainder) };
+
+        if (getValue (row, alias).isNotEmpty())
+        {
+            if (auto* entryTable {
+                    getTables (row, alias + juce::String::charToString (chars::colon) + table) })
+            {
+                if (const auto value {
+                        getTableValue (*entryTable, Id::value, juce::Identifier (entry)) };
+                    value.isNotEmpty())
+                    return value;
+
+                jassertfalse;
+                jam::debug::Log::write (
+                    jam::MarkdownValidator::getLocation (*row.parent, row, Id::structure.toString())
+                    + Id::diagnosticSeparator + text::en::failNotFound + Id::diagnosticSeparator
+                    + entry);
+                return {};
+            }
+
+            jassertfalse;
+            jam::debug::Log::write (
+                jam::MarkdownValidator::getLocation (*row.parent, row, Id::structure.toString())
+                + Id::diagnosticSeparator + text::en::failTableMissing + Id::diagnosticSeparator
+                + table);
+            return {};
+        }
+
+        jassertfalse;
+        jam::debug::Log::write (
+            jam::MarkdownValidator::getLocation (*row.parent, row, Id::structure.toString())
+            + Id::diagnosticSeparator + text::en::failAliasMissing + Id::diagnosticSeparator
+            + alias);
         return {};
     }
 

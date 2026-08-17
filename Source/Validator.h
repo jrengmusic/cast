@@ -185,42 +185,15 @@ struct Validator : jam::MarkdownValidator
         for (auto* table : model.getTables())
             if (isOutputTable (model, *table))
             {
-                const auto columns { model.getTableHeaders (*table) };
-                const auto& firstColumn { *columns.begin() };
+                const auto firstColumn { *model.getTableHeaders (*table).begin() };
 
                 for (auto* row : model.getTableRows (*table))
                 {
                     const auto bodyAlias { model.getTableValue (*row, firstColumn) };
                     const auto& document { TemplateDocument::getOrCreate (
                         model.getFile (*row, bodyAlias)) };
-                    auto placeholders { document.getPlaceholders (model, *row) };
 
-                    jam::Strings wrapperColumns;
-
-                    for (const auto& column : columns)
-                        if (column != firstColumn)
-                        {
-                            const auto cell {
-                                model.getTableValue (*row, juce::Identifier (column))
-                            };
-
-                            if (model.isTemplatePath (*row, cell))
-                                wrapperColumns.addIfNotAlreadyThere (column, false);
-                        }
-
-                    for (const auto& wrapperColumn : wrapperColumns)
-                    {
-                        const auto wrapperAlias {
-                            model.getTableValue (*row, juce::Identifier (wrapperColumn))
-                        };
-                        const auto& wrapper { TemplateDocument::getOrCreate (
-                            model.getFile (*row, wrapperAlias)) };
-
-                        for (const auto& placeholder : wrapper.getPlaceholders (model, *row))
-                            placeholders.addIfNotAlreadyThere (placeholder);
-                    }
-
-                    for (const auto& placeholder : placeholders)
+                    for (const auto& placeholder : document.getPlaceholders (model, *row))
                         allPlaceholders.addIfNotAlreadyThere (placeholder);
                 }
             }
@@ -237,40 +210,121 @@ struct Validator : jam::MarkdownValidator
                 const auto columns { model.getTableHeaders (*table) };
                 const auto& firstColumn { *columns.begin() };
 
-                jam::Strings reserved { firstColumn, Id::file.toString(),
-                                        Id::capacity.toString(), Id::token.toString(),
-                                        Id::special.toString() };
-
-                for (const auto& column : columns)
-                    if (column.endsWith (Id::lineBreak.toString()))
-                        reserved.addIfNotAlreadyThere (column, false);
+                const jam::Strings reserved { firstColumn, Id::file.toString(),
+                                              Id::structure.toString(), Id::lineBreak.toString(),
+                                              Id::capacity.toString(), Id::special.toString() };
 
                 for (auto* row : model.getTableRows (*table))
-                {
-                    jam::Strings rowReserved { reserved };
-
-                    for (const auto& column : columns)
-                        if (column != firstColumn)
-                        {
-                            const auto cell {
-                                model.getTableValue (*row, juce::Identifier (column))
-                            };
-
-                            if (model.isTemplatePath (*row, cell))
-                                rowReserved.addIfNotAlreadyThere (column, false);
-                        }
-
                     for (const auto& column : columns)
                     {
                         const auto cell { model.getTableValue (*row, juce::Identifier (column)) };
 
-                        if (cell.isNotEmpty() and not rowReserved.contains (column, false)
+                        if (cell.isNotEmpty() and not reserved.contains (column, false)
                             and not allPlaceholders.contains (juce::Identifier (column)))
                             return juce::Result::fail (getLocation (*table, *row, column)
                                                        + Id::diagnosticSeparator
                                                        + text::en::failOrphan);
                     }
-                }
+            }
+
+        return juce::Result::ok();
+    }
+
+    /** @brief The deepest nested blockquote reachable from @p wrap -- the file's shared outermost wrap. */
+    static Element* getOutermostWrap (Element& wrap)
+    {
+        Element* outermost { &wrap };
+
+        for (auto* child : wrap)
+            if (child->isTag (Id::blockquote))
+                outermost = getOutermostWrap (*child);
+
+        return outermost;
+    }
+
+    /** @brief Validates @p wrap and every nested wrap: exactly one head paragraph, alias resolves. */
+    static juce::Result isWrapHead (const Model& model, Element& table, Element& row, Element& wrap)
+    {
+        Element* head { nullptr };
+        int headCount { 0 };
+
+        for (auto* child : wrap)
+            if (child->isTag (Id::p))
+            {
+                head = child;
+                ++headCount;
+            }
+
+        if (headCount == 0)
+        {
+            bool hasNestedWrap { false };
+
+            for (auto* child : wrap)
+                if (child->isTag (Id::blockquote))
+                    hasNestedWrap = true;
+
+            if (not hasNestedWrap)
+                return juce::Result::fail (getLocation (table, row, Id::structure.toString())
+                                           + Id::diagnosticSeparator + text::en::failNotFound);
+        }
+
+        if (headCount > 1)
+            return juce::Result::fail (getLocation (table, row, Id::structure.toString())
+                                       + Id::diagnosticSeparator + text::en::failNotFound);
+
+        const auto alias { jam::Format::getPreColon (head->getAllSubText()).trim() };
+
+        if (model.getValue (row, alias).isEmpty())
+            return juce::Result::fail (getLocation (table, row, Id::structure.toString())
+                                       + Id::diagnosticSeparator + text::en::failAliasMissing
+                                       + Id::diagnosticSeparator + alias);
+
+        for (auto* child : wrap)
+            if (child->isTag (Id::blockquote))
+                if (const auto nested { isWrapHead (model, table, row, *child) };
+                    not nested.wasOk())
+                    return nested;
+
+        return juce::Result::ok();
+    }
+
+    static juce::Result isStructure (const Model& model)
+    {
+        for (auto* table : model.getTables())
+            if (isOutputTable (model, *table))
+            {
+                jam::HashMap<juce::String, Element*> outermostByFile;
+                jam::HashMap<juce::String, Element*> firstRowByFile;
+
+                for (auto* row : model.getTableRows (*table))
+                    if (auto* structure { model.getStructure (*row) })
+                        for (auto* block : *structure)
+                            if (block->isTag (Id::blockquote))
+                            {
+                                if (const auto result { isWrapHead (model, *table, *row, *block) };
+                                    not result.wasOk())
+                                    return result;
+
+                                const auto origin { *table->get<juce::String> (Id::path) };
+                                const auto file { model.getValue (
+                                    origin, model.getTableValue (*row, Id::file)) };
+                                auto* outermost { getOutermostWrap (*block) };
+
+                                if (not outermostByFile.contains (file))
+                                {
+                                    outermostByFile.try_emplace (file, outermost);
+                                    firstRowByFile.try_emplace (file, row);
+                                }
+                                else if (outermostByFile.at (file)->getAllSubText()
+                                         != outermost->getAllSubText())
+                                    return juce::Result::fail (
+                                        getLocation (*table,
+                                                     *firstRowByFile.at (file),
+                                                     Id::structure.toString())
+                                        + Id::diagnosticSeparator
+                                        + getLocation (*table, *row, Id::structure.toString())
+                                        + Id::diagnosticSeparator + text::en::failNoMatch);
+                            }
             }
 
         return juce::Result::ok();
@@ -320,12 +374,85 @@ struct Validator : jam::MarkdownValidator
         return juce::Result::ok();
     }
 
+    static bool hasCodeSpan (const Element& node)
+    {
+        if (node.isTag (Id::code))
+            return true;
+
+        for (auto* child = node.firstChild; child != nullptr; child = child->nextSibling)
+            if (hasCodeSpan (*child))
+                return true;
+
+        return false;
+    }
+
+    static juce::Result isDeclared (const Model& model)
+    {
+        for (auto* table : model.getTables())
+        {
+            const auto headers { model.getTableHeaders (*table) };
+            const auto origin { table->contains (Id::path) ? *table->get<juce::String> (Id::path)
+                                                            : juce::String() };
+
+            for (auto* row : model.getTableRows (*table))
+            {
+                int columnIndex { 0 };
+
+                for (auto* cell : *row)
+                {
+                    const auto isLiteral { hasCodeSpan (*cell) };
+
+                    if (not isLiteral)
+                    {
+                        const auto cellText { cell->getAllSubText() };
+
+                        if (cellText.startsWithChar (chars::at))
+                        {
+                            const auto alias { jam::Format::getPreColon (cellText) };
+                            const auto indexTables { model.getTables (Id::index) };
+
+                            const auto declared { std::any_of (indexTables.begin(),
+                                indexTables.end(),
+                                [&model, &alias] (Element* indexTable)
+                                {
+                                    const auto indexRows { model.getTableRows (*indexTable) };
+
+                                    return std::any_of (indexRows.begin(), indexRows.end(),
+                                               [&model, &alias] (Element* indexRow)
+                                               {
+                                                   return model.getTableValue (*indexRow, Id::alias)
+                                                          == alias;
+                                               });
+                                }) };
+
+                            if (not declared)
+                                return juce::Result::fail (
+                                    getLocation (*table, *row, headers[columnIndex])
+                                    + Id::diagnosticSeparator + text::en::failAliasMissing
+                                    + Id::diagnosticSeparator + alias);
+                        }
+                    }
+
+                    ++columnIndex;
+                }
+            }
+        }
+
+        return juce::Result::ok();
+    }
+
     static juce::Result isManifest (const Model& model)
     {
         if (const auto result { isIndex (model) }; not result.wasOk())
             return result;
 
+        if (const auto result { isDeclared (model) }; not result.wasOk())
+            return result;
+
         if (const auto result { isTemplates (model) }; not result.wasOk())
+            return result;
+
+        if (const auto result { isStructure (model) }; not result.wasOk())
             return result;
 
         for (auto* table : model.getTables())

@@ -1,35 +1,65 @@
 ## text
 
-+-----------------------------+----------------------------------------------------------------------+
-| key                         | value                                                                |
-+=============================+======================================================================+
-| fail not found              | not found                                                            |
-| fail unknown predicate      | unknown predicate                                                    |
-| fail hazard Uri             | contains URI scheme                                                  |
-| fail hazard angle brackets  | `contains '<' or '>'`                                                |
-| fail unknown transform      | unknown transform                                                    |
-| fail template missing       | template not found                                                   |
-| fail fragment missing       | fragment not found                                                   |
-| fail orphan                 | orphan template                                                      |
-| fail no source              | placeholder has no source                                            |
-| fail table missing          | table not found                                                      |
-| fail already declared       | `" already declared at `                                             |
-| fail entity missing         | entity not declared in lexicon                                       |
-| fail output missing         | output not found                                                     |
-| fail name numeric           | name is a plain number                                               |
-| fail name leading digit     | name starts with a digit                                             |
-| fail name invalid char      | name contains an invalid character                                   |
-| fail too long               | `exceeds `                                                           |
-| fail too long suffix        | ` characters`                                                        |
-| fail redundant value        | `value byte-equals `                                                 |
-| fail redundant value suffix | ` projection of name; delete it, let the template project it`        |
-| fail placeholder unknown    | region names a placeholder not declared in dispatch                  |
-| fail column unknown         | region names a column not in the matched table                       |
-| fail row reserved           | row is a reserved name                                               |
-| fail row region column      | row region takes no column; use the column's name as the region name |
-| fail placeholder missing    | placeholder has no placeholder or region in any root                 |
-| fail placeholder ambiguous  | placeholder declared in multiple roots                               |
-| fail region source missing  | dispatch row has no template and its placeholder has no region       |
-| fail region unfed           | placeholder region is declared but no dispatch row feeds it          |
-| fail template chain depth   | template chain exceeds maximum depth of 2                            |
-+-----------------------------+----------------------------------------------------------------------+
++-----------------------------+----------------------------------------------------------------------+--------------+
+| key                         | value                                                                | value format |
++=============================+======================================================================+==============+
+| fail not found              | not found                                                            | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail unknown predicate      | unknown predicate                                                    | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail hazard Uri             | contains URI scheme                                                  | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail hazard angle brackets  | `contains '<' or '>'`                                                | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail unknown transform      | unknown transform                                                    | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail template missing       | template not found                                                   | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail fragment missing       | fragment not found                                                   | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail orphan                 | orphan template                                                      | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail no source              | placeholder has no source                                            | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail table missing          | table not found                                                      | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail already declared       | `" already declared at `                                             | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail entity missing         | entity not declared in lexicon                                       | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail output missing         | output not found                                                     | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail name numeric           | name is a plain number                                               | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail name leading digit     | name starts with a digit                                             | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail name invalid char      | name contains an invalid character                                   | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail too long               | `exceeds `                                                           | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail too long suffix        | ` characters`                                                        | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail redundant value        | `value byte-equals `                                                 | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail redundant value suffix | ` projection of name; delete it, let the template project it`        | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail placeholder unknown    | region names a placeholder not declared in dispatch                  | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail column unknown         | region names a column not in the matched table                       | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail row reserved           | row is a reserved name                                               | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail row region column      | row region takes no column; use the column's name as the region name | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail placeholder missing    | placeholder has no placeholder or region in any root                 | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail placeholder ambiguous  | placeholder declared in multiple roots                               | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail region source missing  | dispatch row has no template and its placeholder has no region       | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail region unfed           | placeholder region is declared but no dispatch row feeds it          | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail template chain depth   | template chain exceeds maximum depth of 2                            | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+
+| fail alias missing          | alias not declared in index                                          | fromLiteral  |
++-----------------------------+----------------------------------------------------------------------+--------------+

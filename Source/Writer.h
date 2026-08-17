@@ -23,7 +23,6 @@ struct Writer
             if (columns.contains (Id::file.toString()) and table->id != Id::index)
             {
                 const auto rows { model.getTableRows (*table) };
-                const auto& bodyColumn { *columns.begin() };
 
                 jam::Array<juce::String> files;
                 jam::HashMap<juce::String, Elements> rowsByFile;
@@ -40,78 +39,14 @@ struct Writer
 
                 runJobs (
                     files.size(),
-                    [this,
-                     &outputPath,
-                     &files,
-                     &rowsByFile,
-                     &columns,
-                     &bodyColumn,
-                     &written] (int index)
+                    [this, &outputPath, &files, &rowsByFile, &written] (int index)
                     {
                         const auto& file { files.at (index) };
                         const auto& fileRows { rowsByFile.at (file) };
-                        auto* firstRow { fileRows.first() };
-
-                        juce::String code;
-                        jam::Array<juce::Identifier> placeholders;
-
-                        for (auto* row : fileRows)
-                        {
-                            const auto bodyCell { model.getTableValue (
-                                *row, juce::Identifier (bodyColumn)) };
-                            const auto& document { TemplateDocument::getOrCreate (
-                                model.getFile (*row, bodyCell)) };
-                            const auto body {
-                                document.build (model, *row, {}).root->getAllSubText()
-                            };
-
-                            if (row == firstRow)
-                                placeholders = document.getPlaceholders (model, *row);
-
-                            if (code.isEmpty())
-                                code = body;
-                            else
-                            {
-                                const auto lineBreakCell { model.getTableValue (
-                                    *row, Id::lineBreak) };
-                                const auto separator {
-                                    lineBreakCell.isNotEmpty()
-                                        ? TemplateDocument::getOrCreate (
-                                              model.getFile (*row, lineBreakCell))
-                                              .build (model, *row, {})
-                                              .root->getAllSubText()
-                                        : juce::String()
-                                };
-
-                                code << separator << body;
-                            }
-                        }
-
-                        for (const auto& column : columns)
-                        {
-                            const auto cell { model.getTableValue (
-                                *firstRow, juce::Identifier (column)) };
-
-                            if (column != bodyColumn and column != Id::file.toString()
-                                and not column.endsWith (Id::lineBreak.toString())
-                                and not placeholders.contains (juce::Identifier (column))
-                                and model.isTemplatePath (*firstRow, cell))
-                            {
-                                const auto& wrapper { TemplateDocument::getOrCreate (
-                                    model.getFile (*firstRow, cell)) };
-
-                                for (const auto& placeholder :
-                                     wrapper.getPlaceholders (model, *firstRow))
-                                    placeholders.addIfNotAlreadyThere (placeholder);
-
-                                code =
-                                    wrapper.build (model, *firstRow, {}, code).root->getAllSubText();
-                            }
-                        }
 
                         auto outputFile { jam::File::getOrCreate (outputPath, file) };
                         written = outputFile.replaceWithText (
-                            getBanner (file) + code,
+                            getBanner (file) + buildFile (fileRows),
                             false,
                             false,
                             juce::String::charToString (chars::newline).toRawUTF8());
@@ -124,6 +59,167 @@ struct Writer
 
 private:
     const Model& model;
+
+    /** @brief Resolves a structure binding value per sigil law (three-part entry, alias, or literal). */
+    juce::String getBinding (Model::Element& row, const juce::String& value) const
+    {
+        if (value.startsWithChar (chars::at)
+            and jam::Format::getPostColon (value).containsChar (chars::colon))
+            return model.getEntry (row, value);
+
+        if (value.startsWithChar (chars::at))
+        {
+            const auto symbol { model.getValue (row, value) };
+            return symbol.isNotEmpty() ? symbol : value;
+        }
+
+        return value;
+    }
+
+    /** @brief The row's blockquote wrap chain, innermost (depth 1) first, outermost last. */
+    Elements getWraps (Model::Element& row) const
+    {
+        Elements wraps;
+
+        if (auto* structure { model.getStructure (row) })
+        {
+            Model::Element* wrap { nullptr };
+
+            for (auto* block : *structure)
+                if (block->isTag (Id::blockquote))
+                    wrap = block;
+
+            while (wrap != nullptr)
+            {
+                wraps.add (wrap);
+                Model::Element* nested { nullptr };
+
+                for (auto* block : *wrap)
+                    if (block->isTag (Id::blockquote))
+                        nested = block;
+
+                wrap = nested;
+            }
+        }
+
+        return wraps;
+    }
+
+    /** @brief The wrap's head alias (`#alias` in `#alias: Name`), used to resolve its template file. */
+    juce::String getWrapAlias (Model::Element& wrap) const
+    {
+        juce::String alias;
+
+        for (auto* block : wrap)
+            if (block->isTag (Id::p))
+                alias = jam::Format::getPreColon (block->getAllSubText()).trim();
+
+        return alias;
+    }
+
+    /** @brief The wrap's own token bindings, plus Id::name resolved from its head paragraph. */
+    jam::HashMap<juce::Identifier, juce::String> getTokens (Model::Element& row,
+                                                                Model::Element& wrap) const
+    {
+        jam::HashMap<juce::Identifier, juce::String> tokens;
+
+        for (auto* block : wrap)
+        {
+            if (block->isTag (Id::p))
+            {
+                const auto head { block->getAllSubText() };
+                tokens.try_emplace (
+                    Id::name, getBinding (row, jam::Format::getPostColon (head).trim()));
+            }
+            else if (block->isTag (Id::ul))
+            {
+                for (auto* item : *block)
+                    if (item->isTag (Id::li))
+                    {
+                        const auto text { item->getAllSubText() };
+                        const auto key { jam::Format::getPreColon (text).trim() };
+                        const auto value { jam::Format::getPostColon (text).trim() };
+                        tokens.try_emplace (juce::Identifier (key), getBinding (row, value));
+                    }
+            }
+        }
+
+        return tokens;
+    }
+
+    juce::String applyWrap (Model::Element& row, Model::Element& wrap, const juce::String& code) const
+    {
+        auto tokens { getTokens (row, wrap) };
+
+        if (code.isNotEmpty())
+            tokens.addOrReplace (Id::body, code);
+
+        const auto& wrapper {
+            TemplateDocument::getOrCreate (model.getFile (row, getWrapAlias (wrap)))
+        };
+        return wrapper.build (model, row, {}, tokens).root->getAllSubText();
+    }
+
+    /** @brief Builds one row's body, applying every wrap from deepest to shallowest, excluding the outermost. */
+    juce::String buildRow (Model::Element& row) const
+    {
+        const auto wraps { getWraps (row) };
+        juce::String code;
+
+        if (not wraps.isEmpty())
+        {
+            const auto tokens { getTokens (row, *wraps.at (wraps.size() - 1)) };
+
+            if (tokens.contains (Id::body))
+            {
+                const auto binding { tokens.at (Id::body) };
+                const auto castExtension { juce::String::charToString (chars::dot)
+                                           + extensions::cast };
+
+                code = binding.endsWith (castExtension)
+                          ? TemplateDocument::getOrCreate (model.getOutput (binding))
+                                .getExpansion (model, row, Id::body, binding)
+                          : binding;
+            }
+        }
+
+        for (int depth { wraps.size() - 1 }; depth >= 1; --depth)
+            code = applyWrap (row, *wraps.at (depth), code);
+
+        return code;
+    }
+
+    /** @brief Joins a file's rows through their inner wraps, then applies the shared outermost wrap once. */
+    juce::String buildFile (const Elements& fileRows) const
+    {
+        auto* firstRow { fileRows.first() };
+        const auto outermostWraps { getWraps (*firstRow) };
+        const auto hasOutermostWrap { not outermostWraps.isEmpty() };
+
+        juce::String code;
+
+        for (auto* row : fileRows)
+        {
+            const auto rowCode { buildRow (*row) };
+
+            if (code.isEmpty())
+                code = rowCode;
+            else
+            {
+                const auto lineBreakCell { model.getTableValue (*row, Id::lineBreak) };
+                const auto separator {
+                    lineBreakCell.isNotEmpty() ? getBinding (*row, lineBreakCell)
+                                               : juce::String()
+                };
+                code << separator << rowCode;
+            }
+        }
+
+        if (hasOutermostWrap)
+            code = applyWrap (*firstRow, *outermostWraps.at (0), code);
+
+        return code;
+    }
 
     juce::String getBanner (const juce::String& file) const noexcept
     {
