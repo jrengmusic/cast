@@ -111,6 +111,73 @@
 
 ## SPRINT HISTORY
 
+## Handoff to COUNSELOR: jam_Text.h Convergence + Perf Fix
+
+**From:** COUNSELOR
+**Date:** 2026-08-19
+**Status:** In Progress
+
+### Context
+Converging cast's output (`jam/diff/`) to byte-identical with the oracle (`jam/generated/`), one file at a time. jam_Generated.h is DONE. jam_Text.h is nearly done — needs one rebuild+diff to verify the last trailing-newline fix lands.
+
+### Completed
+- **jam_Generated.h** — byte-identical ✓ (converged prior session; regression-verified this session, holds)
+- **jam_Text.h oracle rewrite** — `namespace text { struct English { static constexpr const char* const … } }`, LF endings, 48 members
+- **Consumer sweep** — 48 jam sites `text::en::` → `text::English::`, 20 cast sites → `text::Diagnostics::` (ODR split — ARCHITECT ruling: jam keeps `English`, cast uses `Diagnostics`)
+- **`quoted` transform** — `chars::doubleQuote + input + doubleQuote` in Operators.h (no juce::String::quoted() — its heuristic skips trailing quote chars). Registered, lexicon word added, bootstrap updated. `@cString` format column in CAST.md index → `quoted`
+- **localisation-en.md:70** — `failDuplicate` cell authored `duplicate \"` (author-writes-escapes law)
+- **Model.h getFormat(row, alias)** — now matches index row key OR symbol cell (was key-only, missing type-alias lookups)
+- **TemplateDocument.h blank-line elision** — `hasBlankLine` captured before first strip; fixes doubled blanks at chunk-start
+- **Writer.h buildRow** — expanded body trimmed of trailing newlines before wraps apply
+- **3.5× perf improvement** (Debug: 13.2s → 3.9s wall) — `getBoundValue` eliminated (:::name::: interpolation hoisted to Writer::getTokens at bind time); `getValue` early-returns for non-alias strings (no @ sigil → no String construction)
+- **cast text::Diagnostics** — `failNoMatch` + `failDuplicate` members added to cast's bootstrap Text.h
+
+### Remaining
+- **Rebuild cast + run + diff** — verify jam_Text.h byte-identical after the trailing-newline trim (Writer.h:201). This is the immediate next step.
+- **Next convergence files** (one-by-one, per ARCHITECT ruling):
+  - jam_Identifiers.h (fromLiteral via format law — should work now)
+  - jam_Files.h / jam_Extensions.h
+  - jam_Chars.h
+  - jam_Operators.h (6 operator rows have wraps INVERTED vs oracle — outer=struct, inner=namespace; fix data first)
+  - jam_Bimaps.h / jam_Enums.h
+  - jam_HashMaps.h
+  - jam_LookupTables.h
+  - jam_MermaidGeometry.h / jam_MermaidTables.h (templates derived from oracle when reached)
+- **Performance** — measure Release build. Debug went from 13.2s → 3.9s; ARCHITECT flagged the original ~5-7s (presumably Release) as unacceptable.
+- **Deferred from Sprint 7**: LC7 doxygen prose + Auditor sweep; HELP.md transform-vocabulary wording amendment
+
+### Key Decisions
+- **ODR split**: jam keeps `text::English`, cast uses `text::Diagnostics` (ARCHITECT: "keep struct English. project must conformed, use different name")
+- **`quoted` over `juce::String::quoted()`**: juce's `quoted()` skips closing quote when string already ends with `"` (juce_String.cpp:1664) — breaks `failDuplicate`. Direct composition is correct.
+- **Format column `quoted` replaces `toLiteral`** for `@cString`: `toLiteral` doubles backslashes + doesn't add quotes; `quoted` wraps without touching content — author-writes-escapes law (HELP.md:465)
+- **Row-order-derives-everything**: one `## output` row position drives include order, Generated member order, per-file struct order. Oracle inconsistencies are fixed in the oracle (ARCHITECT ruling).
+- **Depth-indent law**: wrap body indented `depth * 4` spaces (depth = index in wraps chain)
+- **Elision laws**: empty jack → drop one preceding space/newline/tab; chunk-start strips one leading newline; elided line swallows following blank line
+- **Performance**: getBoundValue was the #1 bottleneck (63% of work time — String::replace rescanning entire file bodies per token). Hoisted to bind-time in Writer::getTokens. getValue early-return for non-@ strings was #2 (25%).
+
+### Files Modified
+- `Source/Operators.h` — `Transforms::quoted` static method + registry entry
+- `Source/Model.h` — getFormat alias-overload matches key or symbol; getValue early-return for non-alias
+- `Source/TemplateDocument.h` — hasBlankLine captured before strip; getBoundValue deleted; call sites → `tokens.at`
+- `Source/Writer.h` — getTokens does :::name::: interpolation at bind time; buildRow trims trailing newlines on expanded body
+- `Source/generated/Identifiers.h` — `Id::quoted` bootstrap
+- `Source/generated/Text.h` — `struct Diagnostics` (was English); `failNoMatch` + `failDuplicate` added
+- `Source/main.cpp` — `text::Diagnostics::` (1 site)
+- `Source/Validator.h` — `text::Diagnostics::` (16 sites)
+- `cast/tables/lexicon.md` — `quoted` word added
+- `jam/cast/CAST.md` — `@cString` format → `quoted`
+- `jam/cast/tables/localisation-en.md` — `failDuplicate` cell → `duplicate \"`
+- `jam/generated/jam_Text.h` — oracle rewrite (struct English, constexpr, LF)
+- `jam/generated/jam_Generated.h` — oracle order patch (row-derived, prior session — unchanged this session)
+
+### Open Questions
+- None blocking. The immediate task is mechanical: rebuild, diff, confirm byte-identical.
+
+### Next Steps
+1. Rebuild cast, run `./cast jam/cast/CAST.md`, diff jam_Text.h — expect byte-identical
+2. If identical: jam_Text.h CONVERGED — move to next file (jam_Identifiers.h)
+3. If not: read the diff, fix the residual (likely another spacing law edge case)
+
 ## Sprint 7: Lexicon Canon Redesign — CAST.md / lexicon.md / relations.md ✅ (checkpoint)
 
 **Date:** 2026-08-09

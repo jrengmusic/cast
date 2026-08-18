@@ -21,6 +21,12 @@ struct Transforms
              + juce::String::charToString (chars::space) + map::clangComment.at (Id::blockClose);
     }
 
+    static juce::String quoted (const juce::String& input) noexcept
+    {
+        return juce::String::charToString (chars::doubleQuote) + input
+             + juce::String::charToString (chars::doubleQuote);
+    }
+
     /** @brief Reports whether @p name is in the closed transform vocabulary (SPEC §6). */
     static bool contains (const juce::String& name) noexcept
     {
@@ -76,6 +82,8 @@ struct Transforms
                     jam::Format::toCamelCase (Id::join), &jam::Format::join);
                 map.add<const juce::String&> (
                     jam::Format::toCamelCase (Id::toLiteral), &jam::Format::toLiteral);
+                map.add<const juce::String&> (
+                    jam::Format::toCamelCase (Id::quoted), &Transforms::quoted);
                 map.add<const juce::String&> (
                     jam::Format::toCamelCase (Id::toHex), &jam::Format::toHex);
                 map.add<const juce::String&> (

@@ -90,8 +90,31 @@ public:
                   : juce::String();
     }
 
+    juce::String getFormat (Element& row, juce::StringRef alias) const
+    {
+        const auto origin { *row.parent->get<juce::String> (Id::path) };
+        const juce::String aliasText { alias };
+
+        for (auto* table : getTables (Id::index))
+        {
+            if (table->contains (Id::path) and *table->get<juce::String> (Id::path) == origin
+                and getTableHeaders (*table).contains (Id::format.toString()))
+            {
+                for (auto* indexRow : getTableRows (*table))
+                    if (indexRow->id.toString() == aliasText
+                        or getTableValue (*indexRow, Id::symbol) == aliasText)
+                        return getTableValue (*indexRow, Id::format);
+            }
+        }
+
+        return {};
+    }
+
     juce::String getValue (juce::StringRef file, juce::StringRef alias) const
     {
+        if (alias.isEmpty() or *alias.text != chars::at)
+            return {};
+
         const juce::String aliasText { alias };
 
         if (juce::Identifier::isValidIdentifier (aliasText))
@@ -100,17 +123,7 @@ public:
             {
                 if (table->contains (Id::path) and *table->get<juce::String> (Id::path) == file)
                 {
-                    const auto symbol {
-                        getTableValue (*table, Id::symbol, juce::Identifier (aliasText))
-                    };
-                    const auto format {
-                        getTableHeaders (*table).contains (Id::format.toString())
-                            ? getTableValue (*table, Id::format, juce::Identifier (aliasText))
-                            : juce::String()
-                    };
-
-                    return format.isNotEmpty() ? Transforms::getTransformed (format, symbol)
-                                               : symbol;
+                    return getTableValue (*table, Id::symbol, juce::Identifier (aliasText));
                 }
             }
         }
@@ -218,7 +231,7 @@ public:
                 jassertfalse;
                 jam::debug::Log::write (
                     jam::MarkdownValidator::getLocation (*row.parent, row, Id::structure.toString())
-                    + Id::diagnosticSeparator + text::en::failNotFound + Id::diagnosticSeparator
+                    + Id::diagnosticSeparator + text::Diagnostics::failNotFound + Id::diagnosticSeparator
                     + entry);
                 return {};
             }
@@ -226,7 +239,7 @@ public:
             jassertfalse;
             jam::debug::Log::write (
                 jam::MarkdownValidator::getLocation (*row.parent, row, Id::structure.toString())
-                + Id::diagnosticSeparator + text::en::failTableMissing + Id::diagnosticSeparator
+                + Id::diagnosticSeparator + text::Diagnostics::failTableMissing + Id::diagnosticSeparator
                 + table);
             return {};
         }
@@ -234,7 +247,7 @@ public:
         jassertfalse;
         jam::debug::Log::write (
             jam::MarkdownValidator::getLocation (*row.parent, row, Id::structure.toString())
-            + Id::diagnosticSeparator + text::en::failAliasMissing + Id::diagnosticSeparator
+            + Id::diagnosticSeparator + text::Diagnostics::failAliasMissing + Id::diagnosticSeparator
             + alias);
         return {};
     }

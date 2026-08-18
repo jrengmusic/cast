@@ -41,7 +41,7 @@ struct Validator : jam::MarkdownValidator
 
                     const auto result { getPredicates().contains (name)
                                             ? getPredicates().get (name, model, column, args)
-                                            : juce::Result::fail (text::en::failUnknownPredicate
+                                            : juce::Result::fail (text::Diagnostics::failUnknownPredicate
                                                                   + Id::diagnosticSeparator + name) };
 
                     if (not result.wasOk())
@@ -66,7 +66,7 @@ struct Validator : jam::MarkdownValidator
                 if (not model.getOutput (args).getChildFile (value).existsAsFile())
                     return juce::Result::fail (
                         getLocation (table, row, column) + Id::diagnosticSeparator
-                        + Id::fileExists + Id::diagnosticSeparator + text::en::failOutputMissing
+                        + Id::fileExists + Id::diagnosticSeparator + text::Diagnostics::failOutputMissing
                         + Id::diagnosticSeparator + value);
 
                 return juce::Result::ok();
@@ -137,11 +137,11 @@ struct Validator : jam::MarkdownValidator
         juce::Result result { juce::Result::ok() };
 
         if (node.isTag (Id::a))
-            result = juce::Result::fail (text::en::failHazardUri);
+            result = juce::Result::fail (text::Diagnostics::failHazardUri);
 
         if (result.wasOk() and node.isTag (Id::text)
             and node.get<juce::String> (Id::text)->containsAnyOf (Id::hazardChars))
-            result = juce::Result::fail (text::en::failHazardAngleBrackets);
+            result = juce::Result::fail (text::Diagnostics::failHazardAngleBrackets);
 
         if (result.wasOk() and not node.isTag (Id::code))
             for (auto* child = node.firstChild; child != nullptr and result.wasOk();
@@ -170,7 +170,7 @@ struct Validator : jam::MarkdownValidator
                                 and not model.getFile (*row, cell).existsAsFile())
                                 return juce::Result::fail (
                                     getLocation (*table, *row, header) + Id::diagnosticSeparator
-                                    + text::en::failTemplateMissing + Id::diagnosticSeparator
+                                    + text::Diagnostics::failTemplateMissing + Id::diagnosticSeparator
                                     + cell);
                         }
             }
@@ -223,7 +223,7 @@ struct Validator : jam::MarkdownValidator
                             and not allPlaceholders.contains (juce::Identifier (column)))
                             return juce::Result::fail (getLocation (*table, *row, column)
                                                        + Id::diagnosticSeparator
-                                                       + text::en::failOrphan);
+                                                       + text::Diagnostics::failOrphan);
                     }
             }
 
@@ -265,18 +265,18 @@ struct Validator : jam::MarkdownValidator
 
             if (not hasNestedWrap)
                 return juce::Result::fail (getLocation (table, row, Id::structure.toString())
-                                           + Id::diagnosticSeparator + text::en::failNotFound);
+                                           + Id::diagnosticSeparator + text::Diagnostics::failNotFound);
         }
 
         if (headCount > 1)
             return juce::Result::fail (getLocation (table, row, Id::structure.toString())
-                                       + Id::diagnosticSeparator + text::en::failNotFound);
+                                       + Id::diagnosticSeparator + text::Diagnostics::failNotFound);
 
         const auto alias { jam::Format::getPreColon (head->getAllSubText()).trim() };
 
         if (model.getValue (row, alias).isEmpty())
             return juce::Result::fail (getLocation (table, row, Id::structure.toString())
-                                       + Id::diagnosticSeparator + text::en::failAliasMissing
+                                       + Id::diagnosticSeparator + text::Diagnostics::failAliasMissing
                                        + Id::diagnosticSeparator + alias);
 
         for (auto* child : wrap)
@@ -323,7 +323,7 @@ struct Validator : jam::MarkdownValidator
                                                      Id::structure.toString())
                                         + Id::diagnosticSeparator
                                         + getLocation (*table, *row, Id::structure.toString())
-                                        + Id::diagnosticSeparator + text::en::failNoMatch);
+                                        + Id::diagnosticSeparator + text::Diagnostics::failNoMatch);
                             }
             }
 
@@ -341,7 +341,7 @@ struct Validator : jam::MarkdownValidator
 
         if (indexTables.isEmpty())
             return juce::Result::fail (Id::index.toString() + Id::diagnosticSeparator
-                                       + text::en::failTableMissing);
+                                       + text::Diagnostics::failTableMissing);
 
         Element& indexTable { *indexTables.at (0) };
         const auto markdownExtension { juce::String::charToString (chars::dot) + extensions::md };
@@ -354,20 +354,20 @@ struct Validator : jam::MarkdownValidator
 
             if (pathCell.isEmpty())
                 return juce::Result::fail (getLocation (indexTable, *row, Id::symbol.toString())
-                                           + Id::diagnosticSeparator + text::en::failNotFound);
+                                           + Id::diagnosticSeparator + text::Diagnostics::failNotFound);
 
             if (pathCell.endsWith (markdownExtension)
                 and not model.getOutput (pathCell).existsAsFile())
                 return juce::Result::fail (getLocation (indexTable, *row, Id::symbol.toString())
                                            + Id::diagnosticSeparator
-                                           + text::en::failOutputMissing + Id::diagnosticSeparator
+                                           + text::Diagnostics::failOutputMissing + Id::diagnosticSeparator
                                            + pathCell);
 
             if (pathCell.endsWith (templateExtension)
                 and not model.getOutput (pathCell).existsAsFile())
                 return juce::Result::fail (getLocation (indexTable, *row, Id::symbol.toString())
                                            + Id::diagnosticSeparator
-                                           + text::en::failTemplateMissing
+                                           + text::Diagnostics::failTemplateMissing
                                            + Id::diagnosticSeparator + pathCell);
         }
 
@@ -428,7 +428,7 @@ struct Validator : jam::MarkdownValidator
                             if (not declared)
                                 return juce::Result::fail (
                                     getLocation (*table, *row, headers[columnIndex])
-                                    + Id::diagnosticSeparator + text::en::failAliasMissing
+                                    + Id::diagnosticSeparator + text::Diagnostics::failAliasMissing
                                     + Id::diagnosticSeparator + alias);
                         }
                     }
@@ -468,7 +468,7 @@ struct Validator : jam::MarkdownValidator
                         return juce::Result::fail (getLocation (*table, *row, Id::name.toString())
                                                    + Id::diagnosticSeparator + Id::unique
                                                    + Id::diagnosticSeparator
-                                                   + text::en::failDuplicate + value
+                                                   + text::Diagnostics::failDuplicate + value
                                                    + juce::String::charToString (chars::doubleQuote));
 
                     seen.add (value);

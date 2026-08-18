@@ -20,8 +20,21 @@
               "icon": "lucide-file",
               "title": "HELP"
             }
+          },
+          {
+            "id": "5ddd881ca05bfc29",
+            "type": "leaf",
+            "state": {
+              "type": "release-notes",
+              "state": {
+                "currentVersion": "1.13.4"
+              },
+              "icon": "lucide-book-up",
+              "title": "Release Notes 1.13.4"
+            }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -41,7 +54,9 @@
               "type": "file-explorer",
               "state": {
                 "sortOrder": "alphabetical",
-                "autoReveal": false
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
               },
               "icon": "lucide-folder-closed",
               "title": "Files"
@@ -183,6 +198,6 @@
       "bases:Create new base": false
     }
   },
-  "active": "a4f0084057cad268",
+  "active": "5ddd881ca05bfc29",
   "lastOpenFiles": []
 }

@@ -149,7 +149,7 @@ int main (int argc, char* argv[])
 
     printBannerAndHelp();
     const auto notFoundLine { ProjectInfo::projectName + Id::diagnosticSeparator
-                              + text::en::failNotFound + Id::diagnosticSeparator
+                              + text::Diagnostics::failNotFound + Id::diagnosticSeparator
                               + documentFile.getFileName() };
     fprintf (stderr, "%s\n", notFoundLine.toRawUTF8());
     return 1;

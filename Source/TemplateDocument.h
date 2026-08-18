@@ -252,17 +252,25 @@ private:
                 const jam::HashMap<juce::Identifier, juce::String>& tokens) const
     {
         bool elidesLeadingNewline { false };
+        bool elidesBlankLine { false };
 
         for (auto* child : node)
         {
             if (child->id == Id::text)
             {
                 auto content { *child->get<juce::String> (Id::text) };
+                const auto hasBlankLine { content.startsWithChar (chars::newline)
+                                          and content.length() > 1
+                                          and content[1] == chars::newline };
 
                 if (elidesLeadingNewline and content.startsWithChar (chars::newline))
                     content = content.substring (1);
 
+                if (elidesBlankLine and hasBlankLine and content.startsWithChar (chars::newline))
+                    content = content.substring (1);
+
                 elidesLeadingNewline = false;
+                elidesBlankLine = false;
                 document.addText (parent, content);
             }
             else
@@ -271,7 +279,14 @@ private:
                                       ? getCell (model, row, sourceRow, columns, *child, tokens)
                                       : getText (model, row, sourceRow, columns, *child, tokens) };
 
-                elidesLeadingNewline = text.isEmpty() and parent.lastChild == nullptr;
+                const auto atChunkStart { parent.lastChild == nullptr };
+                const auto afterLineEnd { parent.lastChild != nullptr
+                                          and parent.lastChild->id == Id::text
+                                          and parent.lastChild->get<juce::String> (Id::text)
+                                                  ->endsWithChar (chars::newline) };
+
+                elidesLeadingNewline = text.isEmpty() and atChunkStart;
+                elidesBlankLine = text.isEmpty() and (atChunkStart or afterLineEnd);
                 elideEmptyToken (parent, text);
                 document.addText (parent, text);
             }
@@ -303,6 +318,7 @@ private:
                           const jam::HashMap<juce::Identifier, juce::String>& tokens) const
     {
         juce::String value;
+        juce::String typeAlias;
 
         if (tokens.empty())
         {
@@ -325,10 +341,16 @@ private:
                 and value.contains (Id::tripleColon + Id::name.toString() + Id::tripleColon))
                 value = value.replace (Id::tripleColon + Id::name.toString() + Id::tripleColon,
                                        jam::Format::getPostColon (sourceRow.id.toString()));
+
+            const auto typeToken { model.getToken (sourceRow, Id::type) };
+            typeAlias = headers.contains (Id::type.toString())
+                           ? model.getTableValue (sourceRow, Id::type)
+                           : typeToken.isNotEmpty() ? typeToken
+                                                    : model.getToken (row, Id::type);
         }
         else
         {
-            value = tokens.contains (node.id) ? getBoundValue (tokens, node.id) : juce::String();
+            value = tokens.contains (node.id) ? tokens.at (node.id) : juce::String();
         }
 
         const auto castExtension { juce::String::charToString (chars::dot) + extensions::cast };
@@ -356,18 +378,10 @@ private:
         if (const auto format { model.getFormat (sourceRow, node.id) }; format.isNotEmpty())
             return Transforms::getTransformed (format, value);
 
-        return value;
-    }
-
-    static juce::String getBoundValue (const jam::HashMap<juce::Identifier, juce::String>& tokens,
-                                       const juce::Identifier& name)
-    {
-        auto value { tokens.at (name) };
-
-        if (tokens.contains (Id::name))
-            value = value.replace (
-                Id::tripleColon + Id::name.toString() + Id::tripleColon,
-                tokens.at (Id::name));
+        if (node.id == Id::value and typeAlias.isNotEmpty())
+            if (const auto format { model.getFormat (row, juce::StringRef (typeAlias)) };
+                format.isNotEmpty())
+                return Transforms::getTransformed (format, value);
 
         return value;
     }
@@ -381,7 +395,7 @@ private:
     {
         const auto headers { model.getTableHeaders (*sourceRow.parent) };
         const auto token { model.getToken (sourceRow, node.id) };
-        const auto cell { tokens.contains (node.id) ? getBoundValue (tokens, node.id)
+        const auto cell { tokens.contains (node.id) ? tokens.at (node.id)
                           : headers.contains (node.id.toString())
                               ? model.getTableValue (sourceRow, node.id)
                               : token.isNotEmpty() ? token

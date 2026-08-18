@@ -3,6 +3,8 @@
 #include "Model.h"
 #include "TemplateDocument.h"
 
+static constexpr int indentWidth { 4 };
+
 struct Writer
 {
     using Elements = jam::Array<jam::Document::Element*>;
@@ -144,15 +146,45 @@ private:
             }
         }
 
+        if (tokens.contains (Id::name))
+        {
+            const auto marker { Id::tripleColon + Id::name.toString() + Id::tripleColon };
+            const auto name { tokens.at (Id::name) };
+
+            for (auto& [tokenKey, tokenValue] : tokens)
+                if (tokenKey != Id::name and tokenValue.contains (marker))
+                    tokenValue = tokenValue.replace (marker, name);
+        }
+
         return tokens;
     }
 
-    juce::String applyWrap (Model::Element& row, Model::Element& wrap, const juce::String& code) const
+    juce::String applyWrap (Model::Element& row,
+                             Model::Element& wrap,
+                             const juce::String& code,
+                             int depth) const
     {
         auto tokens { getTokens (row, wrap) };
 
         if (code.isNotEmpty())
-            tokens.addOrReplace (Id::body, code);
+        {
+            juce::String body { code };
+
+            if (depth > 0)
+            {
+                const auto indent { juce::String::repeatedString (
+                    juce::String::charToString (chars::space), depth * indentWidth) };
+                juce::StringArray lines { juce::StringArray::fromLines (code) };
+
+                for (auto& line : lines)
+                    if (line.isNotEmpty())
+                        line = indent + line;
+
+                body = lines.joinIntoString (juce::String::charToString (chars::newline), 0, -1);
+            }
+
+            tokens.addOrReplace (Id::body, body);
+        }
 
         const auto& wrapper {
             TemplateDocument::getOrCreate (model.getFile (row, getWrapAlias (wrap)))
@@ -176,15 +208,16 @@ private:
                 const auto castExtension { juce::String::charToString (chars::dot)
                                            + extensions::cast };
 
-                code = binding.endsWith (castExtension)
-                          ? TemplateDocument::getOrCreate (model.getOutput (binding))
-                                .getExpansion (model, row, Id::body, binding)
-                          : binding;
+                code = (binding.endsWith (castExtension)
+                           ? TemplateDocument::getOrCreate (model.getOutput (binding))
+                                 .getExpansion (model, row, Id::body, binding)
+                           : binding)
+                          .trimCharactersAtEnd (juce::String::charToString (chars::newline));
             }
         }
 
         for (int depth { wraps.size() - 1 }; depth >= 1; --depth)
-            code = applyWrap (row, *wraps.at (depth), code);
+            code = applyWrap (row, *wraps.at (depth), code, depth);
 
         return code;
     }
@@ -216,7 +249,7 @@ private:
         }
 
         if (hasOutermostWrap)
-            code = applyWrap (*firstRow, *outermostWraps.at (0), code);
+            code = applyWrap (*firstRow, *outermostWraps.at (0), code, 0);
 
         return code;
     }
