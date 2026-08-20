@@ -111,6 +111,60 @@
 
 ## SPRINT HISTORY
 
+## Handoff to COUNSELOR: jam_Identifiers.h Convergence
+
+**From:** COUNSELOR
+**Date:** 2026-08-20
+**Status:** In Progress — rebuild pending after getTableRows fix
+
+### Context
+Converging cast's output (`jam/diff/`) to byte-identical with the oracle (`jam/generated/`), one file at a time. jam_Generated.h and jam_Text.h are DONE. jam_Identifiers.h had 4 engine/data defects plus a collision bug — all fixed, awaiting rebuild+diff.
+
+### Completed
+- **jam_Text.h** — byte-identical ✓ (verified this session, MD5 match)
+- **toCamelCase abbreviation** — jam_Format.cpp:264 now checks `isAbbreviation` at index 0, same pattern as `toSnakeCase`. `UIScale` stays `UIScale`, not `uiScale`.
+- **toLiteral non-ASCII hex-escaping** — jam_Format.cpp:928-934 adds `else if (byte > 0x7F)` branch producing `\xNN` escapes. Uses existing `Id::hexEscapePrefix`/`byteHexDigits` pattern from `encodeCodepointAsEscapedUtf8`.
+- **lexicon.md data fixes** — `alias` (line 25) and `name` (line 726) restored `@id` type (were empty, causing bare `inline const alias { alias };`). `companyCopyright` changed from `\xc2\xa9` to raw `©` (toLiteral now hex-escapes it correctly).
+- **Scope.cast blank line** — added blank line between `:::body:::` and `:::epilogue:::` (line 8). Body's last line follows lineBreak convention; the consistent blank line before scope closing comes from the template.
+- **getTableRows collision fix** — jam_MarkdownDocument.h:133 changed from `not row->isTag(Id::border)` to `not row->contains(Id::type)`. Separator elements have `Id::type` property (set at line 2381), data rows don't. Fixes silent drop of lexicon row keyed "border".
+- **cast Id:: dedup** — removed `special`, `toComment`, `toCommentBlock`, `toUnicode` from cast's `Source/generated/Identifiers.h`. Jam lexicon is SSOT (ARCHITECT ruling: "jam SSOT").
+- **Oracle baseline** — jam/generated/jam_Identifiers.h updated from generated output + `border` entry added by ARCHITECT.
+
+### Remaining
+- **Rebuild jam + cast, run `./cast jam/cast/CAST.md`, diff jam_Identifiers.h** — verify byte-identical after the getTableRows fix. `border` should now appear in the generated output.
+- **Oracle sync** — after successful diff, copy generated → oracle if not already matching.
+- **Next convergence files** (one-by-one, per ARCHITECT ruling):
+  - jam_Files.h / jam_Extensions.h
+  - jam_Chars.h
+  - jam_Operators.h (6 operator rows have wraps INVERTED vs oracle)
+  - jam_Bimaps.h / jam_Enums.h
+  - jam_HashMaps.h
+  - jam_LookupTables.h
+  - jam_MermaidGeometry.h / jam_MermaidTables.h
+- **Deferred from Sprint 7**: LC7 doxygen prose + Auditor sweep; HELP.md transform-vocabulary wording amendment
+
+### Key Decisions
+- **jam SSOT for identifiers**: cast's own Id:: entries that duplicate jam lexicon entries are removed. Jam lexicon is the single source. `toComment`/`toCommentBlock`/`toUnicode` had different types/values in cast vs jam — `toCamelCase` produces identical registry keys either way.
+- **Separator filter by structure, not tag**: `getTableRows` uses `row->contains(Id::type)` to identify separator elements (which have the type property stamped at parse time), not `row->isTag(Id::border)` which collides with data rows keyed "border".
+- **toLiteral hex-escapes non-ASCII**: All bytes >0x7F produce `\xNN` in C++ string literals. Source data uses raw UTF-8 characters (author-writes-content), `toLiteral` converts to portable ASCII-safe escapes.
+- **Scope.cast template owns the blank line**: The blank line before epilogue (END marker) comes from the template, not engine logic. Body's last line follows lineBreak convention without adding trailing whitespace.
+
+### Files Modified
+- `jam_core/text/jam_Format.cpp` — toCamelCase abbreviation check (line 264); toLiteral non-ASCII hex-escape branch (lines 928-934)
+- `jam_markdown/document/jam_MarkdownDocument.h` — getTableRows filter: `Id::type` property check replaces `Id::border` tag check (line 133)
+- `jam/cast/template/Scope.cast` — blank line between `:::body:::` and `:::epilogue:::` (line 8)
+- `jam/cast/tables/lexicon.md` — alias/name @id restored; companyCopyright raw ©; border entry added
+- `jam/generated/jam_Identifiers.h` — oracle baseline updated + border entry
+- `cast/Source/generated/Identifiers.h` — removed special, toComment, toCommentBlock, toUnicode (jam SSOT)
+
+### Open Questions
+- None blocking. Rebuild + diff is the immediate next step.
+
+### Next Steps
+1. Rebuild jam + cast, run `./cast jam/cast/CAST.md`, diff jam_Identifiers.h — expect byte-identical
+2. If identical: jam_Identifiers.h CONVERGED — move to next file
+3. If not: read the diff, fix the residual
+
 ## Handoff to COUNSELOR: jam_Text.h Convergence + Perf Fix
 
 **From:** COUNSELOR

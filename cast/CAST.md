@@ -3,57 +3,32 @@
 +---------------+------------------------------------------------+
 | alias         | symbol                                         |
 +===============+================================================+
-| #bimap        | ../../jam/cast/template/Bimap.cast             |
-+---------------+------------------------------------------------+
-| #break        | ../../jam/cast/template/Break.cast             |
-+---------------+------------------------------------------------+
-| #char         | ../../jam/cast/template/Chars.cast             |
-+---------------+------------------------------------------------+
-| #generated    | ../../jam/cast/template/Generated.cast         |
-+---------------+------------------------------------------------+
-| #files        | ../../jam/cast/template/Identifiers.cast       |
-+---------------+------------------------------------------------+
-| #hashMap      | ../../jam/cast/template/HashMap.cast           |
-+---------------+------------------------------------------------+
-| #identifiers  | ../../jam/cast/template/Identifiers.cast       |
-+---------------+------------------------------------------------+
-| #namespace    | ../../jam/cast/template/Namespace.cast         |
-+---------------+------------------------------------------------+
-| #struct       | ../../jam/cast/template/Struct.cast            |
-+---------------+------------------------------------------------+
-| #text         | ../../jam/cast/template/Text.cast              |
-+---------------+------------------------------------------------+
-| #banner       | tables/banner.md                               |
-+---------------+------------------------------------------------+
-| #binaryFiles  | tables/binary-files.md                         |
-+---------------+------------------------------------------------+
-| #CAST         | CAST.md                                        |
-+---------------+------------------------------------------------+
-| #comments     | tables/comments.md                             |
-+---------------+------------------------------------------------+
-| #lexicon      | tables/lexicon.md                              |
-+---------------+------------------------------------------------+
-| #localisation | tables/localisation-en.md                      |
-+---------------+------------------------------------------------+
-| #template     | tables/template.md                             |
-+---------------+------------------------------------------------+
-| #Bimaps       | ../Source/generated/Bimaps.h                   |
-+---------------+------------------------------------------------+
-| #Files        | ../Source/generated/Files.h                    |
-+---------------+------------------------------------------------+
-| #Generated    | ../Source/generated/Generated.h                |
-+---------------+------------------------------------------------+
-| #HashMaps     | ../Source/generated/HashMaps.h                 |
-+---------------+------------------------------------------------+
-| #Identifiers  | ../Source/generated/Identifiers.h              |
-+---------------+------------------------------------------------+
-| #Text         | ../Source/generated/Text.h                     |
-+---------------+------------------------------------------------+
-| #commentMap   | `jam::HashMap<juce::Identifier, juce::String>` |
-+---------------+------------------------------------------------+
-| #id           | juce::Identifier                               |
-+---------------+------------------------------------------------+
-| #string       | juce::String                                   |
+| @bimap        | ../../jam/cast/template/Bimap.cast             |
+| @break        | ../../jam/cast/template/Break.cast             |
+| @char         | ../../jam/cast/template/Chars.cast             |
+| @diff         | ../../jam/cast/template/Generated.cast         |
+| @files        | ../../jam/cast/template/Identifiers.cast       |
+| @hashMap      | ../../jam/cast/template/HashMap.cast           |
+| @identifiers  | ../../jam/cast/template/Identifiers.cast       |
+| @namespace    | ../../jam/cast/template/Namespace.cast         |
+| @struct       | ../../jam/cast/template/Struct.cast            |
+| @text         | ../../jam/cast/template/Text.cast              |
+| @banner       | tables/banner.md                               |
+| @binaryFiles  | tables/binary-files.md                         |
+| @CAST         | CAST.md                                        |
+| @comments     | tables/comments.md                             |
+| @lexicon      | tables/lexicon.md                              |
+| @localisation | tables/localisation-en.md                      |
+| @template     | tables/template.md                             |
+| @Bimaps       | ../Source/diff/Bimaps.h                        |
+| @Files        | ../Source/diff/Files.h                         |
+| @Generated    | ../Source/diff/Generated.h                     |
+| @HashMaps     | ../Source/diff/HashMaps.h                      |
+| @Identifiers  | ../Source/diff/Identifiers.h                   |
+| @Text         | ../Source/diff/Text.h                          |
+| @commentMap   | `jam::HashMap<juce::Identifier, juce::String>` |
+| @id           | juce::Identifier                               |
+| @string       | juce::String                                   |
 +---------------+------------------------------------------------+
 
 ## output
@@ -94,8 +69,12 @@
 
 ## output index
 
-+------------+---------+-------------+--------------+----------------------+--------------+------------+
-| code       | struct  | struct name | output       | list                 | instance     | file       |
-+============+=========+=============+==============+======================+==============+============+
-| #generated | #struct | Generated   | #CAST:output | #binaryFiles:headers | #CAST:output | #Generated |
-+------------+---------+-------------+--------------+----------------------+--------------+------------+
++------------------+-----------------------+------------+
+| list             | structure             | file       |
++==================+=======================+============+
+| - files: file    | > > @scope: Generated | @Generated |
+| - body: instance | > >                   |            |
+|                  | > > - keyword: struct |            |
+|                  | > > - body: @instance |            |
+|                  | > > - terminator: ;   |            |
++------------------+-----------------------+------------+
