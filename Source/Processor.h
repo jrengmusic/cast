@@ -32,7 +32,7 @@ struct Processor
         static const jam::MarkdownValidator validator;
 
         jam::Array<juce::File> tableFiles { documentFile };
-        const auto markdownExtension { juce::String::charToString (chars::dot) + extensions::md };
+        const auto markdownExtension { juce::String::charToString (Chars::dot) + Extensions::md };
 
         for (auto* row : model->getTableRows (Id::index))
         {
@@ -55,7 +55,7 @@ struct Processor
                 file.replaceWithText (canonical,
                     false,
                     false,
-                    juce::String::charToString (chars::newline).toRawUTF8());
+                    juce::String::charToString (Chars::newline).toRawUTF8());
         }
 
         return juce::Result::ok();

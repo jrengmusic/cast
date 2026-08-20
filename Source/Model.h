@@ -40,7 +40,7 @@ public:
             {
                 const auto indexRows { document->getTableRows (*indexTables.at (0)) };
                 const auto markdownExtension {
-                    juce::String::charToString (chars::dot) + extensions::md
+                    juce::String::charToString (Chars::dot) + Extensions::md
                 };
 
                 jam::Array<juce::File> tableFiles;
@@ -82,7 +82,7 @@ public:
     juce::String getFormat (Element& row, const juce::Identifier& column) const
     {
         const juce::Identifier formatColumn { column.toString()
-                                              + juce::String::charToString (chars::space)
+                                              + juce::String::charToString (Chars::space)
                                               + Id::format.toString() };
 
         return getTableHeaders (*row.parent).contains (formatColumn.toString())
@@ -112,7 +112,7 @@ public:
 
     juce::String getValue (juce::StringRef file, juce::StringRef alias) const
     {
-        if (alias.isEmpty() or *alias.text != chars::at)
+        if (alias.isEmpty() or *alias.text != Chars::at)
             return {};
 
         const juce::String aliasText { alias };
@@ -193,11 +193,11 @@ public:
                             {
                                 const auto value { jam::Format::getPostColon (text).trim() };
 
-                                if (value.startsWithChar (chars::at)
-                                    and jam::Format::getPostColon (value).containsChar (chars::colon))
+                                if (value.startsWithChar (Chars::at)
+                                    and jam::Format::getPostColon (value).containsChar (Chars::colon))
                                     return getEntry (row, value);
 
-                                if (value.startsWithChar (chars::at))
+                                if (value.startsWithChar (Chars::at))
                                 {
                                     const auto symbol { getValue (row, value) };
                                     return symbol.isNotEmpty() ? symbol : value;
@@ -221,7 +221,7 @@ public:
         if (getValue (row, alias).isNotEmpty())
         {
             if (auto* entryTable {
-                    getTables (row, alias + juce::String::charToString (chars::colon) + table) })
+                    getTables (row, alias + juce::String::charToString (Chars::colon) + table) })
             {
                 if (const auto value {
                         getTableValue (*entryTable, Id::value, juce::Identifier (entry)) };
@@ -290,13 +290,13 @@ public:
     bool isTemplatePath (Element& row, juce::StringRef cell) const noexcept
     {
         return getValue (row, cell).endsWith (
-            juce::String::charToString (chars::dot) + extensions::cast);
+            juce::String::charToString (Chars::dot) + Extensions::cast);
     }
 
     bool isReference (Element& row, juce::StringRef cell) const noexcept
     {
         const juce::String cellText { cell };
-        return cellText.containsChar (chars::colon) and getTables (row, cell) != nullptr;
+        return cellText.containsChar (Chars::colon) and getTables (row, cell) != nullptr;
     }
 
 private:

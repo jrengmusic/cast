@@ -421,11 +421,11 @@ Reading the row: body `#bimap`, region fed by the `## screen` table from `tables
 ```
 ```cpp
 // LookupTable.cast (region body) — the qualifying scope is plain template text
-            { Id::CssTokenType:::::entry:::, chars:::::string::: },
+            { Id::CssTokenType:::::entry:::, Chars:::::string::: },
 ```
 ```cpp
-            { Id::CssTokenType::colon, chars::colon },
-            { Id::CssTokenType::comma, chars::comma },
+            { Id::CssTokenType::colon, Chars::colon },
+            { Id::CssTokenType::comma, Chars::comma },
 ```
 
 ### 8. Lexicon + Relations — declare once, reference by `entry`
@@ -473,7 +473,7 @@ These are the only text transformations CAST can perform, applied via placeholde
 12. `toScreamingSnake` — Uppercases space-separated words and underscore-joins them: `clamp to border` becomes `CLAMP_TO_BORDER`.
 13. `join` — Removes the spaces between words, case untouched: `Long left arrow` becomes `Longleftarrow`. Used by spec key tables (Cookbook, above), where each word already carries its own exact casing.
 
-**Reference Derivation.** References never take a format op. A cell that references an entity declared elsewhere (lexicon, chars, files, extensions, a declared enum family) is written as a byte-exact literal, and emission derives the entity's **own generated symbol** from its declaration — `colon` emits `chars::colon`, `begin` emits `Id::begin`, `region open` under the Byte family emits `map::Byte::regionOpen`. One declaration, one symbol, every reference emits it — that derivation is why the canon registries are globally unique. Format ops exist only where a declaration table emits its own tokens; a transform tag applied to a reference is a conflation error (FATAL).
+**Reference Derivation.** References never take a format op. A cell that references an entity declared elsewhere (lexicon, chars, files, extensions, a declared enum family) is written as a byte-exact literal, and emission derives the entity's **own generated symbol** from its declaration — `colon` emits `Chars::colon`, `begin` emits `Id::begin`, `region open` under the Byte family emits `map::Byte::regionOpen`. One declaration, one symbol, every reference emits it — that derivation is why the canon registries are globally unique. Format ops exist only where a declaration table emits its own tokens; a transform tag applied to a reference is a conflation error (FATAL).
 
 **Non-ASCII keys.** A table key may contain any character — accented colour names, subscripts, symbols. Two separate rules keep the generated source portable. The identifier-producing transforms (the case family) fold each non-ASCII character to its ASCII equivalent before joining, so `Blanc Cassé` projects `blancCasse`; a character with no known equivalent collapses to a single underscore. The string-producing path leaves the characters alone and lets an escaping transform render them as byte escapes, so the authored spelling survives verbatim in the emitted literal. Generated source therefore need never carry a raw byte above 127, whatever the tables hold.
 

@@ -84,7 +84,7 @@ static void printBanner()
 static void printBannerAndHelp()
 {
     printBanner();
-    printf ("%s", juce::String::charToString (chars::newline).toRawUTF8());
+    printf ("%s", juce::String::charToString (Chars::newline).toRawUTF8());
     printHelp (BinaryData::getString (files::castHelp));
 }
 
@@ -111,11 +111,11 @@ int main (int argc, char* argv[])
     if (argc == 2 and juce::String::fromUTF8 (argv[1]) == Id::doubleDash + Id::version.toString())
     {
         const auto versionLine { ProjectInfo::projectName
-                                 + juce::String::charToString (chars::space)
+                                 + juce::String::charToString (Chars::space)
                                  + ProjectInfo::versionString
-                                 + juce::String::charToString (chars::space)
-                                 + juce::String::charToString (chars::openParen) + CAST_COMMIT
-                                 + juce::String::charToString (chars::closeParen) };
+                                 + juce::String::charToString (Chars::space)
+                                 + juce::String::charToString (Chars::openParen) + CAST_COMMIT
+                                 + juce::String::charToString (Chars::closeParen) };
         printf ("%s\n", versionLine.toRawUTF8());
         return 0;
     }

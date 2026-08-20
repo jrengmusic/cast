@@ -111,6 +111,79 @@
 
 ## SPRINT HISTORY
 
+## Handoff to COUNSELOR: jam_Chars.h Convergence + Structural Grammar SSOT
+
+**From:** COUNSELOR
+**Date:** 2026-08-21
+**Status:** In Progress — build pending after Extensions struct conversion + include order fix
+
+### Context
+Converging cast's output (`jam/diff/`) to byte-identical with the oracle (`jam/generated/`), one file at a time. jam_Generated.h, jam_Text.h, jam_Identifiers.h are byte-compile-identical (cosmetic deltas only). jam_Files.h and jam_Extensions.h are byte-compile-identical. jam_Chars.h convergence drove a structural grammar refactor — `>` = tab rule, SSOT methods on TemplateDocument, top-level scope support for namespaces (no indent) vs blockquoted scopes for structs (indented).
+
+### Completed
+- **isTableBorder** — `MarkdownDocument::isTableBorder()` static predicate replaces `isTag(Id::border)` at 4 call sites (getTableRows, Writer x2, Validator x1). Fixes "border" keyword collision that silently dropped the `border` data row and replaced it with `+---+` separator.
+- **chars:: → Chars::** — 1095 total sites renamed across jam source (890), generated/diff (74), tables + cast (131). `jam::Array<juce::juce_wchar> special` → `static constexpr const char* const special`. `jam_Format.cpp` lambda building specialCharacters deleted — `Chars::special` passed directly. `.contains()` → `juce::String(Chars::special).containsChar()`.
+- **extensions:: → Extensions::** — struct Extensions with `static constexpr const char* const` members. 97 total sites renamed. `jam_Html.h` svgTagName shadow state deleted — `Extensions::svg` used directly.
+- **Structural grammar SSOT** — `getWraps`, `getWrapAlias`, `getTokens` moved from Writer.h to TemplateDocument.h as static methods. `getOutermostWrap`, `isWrapHead` moved from Validator.h. `getContent` SSOT for `.cast` template expansion (was inline in buildRow). Both Writer and Validator consume shared methods.
+- **> = tab rule** — engine supports top-level scope (`@scope: Name` without `>`, depth 0, no indent) and blockquoted scope (`> @scope: Name`, depth 1, body/epilogue indented). `getTokens` reads nested blockquote bullets as content tokens with indent applied. `applyWrap` indents body token only. All outermost namespace scopes in CAST.md stripped of `>` (739 lines).
+- **Definition.cast** — `:::doxygen:toComment:::` appended. Language-agnostic comment formatting via existing `toComment` transform.
+- **Chars.cast** — reduced to epilogue-only: `special` string literal + `isNumeric` function.
+- **chars.md** — hex values unpadded, `doxygen` column added (U+NNNN, no hardcoded comment syntax), `## special` table deleted, `key` → `name` column, spurious last-row borders removed.
+- **jam_Generated.h oracle** — includes reordered (Enums before LookupTables, Chars before Enums for dependency), `jam::SharedInstance` → `SharedInstance` (redundant inside namespace jam), `@sharedInstance` CAST.md alias updated.
+- **jam_Text.h oracle** — blank lines fixed to match diff/.
+
+### Remaining
+- **Build + diff jam_Chars.h** — verify struct Chars output matches oracle after all engine changes. The top-level scope + content indentation mechanism is implemented but untested end-to-end.
+- **jam_Files.h** — same question as Extensions: if declared once in one table, should be struct. ARCHITECT hasn't ruled yet.
+- **jam_Generated.h include convergence** — diff/ only generates 3 includes (Bimaps, MermaidTables, Enums). Oracle now has 12. CAST.md needs output rows that generate all includes. Separate convergence task.
+- **Next convergence files** (per handoff order):
+  - jam_Operators.h (6 operator rows have wraps INVERTED vs oracle)
+  - jam_Bimaps.h / jam_Enums.h
+  - jam_HashMaps.h
+  - jam_LookupTables.h
+  - jam_MermaidGeometry.h / jam_MermaidTables.h
+- **Deferred from Sprint 7**: LC7 doxygen prose + Auditor sweep; HELP.md transform-vocabulary wording amendment
+
+### Key Decisions
+- **> = tab**: one `>` = one tab indent. No `>` = no indent. Namespace scopes at top level (no `>`), struct scopes inside `>`. Engine enforces via blockquote depth in buildFile (blockquote = depth 1, top-level = depth 0).
+- **Struct for single-source types**: types declared from one table use `struct` with `static constexpr` members (Chars, Extensions). Consumer uses `Chars::`, `Extensions::` (PascalCase). Namespace reserved for multi-source scopes (Id, text, map, files).
+- **isTableBorder SSOT**: `MarkdownDocument::isTableBorder()` checks `Id::type == BlockType::tableBorder`. Replaces 4 independent `isTag(Id::border)` checks that collided with data rows keyed "border".
+- **Structural grammar on TemplateDocument**: scope/wrap detection, token extraction, validation — one implementation consumed by Writer and Validator. No divergence on grammar changes.
+- **getContent SSOT**: `.cast` template expansion in `TemplateDocument::getContent()`. All token resolution (body, epilogue, any slot) goes through `getBinding` → `getContent`. No inline expansion in buildRow.
+- **No hardcoded comment syntax in tables**: doxygen column holds `U+NNNN`, template applies `:::doxygen:toComment:::`. Language-agnostic.
+- **No hardcoded token indentation**: applyWrap indents body only. Content tokens pre-indented by getTokens (from nested blockquote). Frame tokens (keyword, terminator) never indented.
+
+### Files Modified
+- `jam_markdown/document/jam_MarkdownDocument.h` — isTableBorder() static predicate; getTableRows uses tableRow type check
+- `jam_markdown/document/jam_MarkdownWriter.h` — 2 sites use isTableBorder()
+- `jam_markdown/document/jam_MarkdownValidator.h` — 1 site uses isTableBorder()
+- `jam_core/text/jam_Format.cpp` — chars:: → Chars::, special lambda deleted, containsChar
+- `jam_web/html/jam_Html.h` — extensions:: → Extensions::, svgTagName deleted
+- `jam_markdown/layout/jam_MarkdownSyntax.h` — extensions:: → Extensions::
+- 20 jam source files — chars:: → Chars:: (890 sites)
+- `cast/Source/TemplateDocument.h` — getWraps, getWrapAlias, getTokens, getOutermostWrap, isWrapHead, getContent, indentWidth (SSOT)
+- `cast/Source/Writer.h` — delegates to TemplateDocument::, applyWrap body-only indent, buildFile blockquote depth
+- `cast/Source/Validator.h` — delegates to TemplateDocument::
+- `cast/CAST.md` — @sharedInstance alias, namespace > stripped (739 lines), Chars/Extensions struct rows, Definition.cast doxygen
+- `cast/template/Definition.cast` — :::doxygen:toComment::: appended
+- `cast/template/Chars.cast` — epilogue-only (special + isNumeric)
+- `cast/tables/chars.md` — hex unpadded, doxygen column, name column, special deleted
+- `cast/tables/terminal.md`, `css.md`, `syntax.md` — chars::/extensions:: renamed
+- `generated/jam_Chars.h` — struct Chars oracle
+- `generated/jam_Extensions.h` — struct Extensions oracle
+- `generated/jam_Generated.h` — includes reordered, SharedInstance prefix removed
+- `generated/jam_Text.h` — blank lines fixed
+- `generated/jam_Enums.h`, `jam_LookupTables.h` — Chars:: rename
+- `diff/jam_Enums.h`, `jam_LookupTables.h`, `jam_HashMaps.h`, `jam_Generated.h` — same renames
+
+### Open Questions
+- **jam_Files.h** — should `namespace files` become `struct Files`? Same single-table pattern. ARCHITECT hasn't ruled.
+
+### Next Steps
+1. Build jam + cast, run `./cast jam/cast/CAST.md`, diff jam_Chars.h — verify struct body indented, epilogue indented, frame at column 0
+2. If not matching: trace the top-level scope + content token indentation path
+3. If matching: jam_Chars.h CONVERGED — move to next file (jam_Operators.h or jam_Files.h per ARCHITECT)
+
 ## Handoff to COUNSELOR: jam_Identifiers.h Convergence
 
 **From:** COUNSELOR

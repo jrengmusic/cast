@@ -9,7 +9,7 @@ struct Transforms
         if (input.isEmpty())
             return {};
 
-        return map::clangComment.at (Id::comment) + juce::String::charToString (chars::space) + input;
+        return map::clangComment.at (Id::comment) + juce::String::charToString (Chars::space) + input;
     }
 
     static juce::String toCommentBlock (const juce::String& input) noexcept
@@ -17,14 +17,14 @@ struct Transforms
         if (input.isEmpty())
             return {};
 
-        return map::clangComment.at (Id::blockOpen) + juce::String::charToString (chars::space) + input
-             + juce::String::charToString (chars::space) + map::clangComment.at (Id::blockClose);
+        return map::clangComment.at (Id::blockOpen) + juce::String::charToString (Chars::space) + input
+             + juce::String::charToString (Chars::space) + map::clangComment.at (Id::blockClose);
     }
 
     static juce::String quoted (const juce::String& input) noexcept
     {
-        return juce::String::charToString (chars::doubleQuote) + input
-             + juce::String::charToString (chars::doubleQuote);
+        return juce::String::charToString (Chars::doubleQuote) + input
+             + juce::String::charToString (Chars::doubleQuote);
     }
 
     /** @brief Reports whether @p name is in the closed transform vocabulary (SPEC §6). */

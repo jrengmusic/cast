@@ -35,9 +35,9 @@ struct Validator : jam::MarkdownValidator
                     const auto column { model.getTableValue (*row, Id::column) };
                     const auto predicateCell { model.getTableValue (*row, Id::predicate) };
                     const auto name { jam::Format::upTo (
-                        predicateCell, juce::String::charToString (chars::space), false) };
+                        predicateCell, juce::String::charToString (Chars::space), false) };
                     const auto args { jam::Format::from (
-                        predicateCell, juce::String::charToString (chars::space), false).trim() };
+                        predicateCell, juce::String::charToString (Chars::space), false).trim() };
 
                     const auto result { getPredicates().contains (name)
                                             ? getPredicates().get (name, model, column, args)
@@ -230,64 +230,6 @@ struct Validator : jam::MarkdownValidator
         return juce::Result::ok();
     }
 
-    /** @brief The deepest nested blockquote reachable from @p wrap -- the file's shared outermost wrap. */
-    static Element* getOutermostWrap (Element& wrap)
-    {
-        Element* outermost { &wrap };
-
-        for (auto* child : wrap)
-            if (child->isTag (Id::blockquote))
-                outermost = getOutermostWrap (*child);
-
-        return outermost;
-    }
-
-    /** @brief Validates @p wrap and every nested wrap: exactly one head paragraph, alias resolves. */
-    static juce::Result isWrapHead (const Model& model, Element& table, Element& row, Element& wrap)
-    {
-        Element* head { nullptr };
-        int headCount { 0 };
-
-        for (auto* child : wrap)
-            if (child->isTag (Id::p))
-            {
-                head = child;
-                ++headCount;
-            }
-
-        if (headCount == 0)
-        {
-            bool hasNestedWrap { false };
-
-            for (auto* child : wrap)
-                if (child->isTag (Id::blockquote))
-                    hasNestedWrap = true;
-
-            if (not hasNestedWrap)
-                return juce::Result::fail (getLocation (table, row, Id::structure.toString())
-                                           + Id::diagnosticSeparator + text::Diagnostics::failNotFound);
-        }
-
-        if (headCount > 1)
-            return juce::Result::fail (getLocation (table, row, Id::structure.toString())
-                                       + Id::diagnosticSeparator + text::Diagnostics::failNotFound);
-
-        const auto alias { jam::Format::getPreColon (head->getAllSubText()).trim() };
-
-        if (model.getValue (row, alias).isEmpty())
-            return juce::Result::fail (getLocation (table, row, Id::structure.toString())
-                                       + Id::diagnosticSeparator + text::Diagnostics::failAliasMissing
-                                       + Id::diagnosticSeparator + alias);
-
-        for (auto* child : wrap)
-            if (child->isTag (Id::blockquote))
-                if (const auto nested { isWrapHead (model, table, row, *child) };
-                    not nested.wasOk())
-                    return nested;
-
-        return juce::Result::ok();
-    }
-
     static juce::Result isStructure (const Model& model)
     {
         for (auto* table : model.getTables())
@@ -301,14 +243,15 @@ struct Validator : jam::MarkdownValidator
                         for (auto* block : *structure)
                             if (block->isTag (Id::blockquote))
                             {
-                                if (const auto result { isWrapHead (model, *table, *row, *block) };
+                                if (const auto result { TemplateDocument::isWrapHead (
+                                        model, *table, *row, *block) };
                                     not result.wasOk())
                                     return result;
 
                                 const auto origin { *table->get<juce::String> (Id::path) };
                                 const auto file { model.getValue (
                                     origin, model.getTableValue (*row, Id::file)) };
-                                auto* outermost { getOutermostWrap (*block) };
+                                auto* outermost { TemplateDocument::getOutermostWrap (*block) };
 
                                 if (not outermostByFile.contains (file))
                                 {
@@ -344,9 +287,9 @@ struct Validator : jam::MarkdownValidator
                                        + text::Diagnostics::failTableMissing);
 
         Element& indexTable { *indexTables.at (0) };
-        const auto markdownExtension { juce::String::charToString (chars::dot) + extensions::md };
-        const auto templateExtension { juce::String::charToString (chars::dot)
-                                       + extensions::cast };
+        const auto markdownExtension { juce::String::charToString (Chars::dot) + Extensions::md };
+        const auto templateExtension { juce::String::charToString (Chars::dot)
+                                       + Extensions::cast };
 
         for (auto* row : model.getTableRows (indexTable))
         {
@@ -406,7 +349,7 @@ struct Validator : jam::MarkdownValidator
                     {
                         const auto cellText { cell->getAllSubText() };
 
-                        if (cellText.startsWithChar (chars::at))
+                        if (cellText.startsWithChar (Chars::at))
                         {
                             const auto alias { jam::Format::getPreColon (cellText) };
                             const auto indexTables { model.getTables (Id::index) };
@@ -469,7 +412,7 @@ struct Validator : jam::MarkdownValidator
                                                    + Id::diagnosticSeparator + Id::unique
                                                    + Id::diagnosticSeparator
                                                    + text::Diagnostics::failDuplicate + value
-                                                   + juce::String::charToString (chars::doubleQuote));
+                                                   + juce::String::charToString (Chars::doubleQuote));
 
                     seen.add (value);
                 }

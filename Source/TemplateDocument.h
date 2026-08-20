@@ -129,7 +129,7 @@ struct TemplateDocument : jam::Document, jam::Document::Writer
                         if (auto text { document.root->getAllSubText() }; text.isNotEmpty())
                         {
                             text = text.trimCharactersAtEnd (
-                                juce::String::charToString (chars::newline));
+                                juce::String::charToString (Chars::newline));
                             texts.addIfNotAlreadyThere (text, false);
                         }
                     }
@@ -137,7 +137,228 @@ struct TemplateDocument : jam::Document, jam::Document::Writer
             }
         }
 
-        return texts.joinIntoString (juce::String::charToString (chars::newline), 0, -1);
+        return texts.joinIntoString (juce::String::charToString (Chars::newline), 0, -1);
+    }
+
+    static juce::String getContent (const Model& model, Element& row, const juce::String& value)
+    {
+        const auto castExtension { juce::String::charToString (Chars::dot) + Extensions::cast };
+
+        if (value.endsWith (castExtension))
+            return getOrCreate (model.getOutput (value))
+                       .getExpansion (model, row, Id::body, value)
+                       .trimCharactersAtEnd (juce::String::charToString (Chars::newline));
+
+        return value;
+    }
+
+    static constexpr int indentWidth { 4 };
+
+    static jam::Array<Element*> getWraps (const Model& model, Element& row)
+    {
+        jam::Array<Element*> wraps;
+
+        if (auto* structure { model.getStructure (row) })
+        {
+            bool hasTopLevelScope { false };
+
+            for (auto* block : *structure)
+                if (block->isTag (Id::p) and not block->parent->isTag (Id::blockquote))
+                {
+                    const auto alias { jam::Format::getPreColon (block->getAllSubText()).trim() };
+
+                    if (alias.startsWithChar (Chars::at) or alias.startsWithChar (Chars::hash))
+                        hasTopLevelScope = true;
+                }
+
+            if (hasTopLevelScope)
+                wraps.add (structure);
+
+            Element* wrap { nullptr };
+
+            for (auto* block : *structure)
+                if (block->isTag (Id::blockquote))
+                    wrap = block;
+
+            while (wrap != nullptr)
+            {
+                wraps.add (wrap);
+                Element* nested { nullptr };
+
+                for (auto* block : *wrap)
+                    if (block->isTag (Id::blockquote))
+                        nested = block;
+
+                wrap = nested;
+            }
+        }
+
+        return wraps;
+    }
+
+    static juce::String getWrapAlias (const Model& model, Element& wrap)
+    {
+        juce::String alias;
+
+        for (auto* block : wrap)
+            if (block->isTag (Id::p))
+                alias = jam::Format::getPreColon (block->getAllSubText()).trim();
+
+        return alias;
+    }
+
+    static jam::HashMap<juce::Identifier, juce::String>
+    getTokens (const Model& model, Element& row, Element& wrap)
+    {
+        jam::HashMap<juce::Identifier, juce::String> tokens;
+        bool afterScopeParagraph { wrap.isTag (Id::blockquote) };
+
+        const auto getBinding = [&model, &row] (const juce::String& value) -> juce::String
+        {
+            if (value.startsWithChar (Chars::at)
+                and jam::Format::getPostColon (value).containsChar (Chars::colon))
+                return model.getEntry (row, value);
+
+            if (value.startsWithChar (Chars::at))
+            {
+                const auto symbol { model.getValue (row, value) };
+                return getContent (model, row, symbol.isNotEmpty() ? symbol : value);
+            }
+
+            return value;
+        };
+
+        for (auto* block : wrap)
+        {
+            if (block->isTag (Id::p))
+            {
+                const auto head { block->getAllSubText() };
+                const auto alias { jam::Format::getPreColon (head).trim() };
+
+                if (not afterScopeParagraph
+                    and (alias.startsWithChar (Chars::at) or alias.startsWithChar (Chars::hash)))
+                    afterScopeParagraph = true;
+
+                if (afterScopeParagraph)
+                    tokens.try_emplace (
+                        Id::name, getBinding (jam::Format::getPostColon (head).trim()));
+            }
+            else if (block->isTag (Id::ul) and afterScopeParagraph)
+            {
+                for (auto* item : *block)
+                    if (item->isTag (Id::li))
+                    {
+                        const auto text { item->getAllSubText() };
+                        const auto key { jam::Format::getPreColon (text).trim() };
+                        const auto value { jam::Format::getPostColon (text).trim() };
+                        tokens.try_emplace (juce::Identifier (key), getBinding (value));
+                    }
+            }
+            else if (block->isTag (Id::blockquote))
+            {
+                const auto indent { juce::String::repeatedString (
+                    juce::String::charToString (Chars::space), indentWidth) };
+
+                for (auto* contentBlock : *block)
+                    if (contentBlock->isTag (Id::ul))
+                        for (auto* item : *contentBlock)
+                            if (item->isTag (Id::li))
+                            {
+                                const auto text { item->getAllSubText() };
+                                const auto key { jam::Format::getPreColon (text).trim() };
+                                const auto value { jam::Format::getPostColon (text).trim() };
+                                const auto bound { getBinding (value) };
+                                const auto indented { indent
+                                                      + bound.replace (
+                                                          juce::String::charToString (
+                                                              Chars::newline),
+                                                          juce::String::charToString (
+                                                              Chars::newline)
+                                                              + indent) };
+                                tokens.try_emplace (juce::Identifier (key), indented);
+                            }
+            }
+        }
+
+        if (tokens.contains (Id::name))
+        {
+            const auto marker { Id::tripleColon + Id::name.toString() + Id::tripleColon };
+            const auto name { tokens.at (Id::name) };
+
+            for (auto& [tokenKey, tokenValue] : tokens)
+                if (tokenKey != Id::name and tokenValue.contains (marker))
+                    tokenValue = tokenValue.replace (marker, name);
+        }
+
+        return tokens;
+    }
+
+    static Element* getOutermostWrap (Element& wrap)
+    {
+        Element* outermost { &wrap };
+
+        for (auto* child : wrap)
+            if (child->isTag (Id::blockquote))
+                outermost = getOutermostWrap (*child);
+
+        return outermost;
+    }
+
+    static juce::Result isWrapHead (const Model& model, Element& table, Element& row, Element& wrap)
+    {
+        Element* head { nullptr };
+        int headCount { 0 };
+
+        for (auto* child : wrap)
+            if (child->isTag (Id::p))
+            {
+                head = child;
+                ++headCount;
+            }
+
+        if (headCount == 0)
+        {
+            bool hasNestedWrap { false };
+            bool hasContentTokens { false };
+
+            for (auto* child : wrap)
+            {
+                if (child->isTag (Id::blockquote))
+                    hasNestedWrap = true;
+
+                if (child->isTag (Id::ul))
+                    hasContentTokens = true;
+            }
+
+            if (not hasNestedWrap and not hasContentTokens)
+                return juce::Result::fail (
+                    jam::MarkdownValidator::getLocation (table, row, Id::structure.toString())
+                    + Id::diagnosticSeparator + text::Diagnostics::failNotFound);
+        }
+
+        if (headCount > 1)
+            return juce::Result::fail (
+                jam::MarkdownValidator::getLocation (table, row, Id::structure.toString())
+                + Id::diagnosticSeparator + text::Diagnostics::failNotFound);
+
+        if (headCount == 1)
+        {
+            const auto alias { jam::Format::getPreColon (head->getAllSubText()).trim() };
+
+            if (model.getValue (row, alias).isEmpty())
+                return juce::Result::fail (
+                    jam::MarkdownValidator::getLocation (table, row, Id::structure.toString())
+                    + Id::diagnosticSeparator + text::Diagnostics::failAliasMissing
+                    + Id::diagnosticSeparator + alias);
+        }
+
+        for (auto* child : wrap)
+            if (child->isTag (Id::blockquote))
+                if (const auto nested { isWrapHead (model, table, row, *child) };
+                    not nested.wasOk())
+                    return nested;
+
+        return juce::Result::ok();
     }
 
 protected:
@@ -259,14 +480,14 @@ private:
             if (child->id == Id::text)
             {
                 auto content { *child->get<juce::String> (Id::text) };
-                const auto hasBlankLine { content.startsWithChar (chars::newline)
+                const auto hasBlankLine { content.startsWithChar (Chars::newline)
                                           and content.length() > 1
-                                          and content[1] == chars::newline };
+                                          and content[1] == Chars::newline };
 
-                if (elidesLeadingNewline and content.startsWithChar (chars::newline))
+                if (elidesLeadingNewline and content.startsWithChar (Chars::newline))
                     content = content.substring (1);
 
-                if (elidesBlankLine and hasBlankLine and content.startsWithChar (chars::newline))
+                if (elidesBlankLine and hasBlankLine and content.startsWithChar (Chars::newline))
                     content = content.substring (1);
 
                 elidesLeadingNewline = false;
@@ -283,7 +504,7 @@ private:
                 const auto afterLineEnd { parent.lastChild != nullptr
                                           and parent.lastChild->id == Id::text
                                           and parent.lastChild->get<juce::String> (Id::text)
-                                                  ->endsWithChar (chars::newline) };
+                                                  ->endsWithChar (Chars::newline) };
 
                 elidesLeadingNewline = text.isEmpty() and atChunkStart;
                 elidesBlankLine = text.isEmpty() and (atChunkStart or afterLineEnd);
@@ -303,8 +524,8 @@ private:
             {
                 const auto lastCharacter { last.getLastCharacter() };
 
-                if (lastCharacter == chars::space or lastCharacter == chars::newline
-                    or lastCharacter == chars::tab)
+                if (lastCharacter == Chars::space or lastCharacter == Chars::newline
+                    or lastCharacter == Chars::tab)
                     last = last.dropLastCharacters (1);
             }
         }
@@ -353,7 +574,7 @@ private:
             value = tokens.contains (node.id) ? tokens.at (node.id) : juce::String();
         }
 
-        const auto castExtension { juce::String::charToString (chars::dot) + extensions::cast };
+        const auto castExtension { juce::String::charToString (Chars::dot) + Extensions::cast };
         juce::String symbolPath;
 
         if (value.endsWith (castExtension))
@@ -434,7 +655,7 @@ private:
                               const jam::HashMap<juce::Identifier, juce::String>& tokens) const
     {
         const juce::Identifier lineBreakColumn { node.id.toString()
-                                                 + juce::String::charToString (chars::space)
+                                                 + juce::String::charToString (Chars::space)
                                                  + Id::lineBreak.toString() };
         const auto separatorPath { model.getTableValue (row, lineBreakColumn) };
         const auto separator { separatorPath.isNotEmpty()
@@ -500,7 +721,7 @@ private:
     {
         return source.compare (position, tripleColon.size(), tripleColon) == 0
                and (position + tripleColon.size() >= source.size()
-                    or source[position + tripleColon.size()] != chars::colon);
+                    or source[position + tripleColon.size()] != Chars::colon);
     }
 
     static Document::Token getMarker (const std::string& source, size_t cursor)
@@ -530,7 +751,7 @@ private:
                 }
 
                 if (tokenType != map::TemplateTokenType::placeholder and position < source.size()
-                    and source[position] == chars::newline)
+                    and source[position] == Chars::newline)
                     ++position;
 
                 Document::Token token (cursor, position, tokenType);
