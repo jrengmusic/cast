@@ -32,13 +32,12 @@ struct Processor
         static const jam::MarkdownValidator validator;
 
         jam::Array<juce::File> tableFiles { documentFile };
-        const auto markdownExtension { juce::String::charToString (Chars::dot) + Extensions::md };
 
         for (auto* row : model->getTableRows (Id::index))
         {
             const auto pathCell { model->getTableValue (*row, Id::symbol) };
 
-            if (pathCell.endsWith (markdownExtension))
+            if (juce::File::createFileWithoutCheckingPath (pathCell).hasFileExtension (Extensions::md))
                 tableFiles.addIfNotAlreadyThere (model->getOutput (pathCell));
         }
 

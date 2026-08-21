@@ -184,19 +184,21 @@ struct Validator : jam::MarkdownValidator
 
         for (auto* table : model.getTables())
             if (isOutputTable (model, *table))
-            {
-                const auto firstColumn { *model.getTableHeaders (*table).begin() };
-
                 for (auto* row : model.getTableRows (*table))
-                {
-                    const auto bodyAlias { model.getTableValue (*row, firstColumn) };
-                    const auto& document { TemplateDocument::getOrCreate (
-                        model.getFile (*row, bodyAlias)) };
+                    for (auto* wrap : TemplateDocument::getWraps (model, *row))
+                    {
+                        const auto alias { TemplateDocument::getWrapAlias (model, *wrap) };
 
-                    for (const auto& placeholder : document.getPlaceholders (model, *row))
-                        allPlaceholders.addIfNotAlreadyThere (placeholder);
-                }
-            }
+                        if (alias.isNotEmpty())
+                        {
+                            const auto& document {
+                                TemplateDocument::getOrCreate (model.getFile (*row, alias))
+                            };
+
+                            for (const auto& placeholder : document.getPlaceholders())
+                                allPlaceholders.addIfNotAlreadyThere (placeholder);
+                        }
+                    }
 
         return allPlaceholders;
     }
@@ -211,8 +213,7 @@ struct Validator : jam::MarkdownValidator
                 const auto& firstColumn { *columns.begin() };
 
                 const jam::Strings reserved { firstColumn, Id::file.toString(),
-                                              Id::structure.toString(), Id::separator.toString(),
-                                              Id::capacity.toString(), Id::special.toString() };
+                                              Id::structure.toString(), Id::separator.toString() };
 
                 for (auto* row : model.getTableRows (*table))
                     for (const auto& column : columns)
@@ -287,9 +288,6 @@ struct Validator : jam::MarkdownValidator
                                        + text::Diagnostics::failTableMissing);
 
         Element& indexTable { *indexTables.at (0) };
-        const auto markdownExtension { juce::String::charToString (Chars::dot) + Extensions::md };
-        const auto templateExtension { juce::String::charToString (Chars::dot)
-                                       + Extensions::cast };
 
         for (auto* row : model.getTableRows (indexTable))
         {
@@ -299,14 +297,14 @@ struct Validator : jam::MarkdownValidator
                 return juce::Result::fail (getLocation (indexTable, *row, Id::symbol.toString())
                                            + Id::diagnosticSeparator + text::Diagnostics::failNotFound);
 
-            if (pathCell.endsWith (markdownExtension)
+            if (juce::File::createFileWithoutCheckingPath (pathCell).hasFileExtension (Extensions::md)
                 and not model.getOutput (pathCell).existsAsFile())
                 return juce::Result::fail (getLocation (indexTable, *row, Id::symbol.toString())
                                            + Id::diagnosticSeparator
                                            + text::Diagnostics::failOutputMissing + Id::diagnosticSeparator
                                            + pathCell);
 
-            if (pathCell.endsWith (templateExtension)
+            if (juce::File::createFileWithoutCheckingPath (pathCell).hasFileExtension (Extensions::cast)
                 and not model.getOutput (pathCell).existsAsFile())
                 return juce::Result::fail (getLocation (indexTable, *row, Id::symbol.toString())
                                            + Id::diagnosticSeparator

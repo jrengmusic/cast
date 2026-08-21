@@ -417,6 +417,62 @@ Converging cast's output (`jam/diff/`) to byte-identical with the oracle (`jam/g
 2. If identical: jam_Text.h CONVERGED — move to next file (jam_Identifiers.h)
 3. If not: read the diff, fix the residual (likely another spacing law edge case)
 
+## Sprint 8: Render Engine Rewrite + jam_Bimaps Unification ✅ (checkpoint — Steps 1-3 of PLAN-render-unification.md; converge/fixpoint/audit pending)
+
+**Date:** 2026-08-21 → 2026-08-22
+**Duration:** multi-session
+
+### Agents Participated
+- COUNSELOR: orchestration; SPEC (Source/HELP.md) + PLAN-render-unification.md rewritten and amended live with every ARCHITECT ruling; API read-first before delegation (jam_Document.h, jam_MarkdownDocument.h, jam_Format, LookupTable, lexicon); rulings translation; validation of every BRIEF against oracle bytes
+- Engineer (engine): TemplateDocument : jam::MarkdownDocument + Writer : jam::Document::Writer full rewrite — cached placeholders, AST output document, parallel runJobs parse+write, widened empty-replace, First-row law, first-order table-ref expansion, language-aware comment family, extension-test fix
+- Engineer (data): CAST.md/mermaid.md migration — bimap decomposition (@mapEntry/@methods), 22-row Enums→Bimaps retarget, 6 policy tables, symbol-only cells, all 22 jam_MermaidTables constructs, dead-table/backup drain, brief slot wiring
+- Engineer (jam redesign): fallback purge (LookupTable defaultValue), bare-constant deletion, optimistic MermaidDiagram call sites, jam_Bimaps merge + 6 policy Bimaps + symbolic packs, PLAN-mermaid-style.md Revision 3
+- Auditor: not run — Step 6 executes after Steps 4-5 (ARCHITECT build → byte convergence → fixpoint)
+
+### Files Modified (cast repo)
+- `Source/TemplateDocument.h` — full rewrite: inherits jam::MarkdownDocument; parse-time `placeholders` cache; build over getSource() text via Format::hasPlaceholder/replaceholder; empty token = marker+one-preceding-whitespace replace; getReplacement (ratified rename) with First-row-law fallthrough; getExpansion first-order `@alias:table` branch via Model::getTables
+- `Source/Writer.h` — full rewrite: inherits jam::Document::Writer; output document = complete AST (banner/rows/separators as children); getText = pure getAllSubText; emission via inherited toFile; runJobs parse pre-pass + write fan-out
+- `Source/Operators.h` — comment family language-aware (map::commentSyntax by target extension); brief transform on Id::brief (empty input still emits `/** @brief  */`); getTransformed 3-arg, one homogeneous Function::Map
+- `Source/Model.h`, `Source/Validator.h`, `Source/Processor.h` — extension tests via juce::File::hasFileExtension (dotted/dotless always-false fix); no other churn
+- `Source/generated/HashMaps.h` — clangComment gains Id::brief entry (interim bootstrap)
+- `Source/HELP.md` — SPEC rulings: empty-token widened replace, comment token generalization, language-aware formatting
+- `PLAN-render-unification.md` — locked decisions amended: universal Scope/Definition/Specialised, First-row law generalization, css-SSOT dead tables, optimistic-deterministic ruling, jam_Bimaps unification, 12-file gate
+- `cast/tables/comments.md` — clang comment gains `brief` → `@brief` row
+
+### Files Modified (jam repo)
+- `generated/jam_Bimaps.h` — 22 jam_Enums structs merged (appended block); 6 policy Bimaps after NodeShape (ConstructionPolicy, HitTestClassification, SizeAdjustPolicy, MindmapSizePolicy, BlockSizePolicy, OverlayType; `none` = 0-row); 92 constructs total
+- `generated/jam_Enums.h` — DELETED (unification: EVERYTHING is jam_Bimaps)
+- `generated/jam_Generated.h` — jam_Enums include dropped
+- `generated/jam_MermaidTables.h` — bare constants deleted (gantt scalars, sentinel); defaults = first-row values; packs symbolic (policy + OverlayType enums); plain-// prose blocks trimmed; row-0=default reconciliation
+- `jam_core/utils/jam_LookupTable.h` — `fallbackValue` → `defaultValue`; doxygen rewritten to default-value/total-function language
+- `jam_mermaid/diagram/jam_MermaidDiagram.h` — optimistic call sites (:3974 grammar membership, :5592 sentinel comparison deleted); ganttMillisecondsPerDay relocated to consuming class; stale doxygen fixed
+- `cast/CAST.md` — 4-column manifest migration completed; bimap dual-expansion decomposition; 22-row retarget + reorder; 6 policy rows; all 22 jam_MermaidTables constructs (using-line via Definition slots; one `- brief:` binding); dead rows/aliases drained; 154 rows, 135 wirings all resolving
+- `cast/tables/mermaid.md` — symbol-only cells; 6 policy vocabulary tables; dead census tables deleted (MermaidGeometry, ShapeVertices, ShapeCornerRadii — mermaid.css is metrics SSOT); legends dissolved into tables
+- `cast/template/` — MapEntry.cast + Methods.cast NEW (oracle-byte fragments); Scope.cast + LookupTable.cast gain `:::comment:brief:::`; Definition.cast gains leading `:::brief:brief:::` + `comment` token rename; Bimap.cast + Include.cast DELETED
+- `cast/tables/text.md`, `tables/chars.md` — namespace table; doxygen→comment token rename
+- `PLAN-mermaid-style.md` — Revision 3: no-fallback/no-bare-constant locked decisions + unification note
+
+### Alignment Check
+- [x] BLESSED principles followed — framework API to fullest (MarkdownDocument/Document::Writer inheritance, replaceholder/joinIntoString/commentSyntax direct lookup); SSOT (one construct, ONE HEADER, symbol-only cells, css as metrics SSOT); D (optimistic tables, no fallback, no sentinel membership); delete-first throughout
+- [x] NAMES.md adhered — every new name ARCHITECT-ratified (placeholder column, getReplacement, defaultValue, six policy Bimaps, @mapEntry/@methods, brief token, `none` 0-row); fallback vocabulary purged
+- [x] MANIFESTO.md principles applied
+- [ ] Auditor sweep — pending by plan design (Step 6 runs after Step 4 convergence + Step 5 fixpoint; ARCHITECT builds)
+- [ ] Doxygen pass — post-audit per Code Hygiene
+
+### Problems Solved
+- Hand-rolled engine eliminated: pinned class contract (TemplateDocument : MarkdownDocument, Writer : Document::Writer), no-scanner inversion, only runJobs survived teardown
+- CommonMark blank-line consumption vs byte fidelity: substitution surface = inherited getSource() (ARCHITECT Option 1)
+- Empty-token bytes: replacement model (marker + one preceding whitespace), no removal machinery
+- Always-false extension comparisons (dotted vs dotless) — COUNSELOR-introduced, disclosed, fixed at all 8 sites
+- Fallback anti-pattern excised end-to-end: vocabulary, bare constants, sentinel membership tests — optimistic deterministic per MANIFESTO D
+- Grammar gaps closed with zero engine additions: using-lines via Definition slots, char keys as expression cells, symbol cells compiler-derived, scalars dissolved by oracle redesign
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None
+
 ## Sprint 7: Lexicon Canon Redesign — CAST.md / lexicon.md / relations.md ✅ (checkpoint)
 
 **Date:** 2026-08-09

@@ -39,9 +39,6 @@ public:
             if (not indexTables.isEmpty())
             {
                 const auto indexRows { document->getTableRows (*indexTables.at (0)) };
-                const auto markdownExtension {
-                    juce::String::charToString (Chars::dot) + Extensions::md
-                };
 
                 jam::Array<juce::File> tableFiles;
                 jam::Array<juce::String> tableOrigins;
@@ -52,7 +49,9 @@ public:
                 {
                     const auto pathCell { document->getTableValue (*indexRow, Id::symbol) };
 
-                    if (pathCell.endsWith (markdownExtension) and pathCell != manifestOrigin)
+                    if (juce::File::createFileWithoutCheckingPath (pathCell).hasFileExtension (
+                            Extensions::md)
+                        and pathCell != manifestOrigin)
                     {
                         tableFiles.add (parent.getChildFile (pathCell));
                         tableOrigins.add (pathCell);
@@ -144,33 +143,44 @@ public:
                   : nullptr;
     }
 
-    jam::HashMap<juce::Identifier, juce::String> getListDirectives (Element& row) const
+    jam::HashMap<juce::Identifier, juce::String> getSource (Element& row) const
     {
-        jam::HashMap<juce::Identifier, juce::String> directives;
+        return getSource (row, 0);
+    }
 
-        if (auto* listCell { getTableCell (row, Id::list) })
+    jam::HashMap<juce::Identifier, juce::String> getSource (Element& row, int depth) const
+    {
+        jam::HashMap<juce::Identifier, juce::String> wiring;
+
+        if (auto* placeholderCell { getTableCell (row, Id::placeholder) })
         {
-            for (auto* block : *listCell)
-            {
-                if (block->isTag (Id::ul))
-                {
-                    for (auto* item : *block)
-                    {
-                        if (item->isTag (Id::li))
-                        {
-                            const auto text { item->getAllSubText() };
-                            const auto key { jam::Format::getPreColon (text).trim() };
-                            const auto value { jam::Format::getPostColon (text).trim() };
-                            directives.try_emplace (juce::Identifier (key), value);
-                        }
-                    }
+            Element* scope { placeholderCell };
 
-                    return directives;
-                }
+            for (int scopeDepth { 0 }; scopeDepth < depth and scope != nullptr; ++scopeDepth)
+            {
+                Element* nested { nullptr };
+
+                for (auto* block : *scope)
+                    if (block->isTag (Id::blockquote))
+                        nested = block;
+
+                scope = nested;
             }
+
+            if (scope != nullptr)
+                for (auto* block : *scope)
+                    if (block->isTag (Id::ul))
+                        for (auto* item : *block)
+                            if (item->isTag (Id::li))
+                            {
+                                const auto text { item->getAllSubText() };
+                                const auto key { jam::Format::getPreColon (text).trim() };
+                                const auto value { jam::Format::getPostColon (text).trim() };
+                                wiring.try_emplace (juce::Identifier (key), value);
+                            }
         }
 
-        return directives;
+        return wiring;
     }
 
     bool isOutputTable (Element& table) const noexcept
@@ -289,14 +299,8 @@ public:
 
     bool isTemplatePath (Element& row, juce::StringRef cell) const noexcept
     {
-        return getValue (row, cell).endsWith (
-            juce::String::charToString (Chars::dot) + Extensions::cast);
-    }
-
-    bool isReference (Element& row, juce::StringRef cell) const noexcept
-    {
-        const juce::String cellText { cell };
-        return cellText.containsChar (Chars::colon) and getTables (row, cell) != nullptr;
+        return juce::File::createFileWithoutCheckingPath (getValue (row, cell))
+            .hasFileExtension (Extensions::cast);
     }
 
 private:
