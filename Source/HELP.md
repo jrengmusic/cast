@@ -83,8 +83,6 @@ When `lexicon.md` is present in the tables directory and a patched source table'
 Templates are plain text files with the `.cast` extension containing exactly one special construct: the tripleColon marker. There are no loops, no `if` statements, and no expressions.
 
 *   **Placeholder:** `:::name:::` — replaced by the same-named cell of the row being built. `:::name:transform:::` applies a registered transform to the resolved cell (Transform Vocabulary, below).
-*   **Region:** `:::name:begin:::` … `:::name:end:::` — the body between the markers repeats once per row of the region's source table. Region markers consume their trailing newline; placeholders do not.
-*   **Marker rule:** a marker opens at `:::` not followed by another `:`; it closes at the leftmost `:::`. The interior splits at its first `:` into name and word — the word is either a registered transform (placeholder) or a rule keyword (`begin` / `end`).
 *   **Separator:** consecutive rows sharing an output file are joined by the text named in the row's `lineBreak` column — a `#alias:table:entry` reference into a text table; empty cell = no separator.
 *   **Selection is emergent:** a source row expands only when every jack the region references carries a signal (non-empty cell); an empty referenced cell drops the row.
 *   **Empty-token whitespace rule:** when a token binding resolves to empty text, the token AND exactly one whitespace separator immediately preceding it in the fragment text are both elided. `:::keyword::: :::type::: :::name:::` with an empty `type` emits `keyword name`, not `keyword  name`. An empty `:::prologue:::` followed by a newline emits no blank line.
@@ -237,7 +235,7 @@ Build and write are the only two operations. An engine component that scans a do
 
 ## Cookbook: Table + Template → Code
 
-Every generated construct is plain text substitution — nothing more. These examples show each pairing end to end. In all of them an `## output` row wires the circuit: its list column holds the source table as `name:table`, and the region in the body template matching that column's name collects the expanded rows.
+Every generated construct is plain text substitution — nothing more. These examples show each pairing end to end. In all of them an `## output` row wires the circuit: its list column holds the source table as `name:table`.
 
 ### 1. Identifier constants — declaration table + scalar placeholders
 
@@ -334,18 +332,6 @@ One row per struct: six rows share `#jam_Operators`, joined by the `lineBreak` t
 | ---- | ----- |
 | main | 0     |
 | alt  | 1     |
-```
-```cpp
-// Bimap.cast (excerpt)
-struct :::list:toPascal::: : public jam::Bimap<:::list:toPascal:::, juce::String, int>
-{
-    enum value : int
-    {
-:::list:begin:::
-        :::key:toCamel::: = :::value:::,
-:::list:end:::
-    };
-};
 ```
 ```cpp
 struct Screen : public jam::Bimap<Screen, juce::String, int>

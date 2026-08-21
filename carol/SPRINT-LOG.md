@@ -111,6 +111,51 @@
 
 ## SPRINT HISTORY
 
+## Handoff to COUNSELOR: Definition≡Scope Render Unification
+
+**From:** COUNSELOR
+**Date:** 2026-08-21
+**Status:** Ready for Implementation — blocked on ARCHITECT's in-flight table edits + 3 design confirmations. Plan written: `PLAN-render-unification.md` (repo root).
+
+### Context
+Continuing the jam convergence (cast `jam/diff/` → byte-identical with oracle `jam/generated/`). This session did NOT converge a file — it resolved the ENGINE-LEVEL design that unblocks the map/bimap/lookup files (and fixes why all 13 files currently differ). Root cause of divergence: the engine COLLAPSES list bodies onto one physical line (joins children by empty string, not newline), plus two redundant list mechanisms (region markers + source-expansion) and an emit-then-repair elision machine. ARCHITECT's design, reached this session: **Definition and Scope are ONE fragment**, differing only in AXIS — a Definition is one horizontal declaration (`type name { list }`, cells joined by `, `); a Scope stacks declarations vertically (newline-joined body; sibling breaks by `//===`). Oracle is uniformly vertical. `HELP.md` becomes the governing SPEC of this design.
+
+### Completed
+- Deleted dead `jam::Format::getSection`/`replaceSection` (the `:::name:begin:::`/`:::end:::` region-marker builders) + the region-marker docs in `cast/Source/HELP.md` (Engineer, verified zero residue).
+- Established the full unified design with ARCHITECT (Definition≡Scope, two axes; `separator` column replacing `lineBreak` with `- line:`/`- list:`; `## break` table; `namespace jam` outermost drops inner `jam::`; maps decompose to Scope+Definition; region + elision deleted; tables already correct — only expression changes; data dictates logic).
+- Wrote `PLAN-render-unification.md` (repo root) — 7 steps, byte-diff + fixpoint gate.
+- Confirmed via reads: oracle is uniformly VERTICAL (Text/Identifiers/Generated/Chars/HashMaps one-per-line); the "horizontal" in `diff/` is the collapse bug, NOT truncation (corrected a Pathfinder mis-read). Sigil is `@` exclusively (HELP.md's `#` is stale). `## output` has NO `code` column (`list | structure | separator | file`).
+
+### Remaining
+- Steps 1-7 of `PLAN-render-unification.md`: HELP.md SPEC rewrite → Definition/Scope templates → engine (vertical body-join kills collapse; horizontal `- list:` join; delete region + elision; Writer `build*`→get-nouns) → converge vertical files (Identifiers/Text/Chars/Generated/Operators) → conform maps (HashMaps/LookupTables/Bimaps/Enums/MermaidTables/Entities) → delete region vocabulary + resolve `jam_MermaidGeometry` (absent from oracle) + fixpoint → Auditor.
+
+### Key Decisions
+- **Definition≡Scope, axis is the only difference** — Definition horizontal (`:::list:::` cells joined by `- list:`/comma), Scope vertical (items newline-joined, sibling break `- line:`/`//===`).
+- **`separator` column** (was `lineBreak`), structured `- line:` (vertical) / `- list:` (horizontal); `## break` table (`text.md:22`): `line`=`//===`, `comma`=`, `.
+- **`namespace jam` outermost** → inner types drop `jam::`.
+- **Maps decompose** to Scope+Definition; delete `Bimap`/`HashMap`/`LookupTable.cast` + region mechanism.
+- **HELP.md is the governing SPEC**; **tables are already correct** — manifest/templates/engine express the design.
+- Definition body slot → `:::list:::`; Writer `build*` → get-nouns (ARCHITECT-ratified).
+
+### Files Modified
+- `jam/jam_core/text/jam_Format.h` / `jam_Format.cpp` — `getSection`/`replaceSection` removed
+- `cast/Source/HELP.md` — region-marker docs removed (full SPEC rewrite pending, Step 1)
+- `cast/PLAN-render-unification.md` — new plan
+- (ARCHITECT, in-flight) `jam/cast/tables/text.md` (`## break`, `## english`, `@text:*` aliases), `jam/cast/CAST.md` (`separator` column), `jam/cast/tables/lexicon.md` (+ `.bak`)
+
+### Open Questions
+1. **Entry terminator vs comma** — `Definition.cast` ends literal `;`; map entries end `,`. Is the `,` the `- list:`/`- line:` separator (join) or a terminator slot? (ARCHITECT defining via `separator`/`## break`.)
+2. **Structured `separator` not applied** — CAST.md cells are flat (`@text:break:line`/empty); the `- line:`/`- list:` form is target.
+3. **Bimap** — map-init + enum + `getDefault`/`get` methods + singleton in one struct: pure Scope+Definition, or a retained specialized fragment for the fixed non-list text?
+4. **Sigil** — HELP.md `#` vs tables `@` (plan assumes `@`).
+5. **Body slot name** — Scope `:::body:::` vs Definition `:::list:::` — unify or keep distinct.
+
+### Next Steps
+1. Let ARCHITECT's table edits settle (text.md/separator/lexicon); resolve the 5 open questions.
+2. Step 1: rewrite `Source/HELP.md` as the SPEC (delegate to @Engineer).
+3. Steps 2-3: Definition/Scope templates + engine (delete region + elision, vertical/horizontal join) to @Engineer.
+4. Converge file-by-file with `cmp` gate; fixpoint; @Auditor once at end.
+
 ## Handoff to COUNSELOR: jam_Chars.h Convergence + Structural Grammar SSOT
 
 **From:** COUNSELOR

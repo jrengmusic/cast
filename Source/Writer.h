@@ -60,7 +60,9 @@ struct Writer
 private:
     const Model& model;
 
-    juce::String getBinding (Model::Element& row, const juce::String& value) const
+    juce::String getBinding (Model::Element& row,
+                             const juce::String& value,
+                             const juce::Identifier& jack) const
     {
         if (value.startsWithChar (Chars::at)
             and jam::Format::getPostColon (value).containsChar (Chars::colon))
@@ -69,7 +71,8 @@ private:
         if (value.startsWithChar (Chars::at))
         {
             const auto symbol { model.getValue (row, value) };
-            return TemplateDocument::getContent (model, row, symbol.isNotEmpty() ? symbol : value);
+            return TemplateDocument::getContent (
+                model, row, symbol.isNotEmpty() ? symbol : value, jack);
         }
 
         return value;
@@ -101,7 +104,8 @@ private:
 
         const auto& wrapper { TemplateDocument::getOrCreate (
             model.getFile (row, TemplateDocument::getWrapAlias (model, wrap))) };
-        return wrapper.build (model, row, {}, tokens).root->getAllSubText();
+        return wrapper.build (model, row, {}, tokens).root->getAllSubText()
+                   .trimCharactersAtEnd (juce::String::charToString (Chars::newline));
     }
 
     juce::String buildRow (Model::Element& row) const
@@ -142,7 +146,7 @@ private:
             {
                 const auto lineBreakCell { model.getTableValue (*row, Id::lineBreak) };
                 const auto separator {
-                    lineBreakCell.isNotEmpty() ? getBinding (*row, lineBreakCell)
+                    lineBreakCell.isNotEmpty() ? getBinding (*row, lineBreakCell, Id::lineBreak)
                                                : juce::String()
                 };
                 code << separator << rowCode;

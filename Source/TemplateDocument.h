@@ -140,13 +140,16 @@ struct TemplateDocument : jam::Document, jam::Document::Writer
         return texts.joinIntoString (juce::String::charToString (Chars::newline), 0, -1);
     }
 
-    static juce::String getContent (const Model& model, Element& row, const juce::String& value)
+    static juce::String getContent (const Model& model,
+                                    Element& row,
+                                    const juce::String& value,
+                                    const juce::Identifier& jack)
     {
         const auto castExtension { juce::String::charToString (Chars::dot) + Extensions::cast };
 
         if (value.endsWith (castExtension))
             return getOrCreate (model.getOutput (value))
-                       .getExpansion (model, row, Id::body, value)
+                       .getExpansion (model, row, jack, value)
                        .trimCharactersAtEnd (juce::String::charToString (Chars::newline));
 
         return value;
@@ -213,7 +216,8 @@ struct TemplateDocument : jam::Document, jam::Document::Writer
         jam::HashMap<juce::Identifier, juce::String> tokens;
         bool afterScopeParagraph { wrap.isTag (Id::blockquote) };
 
-        const auto getBinding = [&model, &row] (const juce::String& value) -> juce::String
+        const auto getBinding = [&model, &row] (const juce::String& value,
+                                                const juce::Identifier& jack) -> juce::String
         {
             if (value.startsWithChar (Chars::at)
                 and jam::Format::getPostColon (value).containsChar (Chars::colon))
@@ -222,7 +226,7 @@ struct TemplateDocument : jam::Document, jam::Document::Writer
             if (value.startsWithChar (Chars::at))
             {
                 const auto symbol { model.getValue (row, value) };
-                return getContent (model, row, symbol.isNotEmpty() ? symbol : value);
+                return getContent (model, row, symbol.isNotEmpty() ? symbol : value, jack);
             }
 
             return value;
@@ -241,7 +245,8 @@ struct TemplateDocument : jam::Document, jam::Document::Writer
 
                 if (afterScopeParagraph)
                     tokens.try_emplace (
-                        Id::name, getBinding (jam::Format::getPostColon (head).trim()));
+                        Id::name,
+                        getBinding (jam::Format::getPostColon (head).trim(), Id::name));
             }
             else if (block->isTag (Id::ul) and afterScopeParagraph)
             {
@@ -251,7 +256,8 @@ struct TemplateDocument : jam::Document, jam::Document::Writer
                         const auto text { item->getAllSubText() };
                         const auto key { jam::Format::getPreColon (text).trim() };
                         const auto value { jam::Format::getPostColon (text).trim() };
-                        tokens.try_emplace (juce::Identifier (key), getBinding (value));
+                        tokens.try_emplace (
+                            juce::Identifier (key), getBinding (value, juce::Identifier (key)));
                     }
             }
             else if (block->isTag (Id::blockquote))
@@ -267,7 +273,7 @@ struct TemplateDocument : jam::Document, jam::Document::Writer
                                 const auto text { item->getAllSubText() };
                                 const auto key { jam::Format::getPreColon (text).trim() };
                                 const auto value { jam::Format::getPostColon (text).trim() };
-                                const auto bound { getBinding (value) };
+                                const auto bound { getBinding (value, juce::Identifier (key)) };
                                 const auto indented { indent
                                                       + bound.replace (
                                                           juce::String::charToString (
@@ -472,27 +478,68 @@ private:
                 Element& parent,
                 const jam::HashMap<juce::Identifier, juce::String>& tokens) const
     {
-        bool elidesLeadingNewline { false };
-        bool elidesBlankLine { false };
+        constexpr int lineIsVacant { 0 };
+        constexpr int lineIsBlank { 1 };
+        constexpr int lineIsContent { 2 };
+
+        jam::Strings assembledLines;
+        juce::Array<int> lineClassifications;
+
+        juce::String currentLineText;
+        bool currentLineHasPlaceholder { false };
+        bool currentLineHasNonEmptyPlaceholder { false };
+        bool currentLineHasNonWhitespaceLiteral { false };
+        bool pendingSpaceCollapse { false };
+
+        const auto finishLine = [&]
+        {
+            assembledLines.add (currentLineText);
+
+            if (currentLineHasPlaceholder)
+            {
+                if (currentLineHasNonEmptyPlaceholder or currentLineHasNonWhitespaceLiteral)
+                    lineClassifications.add (lineIsContent);
+                else
+                    lineClassifications.add (lineIsVacant);
+            }
+            else
+            {
+                if (currentLineHasNonWhitespaceLiteral)
+                    lineClassifications.add (lineIsContent);
+                else
+                    lineClassifications.add (lineIsBlank);
+            }
+
+            currentLineText.clear();
+            currentLineHasPlaceholder = false;
+            currentLineHasNonEmptyPlaceholder = false;
+            currentLineHasNonWhitespaceLiteral = false;
+        };
 
         for (auto* child : node)
         {
             if (child->id == Id::text)
             {
-                auto content { *child->get<juce::String> (Id::text) };
-                const auto hasBlankLine { content.startsWithChar (Chars::newline)
-                                          and content.length() > 1
-                                          and content[1] == Chars::newline };
+                const auto content { *child->get<juce::String> (Id::text) };
+                const auto segments { jam::Strings::fromLines (content) };
 
-                if (elidesLeadingNewline and content.startsWithChar (Chars::newline))
-                    content = content.substring (1);
+                for (int segmentIndex = 0; segmentIndex < segments.size(); ++segmentIndex)
+                {
+                    if (segmentIndex > 0)
+                        finishLine();
 
-                if (elidesBlankLine and hasBlankLine and content.startsWithChar (Chars::newline))
-                    content = content.substring (1);
+                    const auto segment { segments.at (segmentIndex) };
 
-                elidesLeadingNewline = false;
-                elidesBlankLine = false;
-                document.addText (parent, content);
+                    if (pendingSpaceCollapse and currentLineText.endsWithChar (Chars::space)
+                        and segment.startsWithChar (Chars::space))
+                        currentLineText = currentLineText.dropLastCharacters (1);
+
+                    pendingSpaceCollapse = false;
+                    currentLineText += segment;
+
+                    if (segment.trim().isNotEmpty())
+                        currentLineHasNonWhitespaceLiteral = true;
+                }
             }
             else
             {
@@ -500,35 +547,55 @@ private:
                                       ? getCell (model, row, sourceRow, columns, *child, tokens)
                                       : getText (model, row, sourceRow, columns, *child, tokens) };
 
-                const auto atChunkStart { parent.lastChild == nullptr };
-                const auto afterLineEnd { parent.lastChild != nullptr
-                                          and parent.lastChild->id == Id::text
-                                          and parent.lastChild->get<juce::String> (Id::text)
-                                                  ->endsWithChar (Chars::newline) };
+                currentLineHasPlaceholder = true;
+                currentLineText += text;
 
-                elidesLeadingNewline = text.isEmpty() and atChunkStart;
-                elidesBlankLine = text.isEmpty() and (atChunkStart or afterLineEnd);
-                elideEmptyToken (parent, text);
-                document.addText (parent, text);
+                if (text.isNotEmpty())
+                    currentLineHasNonEmptyPlaceholder = true;
+
+                pendingSpaceCollapse = text.isEmpty();
             }
         }
-    }
 
-    static void elideEmptyToken (Element& parent, const juce::String& text)
-    {
-        if (text.isEmpty() and parent.lastChild != nullptr and parent.lastChild->id == Id::text)
+        finishLine();
+
+        bool hasEmittedContent { false };
+        bool pendingBlank { false };
+        bool suppressNextBlank { false };
+        jam::Strings emittedLines;
+
+        for (int lineIndex = 0; lineIndex < assembledLines.size(); ++lineIndex)
         {
-            auto& last { *parent.lastChild->get<juce::String> (Id::text) };
+            const auto lineText { assembledLines.at (lineIndex) };
+            const auto classification { lineClassifications[lineIndex] };
 
-            if (last.isNotEmpty())
+            if (classification == lineIsContent)
             {
-                const auto lastCharacter { last.getLastCharacter() };
+                if (pendingBlank and hasEmittedContent)
+                    emittedLines.add (juce::String());
 
-                if (lastCharacter == Chars::space or lastCharacter == Chars::newline
-                    or lastCharacter == Chars::tab)
-                    last = last.dropLastCharacters (1);
+                emittedLines.add (lineText);
+                hasEmittedContent = true;
+                pendingBlank = false;
+                suppressNextBlank = false;
+            }
+            else if (classification == lineIsBlank)
+            {
+                if (suppressNextBlank)
+                    suppressNextBlank = false;
+                else
+                    pendingBlank = true;
+            }
+            else
+            {
+                pendingBlank = false;
+                suppressNextBlank = true;
             }
         }
+
+        const auto finalText { emittedLines.joinIntoString (
+            juce::String::charToString (Chars::newline), 0, -1) };
+        document.addText (parent, finalText);
     }
 
     juce::String getCell (const Model& model,
