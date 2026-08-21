@@ -50,8 +50,6 @@ starts, gaps, and bit flags are all just cells.
 | ------------ | ----- |
 | text         | 0     |
 | placeholder  | 1     |
-| region open  | 2     |
-| region close | 3     |
 ```
 *   **Cells:** All cells become plain strings. Text inside backticks (`` ` ``) unwraps to its plain content. Numbers are kept exactly as you typed them—CAST will never reformat or reparse numbers.
 *   **Order:** Rows are always output in the exact order you authored them. CAST never sorts rows.
@@ -83,8 +81,13 @@ When `lexicon.md` is present in the tables directory and a patched source table'
 Templates are plain text files with the `.cast` extension containing exactly one special construct: the tripleColon marker. There are no loops, no `if` statements, and no expressions.
 
 *   **Placeholder:** `:::name:::` — replaced by the same-named cell of the row being built. `:::name:transform:::` applies a registered transform to the resolved cell (Transform Vocabulary, below).
-*   **Separator:** consecutive rows sharing an output file are joined by the text named in the row's `lineBreak` column — a `#alias:table:entry` reference into a text table; empty cell = no separator.
-*   **Selection is emergent:** a source row expands only when every jack the region references carries a signal (non-empty cell); an empty referenced cell drops the row.
+*   **Separator:** consecutive rows sharing an output file are joined by the text named in the row's `separator` column. The column carries one of three forms:
+    *   `- line: @ref` — vertical axis: rows joined by newline + the resolved text + newline (e.g. `- line: @text:break:line` joins with `//===` between sections).
+    *   `- list: @ref` — horizontal axis: rows joined inline by the resolved text (e.g. `- list: @text:break:comma` joins with `, `).
+    *   Empty — vertical default: rows joined by a plain newline.
+    *   A flat `@ref` (backward compatible) — the resolved text used as-is.
+
+    Each localisation file (`localisation-lang.md`) carries a `## break` table supplying the canonical separator text: `line` = `//==============================================================================` (a full-width section rule), `comma` = `, `, `semicolon` = `; `.
 *   **Empty-token whitespace rule:** when a token binding resolves to empty text, the token AND exactly one whitespace separator immediately preceding it in the fragment text are both elided. `:::keyword::: :::type::: :::name:::` with an empty `type` emits `keyword name`, not `keyword  name`. An empty `:::prologue:::` followed by a newline emits no blank line.
 *   **Logic:** any actual code logic (function bodies, framework calls) lives as plain text in the template. Templates do not execute logic.
 
@@ -92,22 +95,31 @@ Templates are plain text files with the `.cast` extension containing exactly one
 
 Two universal shapes cover the regular output constructs. Fragments contain zero hardcoded keywords — `namespace`, `struct`, `static constexpr`, `inline const` are all token data, never fragment text. New fragments only for genuinely new *shapes*; never for new keywords.
 
-`Definition.cast` — one declaration with initializer, repeated once per source-table row:
+`Definition.cast` — one horizontal declaration, repeated per source-table row. The `:::list:::` jack expands source-row columns joined by the `- list:` separator (e.g. `, `). The `:::open:::`/`:::close:::` jacks replace hardcoded delimiters — `{`/`}` for declarations, `=`/(empty) for enum entries:
 ```
-:::keyword::: :::type::: :::name:toCamel::: { :::value::: };
+:::keyword::: :::type::: :::name:toCamel::: :::open::: :::list::: :::close::::::terminator::: :::doxygen:toComment:::
 ```
 
-`Scope.cast` — a named scope receiving its content through `:::code:::`:
+`Scope.cast` — a named vertical scope. The `:::line:::` jack expands source rows joined by the `- line:` separator (e.g. `//===`). Default join (no separator) is plain newline:
 ```
+:::files:::
+
 :::keyword::: :::type::: :::name:::
 {
 :::prologue:::
-:::code:::
+
+:::line:::
+
 :::epilogue:::
 }:::terminator:::
 ```
 
-`namespace Id` = `#scope` with keyword `namespace`, name `Id`, terminator `// namespace :::name:::`. `struct XmlOperators` = `#scope` with keyword `struct`, terminator `;`. `static constexpr const char* const x { "value" };` = `#definition` with keyword `static constexpr`, type `const char* const`. One grammar, any language — the engine knows zero syntax.
+`namespace Id` = `@scope` with keyword `namespace`, name `Id`, terminator `// namespace :::name:::`. `struct XmlOperators` = `@scope` with keyword `struct`, terminator `;`. `static constexpr const char* const x { "value" };` = `@definition` with keyword `static constexpr`, type `const char* const`, open `{`, close `}`. One grammar, any language — the engine knows zero syntax.
+
+**One mechanism: `jam::Strings::joinIntoString(separator)`.** The engine holds no hardcoded token names. Structure cell tokens (`- line:`, `- list:`) match template placeholders by name. The token value resolves to a separator from the `## break` table or to a `.cast` template path. When a template placeholder matches a structure cell token:
+*   Token resolves to a `.cast` path → expand source rows through that template per row, join by the corresponding separator
+*   Token resolves to separator text → use as the join string for horizontal items
+*   No match → resolve as a regular cell value (standard placeholder substitution)
 
 #### Jack Vocabulary
 
@@ -116,62 +128,63 @@ Two universal shapes cover the regular output constructs. Fragments contain zero
 | `keyword` | The leading keyword(s): `namespace`, `struct`, `static constexpr`, `inline const` |
 | `type` | The type token: `const char* const`, `juce::Identifier`, or empty (namespaces have no type) |
 | `name` | The declared name: `Id`, `XmlOperators`, `declarationOpen` |
-| `value` | The initializer value |
-| `code` | Reserved: receives the built content of child fragments (nesting target) |
+| `open` | Opening delimiter before the list/value: `{` for declarations, `=` for enum entries, empty = elided |
+| `close` | Closing delimiter after the list/value: `}` for declarations, empty = elided |
+| `line` | Vertical expansion jack: source-table rows expanded through the `- line:` template, joined by the `- line:` separator (newline + separator text + newline). Structure cell provides `- line: @definition` |
+| `list` | Horizontal expansion jack: source-row column values joined by the `- list:` separator (e.g. `, `). Structure cell provides `- list: @text:break:comma` |
+| `files` | Include directives, expanded from the output file list |
+| `doxygen` | Doxygen comment, applied via transform (e.g. `:::doxygen:toComment:::`) |
 | `prologue` | Paired scope boundary — text after the opening brace (e.g. decorative banner) |
 | `epilogue` | Paired scope boundary — text before the closing brace |
 | `terminator` | Text after the closing brace: `;` for struct, `// namespace :::name:::` for namespace |
 
-Dedicated fragments remain for genuinely irregular shapes: Bimap (methods, enum, singleton), Chars (isNumeric, special array), Generated (includes, instances). These are not decomposable into the three universal shapes without loss.
+Maps, bimaps, lookup tables, and enums decompose to Scope+Definition. The Scope template wraps the object (struct or namespace); Definition entries fill the vertical body via `:::line:::`. Genuinely irregular fixed text (Chars `isNumeric`/`special`; Bimap methods/singleton; LookupTable nested-brace wrapper) uses a specialized template alias — the same pattern as `@char` for Chars.
 
 ### 3. Manifest (`CAST.md`)
 The manifest is the "brain" of the operation. Two tables are mandatory; further output-shaped tables are optional. The manifest is fully self-describing: every cell's role is readable from the cell and its column, with zero engine conventions to memorize.
 
-*   `## index` — the **alias index**: `| alias | symbol |`, optional third column `format`. Every alias carries the `#` sigil as **part of its name** (`#lexicon`, `#id`) — the sigil is the reference marker: a `#`-sigiled cell anywhere in a file resolves against that file's own `## index`; a bare word is a literal. The two can never collide. A symbol is whatever the alias stands for — an input file path, an output file path, a type symbol (`juce::Identifier`). Every input file — every template, every table file, the manifest itself — is declared in the manifest's index exactly once; CAST parses exactly what it declares: no directory scanning, no glob. A `format` cell names a Transform Vocabulary op applied to the symbol at resolution. Referencing an undeclared alias is FATAL. Interior border lines (grid tables) and dash-only rows group the index visually without declaring anything.
-*   `## output` — first-order generation, one row per generated construct: `| code | list | structure | lineBreak | file |`. `structure` cells are multi-line — their continuation lines carry an empty `code` key per the row law. `code` names the row's body template; `list` (and any further truthfully-named source columns) feeds the body's regions as `#alias:table`; `lineBreak` names the separator text joining consecutive rows sharing a file (`#alias:table:entry`); `file` is the output target. `structure` replaces the old token column and all wrapper columns:
+*   `## index` — the **alias index**: `| alias | symbol |`, optional third column `format`. Every alias carries the `@` sigil as **part of its name** (`@lexicon`, `@id`) — the sigil is the reference marker: a `@`-sigiled cell anywhere in a file resolves against that file's own `## index`; a bare word is a literal. The two can never collide. A symbol is whatever the alias stands for — an input file path, an output file path, a type symbol (`juce::Identifier`). Every input file — every template, every table file, the manifest itself — is declared in the manifest's index exactly once; CAST parses exactly what it declares: no directory scanning, no glob. A `format` cell names a Transform Vocabulary op applied to the symbol at resolution. Referencing an undeclared alias is FATAL. Interior border lines (grid tables) and dash-only rows group the index visually without declaring anything.
+*   `## output` — first-order generation, one row per generated construct: `| list | structure | separator | file |`. `structure` cells are multi-line — their continuation lines carry an empty `list` key per the row law. `list` (and any further truthfully-named source columns) feeds the structure's regions as `@alias:table`; `structure` binds every jack of the row's templates, including which template each region uses (`- body: @definition`, `- list: @definition`); `separator` names the join text for consecutive rows sharing a file (Separator, above); `file` is the output target. `structure` replaces the old token column and all wrapper columns:
 
     #### Structure Cell Grammar
 
     The structure cell is valid CommonMark + pandoc block markdown. Two constructs, nothing else:
 
-    *   **Root-level bullets = the row's token bindings.** `- key: value` — each bullet binds one jack of the row's templates: `- keyword: static constexpr` fills `:::keyword:::`. Values follow the sigil law — `#`-sigiled resolves through `## index`, `#alias:table:entry` resolves to that table row's value, bare is literal. A value may contain jacks (`- terminator: // namespace :::name:::`) resolved against the same scope's bindings — SSOT for names. An explicit-empty binding (`- prologue:`) renders nothing. **A `default` token is never declared — the default is always the source table's first row.**
-    *   **Quoted paragraphs = the wrap chain, inward → outward.** `> #scope: Name` wraps the row's built body through its `:::code:::` jack; its own tokens are bullets at the same depth; `> > ` is the next wrap outward. Blank line separates the bullet group from each quote block; every line inside a quote carries its `> ` prefix; bullets never nest — ownership is quote depth, never indentation.
+    *   **Root-level bullets = the row's token bindings.** `- key: value` — each bullet binds one jack of the row's templates: `- keyword: static constexpr` fills `:::keyword:::`. Values follow the sigil law — `@`-sigiled resolves through `## index`, `@alias:table:entry` resolves to that table row's value, bare is literal. A value may contain jacks (`- terminator: // namespace :::name:::`) resolved against the same scope's bindings — SSOT for names. An explicit-empty binding (`- prologue:`) renders nothing. **A `default` token is never declared — the default is always the source table's first row.**
+    *   **Quoted paragraphs = the wrap chain, inward → outward.** `> @scope: Name` wraps the row's built content through its `:::line:::` jack; its own tokens are bullets at the same depth; `> > ` is the next wrap outward. Blank line separates the bullet group from each quote block; every line inside a quote carries its `> ` prefix; bullets never nest — ownership is quote depth, never indentation.
 
     Rows sharing an output `file` must declare byte-identical outermost wraps — mismatch is FATAL, never first-row-wins.
 
     ```markdown
-    +-------------+-------------------+-------------------------------------------+-----------+----------------+
-    | code        | list              | structure                                 | lineBreak | file           |
-    +=============+===================+===========================================+===========+================+
-    | #definition | #xml:xmlOperators | - keyword: static constexpr               | #break    | #jam_Operators |
-    |             |                   | - type: #cString                          |           |                |
-    |             |                   |                                           |           |                |
-    |             |                   | > #scope: XmlOperators                    |           |                |
-    |             |                   | > - keyword: struct                       |           |                |
-    |             |                   | > - terminator: ;                         |           |                |
-    |             |                   |                                           |           |                |
-    |             |                   | > > #scope: Id                            |           |                |
-    |             |                   | > > - keyword: namespace                  |           |                |
-    |             |                   | > > - terminator: // namespace :::name::: |           |                |
-    +-------------+-------------------+-------------------------------------------+-----------+----------------+
+    +--------------------+--------------------------------------------+-------------------+----------------+
+    | list               | structure                                    | separator         | file           |
+    +====================+==============================================+===================+================+
+    | @xml:xmlOperators  | - keyword: static constexpr                 | @text:break:line  | @jam_Operators |
+    |                    | - type: @cString                            |                   |                |
+    |                    | - line: @definition                         |                   |                |
+    |                    |                                              |                   |                |
+    |                    | > @scope: XmlOperators                      |                   |                |
+    |                    | > - keyword: struct                         |                   |                |
+    |                    | > - terminator: ;                           |                   |                |
+    |                    |                                              |                   |                |
+    |                    | > > @scope: Id                              |                   |                |
+    |                    | > > - keyword: namespace                    |                   |                |
+    |                    | > > - terminator: // namespace :::name:::   |                   |                |
+    +--------------------+--------------------------------------------+-------------------+----------------+
     ```
 
-    Reading the row: `#definition` iterates `## xmlOperators`, emitting one declaration per row; the result wraps into `struct XmlOperators { ... };`, which wraps into `namespace Id { ... }// namespace Id`. Six operator structs = six rows sharing `#jam_Operators`, joined by the `lineBreak` text, sharing one identical outermost namespace. Nesting depth never adds columns — it adds `> ` markers.
-*   `## output index` — optional, **second-order**: an output-shaped table whose list source is `## output` itself (`#CAST:output`). The `file` column of `## output` IS the header list — no separate headers table exists. The master include is emitted after the outputs, beside them, from them. It never folds into `## output`: a `struct` wrapper is not a `namespace` wrapper — same bones, different flesh, different table.
+    Reading the row: `- line: @definition` iterates `## xmlOperators` via the `list` column, emitting one declaration per row joined vertically; the result wraps into `struct XmlOperators { ... };`, which wraps into `namespace Id { ... }// namespace Id`. Six operator structs = six rows sharing `@jam_Operators`, joined by the `separator` text, sharing one identical outermost namespace. Nesting depth never adds columns — it adds `> ` markers.
+*   `## output index` — optional, **second-order**: an output-shaped table whose list source is `## output` itself (`@CAST:output`). The `file` column of `## output` IS the header list — no separate headers table exists. The master include is emitted after the outputs, beside them, from them. It never folds into `## output`: a `struct` wrapper is not a `namespace` wrapper — same bones, different flesh, different table.
 
-**Junctions are named jacks.** A table column is an output jack; a template placeholder is an input jack. Same name = same circuit — no mapping syntax exists. Column names are honest labels, not engine vocabulary: rename the region and the column together and the circuit is intact.
-
-**Matched-replace is the only fill rule.** A template jack fills by one uniform sequence — template token → token binding → matched cell → direct `## index` lookup → replace. The data row's own cell is consulted first, then the declaring row; a `#`-sigiled result resolves through the index; the resolved text replaces the jack. No fallbacks, no positional indices, no engine defaults — a jack with no match is FATAL (dead placeholder).
-
-**Region membership is token-driven.** A region whose column declares its rows expands rows carrying a cell. A region fed by a token vocabulary — any row in the source table declares the token — expands only token-declaring rows. Otherwise every row expands.
+**Matched-replace is the only fill rule.** A template jack fills by one uniform sequence — template token → token binding → matched cell → direct `## index` lookup → replace. The data row's own cell is consulted first, then the declaring row; a `@`-sigiled result resolves through the index; the resolved text replaces the jack. No fallbacks, no positional indices, no engine defaults — a jack with no match is FATAL (dead placeholder).
 
 **Parity is enforced.** Per output row, the placeholder union of its resolved templates must equal its non-reserved columns; list-region interiors validate against their source table's columns instead. No match, no cigar.
 
 > **FATAL MANIFEST ERRORS:** CAST will immediately crash if it detects:
-> *   An **undeclared alias** (a `#`-sigiled cell absent from the file's `## index`).
+> *   An **undeclared alias** (a `@`-sigiled cell absent from the file's `## index`).
 > *   A **duplicate alias** (two `## index` rows declaring the same alias).
 > *   A **missing file** (an `## index` path that does not exist).
-> *   An **unresolvable table** (a `#alias:table` cell whose heading is absent from the aliased file).
+> *   An **unresolvable table** (a `@alias:table` cell whose heading is absent from the aliased file).
 > *   An **orphan column** (a non-reserved column no template placeholder consumes).
 > *   A **dead placeholder** (a template placeholder no column or source-table column feeds).
 
@@ -193,11 +206,11 @@ Every CAST-driven project declares its generation inputs in the canon files:
 
 The reference registry is the union of the declaration tables — `## lexicon`, `## chars`, `## files`, `## colours`, and each language's own `localisation-lang.md` text table. A relation cell may reference an entity from any of them; the word is declared exactly once, in exactly one table.
 
-**Declaration type follows dominant consumption, and type is data.** An entity consumed as an Identifier (tree keys, property keys, table lookups) declares an Identifier-type token; an entity consumed as a string (delimiters, map keys, emitted text, cell comparisons) declares a String-type token. The mechanism is the lexicon `type` column — explicit on every row, holding a `#`-sigiled alias (`#id`, `#string`) resolved through the lexicon file's own `## index` to the target language's type symbol (`juce::Identifier`, `juce::String`). CAST is language-agnostic: the engine never knows any type name — it delivers the resolved symbol to the `type` jack like any other cell, and the project-owned template composes the declaration around it. No engine default exists — a default would smuggle one language's type into the engine. A `.toString()` projection at nearly every call site is the violation signature — the declared type is wrong, not the call sites.
+**Declaration type follows dominant consumption, and type is data.** An entity consumed as an Identifier (tree keys, property keys, table lookups) declares an Identifier-type token; an entity consumed as a string (delimiters, map keys, emitted text, cell comparisons) declares a String-type token. The mechanism is the lexicon `type` column — explicit on every row, holding a `@`-sigiled alias (`@id`, `@string`) resolved through the lexicon file's own `## index` to the target language's type symbol (`juce::Identifier`, `juce::String`). CAST is language-agnostic: the engine never knows any type name — it delivers the resolved symbol to the `type` jack like any other cell, and the project-owned template composes the declaration around it. No engine default exists — a default would smuggle one language's type into the engine. A `.toString()` projection at nearly every call site is the violation signature — the declared type is wrong, not the call sites.
 
 All manifest and table files compile into **one master state document**: every `##`-headed table, from every file, becomes a sibling in a single tree, and generation reads only that tree.
 
-Every table is addressed by its file: a reference is `#alias:heading` (`#lexicon:lexicon`, `#template:template token type`, `#CAST:output`), where the alias resolves through `## index` and the heading inside that file. Two tables with the same heading inside one file are FATAL (reported as already-declared, with both locations); the same heading in two different files is two different tables — the qualifier is the namespace.
+Every table is addressed by its file: a reference is `@alias:heading` (`@lexicon:lexicon`, `@template:template token type`, `@CAST:output`), where the alias resolves through `## index` and the heading inside that file. Two tables with the same heading inside one file are FATAL (reported as already-declared, with both locations); the same heading in two different files is two different tables — the qualifier is the namespace.
 
 **Entity rules:**
 *   An entity is unique, whole, and opaque. `UI`, `scale`, and `UI scale` are three independent declarations — CAST never decomposes or derives one from another.
@@ -226,7 +239,7 @@ Every table is addressed by its file: a reference is `#alias:heading` (`#lexicon
 
 1. The **Model** parses once — manifest + tables spliced into one master state document, the operational chain.
 2. Each template file parses once into a **grammar tree** — the parsed shape of the template language (text, placeholders, regions), shared and immutable.
-3. Generation iterates the **Model**: each output row **builds** its own output document — a state tree constructed from the grammar tree against the Model: placeholders resolved to cells, regions expanded (wrapper spliced at its `code` slot, list body replicated once per source row, joined by the separator). Resolution happens at build, into the tree — never at emission.
+3. Generation iterates the **Model**: each output row **builds** its own output document — a state tree constructed from the grammar tree against the Model: placeholders resolved to cells, expansion jacks resolved (vertical `:::line:::` replicates per source row joined by separator, horizontal `:::list:::` joins column values by separator). Resolution happens at build, into the tree — never at emission.
 4. Emission iterates the **output documents**: each document **writes** its own target file. The document owns its serialization; no external walker re-inspects the tree, no per-node dispatch at write time.
 
 Build and write are the only two operations. An engine component that scans a document's internals node-by-node to produce output is the violation signature — the document was asked, not told.
@@ -286,28 +299,31 @@ inline const juce::String cliPrefix { "--" };
 | tagClose        | `">"`   |
 ```
 ```cpp
-// Definition.cast — #declaration is an inline fragment reference
-#declaration { :::value::: };
+// Definition.cast — @declaration is an inline fragment reference
+@declaration { :::list::: };
 ```
 ```cpp
-// Scope.cast — #declaration is an inline fragment reference
-#declaration
+// Scope.cast — vertical scope with :::line::: expansion jack
+@declaration
 {
 :::prologue:::
-:::code:::
+:::line:::
 :::epilogue:::
 }:::terminator:::
 ```
 ```markdown
-## output (structure cell of the row: code #definition, list #xml:xmlOperators, file #jam_Operators)
+## output (structure cell of the row: list @xml:xmlOperators, file @jam_Operators)
 - keyword: static constexpr
-- type: #cString
+- type: @cString
+- open: {
+- close: }
+- line: @definition
 
-> #scope: XmlOperators
+> @scope: XmlOperators
 > - keyword: struct
 > - terminator: ;
 
-> > #scope: Id
+> > @scope: Id
 > > - keyword: namespace
 > > - terminator: // namespace :::name:::
 ```
@@ -322,7 +338,7 @@ struct XmlOperators
 };
 }// namespace Id
 ```
-One row per struct: six rows share `#jam_Operators`, joined by the `lineBreak` text, each with its own depth-1 struct scope and one byte-identical outermost namespace scope. Nesting depth is `> ` count, never a column.
+One row per struct: six rows share `@jam_Operators`, joined by the `separator` text, each with its own depth-1 struct scope and one byte-identical outermost namespace scope. Nesting depth is `> ` count, never a column.
 
 ### 4. Bimap — `key|value` map table
 
@@ -352,22 +368,27 @@ struct Screen : public jam::Bimap<Screen, juce::String, int>
 
 | alias   | symbol                  |
 | ------- | ----------------------- |
-| #bimap  | template/Bimap.cast     |
-| #scope  | template/Scope.cast     |
-| #screen | tables/screen.md        |
-| #Screen | ../gen/Screen.h         |
+| @bimap  | template/Bimap.cast     |
+| @scope  | template/Scope.cast     |
+| @screen | tables/screen.md        |
+| @Screen | ../gen/Screen.h         |
 
 ## output (excerpt)
 
-+--------+----------------+-------------------------------------------+-----------+---------+
-| code   | list           | structure                                 | lineBreak | file    |
-+========+================+===========================================+===========+=========+
-| #bimap | #screen:screen | > #scope: map                             |           | #Screen |
-|        |                | > - keyword: namespace                    |           |         |
-|        |                | > - terminator: // namespace :::name::: |           |         |
-+--------+----------------+-------------------------------------------+-----------+---------+
++----------------+-------------------------------------------+-----------+---------+
+| list           | structure                                   | separator | file    |
++================+==============================================+===========+=========+
+| @screen:screen | - line: @definition                        |           | @Screen |
+|                |                                             |           |         |
+|                | > @bimap: :::list:toPascal:::              |           |         |
+|                | > - line: @definition                      |           |         |
+|                |                                             |           |         |
+|                | > > @scope: map                            |           |         |
+|                | > > - keyword: namespace                   |           |         |
+|                | > - terminator: // namespace :::name:::    |           |         |
++----------------+-------------------------------------------+-----------+---------+
 ```
-Reading the row: body `#bimap`, region fed by the `## screen` table from `tables/screen.md`, wrapped by a namespace scope named `map`, written to `../gen/Screen.h`. Every cell's role is visible: `#`-sigiled values resolve through `## index`, `#alias:table` values are sources, bare values are jack literals. Nesting is `> ` depth, not column count.
+Reading the row: body `@bimap`, region fed by the `## screen` table from `tables/screen.md`, wrapped by a namespace scope named `map`, written to `../gen/Screen.h`. Every cell's role is visible: `@`-sigiled values resolve through `## index`, `@alias:table` values are sources, bare values are jack literals. Nesting is `> ` depth, not column count.
 
 ### 6. Spec key table — component words + `format` override
 
@@ -545,3 +566,4 @@ If you are integrating CAST into a CMake build system, adhere to these strict ru
 *   **Dependencies:** The list of inputs for `CMAKE_CONFIGURE_DEPENDS` is derived entirely from the manifest—never maintain this list by hand.
 *   **Role of CMake:** CMake is strictly a consumer and dispatcher. It must never implement codegen logic itself.
 *   **Output Structure:** Generated output is header-only, grouped by construct type. Root templates and manifest structure remain identical across platforms/frameworks.
+</content>

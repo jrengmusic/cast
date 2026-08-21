@@ -211,7 +211,7 @@ struct Validator : jam::MarkdownValidator
                 const auto& firstColumn { *columns.begin() };
 
                 const jam::Strings reserved { firstColumn, Id::file.toString(),
-                                              Id::structure.toString(), Id::lineBreak.toString(),
+                                              Id::structure.toString(), Id::separator.toString(),
                                               Id::capacity.toString(), Id::special.toString() };
 
                 for (auto* row : model.getTableRows (*table))

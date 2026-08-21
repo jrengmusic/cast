@@ -111,6 +111,73 @@
 
 ## SPRINT HISTORY
 
+## Handoff to COUNSELOR: Engine Rewrite — :::line:::/:::list::: Expansion Jacks
+
+**From:** COUNSELOR
+**Date:** 2026-08-21
+**Status:** In Progress — engine expansion mechanism needs rewrite; data/templates updated; build not yet passing
+
+### Context
+Continuing the Definition≡Scope render unification. This session established the correct engine design with ARCHITECT: **one mechanism (`jam::Strings::joinIntoString(separator)`)**, two axes (`:::line:::` vertical, `:::list:::` horizontal), no hardcoded tokens. Structure cell tokens match template placeholders by name — the engine discovers expansion jacks dynamically. Separator text comes from the `## break` table in `text.md`. `:::open:::`/`:::close:::` in Definition.cast replace hardcoded `{ }` delimiters, making them data-driven.
+
+### Completed
+- **Region mechanism deleted** — regionOpen/regionClose dispatch, Rules bimap, begin/end markers all removed from engine (TemplateDocument.h), bootstrap (Bimaps.h, Identifiers.h, Generated.h), data tables (template.md, cast/CAST.md)
+- **lineBreak → separator rename** — Writer.h, TemplateDocument.h, Validator.h. Structured prefix parsing (`- line:`/`- list:`) via `jam::Format::getPreColon`/`getPostColon`. Default join changed from empty-string to newline (collapse fix)
+- **Writer rename** — buildFile→getFile, buildRow→getRow (NAMES.md verb contract)
+- **HELP.md SPEC rewrite** — `@` sigil, `separator` column, `:::line:::`/`:::list:::` jacks, `:::open:::`/`:::close:::` delimiters, one-mechanism design, map decomposition documented, region docs deleted
+- **Templates updated** — Scope.cast: `:::body:::`→`:::line:::`. Definition.cast: `{ :::list::: }`→`:::open::: :::list::: :::close:::`. Bimap.cast + LookupTable.cast: rewritten without begin/end, use `:::line:::`. HashMap.cast deleted (uses Scope + type aliases)
+- **CAST.md massive update** — ~110 rows `- body:`→`- line:`, ~90 bimap rows + 5 lookuptable rows got blockquote wraps, 3 hashmap rows use `@scope:` with `@hashMapStrStr`/`@hashMapStrInt` type aliases, ~15 rows got `- open: {`/`- close: }` tokens
+- **Data fixes** — `@text` alias fixed from stale `text-en.md` to `text.md`; deleted orphan `text-en.md` and `debug.md`; added `semicolon` to `## break` table
+- **PLAN revision 3** — comprehensive design document with correct engine architecture
+
+### Remaining
+- **Engine rewrite** — TemplateDocument.h expansion mechanism must implement: (1) `:::line:::` jack = vertical expansion — match structure cell `- line: @definition` token, expand source rows through Definition.cast per row, join by `joinIntoString(separator)` where separator comes from `- line:` resolved value. (2) `:::list:::` jack = horizontal expansion — match structure cell `- list: @text:break:comma` token, expand source row columns, join by `joinIntoString(separator)`. Current getCell/getExpansion/getText paths need clean rewrite, not patches.
+- **Bimap gaps** — `:::default:::` in Bimap.cast's `getDefault()` method has no token binding (resolves empty). LookupTable `:::value:::` (default value) has no `- value:` token in structure cells.
+- **Writer.h getFile** — sibling row join needs `joinIntoString` instead of `code << separator << rowCode` concatenation.
+- **Build test** — ARCHITECT builds + runs `./cast jam/cast/CAST.md`, diff all 14 files against oracle, iterate residuals.
+- **Fixpoint** — 2nd run = zero changes.
+- **Auditor sweep** — once all files converge.
+
+### Key Decisions
+- **One mechanism:** `jam::Strings::joinIntoString(separator)` is the only join. No other join pattern exists in the engine.
+- **Jack names are axis:** `:::line:::` = vertical, `:::list:::` = horizontal. Structure cell tokens `- line:` and `- list:` match these by name.
+- **No hardcoded tokens:** Engine discovers expansion jacks by matching structure cell tokens against template placeholders. The engine reads rules from data, never hardcodes token names.
+- **`:::open:::`/`:::close:::`:** Replace hardcoded `{ }` in Definition.cast. `- open: {`/`- close: }` for declarations, `- open: =` for enum entries (no close).
+- **HashMap uses Scope:** Type aliases `@hashMapStrStr`/`@hashMapStrInt` (backtick-wrapped in index) avoid `<`/`>` hazard in structure cells.
+- **Bimap/LookupTable keep specialized templates** — rewritten without begin/end, use `:::line:::` for body. Methods/singleton in epilogue.
+
+### Files Modified
+- `Source/TemplateDocument.h` — region dispatch deleted, Rules lookup deleted, separator renamed, composite-column bug fixed, structured prefix parsing added
+- `Source/Writer.h` — separator renamed, structured prefix parsing, getFile/getRow rename
+- `Source/Validator.h` — lineBreak→separator in reserved-column list
+- `Source/generated/Bimaps.h` — regionOpen/regionClose + Rules deleted
+- `Source/generated/Identifiers.h` — rules + rowRegion* deleted
+- `Source/generated/Generated.h` — SharedInstance<Rules> deleted
+- `Source/HELP.md` — comprehensive SPEC rewrite (revision 3)
+- `cast/tables/template.md` — region open/close + rules table deleted
+- `cast/CAST.md` — rules output row deleted
+- `jam/cast/CAST.md` — ~200 structure cell edits, index aliases updated, @text fixed
+- `jam/cast/template/Scope.cast` — :::body:::→:::line:::
+- `jam/cast/template/Definition.cast` — { :::list::: } → :::open::: :::list::: :::close:::
+- `jam/cast/template/Bimap.cast` — rewritten without begin/end
+- `jam/cast/template/LookupTable.cast` — rewritten without begin/end
+- `jam/cast/template/HashMap.cast` — deleted
+- `jam/cast/tables/text.md` — semicolon added to ## break
+- `jam/cast/tables/text-en.md` — deleted (stale)
+- `jam/cast/tables/debug.md` — deleted (orphan)
+- `PLAN-render-unification.md` — revision 3
+
+### Open Questions
+1. **Bimap `:::default:::`** — `getDefault()` uses `map.at(:::key:toCamel:::)` but this resolves from the first source row only when the template expands. Need a `- default:` token in structure cells. Oracle shows `map.at(0)` — is the default always the first enum value's ordinal?
+2. **LookupTable `:::value:::`** — the default value before the entry block (e.g., `0xff000000`). Need `- value: @black` or similar token per LookupTable row. What's the right data source per row?
+
+### Next Steps
+1. Rewrite TemplateDocument.h expansion: implement `:::line:::` vertical and `:::list:::` horizontal expansion via `joinIntoString`
+2. Rewrite Writer.h getFile: sibling join via `joinIntoString`
+3. ARCHITECT builds + tests. Iterate residuals.
+4. Resolve Bimap default + LookupTable value gaps
+5. Fixpoint. Auditor.
+
 ## Handoff to COUNSELOR: Definition≡Scope Render Unification
 
 **From:** COUNSELOR

@@ -417,34 +417,6 @@ protected:
                                     juce::Identifier (*token.get<juce::String> (Id::transform)));
                         });
 
-                treeConstruction
-                    .add<const Document::Token&, TemplateDocument&, Element*&, jam::Array<Element*>&> (
-                        map::TemplateTokenType::regionOpen,
-                        [] (const Document::Token& token,
-                            TemplateDocument& document,
-                            Element*& parent,
-                            jam::Array<Element*>& stack)
-                        {
-                            auto* region { document.addChild (
-                                *parent, juce::Identifier (*token.get<juce::String> (Id::name))) };
-                            stack.add (region);
-                            parent = region;
-                        });
-
-                treeConstruction
-                    .add<const Document::Token&, TemplateDocument&, Element*&, jam::Array<Element*>&> (
-                        map::TemplateTokenType::regionClose,
-                        [] (const Document::Token& token,
-                            TemplateDocument& document,
-                            Element*& parent,
-                            jam::Array<Element*>& stack)
-                        {
-                            jassert (parent->id
-                                     == juce::Identifier (*token.get<juce::String> (Id::name)));
-                            stack.remove (stack.size() - 1);
-                            parent = stack.size() > 0 ? stack.last() : document.root;
-                        });
-
                 return treeConstruction;
             }()
         };
@@ -721,15 +693,36 @@ private:
                               const juce::Identifier& source,
                               const jam::HashMap<juce::Identifier, juce::String>& tokens) const
     {
-        const juce::Identifier lineBreakColumn { node.id.toString()
-                                                 + juce::String::charToString (Chars::space)
-                                                 + Id::lineBreak.toString() };
-        const auto separatorPath { model.getTableValue (row, lineBreakColumn) };
-        const auto separator { separatorPath.isNotEmpty()
-                                   ? getOrCreate (model.getFile (row, separatorPath))
-                                         .build (model, row, {})
-                                         .root->getAllSubText()
-                                   : juce::String() };
+        const auto separatorCell { model.getTableValue (row, Id::separator) };
+        juce::String separator;
+        bool isLineSeparator { false };
+
+        if (separatorCell.startsWithChar (Chars::dash))
+        {
+            const auto prefix { jam::Format::getPreColon (separatorCell).trim() };
+            const auto reference { jam::Format::getPostColon (separatorCell).trim() };
+
+            isLineSeparator = prefix.endsWith (Id::line.toString());
+
+            if (reference.startsWithChar (Chars::at)
+                and jam::Format::getPostColon (reference).containsChar (Chars::colon))
+                separator = model.getEntry (row, reference);
+            else if (reference.startsWithChar (Chars::at))
+                separator = getOrCreate (model.getFile (row, reference))
+                                .build (model, row, {})
+                                .root->getAllSubText();
+        }
+        else if (separatorCell.startsWithChar (Chars::at)
+                 and jam::Format::getPostColon (separatorCell).containsChar (Chars::colon))
+        {
+            separator = model.getEntry (row, separatorCell);
+        }
+        else if (separatorCell.isNotEmpty())
+        {
+            separator = getOrCreate (model.getFile (row, separatorCell))
+                            .build (model, row, {})
+                            .root->getAllSubText();
+        }
 
         const auto sourceColumns { model.getTableHeaders (source) };
         jam::Strings texts;
@@ -750,7 +743,20 @@ private:
             }
         }
 
-        return texts.joinIntoString (separator, 0, -1);
+        if (isLineSeparator)
+        {
+            const auto lineJoin { juce::String::charToString (Chars::newline)
+                                  + juce::String::charToString (Chars::newline)
+                                  + separator
+                                  + juce::String::charToString (Chars::newline)
+                                  + juce::String::charToString (Chars::newline) };
+            return texts.joinIntoString (lineJoin, 0, -1);
+        }
+
+        if (separator.isNotEmpty())
+            return texts.joinIntoString (separator, 0, -1);
+
+        return texts.joinIntoString (juce::String::charToString (Chars::newline), 0, -1);
     }
 
     void getPlaceholders (const Model& model,
@@ -807,23 +813,11 @@ private:
 
                 position += tripleColon.size();
 
-                int tokenType { map::TemplateTokenType::placeholder };
-
-                if (word.isNotEmpty())
-                {
-                    static const auto rules { jam::Map::getKey (map::Rules::get()) };
-
-                    if (rules.contains (word))
-                        tokenType = rules.at (word);
-                }
-
-                if (tokenType != map::TemplateTokenType::placeholder and position < source.size()
-                    and source[position] == Chars::newline)
-                    ++position;
+                const int tokenType { map::TemplateTokenType::placeholder };
 
                 Document::Token token (cursor, position, tokenType);
 
-                if (word.isNotEmpty() and tokenType == map::TemplateTokenType::placeholder)
+                if (word.isNotEmpty())
                     token.add<juce::String> (Id::transform, word);
 
                 token.add<juce::String> (Id::name, name);

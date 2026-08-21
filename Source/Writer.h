@@ -46,7 +46,7 @@ struct Writer
 
                         auto outputFile { jam::File::getOrCreate (outputPath, file) };
                         written = outputFile.replaceWithText (
-                            getBanner (file) + buildFile (fileRows),
+                            getBanner (file) + getFile (fileRows),
                             false,
                             false,
                             juce::String::charToString (Chars::newline).toRawUTF8());
@@ -108,7 +108,7 @@ private:
                    .trimCharactersAtEnd (juce::String::charToString (Chars::newline));
     }
 
-    juce::String buildRow (Model::Element& row) const
+    juce::String getRow (Model::Element& row) const
     {
         const auto wraps { TemplateDocument::getWraps (model, row) };
         juce::String code;
@@ -128,7 +128,7 @@ private:
         return code;
     }
 
-    juce::String buildFile (const Elements& fileRows) const
+    juce::String getFile (const Elements& fileRows) const
     {
         auto* firstRow { fileRows.first() };
         const auto outermostWraps { TemplateDocument::getWraps (model, *firstRow) };
@@ -138,18 +138,41 @@ private:
 
         for (auto* row : fileRows)
         {
-            const auto rowCode { buildRow (*row) };
+            const auto rowCode { getRow (*row) };
 
             if (code.isEmpty())
                 code = rowCode;
             else
             {
-                const auto lineBreakCell { model.getTableValue (*row, Id::lineBreak) };
-                const auto separator {
-                    lineBreakCell.isNotEmpty() ? getBinding (*row, lineBreakCell, Id::lineBreak)
-                                               : juce::String()
-                };
-                code << separator << rowCode;
+                const auto separatorCell { model.getTableValue (*row, Id::separator) };
+
+                if (separatorCell.startsWithChar (Chars::dash))
+                {
+                    const auto prefix { jam::Format::getPreColon (separatorCell).trim() };
+                    const auto reference { jam::Format::getPostColon (separatorCell).trim() };
+                    const auto resolved { getBinding (*row, reference, Id::separator) };
+
+                    if (prefix.endsWith (Id::line.toString()))
+                    {
+                        code << Chars::newline << Chars::newline
+                             << resolved
+                             << Chars::newline << Chars::newline
+                             << rowCode;
+                    }
+                    else
+                    {
+                        code << resolved << rowCode;
+                    }
+                }
+                else if (separatorCell.isNotEmpty())
+                {
+                    const auto resolved { getBinding (*row, separatorCell, Id::separator) };
+                    code << resolved << rowCode;
+                }
+                else
+                {
+                    code << Chars::newline << rowCode;
+                }
             }
         }
 
