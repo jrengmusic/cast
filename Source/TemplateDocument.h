@@ -30,8 +30,9 @@ struct TemplateDocument : jam::MarkdownDocument
                               if (not remaining.contains (Id::tripleColon))
                                   break;
 
-                              const auto interior { jam::Format::upTo (
-                                  remaining, Id::tripleColon, false) };
+                              const auto interior { jam::Format::upTo (remaining, Id::tripleColon, false)
+                                                        .trimCharactersAtStart (
+                                                            juce::String::charToString (Chars::colon)) };
                               names.addIfNotAlreadyThere (
                                   juce::Identifier (jam::Format::getPreColon (interior)));
                               remaining = jam::Format::from (remaining, Id::tripleColon, false);
@@ -271,7 +272,7 @@ struct TemplateDocument : jam::MarkdownDocument
 
                     if (value.isNotEmpty() and value != marker)
                         lineText = jam::Format::replaceholder (lineText, name.toString(), value);
-                    else if (value.isEmpty())
+                    else if (lineText.trim() != marker)
                     {
                         const auto spacedMarker { juce::String::charToString (Chars::space)
                                                   + marker };
@@ -484,8 +485,10 @@ private:
             return {};
 
         if (*headers.begin() == name.toString())
-            return sourceRow.id.toString();
+            return model.getTableValue (sourceRow, name);
 
+        const auto rowKey { model.getTableValue (sourceRow,
+                                                 juce::Identifier (*headers.begin())) };
         auto* cellElement { model.getTableCell (sourceRow, name) };
         const auto isLiteral { cellElement != nullptr and cellElement->firstChild != nullptr
                                and cellElement->firstChild->isTag (Id::code)
@@ -497,9 +500,9 @@ private:
         if (isLiteral)
             value = cell;
         else if (cell.isEmpty())
-            value = sourceRow.id.toString();
+            value = rowKey;
         else if (Transforms::contains (cell))
-            value = Transforms::getTransformed (cell, sourceRow.id.toString(), extension);
+            value = Transforms::getTransformed (cell, rowKey, extension);
         else
             value = cell;
 

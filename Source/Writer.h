@@ -132,9 +132,15 @@ private:
         jassert (not innerText.contains (Id::tripleColon));
 
         if (innerText.contains (Id::tripleColon))
+        {
             jam::debug::Log::write (
                 jam::MarkdownValidator::getLocation (*row.parent, row, Id::structure.toString())
                 + Id::diagnosticSeparator + text::Diagnostics::failNoSource);
+
+            for (const auto& lineText : jam::Strings::fromLines (innerText))
+                if (lineText.contains (Id::tripleColon))
+                    jam::debug::Log::write (lineText);
+        }
 
         return innerText;
     }
