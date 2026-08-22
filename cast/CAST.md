@@ -1,78 +1,139 @@
 ## index
 
-+---------------+------------------------------------------------+
-| alias         | symbol                                         |
-+===============+================================================+
-| @bimap        | ../../jam/cast/template/Bimap.cast             |
-| @break        | ../../jam/cast/template/Break.cast             |
-| @char         | ../../jam/cast/template/Chars.cast             |
-| @diff         | ../../jam/cast/template/Generated.cast         |
-| @files        | ../../jam/cast/template/Identifiers.cast       |
-| @hashMap      | ../../jam/cast/template/HashMap.cast           |
-| @identifiers  | ../../jam/cast/template/Identifiers.cast       |
-| @namespace    | ../../jam/cast/template/Namespace.cast         |
-| @struct       | ../../jam/cast/template/Struct.cast            |
-| @text         | ../../jam/cast/template/Text.cast              |
-| @banner       | tables/banner.md                               |
-| @binaryFiles  | tables/binary-files.md                         |
-| @CAST         | CAST.md                                        |
-| @comments     | tables/comments.md                             |
-| @lexicon      | tables/lexicon.md                              |
-| @localisation | tables/localisation-en.md                      |
-| @template     | tables/template.md                             |
-| @Bimaps       | ../Source/diff/Bimaps.h                        |
-| @Files        | ../Source/diff/Files.h                         |
-| @Generated    | ../Source/diff/Generated.h                     |
-| @HashMaps     | ../Source/diff/HashMaps.h                      |
-| @Identifiers  | ../Source/diff/Identifiers.h                   |
-| @Text         | ../Source/diff/Text.h                          |
-| @commentMap   | `jam::HashMap<juce::Identifier, juce::String>` |
-| @id           | juce::Identifier                               |
-| @string       | juce::String                                   |
-+---------------+------------------------------------------------+
+| alias        | symbol                            | format |
+| ------------- | ---------------------------------- | ------ |
+| @lexicon      | lexicon.md                         |        |
+| @text         | text.md                            |        |
+| @binaryFiles  | files.md                           |        |
+| @banner       | banner.md                          |        |
+| @comments     | comments.md                        |        |
+| @tokens       | tokens.md                          |        |
+| @template     | template.cast                      |        |
+| @CAST         | CAST.md                            |        |
+| @Identifiers  | ../Source/generated/Identifiers.h  |        |
+| @Text         | ../Source/generated/Text.h         |        |
+| @Files        | ../Source/generated/Files.h        |        |
+| @HashMaps     | ../Source/generated/HashMaps.h     |        |
+| @Bimaps       | ../Source/generated/Bimaps.h       |        |
+| @Generated    | ../Source/generated/Generated.h    |        |
+| @id           | juce::Identifier                   | fromLiteral |
+| @string       | juce::String                       | fromLiteral |
+| @commentMap   | `jam::HashMap<juce::Identifier, juce::String>` |        |
 
 ## output
 
-+--------------+------------+----------------+-------------------------------+------------------------------------------+-----------+--------------+
-| code         | namespace  | namespace name | list                          | token                                    | lineBreak | file         |
-+==============+============+================+===============================+==========================================+===========+==============+
-| #identifiers | #namespace | Id             | #lexicon:lexicon              | keyword: inline const                    |           | #Identifiers |
-+--------------+------------+----------------+-------------------------------+------------------------------------------+-----------+--------------+
-| #text        | #namespace | text::en       | #localisation:text            | keyword: inline const, type: #string     |           | #Text        |
-+--------------+------------+----------------+-------------------------------+------------------------------------------+-----------+--------------+
-| #files       | #namespace | files          | #binaryFiles:files            | type: #string                            |           | #Files       |
-+--------------+------------+----------------+-------------------------------+------------------------------------------+-----------+--------------+
-| #hashMap     | #namespace | map            | #banner:banner                | keyType, valueType: #string, #string     |           | #HashMaps    |
-+--------------+------------+----------------+-------------------------------+------------------------------------------+-----------+--------------+
-| #hashMap     | #namespace | map            | #comments:clang comment       | keyType, valueType: #id, #string         |           | #HashMaps    |
-+--------------+------------+----------------+-------------------------------+------------------------------------------+-----------+--------------+
-| #hashMap     | #namespace | map            | #comments:css comment         | keyType, valueType: #id, #string         |           | #HashMaps    |
-+--------------+------------+----------------+-------------------------------+------------------------------------------+-----------+--------------+
-| #hashMap     | #namespace | map            | #comments:html comment        | keyType, valueType: #id, #string         |           | #HashMaps    |
-+--------------+------------+----------------+-------------------------------+------------------------------------------+-----------+--------------+
-| #hashMap     | #namespace | map            | #comments:lua comment         | keyType, valueType: #id, #string         |           | #HashMaps    |
-+--------------+------------+----------------+-------------------------------+------------------------------------------+-----------+--------------+
-| #hashMap     | #namespace | map            | #comments:mermaid comment     | keyType, valueType: #id, #string         |           | #HashMaps    |
-+--------------+------------+----------------+-------------------------------+------------------------------------------+-----------+--------------+
-| #hashMap     | #namespace | map            | #comments:python comment      | keyType, valueType: #id, #string         |           | #HashMaps    |
-+--------------+------------+----------------+-------------------------------+------------------------------------------+-----------+--------------+
-| #hashMap     | #namespace | map            | #comments:ruby comment        | keyType, valueType: #id, #string         |           | #HashMaps    |
-+--------------+------------+----------------+-------------------------------+------------------------------------------+-----------+--------------+
-| #hashMap     | #namespace | map            | #comments:shell comment       | keyType, valueType: #id, #string         |           | #HashMaps    |
-+--------------+------------+----------------+-------------------------------+------------------------------------------+-----------+--------------+
-| #hashMap     | #namespace | map            | #comments:comment syntax      | keyType, valueType: #string, #commentMap |           | #HashMaps    |
-+--------------+------------+----------------+-------------------------------+------------------------------------------+-----------+--------------+
-| #bimap       | #namespace | map            | #template:template token type | instance, default: shared, text          | #break    | #Bimaps      |
-+--------------+------------+----------------+-------------------------------+------------------------------------------+-----------+--------------+
+| placeholder | structure | separator | file |
+| --- | --- | --- | --- |
+| - line: @lexicon:lexicon | template:namespace |  | @Identifiers |
+|  | - name: Id |  |  |
+|  |  |  |  |
+|  | > - line: template:identifier |  |  |
+| > - line: @text:diagnostics | template:namespace |  | @Text |
+|  | - name: text |  |  |
+|  |  |  |  |
+|  | > template:struct |  |  |
+|  | > - name: Diagnostics |  |  |
+|  | > > - line: template:char |  |  |
+| - line: @binaryFiles:files | template:namespace |  | @Files |
+|  | - name: files |  |  |
+|  |  |  |  |
+|  | > - line: template:identifier |  |  |
+|  | > - type: @string |  |  |
+| > - line: @banner:banner | template:namespace | template:separator | @HashMaps |
+|  | - name: map |  |  |
+|  |  |  |  |
+|  | > template:hashMap |  |  |
+|  | > - name: banner |  |  |
+|  | > - keyType: @string |  |  |
+|  | > - valueType: @string |  |  |
+|  | > > - line: template:stringPair |  |  |
+| > - line: @comments:clang comment | template:namespace | template:separator | @HashMaps |
+|  | - name: map |  |  |
+|  |  |  |  |
+|  | > template:hashMap |  |  |
+|  | > - name: clangComment |  |  |
+|  | > - keyType: @id |  |  |
+|  | > - valueType: @string |  |  |
+|  | > > - line: template:mapEntry |  |  |
+| > - line: @comments:css comment | template:namespace | template:separator | @HashMaps |
+|  | - name: map |  |  |
+|  |  |  |  |
+|  | > template:hashMap |  |  |
+|  | > - name: cssComment |  |  |
+|  | > - keyType: @id |  |  |
+|  | > - valueType: @string |  |  |
+|  | > > - line: template:mapEntry |  |  |
+| > - line: @comments:html comment | template:namespace | template:separator | @HashMaps |
+|  | - name: map |  |  |
+|  |  |  |  |
+|  | > template:hashMap |  |  |
+|  | > - name: htmlComment |  |  |
+|  | > - keyType: @id |  |  |
+|  | > - valueType: @string |  |  |
+|  | > > - line: template:mapEntry |  |  |
+| > - line: @comments:lua comment | template:namespace | template:separator | @HashMaps |
+|  | - name: map |  |  |
+|  |  |  |  |
+|  | > template:hashMap |  |  |
+|  | > - name: luaComment |  |  |
+|  | > - keyType: @id |  |  |
+|  | > - valueType: @string |  |  |
+|  | > > - line: template:mapEntry |  |  |
+| > - line: @comments:mermaid comment | template:namespace | template:separator | @HashMaps |
+|  | - name: map |  |  |
+|  |  |  |  |
+|  | > template:hashMap |  |  |
+|  | > - name: mermaidComment |  |  |
+|  | > - keyType: @id |  |  |
+|  | > - valueType: @string |  |  |
+|  | > > - line: template:mapEntry |  |  |
+| > - line: @comments:python comment | template:namespace | template:separator | @HashMaps |
+|  | - name: map |  |  |
+|  |  |  |  |
+|  | > template:hashMap |  |  |
+|  | > - name: pythonComment |  |  |
+|  | > - keyType: @id |  |  |
+|  | > - valueType: @string |  |  |
+|  | > > - line: template:mapEntry |  |  |
+| > - line: @comments:ruby comment | template:namespace | template:separator | @HashMaps |
+|  | - name: map |  |  |
+|  |  |  |  |
+|  | > template:hashMap |  |  |
+|  | > - name: rubyComment |  |  |
+|  | > - keyType: @id |  |  |
+|  | > - valueType: @string |  |  |
+|  | > > - line: template:mapEntry |  |  |
+| > - line: @comments:shell comment | template:namespace | template:separator | @HashMaps |
+|  | - name: map |  |  |
+|  |  |  |  |
+|  | > template:hashMap |  |  |
+|  | > - name: shellComment |  |  |
+|  | > - keyType: @id |  |  |
+|  | > - valueType: @string |  |  |
+|  | > > - line: template:mapEntry |  |  |
+| > - line: @comments:comment syntax | template:namespace |  | @HashMaps |
+|  | - name: map |  |  |
+|  |  |  |  |
+|  | > template:hashMap |  |  |
+|  | > - name: commentSyntax |  |  |
+|  | > - keyType: @string |  |  |
+|  | > - valueType: @commentMap |  |  |
+|  | > > - line: template:stringEntry |  |  |
+| > > > - line: @tokens:template token type | template:namespace |  | @Bimaps |
+| > > - line: @tokens:template token type | - name: map |  |  |
+|  |  |  |  |
+|  | > template:bimap |  |  |
+|  | > - name: TemplateTokenType |  |  |
+|  | > - type: int |  |  |
+|  | > - instance: |  |  |
+|  | > - comment:  |  |  |
+|  | > > > - line: template:mapEntry |  |  |
+|  | > > - line: template:enum |  |  |
 
 ## output index
 
-+------------------+-----------------------+------------+
-| list             | structure             | file       |
-+==================+=======================+============+
-| - files: file    | > > @scope: Generated | @Generated |
-| - body: instance | > >                   |            |
-|                  | > > - keyword: struct |            |
-|                  | > > - body: @instance |            |
-|                  | > > - terminator: ;   |            |
-+------------------+-----------------------+------------+
+| placeholder | structure | separator | file |
+| --- | --- | --- | --- |
+| - files: file | template:generated |  | @Generated |
+| > - line: instance | - files: template:include |  |  |
+|  | > - line: template:sharedInstance |  |  |

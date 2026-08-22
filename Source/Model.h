@@ -143,123 +143,97 @@ public:
                   : nullptr;
     }
 
-    jam::HashMap<juce::Identifier, juce::String> getSource (Element& row) const
+    juce::String getStructure (Element& row, int depth) const
     {
-        return getSource (row, 0);
+        juce::String head;
+
+        if (auto* scope { getStructure (row, depth, Id::structure) })
+            for (auto* block : *scope)
+                if (block->isTag (Id::p))
+                {
+                    const auto blockText { block->getAllSubText() };
+
+                    if (jam::Format::getPreColon (blockText).trim() == Id::templatePath.toString())
+                        head = jam::Format::getPostColon (blockText).trim();
+                }
+
+        return head;
     }
 
-    jam::HashMap<juce::Identifier, juce::String> getSource (Element& row, int depth) const
+    Element* getStructure (Element& row, int depth, const juce::Identifier& column) const
     {
-        jam::HashMap<juce::Identifier, juce::String> wiring;
+        auto* scope { getTableCell (row, column) };
 
-        if (auto* placeholderCell { getTableCell (row, Id::placeholder) })
+        for (int scopeDepth { 0 }; scopeDepth < depth and scope != nullptr; ++scopeDepth)
         {
-            Element* scope { placeholderCell };
+            Element* nested { nullptr };
 
-            for (int scopeDepth { 0 }; scopeDepth < depth and scope != nullptr; ++scopeDepth)
+            for (auto* block : *scope)
+                if (block->isTag (Id::blockquote))
+                    nested = block;
+
+            scope = nested;
+        }
+
+        return scope;
+    }
+
+    jam::HashMap<juce::Identifier, juce::String>
+    getSource (Element& row, int depth, const juce::Identifier& column) const
+    {
+        jam::HashMap<juce::Identifier, juce::String> bullets;
+
+        if (auto* scope { getStructure (row, depth, column) })
+            for (auto* block : *scope)
+                if (block->isTag (Id::ul))
+                    for (auto* item : *block)
+                        if (item->isTag (Id::li))
+                        {
+                            const auto itemText { item->getAllSubText() };
+                            const auto key { jam::Format::getPreColon (itemText).trim() };
+                            const auto value { jam::Format::getPostColon (itemText).trim() };
+                            bullets.try_emplace (juce::Identifier (key), value);
+                        }
+
+        return bullets;
+    }
+
+    jam::Array<std::tuple<int, juce::Identifier, juce::String>>
+    getSource (Element& row, const juce::Identifier& column) const
+    {
+        jam::Array<std::tuple<int, juce::Identifier, juce::String>> bullets;
+
+        if (auto* cell { getTableCell (row, column) })
+        {
+            std::function<void (Element&, int)> walk = [&] (Element& scope, int depth)
             {
-                Element* nested { nullptr };
-
-                for (auto* block : *scope)
-                    if (block->isTag (Id::blockquote))
-                        nested = block;
-
-                scope = nested;
-            }
-
-            if (scope != nullptr)
-                for (auto* block : *scope)
+                for (auto* block : scope)
+                {
                     if (block->isTag (Id::ul))
                         for (auto* item : *block)
                             if (item->isTag (Id::li))
                             {
-                                const auto text { item->getAllSubText() };
-                                const auto key { jam::Format::getPreColon (text).trim() };
-                                const auto value { jam::Format::getPostColon (text).trim() };
-                                wiring.try_emplace (juce::Identifier (key), value);
+                                const auto itemText { item->getAllSubText() };
+                                const auto key { jam::Format::getPreColon (itemText).trim() };
+                                const auto value { jam::Format::getPostColon (itemText).trim() };
+                                bullets.add (
+                                    std::make_tuple (depth, juce::Identifier (key), value));
                             }
+
+                    if (block->isTag (Id::blockquote))
+                        walk (*block, depth + 1);
+                }
+            };
+
+            walk (*cell, 0);
         }
 
-        return wiring;
+        return bullets;
     }
 
     bool isOutputTable (Element& table) const noexcept
     {
         return not table.isTag (Id::index) and getTableHeaders (table).contains (Id::file.toString());
-    }
-
-    juce::String getToken (Element& row, const juce::Identifier& name) const
-    {
-        if (auto* structure { getStructure (row) })
-            for (auto* block : *structure)
-                if (block->isTag (Id::ul))
-                    for (auto* item : *block)
-                        if (item->isTag (Id::li))
-                        {
-                            const auto text { item->getAllSubText() };
-                            const auto key { jam::Format::getPreColon (text).trim() };
-
-                            if (key == name.toString())
-                            {
-                                const auto value { jam::Format::getPostColon (text).trim() };
-
-                                if (value.startsWithChar (Chars::at)
-                                    and jam::Format::getPostColon (value).containsChar (Chars::colon))
-                                    return getEntry (row, value);
-
-                                if (value.startsWithChar (Chars::at))
-                                {
-                                    const auto symbol { getValue (row, value) };
-                                    return symbol.isNotEmpty() ? symbol : value;
-                                }
-
-                                return value;
-                            }
-                        }
-
-        return {};
-    }
-
-    juce::String getEntry (Element& row, juce::StringRef reference) const
-    {
-        const juce::String referenceText { reference };
-        const auto alias { jam::Format::getPreColon (referenceText) };
-        const auto remainder { jam::Format::getPostColon (referenceText) };
-        const auto table { jam::Format::getPreColon (remainder) };
-        const auto entry { jam::Format::getPostColon (remainder) };
-
-        if (getValue (row, alias).isNotEmpty())
-        {
-            if (auto* entryTable {
-                    getTables (row, alias + juce::String::charToString (Chars::colon) + table) })
-            {
-                if (const auto value {
-                        getTableValue (*entryTable, Id::value, juce::Identifier (entry)) };
-                    value.isNotEmpty())
-                    return value;
-
-                jassertfalse;
-                jam::debug::Log::write (
-                    jam::MarkdownValidator::getLocation (*row.parent, row, Id::structure.toString())
-                    + Id::diagnosticSeparator + text::Diagnostics::failNotFound + Id::diagnosticSeparator
-                    + entry);
-                return {};
-            }
-
-            jassertfalse;
-            jam::debug::Log::write (
-                jam::MarkdownValidator::getLocation (*row.parent, row, Id::structure.toString())
-                + Id::diagnosticSeparator + text::Diagnostics::failTableMissing + Id::diagnosticSeparator
-                + table);
-            return {};
-        }
-
-        jassertfalse;
-        jam::debug::Log::write (
-            jam::MarkdownValidator::getLocation (*row.parent, row, Id::structure.toString())
-            + Id::diagnosticSeparator + text::Diagnostics::failAliasMissing + Id::diagnosticSeparator
-            + alias);
-        return {};
     }
 
     juce::File getFile (Element& row, juce::StringRef alias) const
@@ -295,12 +269,6 @@ public:
         }
 
         return nullptr;
-    }
-
-    bool isTemplatePath (Element& row, juce::StringRef cell) const noexcept
-    {
-        return juce::File::createFileWithoutCheckingPath (getValue (row, cell))
-            .hasFileExtension (Extensions::cast);
     }
 
 private:

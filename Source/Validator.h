@@ -102,12 +102,6 @@ struct Validator : jam::MarkdownValidator
         return predicates;
     }
 
-    static bool isOutputTable (const Model& model, Element& table) noexcept
-    {
-        return not table.isTag (Id::index)
-               and model.getTableHeaders (table).contains (Id::file.toString());
-    }
-
     static juce::Result isTable (const Model& model, Element& table)
     {
         const auto headers { model.getTableHeaders (table) };
@@ -151,166 +145,82 @@ struct Validator : jam::MarkdownValidator
         return result;
     }
 
-    static juce::Result isTemplates (const Model& model)
+    static juce::Result isStructure (const Model& model, const TemplateDocument& templateDocument)
     {
         for (auto* table : model.getTables())
-            if (isOutputTable (model, *table))
+            if (model.isOutputTable (*table))
             {
-                const auto headers { model.getTableHeaders (*table) };
-
-                for (auto* row : model.getTableRows (*table))
-                    for (const auto& header : headers)
-                        if (header.compare (Id::file.toString()) != 0)
-                        {
-                            const auto cell {
-                                model.getTableValue (*row, juce::Identifier (header))
-                            };
-
-                            if (model.isTemplatePath (*row, cell)
-                                and not model.getFile (*row, cell).existsAsFile())
-                                return juce::Result::fail (
-                                    getLocation (*table, *row, header) + Id::diagnosticSeparator
-                                    + text::Diagnostics::failTemplateMissing + Id::diagnosticSeparator
-                                    + cell);
-                        }
-            }
-
-        return juce::Result::ok();
-    }
-
-    static jam::Array<juce::Identifier> getPlaceholders (const Model& model)
-    {
-        jam::Array<juce::Identifier> allPlaceholders;
-
-        for (auto* table : model.getTables())
-            if (isOutputTable (model, *table))
-                for (auto* row : model.getTableRows (*table))
-                    for (auto* wrap : TemplateDocument::getWraps (model, *row))
-                    {
-                        const auto alias { TemplateDocument::getWrapAlias (model, *wrap) };
-
-                        if (alias.isNotEmpty())
-                        {
-                            const auto& document {
-                                TemplateDocument::getOrCreate (model.getFile (*row, alias))
-                            };
-
-                            for (const auto& placeholder : document.getPlaceholders())
-                                allPlaceholders.addIfNotAlreadyThere (placeholder);
-                        }
-                    }
-
-        return allPlaceholders;
-    }
-
-    static juce::Result
-    isOrphanFree (const Model& model, const jam::Array<juce::Identifier>& allPlaceholders)
-    {
-        for (auto* table : model.getTables())
-            if (isOutputTable (model, *table))
-            {
-                const auto columns { model.getTableHeaders (*table) };
-                const auto& firstColumn { *columns.begin() };
-
-                const jam::Strings reserved { firstColumn, Id::file.toString(),
-                                              Id::structure.toString(), Id::separator.toString() };
-
-                for (auto* row : model.getTableRows (*table))
-                    for (const auto& column : columns)
-                    {
-                        const auto cell { model.getTableValue (*row, juce::Identifier (column)) };
-
-                        if (cell.isNotEmpty() and not reserved.contains (column, false)
-                            and not allPlaceholders.contains (juce::Identifier (column)))
-                            return juce::Result::fail (getLocation (*table, *row, column)
-                                                       + Id::diagnosticSeparator
-                                                       + text::Diagnostics::failOrphan);
-                    }
-            }
-
-        return juce::Result::ok();
-    }
-
-    static juce::Result isStructure (const Model& model)
-    {
-        for (auto* table : model.getTables())
-            if (isOutputTable (model, *table))
-            {
-                jam::HashMap<juce::String, Element*> outermostByFile;
+                jam::HashMap<juce::String, juce::String> depthZeroByFile;
                 jam::HashMap<juce::String, Element*> firstRowByFile;
 
                 for (auto* row : model.getTableRows (*table))
-                    if (auto* structure { model.getStructure (*row) })
-                        for (auto* block : *structure)
-                            if (block->isTag (Id::blockquote))
-                            {
-                                if (const auto result { TemplateDocument::isWrapHead (
-                                        model, *table, *row, *block) };
-                                    not result.wasOk())
-                                    return result;
+                {
+                    const auto shapeId { model.getStructure (*row, 0) };
 
-                                const auto origin { *table->get<juce::String> (Id::path) };
-                                const auto file { model.getValue (
-                                    origin, model.getTableValue (*row, Id::file)) };
-                                auto* outermost { TemplateDocument::getOutermostWrap (*block) };
+                    if (shapeId.isEmpty())
+                        return juce::Result::fail (getLocation (*table, *row, Id::structure.toString())
+                                                   + Id::diagnosticSeparator
+                                                   + text::Diagnostics::failNotFound);
 
-                                if (not outermostByFile.contains (file))
-                                {
-                                    outermostByFile.try_emplace (file, outermost);
-                                    firstRowByFile.try_emplace (file, row);
-                                }
-                                else if (outermostByFile.at (file)->getAllSubText()
-                                         != outermost->getAllSubText())
-                                    return juce::Result::fail (
-                                        getLocation (*table,
-                                                     *firstRowByFile.at (file),
-                                                     Id::structure.toString())
-                                        + Id::diagnosticSeparator
-                                        + getLocation (*table, *row, Id::structure.toString())
-                                        + Id::diagnosticSeparator + text::Diagnostics::failNoMatch);
-                            }
+                    for (int depth { 0 }; model.getStructure (*row, depth).isNotEmpty(); ++depth)
+                    {
+                        const auto depthShapeId { model.getStructure (*row, depth) };
+                        const juce::Identifier codeId { depthShapeId };
+
+                        if (templateDocument.getCodeBlock (codeId) == nullptr)
+                            return juce::Result::fail (
+                                getLocation (*table, *row, Id::structure.toString())
+                                + Id::diagnosticSeparator + text::Diagnostics::failTemplateMissing
+                                + Id::diagnosticSeparator + depthShapeId);
+                    }
+
+                    const auto origin { *table->get<juce::String> (Id::path) };
+                    const auto file { model.getValue (origin, model.getTableValue (*row, Id::file)) };
+
+                    if (not depthZeroByFile.contains (file))
+                    {
+                        depthZeroByFile.try_emplace (file, shapeId);
+                        firstRowByFile.try_emplace (file, row);
+                    }
+                    else if (depthZeroByFile.at (file) != shapeId)
+                        return juce::Result::fail (
+                            getLocation (*table, *firstRowByFile.at (file), Id::structure.toString())
+                            + Id::diagnosticSeparator
+                            + getLocation (*table, *row, Id::structure.toString())
+                            + Id::diagnosticSeparator + text::Diagnostics::failNoMatch);
+                }
             }
 
         return juce::Result::ok();
     }
 
-    static juce::Result isPlaceholders (const Model& model)
+    static juce::Result
+    isPlaceholders (const Model& model, const TemplateDocument& templateDocument)
     {
-        return isOrphanFree (model, getPlaceholders (model));
-    }
+        for (auto* table : model.getTables())
+            if (model.isOutputTable (*table))
+                for (auto* row : model.getTableRows (*table))
+                    for (const auto& column : { Id::placeholder, Id::structure })
+                        for (auto& entry : model.getSource (*row, column))
+                        {
+                            const auto& [entryDepth, entryKey, entryValue] { entry };
+                            juce::ignoreUnused (entryDepth, entryKey);
 
-    static juce::Result isIndex (const Model& model)
-    {
-        const auto indexTables { model.getTables (Id::index) };
+                            if (jam::Format::getPreColon (entryValue).trim()
+                                == Id::templatePath.toString())
+                            {
+                                const juce::Identifier codeId {
+                                    jam::Format::getPostColon (entryValue).trim()
+                                };
 
-        if (indexTables.isEmpty())
-            return juce::Result::fail (Id::index.toString() + Id::diagnosticSeparator
-                                       + text::Diagnostics::failTableMissing);
-
-        Element& indexTable { *indexTables.at (0) };
-
-        for (auto* row : model.getTableRows (indexTable))
-        {
-            const auto pathCell { model.getTableValue (*row, Id::symbol) };
-
-            if (pathCell.isEmpty())
-                return juce::Result::fail (getLocation (indexTable, *row, Id::symbol.toString())
-                                           + Id::diagnosticSeparator + text::Diagnostics::failNotFound);
-
-            if (juce::File::createFileWithoutCheckingPath (pathCell).hasFileExtension (Extensions::md)
-                and not model.getOutput (pathCell).existsAsFile())
-                return juce::Result::fail (getLocation (indexTable, *row, Id::symbol.toString())
-                                           + Id::diagnosticSeparator
-                                           + text::Diagnostics::failOutputMissing + Id::diagnosticSeparator
-                                           + pathCell);
-
-            if (juce::File::createFileWithoutCheckingPath (pathCell).hasFileExtension (Extensions::cast)
-                and not model.getOutput (pathCell).existsAsFile())
-                return juce::Result::fail (getLocation (indexTable, *row, Id::symbol.toString())
-                                           + Id::diagnosticSeparator
-                                           + text::Diagnostics::failTemplateMissing
-                                           + Id::diagnosticSeparator + pathCell);
-        }
+                                if (templateDocument.getCodeBlock (codeId) == nullptr)
+                                    return juce::Result::fail (
+                                        getLocation (*table, *row, column.toString())
+                                        + Id::diagnosticSeparator
+                                        + text::Diagnostics::failTemplateMissing
+                                        + Id::diagnosticSeparator + codeId.toString());
+                            }
+                        }
 
         return juce::Result::ok();
     }
@@ -382,6 +292,42 @@ struct Validator : jam::MarkdownValidator
         return juce::Result::ok();
     }
 
+    static juce::Result isIndex (const Model& model)
+    {
+        const auto indexTables { model.getTables (Id::index) };
+
+        if (indexTables.isEmpty())
+            return juce::Result::fail (Id::index.toString() + Id::diagnosticSeparator
+                                       + text::Diagnostics::failTableMissing);
+
+        Element& indexTable { *indexTables.at (0) };
+
+        for (auto* row : model.getTableRows (indexTable))
+        {
+            const auto pathCell { model.getTableValue (*row, Id::symbol) };
+
+            if (pathCell.isEmpty())
+                return juce::Result::fail (getLocation (indexTable, *row, Id::symbol.toString())
+                                           + Id::diagnosticSeparator + text::Diagnostics::failNotFound);
+
+            if (juce::File::createFileWithoutCheckingPath (pathCell).hasFileExtension (Extensions::md)
+                and not model.getOutput (pathCell).existsAsFile())
+                return juce::Result::fail (getLocation (indexTable, *row, Id::symbol.toString())
+                                           + Id::diagnosticSeparator
+                                           + text::Diagnostics::failOutputMissing + Id::diagnosticSeparator
+                                           + pathCell);
+
+            if (juce::File::createFileWithoutCheckingPath (pathCell).hasFileExtension (Extensions::cast)
+                and not model.getOutput (pathCell).existsAsFile())
+                return juce::Result::fail (getLocation (indexTable, *row, Id::symbol.toString())
+                                           + Id::diagnosticSeparator
+                                           + text::Diagnostics::failTemplateMissing
+                                           + Id::diagnosticSeparator + pathCell);
+        }
+
+        return juce::Result::ok();
+    }
+
     static juce::Result isManifest (const Model& model)
     {
         if (const auto result { isIndex (model) }; not result.wasOk())
@@ -390,10 +336,22 @@ struct Validator : jam::MarkdownValidator
         if (const auto result { isDeclared (model) }; not result.wasOk())
             return result;
 
-        if (const auto result { isTemplates (model) }; not result.wasOk())
-            return result;
+        juce::File templateFile;
 
-        if (const auto result { isStructure (model) }; not result.wasOk())
+        for (auto* indexRow : model.getTableRows (Id::index))
+        {
+            const auto pathCell { model.getTableValue (*indexRow, Id::symbol) };
+
+            if (juce::File::createFileWithoutCheckingPath (pathCell).hasFileExtension (
+                    Extensions::cast))
+                templateFile = model.getOutput (pathCell);
+        }
+
+        const TemplateDocument templateDocument {
+            jam::MarkdownDocument::parse (templateFile.loadFileAsString())
+        };
+
+        if (const auto result { isStructure (model, templateDocument) }; not result.wasOk())
             return result;
 
         for (auto* table : model.getTables())
@@ -419,7 +377,7 @@ struct Validator : jam::MarkdownValidator
         if (const auto result { unique (model, Id::alias.toString(), {}) }; not result.wasOk())
             return result;
 
-        return isPlaceholders (model);
+        return isPlaceholders (model, templateDocument);
     }
 
     const Rules& getRules() const override

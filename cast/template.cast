@@ -1,0 +1,117 @@
+```namespace
+namespace :::name:::
+{
+/*_____________________________________________________________________________*/
+
+:::line:::
+
+/**______________________________END OF NAMESPACE______________________________*/
+}// namespace :::name:::
+```
+
+```struct
+struct :::name:::
+{
+:::line:::
+};
+```
+
+```char
+static constexpr const char* const :::name::: { :::value::: };
+```
+
+```identifier
+inline const :::type::: :::name::: { juce::String::fromUTF8 (":::value:::") };
+```
+
+```hashMap
+inline const jam::HashMap<:::keyType:::, :::valueType:::> :::name:::
+{
+:::line:::
+};
+```
+
+```stringPair
+{ juce::String::fromUTF8 (":::key:::"), juce::String::fromUTF8 (":::value:::") },
+```
+
+```mapEntry
+{ :::key:::, juce::String::fromUTF8 (":::value:::") },
+```
+
+```stringEntry
+{ juce::String::fromUTF8 (":::key:::"), :::value::: },
+```
+
+```bimap
+/** :::comment:brief::: */
+struct :::name::: : public jam::Bimap<:::type:::>
+{
+    :::name:::()
+    {
+        map = {
+:::line:::
+        };
+    }
+
+    enum value : :::type:::
+    {
+:::line:::
+    };
+
+    const juce::String& getDefault() const noexcept
+    {
+        return map.at (:::value:::);
+    }
+
+    static :::name:::* getInstance() noexcept
+    {
+        return jam::SharedInstance<:::name:::>::getInstance();
+    }
+
+    static const auto& get() noexcept
+    {
+        return getInstance()->map;
+    }
+
+    static :::type::: get (const juce::String& value) noexcept
+    {
+        return jam::Map::getKey (get()).at (value);
+    }
+
+    static juce::String get (:::type::: key) noexcept
+    {
+        return get().at (key);
+    }
+};
+```
+
+```enum
+:::key::: = :::value:::,
+```
+
+```include
+#include ":::file:toFileName:::"
+```
+
+```sharedInstance
+jam::SharedInstance<:::type:::> :::name::: { std::in_place };
+```
+
+```generated
+#include <generated/jam_Generated.h>
+:::line:::
+
+struct Generated
+{
+    jam::Generated jam;
+
+:::line:::
+};
+```
+
+```separator
+
+//==============================================================================
+
+```

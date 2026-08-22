@@ -20,23 +20,19 @@ struct Writer : jam::Document::Writer
 
     bool toFile (const juce::File& outputPath)
     {
-        jam::Array<juce::File> templateFiles;
+        juce::File templateFile;
 
-        for (auto* indexTable : model.getTables (Id::index))
-            for (auto* indexRow : model.getTableRows (*indexTable))
-            {
-                const auto pathCell { model.getTableValue (*indexRow, Id::symbol) };
+        for (auto* indexRow : model.getTableRows (Id::index))
+        {
+            const auto pathCell { model.getTableValue (*indexRow, Id::symbol) };
 
-                if (juce::File::createFileWithoutCheckingPath (pathCell).hasFileExtension (
-                        Extensions::cast))
-                    templateFiles.addIfNotAlreadyThere (model.getOutput (pathCell));
-            }
+            if (juce::File::createFileWithoutCheckingPath (pathCell).hasFileExtension (
+                    Extensions::cast))
+                templateFile = model.getOutput (pathCell);
+        }
 
-        runJobs (templateFiles.size(),
-            [&templateFiles] (int index)
-            {
-                TemplateDocument::getOrCreate (templateFiles.at (index));
-            });
+        templateDocument = std::make_unique<TemplateDocument> (
+            jam::MarkdownDocument::parse (templateFile.loadFileAsString()));
 
         std::atomic<bool> written { true };
 
@@ -86,151 +82,100 @@ struct Writer : jam::Document::Writer
 
 private:
     const Model& model;
-
-    juce::String applyWrap (Model::Element& row,
-                            Model::Element& wrap,
-                            int depth,
-                            const juce::String& innerCode,
-                            const jam::Array<juce::Identifier>& expansionKeys,
-                            bool injectInner) const
-    {
-        const auto alias { TemplateDocument::getWrapAlias (model, wrap) };
-        auto tokens { TemplateDocument::getTokens (model, row, depth, wrap) };
-        const auto& wrapperDocument { TemplateDocument::getOrCreate (model.getFile (row, alias)) };
-
-        if (injectInner)
-        {
-            const auto& templatePlaceholders { wrapperDocument.getPlaceholders() };
-
-            jam::Array<juce::Identifier> injectionKeys;
-
-            for (const auto& placeholder : templatePlaceholders)
-                if (expansionKeys.contains (placeholder))
-                    injectionKeys.add (placeholder);
-
-            jassert (injectionKeys.size() == 1);
-
-            if (injectionKeys.size() != 1)
-                jam::debug::Log::write (
-                    jam::MarkdownValidator::getLocation (
-                        *row.parent, row, Id::structure.toString())
-                    + Id::diagnosticSeparator + text::Diagnostics::failNoSource);
-
-            if (injectionKeys.size() == 1)
-            {
-                const auto indentedCode { depth == 0 or innerCode.isEmpty()
-                                             ? innerCode
-                                             : juce::String::repeatedString (
-                                                   juce::String::charToString (Chars::space),
-                                                   depth * TemplateDocument::indentWidth)
-                                                   + innerCode.replace (
-                                                       juce::String::charToString (Chars::newline),
-                                                       juce::String::charToString (Chars::newline)
-                                                           + juce::String::repeatedString (
-                                                               juce::String::charToString (
-                                                                   Chars::space),
-                                                               depth
-                                                                   * TemplateDocument::indentWidth)) };
-                tokens.addOrReplace (injectionKeys.at (0), indentedCode);
-            }
-        }
-
-        return wrapperDocument.build (model, row, row, depth, tokens)
-                   .trimCharactersAtEnd (juce::String::charToString (Chars::newline));
-    }
+    std::unique_ptr<TemplateDocument> templateDocument;
 
     juce::String getRow (Model::Element& row) const
     {
-        const auto wraps { TemplateDocument::getWraps (model, row) };
+        jam::Array<int> depths;
 
-        jam::Array<juce::Identifier> expansionKeys;
+        for (int depth { 0 }; model.getStructure (row, depth).isNotEmpty(); ++depth)
+            depths.add (depth);
 
-        for (int wiringDepth { 0 }; wiringDepth < wraps.size(); ++wiringDepth)
-            for (auto& [wiringKey, wiringValue] : model.getSource (row, wiringDepth))
-                expansionKeys.addIfNotAlreadyThere (wiringKey);
+        juce::String innerText;
 
-        juce::String code;
-        bool hasInnerContent { false };
-
-        for (int depth { wraps.size() - 1 }; depth >= 1; --depth)
+        for (int index { depths.size() - 1 }; index >= 0; --index)
         {
-            auto* wrap { wraps.at (depth) };
-            const auto alias { TemplateDocument::getWrapAlias (model, *wrap) };
+            const auto depth { depths.at (index) };
+            const auto shapeId { juce::Identifier (model.getStructure (row, depth)) };
 
-            if (alias.isNotEmpty())
-            {
-                code = applyWrap (row, *wrap, depth, code, expansionKeys, hasInnerContent);
-                hasInnerContent = true;
-            }
-            else if (not hasInnerContent)
-            {
-                const auto tokens { TemplateDocument::getTokens (model, row, depth, *wrap) };
+            jam::HashMap<juce::Identifier, juce::String> injection;
 
-                for (const auto& key : expansionKeys)
-                    if (tokens.contains (key))
-                    {
-                        code = tokens.at (key);
-                        hasInnerContent = true;
-                    }
+            if (index < depths.size() - 1)
+            {
+                const auto dryBuild { templateDocument->build (model, row, row, depth, {}, shapeId) };
+
+                const auto candidates { templateDocument->placeholders.contains (shapeId)
+                                            ? templateDocument->placeholders.at (shapeId)
+                                            : jam::Array<juce::Identifier>() };
+
+                jam::Array<juce::Identifier> residue;
+
+                for (const auto& candidate : candidates)
+                    if (jam::Format::hasPlaceholder (dryBuild, candidate.toString()))
+                        residue.addIfNotAlreadyThere (candidate);
+
+                jassert (residue.size() == 1);
+
+                if (residue.size() == 1)
+                    injection.try_emplace (residue.first(), innerText);
+                else
+                    jam::debug::Log::write (
+                        jam::MarkdownValidator::getLocation (
+                            *row.parent, row, Id::structure.toString())
+                        + Id::diagnosticSeparator + text::Diagnostics::failNoMatch);
             }
+
+            innerText = templateDocument->build (model, row, row, depth, injection, shapeId)
+                            .trimCharactersAtEnd (juce::String::charToString (Chars::newline));
         }
 
-        return code;
+        jassert (not innerText.contains (Id::tripleColon.toString()));
+
+        if (innerText.contains (Id::tripleColon.toString()))
+            jam::debug::Log::write (
+                jam::MarkdownValidator::getLocation (*row.parent, row, Id::structure.toString())
+                + Id::diagnosticSeparator + text::Diagnostics::failNoSource);
+
+        return innerText;
     }
 
     void getFile (TemplateDocument& output, const Elements& fileRows) const
     {
         auto* firstRow { fileRows.first() };
-        const auto wraps { TemplateDocument::getWraps (model, *firstRow) };
-        const auto hasOutermostWrap { wraps.size() > 1 };
+        auto* separatorCell { model.getTableCell (*firstRow, Id::separator) };
+        const auto hasJackEntries {
+            separatorCell != nullptr
+            and std::any_of (separatorCell->begin(),
+                separatorCell->end(),
+                [] (Model::Element* block) { return block->isTag (Id::ul); })
+        };
 
-        const auto separatorCell { model.getTableValue (*firstRow, Id::separator) };
         auto joinText { juce::String::charToString (Chars::newline) };
 
-        if (separatorCell.isNotEmpty() and not separatorCell.startsWithChar (Chars::dash))
+        if (separatorCell != nullptr and not hasJackEntries)
         {
-            const auto resolved {
-                TemplateDocument::getBinding (model, *firstRow, 0, separatorCell, Id::separator)
-            };
+            const auto flatValue { separatorCell->getAllSubText() };
 
-            joinText = juce::String::charToString (Chars::newline)
-                     + juce::String::charToString (Chars::newline) + resolved
-                     + juce::String::charToString (Chars::newline)
-                     + juce::String::charToString (Chars::newline);
-        }
-
-        if (hasOutermostWrap)
-        {
-            jam::Strings rowTexts;
-
-            for (auto* row : fileRows)
-                rowTexts.add (getRow (*row));
-
-            constexpr int depth { 0 };
-
-            jam::Array<juce::Identifier> expansionKeys;
-
-            for (int wiringDepth { 0 }; wiringDepth < wraps.size(); ++wiringDepth)
-                for (auto& [wiringKey, wiringValue] : model.getSource (*firstRow, wiringDepth))
-                    expansionKeys.addIfNotAlreadyThere (wiringKey);
-
-            const auto code { rowTexts.joinIntoString (joinText, 0, -1) };
-            const auto wrapped {
-                applyWrap (*firstRow, *wraps.at (depth), depth, code, expansionKeys, true)
-            };
-
-            output.addChild (*output.root, Id::text)->add<juce::String> (Id::text, wrapped);
-        }
-        else
-        {
-            for (int index { 0 }; index < fileRows.size(); ++index)
+            if (flatValue.isNotEmpty())
             {
-                if (index > 0)
-                    output.addChild (*output.root, Id::text)->add<juce::String> (Id::text, joinText);
+                const auto resolved {
+                    templateDocument->getBinding (model, *firstRow, 0, flatValue, Id::separator)
+                };
 
-                output.addChild (*output.root, Id::text)
-                    ->add<juce::String> (Id::text, getRow (*fileRows.at (index)));
+                joinText = juce::String::charToString (Chars::newline)
+                         + juce::String::charToString (Chars::newline) + resolved
+                         + juce::String::charToString (Chars::newline)
+                         + juce::String::charToString (Chars::newline);
             }
+        }
+
+        for (int index { 0 }; index < fileRows.size(); ++index)
+        {
+            if (index > 0)
+                output.addChild (*output.root, Id::text)->add<juce::String> (Id::text, joinText);
+
+            output.addChild (*output.root, Id::text)
+                ->add<juce::String> (Id::text, getRow (*fileRows.at (index)));
         }
     }
 

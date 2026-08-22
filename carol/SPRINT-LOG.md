@@ -111,6 +111,45 @@
 
 ## SPRINT HISTORY
 
+## Handoff to COUNSELOR: Explicit-Template Restructure — Steps 1-5 Complete, Step 6 Convergence Pending
+
+**From:** COUNSELOR
+**Date:** 2026-08-22
+**Status:** Ready for Implementation — Steps 1-5 done; Step 6 (ARCHITECT builds + `./cast jam/cast/CAST.md` + 12-file cmp) is the next action
+
+### Context
+ARCHITECT simplified the template design after Sprint 8: all code shapes are literal fenced codeblocks in ONE file per data dir (`jam/cast/template.cast`, info string = template id, referenced `template:<id>`), data flat at `jam/cast/`, abstract vocabulary (keyword/prologue/epilogue/terminator/open/close, Scope/Definition) dead. Engine = token match → `replaceholder` + transforms → universal `:::line:::` vertical join → wrap/tab. `PLAN-render-unification.md` revision 5 (25 locked decisions) governs; `Source/HELP.md` rewritten as the SPEC. Mid-sprint, ARCHITECT also redesigned jam::Bimap (census-backed) and unified jam_LookupTables.
+
+### Completed
+- **Step 1 SPEC:** HELP.md rewritten (explicit templates, four-column manifest, universal jack, depth = identity + indent, parent fill, engine stamps = banner + pragma + language comments, formatter fail-fast)
+- **Step 2 formatter (jam_markdown):** grid-writer closing-border guarantee; parser stamps `Id::columns` on malformed rows (`isGridRowValid`/`gridRowColumns`); validator FATALs — all validated against sources
+- **Step 3 engine (cast/Source):** TemplateDocument/Writer/Model/Validator rewritten; `template:<id>` via inherited `getCodeBlock` (parse makes info string the element id, jam_MarkdownDocument.h:1486-1492); matched-replace only; residue via cached candidates + `hasPlaceholder` (no scanner); first-row resolution (TemplateDocument.h:421-431); lexicon entry resolution in getCell; format-column resolution confirmed present (:497)
+- **Framework redesign (jam):** `Bimap<Key=int>` (Derived + Instance dropped, Value = juce::String, getDefault non-virtual); `SharedInstance<T>::getInstance()` static added; per-struct `static X* getInstance()` — 220 call sites unchanged; VulkanShaderFormat migrated (+ VulkanEngine ownership → SharedInstance member); LUTs all top-level (wrappers deleted), Xml/Html → `markupLanguage`, 12 call sites swept
+- **Step 4 jam data:** CAST.md rewritten in full (4-column; 96 bimap rows with `- type:`/`- comment:`, 90 `- instance:` bindings, 14 LUT + 18 mermaid Union LUT + 2 alias rows, hashMaps ×3 incl. romanNumerals, all single-construct rows, `## output index` on the `generated` block); template.cast 19 blocks (16 mermaid composed-value blocks + alias + generated + include); markdown.md wide matrix → 9+1 thin `key|value` tables; text.md `## namespace`/`## break` deleted; terminal.md all 24 tables border-repaired
+- **Oracle normalized:** 1-arg→`Bimap<int>`×95 + `<uint32_t>`×1 (ColourNames, ARGB keys); 11 uint32 drifts reverted to int; `override` removed; getInstance inserted ×96; 81-underscore banners ×3; tight struct (jam_Text.h); uniform brief lines (+14 +9); C4Traits padding single-space; Generated member order re-baselined to row order (90 members verified)
+- **Step 5 (rescoped):** cast's own data migrated to spec grammar only (flat cast/, template.cast 14 blocks, 4-column CAST.md, renames localisation-en→text.md, binary-files→files.md, template.md→tokens.md, new block id `stringEntry`); self-generation explicitly deferred until jam converges
+
+### Remaining
+- **Step 6:** ARCHITECT builds jam + cast, runs `./cast jam/cast/CAST.md`, `cmp -s jam/diff/<f> jam/generated/<f>` ×12 — iterate residuals (readiness: all 12 "converges"; Bimaps/MermaidTables moderate confidence — mechanism verified, not every row entry-diffed)
+- **Step 7:** fixpoint (2nd `./cast` = zero changes; 2nd `--format` = zero changes)
+- **Step 8:** Auditor sweep (once), then post-audit doxygen pass — includes stale-doc flags: jam_terminal.h:60, jam_TerminalDecMode.h:35 (Bimap<Derived,Value> prose), jam_VulkanEngine.h:848-853 (Instance-chain prose); lexicon FATAL is generation-time not pre-flight (pre-existing shape, carried to Auditor)
+- cast self-generation (deferred, ARCHITECT ruling); jam table migration to canon shape (older deferral)
+
+### Key Decisions
+- PLAN-render-unification.md rev 5 §Locked Decisions 1-25 is the authoritative list. Highlights: universal `:::line:::` jack (identity = depth = indent, authored-order pairing, parent fill — replaces intersection rule); templates are explicit code, engine stamps only banner+pragma+comments; `quoted` transform for string keys; `--format` fail-fast on malformed rows + closing-border guarantee; `Bimap<Key>` redesign; LUT unwrap + MarkupLanguage merge; thin class tables; first-row resolution revived; mixed-type Identifiers (type from cell); uniform brief line; row-order-derives-everything re-affirmed (Generated re-baselined)
+
+### Files Modified
+- cast: `Source/{TemplateDocument,Writer,Model,Validator}.h` (rewritten), `Source/generated/Identifiers.h` (+Id::entry), `Source/HELP.md` (SPEC rev 5), `PLAN-render-unification.md` (rev 5), `cast/` (flattened + migrated)
+- jam: `jam_core/utils/{jam_Bimap,jam_SharedInstance}.h`, `jam_markdown/document/{jam_MarkdownDocument,jam_MarkdownWriter,jam_MarkdownValidator}.h`, `jam_vulkan/{bimap/jam_VulkanShaderFormat,engine/jam_VulkanEngine}.h`, 6 LUT call-site files, `generated/{jam_Bimaps,jam_MermaidTables,jam_LookupTables,jam_Generated,jam_Text,jam_Identifiers,jam_Entities}.h` (normalizations), `cast/{CAST.md,template.cast,markdown.md,text.md,terminal.md}`
+
+### Open Questions
+- None blocking Step 6. Veto-window items ARCHITECT has not objected to: `stringEntry` block id, cast file renames, 6 added cast lexicon rows, 9 LUT object names (markupLanguage/css/markdown/mermaid/cLang/markup/data/mermaidBlock/mermaidFlowchart)
+
+### Next Steps
+1. ARCHITECT: build jam + cast, run `./cast jam/cast/CAST.md`, cmp 12 files
+2. COUNSELOR: iterate residual diffs to byte-identical (read diff output, fix data/template/engine per evidence)
+3. Fixpoint → Auditor → doxygen pass → log sprint
+
 ## Handoff to COUNSELOR: Engine Rewrite — :::line:::/:::list::: Expansion Jacks
 
 **From:** COUNSELOR
