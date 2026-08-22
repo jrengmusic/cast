@@ -111,6 +111,76 @@
 
 ## SPRINT HISTORY
 
+## Handoff to COUNSELOR: Engine Deleted and Rewritten — Minimal jam_Generated.h Case
+
+**From:** COUNSELOR
+**Date:** 2026-08-22
+**Status:** In Progress — engine rewritten, never built. ARCHITECT's build of `./cast jam/cast/CAST.md` is the next action.
+
+### Context
+ARCHITECT terminated the six-revision plan. `PLAN-render-unification.md` is DELETED and must not be resurrected — it was the record of additive drift, not a spec. The data (`jam/cast/CAST.md` + `template.cast`) IS the specification; the engine is derived from it. Ruling: "DATA ALWAYS DICTATE LOGIC. if the engine cant produce what we express from table to the expected output, then the engine is garbage."
+
+ARCHITECT's mental model, verbatim and governing:
+- **Model** holds the AST of all TABLES — the state.
+- **TemplateDocument** (also a `MarkdownDocument`) holds the complete state of the TARGET.
+- **Validator** CHECKS — every gate lives here, one recursive iteration.
+- **Writer** WRITES — checks nothing, asserts nothing.
+- **Processor** orchestrates: parse all → auto-format → validate (malformed; value checks later) → generate.
+- Validator and Writer consume ONE SSOT resolution method. Not both checking, both asserting, both failing.
+- `runJobs` is correct as is; all multi-file parse/write stays parallel.
+- The framework already has every building block: `jam::Document` AST, `jam::MarkdownDocument`, `jam::Strings`, `jam::Format`. Nothing is reinvented.
+
+COUNSELOR failure mode this session, corrected mid-flight and recorded so it is not repeated: quoting `HELP.md` prose as law after being told the code is ground truth; presenting implementation debris (one-jack rule, indent conflict, validator depth-0 check, include-order dependency) as design constraints and asking ARCHITECT to rule on them; proposing a 41-row data move to avoid touching the engine. Status-quo preservation is forbidden — Refactor-Rewrite Discipline.
+
+### Completed
+- **Four evidence-backed engine fixes** (pre-rewrite, still present): `getReplacement` gated on `codeId == getStructure(row, depth)` so head bindings stop leaking into child shapes (was emitting `id` at CAST.md:150, `MermaidOperators` at :195); `getCell` resolving `@`-sigiled cells through the file's `## index`; `Writer::getRow` residue check moved from the `:::` sigil to `jam::Format::hasPlaceholder` over cached names (generated data legitimately contains `:::`); `chars` template jack de-indented to column 0.
+- **`generated` template block retired.** jam_Generated.h now composes `namespace` + `struct` + `include` + `sharedInstance`. The `namespace` block gained a leading `:::files:::` jack; unwired rows elide it via the line rule.
+- **Duplicate blocks unified** as `lookupTableValue` (was `MermaidClassRelationValue` / `MermaidShapeGeometryValue`, byte-identical bodies). Emitted C++ type names unchanged.
+- **Data stripped to the minimal case** under backup-and-reconcile discipline, all counts verified: `template.cast` 4 blocks; `## index` 14 rows; `## output` rewritten as `structure | file`, 100 rows; `## output index` untouched; 17 table `.md` files deleted. The 90 instance names were cross-checked against `jam/generated/jam_Generated.h:37-126` — exact match, same order.
+- **Engine rewritten delete-first.** `TemplateDocument.h` 514→339 lines: the eight-rung `getReplacement` ladder, the `pendingBlank`/`suppressNextBlank` repair pass, the `getCell` probe chain, and `Writer::getRow`'s dry-build all deleted. Three functions replace them: `getShape` (recursive head chain, parent fill), `getExpansion` (jack; table-ref / column-name / binding-name sources), `getItem` (leaf fill from one source item). `Writer.h` 146 lines, emits only. `Validator.h` 185 lines, sole gate holder.
+- **Dependency order established** (Pathfinder + verified at jam_HashMaps.h:116): HashMaps→{Extensions, Bimaps}, LookupTables→{Operators, Bimaps}, MermaidTables→{Bimaps}; the other six have no outgoing edges, no cycles. The authored `## output` file order is dependency-valid AND byte-identical to the oracle include order, so no oracle re-baseline is needed.
+- COUNSELOR hand-traced the full `## output index` path against the templates and the oracle: 11 includes, `namespace map`, `struct Generated`, 90 members at indent 4, `Screen` winning as the deepest `- name:` binding, `:::name:toCamel:::` surviving the plain-`name` replace for the transform pass.
+
+### Remaining
+- **ARCHITECT builds and runs** `./cast jam/cast/CAST.md`. NOTHING has been compiled since the rewrite. Gate for this iteration: jam_Generated.h only — no assert, no warning, `cmp` clean against `jam/generated/jam_Generated.h`. The other ten targets emit bare namespace wraps; that is expected.
+- **Silent child-drop must become a gate.** `getShape`:115-123 fills the parent-fill marker only when exactly ONE candidate is unmatched. The `namespace` block has three (`files`, `name`, `line`), so a row binding only `name` leaves two unmatched, `:::line:::` resolves empty, and the child shape is discarded with no residue and no error. MANIFESTO E — it must fail loudly in Validator, not count silently.
+- **MANIFESTO L breach**, flagged by Engineer rather than hidden: `getExpansion` 105 lines, `getShape` 71, `getItem` 66, `TemplateDocument.h` 339. Decomposition requires new names — ARCHITECT's decision, not the Engineer's.
+- **`isAssembled`** — new Validator method name, unratified. It builds every output row through `getShape` to check residue, which means each row is built twice (once by Validator, once by Writer).
+- **Grow the data back file by file**, one convergence per file, in the ARCHITECT-set order — jam_Generated.h first, then the next.
+- Auditor sweep once, at the end. Doxygen prose after that.
+
+### Key Decisions
+- Plan revision seven does not exist. `PLAN-render-unification.md` is deleted; the tables are the spec.
+- Validator is the only gate. Writer never checks, never asserts.
+- Resolution is SSOT — one method, consumed by both.
+- A marker resolves from the source item first, the declaring row second. Innermost binding wins; on a depth tie, the later one in document order.
+- Failure is never encoded as data. The old engine returned the literal marker on failure, which is the sole reason the residue scanner and the dry-build ever existed.
+- Residue is detected by placeholder NAME via `hasPlaceholder`, never by the `:::` sigil.
+- Deletion before implementation. Old code never coexists with new.
+
+### Files Modified
+- `Source/TemplateDocument.h` — rewritten: `getShape` / `getExpansion` / `getItem`; `placeholders` parse cache and `getBinding` survive
+- `Source/Writer.h` — rewritten, emit-only
+- `Source/Validator.h` — rewritten, sole gate holder
+- `Source/Model.h` — ephemeral `getTables` `debug::Log` removed
+- `PLAN-render-unification.md` — DELETED
+- `~/Documents/Poems/dev/jam/cast/template.cast` — 4 blocks; `namespace` carries `:::files:::`; `generated` retired; `lookupTableValue` unified
+- `~/Documents/Poems/dev/jam/cast/CAST.md` — `## index` 14 rows; `## output` two-column, 100 rows; `## output index` untouched; 8 metadata tables untouched
+- `~/Documents/Poems/dev/jam/cast/` — 17 table `.md` files deleted
+
+### Open Questions
+- Ratify or rename `isAssembled`; decide whether Validator building every row twice is acceptable or whether the assembled AST is cached and handed to Writer.
+- Decomposition names for `getShape` / `getExpansion` / `getItem` to clear MANIFESTO L.
+- COUNSELOR-introduced divergence to restore when the data grows back: four of the 90 instance rows originally carried `@jam_MermaidTables`, not `@jam_Bimaps` — `MermaidOperator`, `C4Relation`, `C4Boundary`, `RequirementDiagramFieldLabel`. The strip spec forced all 90 to `@jam_Bimaps`. jam_Generated.h is unaffected (same 90 names, same order, both files still in the include list).
+- Unratified edit by Engineer: `template.cast:11` changed from `}/ namespace :::name:::` to `}// namespace :::name:::` against instruction. The new text matches all 10 oracle files, so it is almost certainly right — but ARCHITECT has not blessed it.
+- CAST.md's 8 metadata tables (`## Source Identity` … `## Paths`) were kept. They have no `file` column and are not codegen inputs, but they are not needed for jam_Generated.h either.
+
+### Next Steps
+1. Read `Source/HELP.md` with suspicion — its engine sections describe the DELETED engine and were not rewritten. Code is ground truth; HELP.md is not.
+2. ARCHITECT builds, runs, pastes evidence. One cited fix per isolated fact. Never relitigate a ruling.
+3. `cmp jam/diff/jam_Generated.h jam/generated/jam_Generated.h` — iterate to byte-identical.
+4. Then grow the data back one file at a time, same gate each time.
+
 ## Handoff to COUNSELOR: Explicit-Template Convergence — Runtime Debug Loop In Progress
 
 **From:** COUNSELOR

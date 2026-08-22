@@ -82,69 +82,6 @@ private:
     const Model& model;
     std::unique_ptr<TemplateDocument> templateDocument;
 
-    juce::String getRow (Model::Element& row) const
-    {
-        jam::Array<int> depths;
-
-        for (int depth { 0 }; model.getStructure (row, depth).isNotEmpty(); ++depth)
-            depths.add (depth);
-
-        juce::String innerText;
-
-        for (int index { depths.size() - 1 }; index >= 0; --index)
-        {
-            const auto depth { depths.at (index) };
-            const auto shapeId { juce::Identifier (model.getStructure (row, depth)) };
-
-            jam::HashMap<juce::Identifier, juce::String> injection;
-
-            if (index < depths.size() - 1)
-            {
-                const auto dryBuild { templateDocument->build (
-                    model, row, row, depth, {}, shapeId) };
-
-                static const jam::Array<juce::Identifier> empty;
-                const auto& candidates { templateDocument->placeholders.contains (shapeId)
-                                              ? templateDocument->placeholders.at (shapeId)
-                                              : empty };
-
-                jam::Array<juce::Identifier> residue;
-
-                for (const auto& candidate : candidates)
-                    if (jam::Format::hasPlaceholder (dryBuild, candidate.toString()))
-                        residue.addIfNotAlreadyThere (candidate);
-
-                jassert (residue.size() == 1);
-
-                if (residue.size() == 1)
-                    injection.try_emplace (residue.first(), innerText);
-                else
-                    jam::debug::Log::write (jam::MarkdownValidator::getLocation (
-                                                *row.parent, row, Id::structure.toString())
-                                            + Id::diagnosticSeparator
-                                            + text::Diagnostics::failNoMatch);
-            }
-
-            innerText = templateDocument->build (model, row, row, depth, injection, shapeId)
-                            .trimCharactersAtEnd (juce::String::charToString (Chars::newline));
-        }
-
-        jassert (not innerText.contains (Id::tripleColon));
-
-        if (innerText.contains (Id::tripleColon))
-        {
-            jam::debug::Log::write (
-                jam::MarkdownValidator::getLocation (*row.parent, row, Id::structure.toString())
-                + Id::diagnosticSeparator + text::Diagnostics::failNoSource);
-
-            for (const auto& lineText : jam::Strings::fromLines (innerText))
-                if (lineText.contains (Id::tripleColon))
-                    jam::debug::Log::write (lineText);
-        }
-
-        return innerText;
-    }
-
     void getFile (TemplateDocument& output, const Elements& fileRows) const
     {
         auto* firstRow { fileRows.first() };
@@ -181,7 +118,8 @@ private:
                 output.addChild (*output.root, Id::text)->add<juce::String> (Id::text, joinText);
 
             output.addChild (*output.root, Id::text)
-                ->add<juce::String> (Id::text, getRow (*fileRows.at (index)));
+                ->add<juce::String> (Id::text,
+                    templateDocument->getShape (model, *fileRows.at (index), 0));
         }
     }
 

@@ -55,11 +55,7 @@ struct TemplateDocument : jam::MarkdownDocument
 
         jassert (block != nullptr);
 
-        if (block == nullptr)
-            jam::debug::Log::write (text::Diagnostics::failTemplateMissing + Id::diagnosticSeparator
-                                    + id.toString());
-
-        return block != nullptr ? block->getAllSubText() : juce::String();
+        return block->getAllSubText();
     }
 
     juce::String getBinding (const Model& model,
@@ -70,26 +66,6 @@ struct TemplateDocument : jam::MarkdownDocument
     {
         if (jam::Format::getPreColon (value).trim() == Id::templatePath.toString())
             return getContent (value);
-
-        if (value.startsWithChar (Chars::at)
-            and jam::Format::getPostColon (value).containsChar (Chars::colon))
-        {
-            const auto alias { jam::Format::getPreColon (value) };
-            const auto remainder { jam::Format::getPostColon (value) };
-            const auto tableName { jam::Format::getPreColon (remainder) };
-            const auto entry { jam::Format::getPostColon (remainder) };
-
-            if (auto* entryTable { model.getTables (
-                    row, alias + juce::String::charToString (Chars::colon) + tableName) })
-                return model.getTableValue (*entryTable, Id::value, juce::Identifier (entry));
-
-            jassertfalse;
-            jam::debug::Log::write (
-                jam::MarkdownValidator::getLocation (*row.parent, row, Id::structure.toString())
-                + Id::diagnosticSeparator + text::Diagnostics::failTableMissing
-                + Id::diagnosticSeparator + tableName);
-            return {};
-        }
 
         if (value.startsWithChar (Chars::at))
         {
@@ -110,35 +86,103 @@ struct TemplateDocument : jam::MarkdownDocument
                                         : juce::String();
     }
 
+    juce::String getShape (const Model& model, Element& row, int depth) const
+    {
+        const auto codeId { juce::Identifier (model.getStructure (row, depth)) };
+        auto* block { getCodeBlock (codeId) };
+        jassert (block != nullptr);
+
+        const auto childText { model.getStructure (row, depth + 1).isNotEmpty()
+                                   ? getShape (model, row, depth + 1)
+                                   : juce::String() };
+
+        const auto placeholderBindings { model.getSource (row, depth, Id::placeholder) };
+        jam::HashMap<juce::Identifier, juce::String> replacements;
+
+        for (auto& [key, value] : model.getSource (row, depth, Id::structure))
+            if (not placeholderBindings.contains (key))
+                replacements.try_emplace (key, getBinding (model, row, depth, value, key));
+
+        for (auto& [key, value] : placeholderBindings)
+        {
+            juce::ignoreUnused (value);
+            replacements.try_emplace (key, getExpansion (model, row, depth, key));
+        }
+
+        static const jam::Array<juce::Identifier> empty;
+        const auto& candidates { placeholders.contains (codeId) ? placeholders.at (codeId) : empty };
+
+        juce::Identifier soleChildCandidate;
+        int childCandidateCount { 0 };
+
+        for (const auto& name : candidates)
+            if (not replacements.contains (name))
+            {
+                soleChildCandidate = name;
+                ++childCandidateCount;
+            }
+
+        jam::Strings emittedLines;
+        bool previousLineElided { false };
+
+        for (const auto& templateLine : jam::Strings::fromLines (block->getAllSubText()))
+        {
+            auto lineText { templateLine };
+            bool lineElided { false };
+
+            for (const auto& name : candidates)
+                if (jam::Format::hasPlaceholder (lineText, name.toString()))
+                {
+                    const auto value { replacements.contains (name)
+                                           ? replacements.at (name)
+                                           : (childCandidateCount == 1 and soleChildCandidate == name
+                                                  ? childText
+                                                  : juce::String()) };
+
+                    if (value.isNotEmpty())
+                        lineText = jam::Format::replaceholder (lineText, name.toString(), value);
+                    else
+                        lineElided = true;
+                }
+
+            if (lineElided)
+                previousLineElided = true;
+            else if (previousLineElided and lineText.trim().isEmpty())
+                previousLineElided = false;
+            else
+            {
+                emittedLines.add (lineText);
+                previousLineElided = false;
+            }
+        }
+
+        return emittedLines.joinIntoString (juce::String::charToString (Chars::newline), 0, -1);
+    }
+
     juce::String
     getExpansion (const Model& model, Element& row, int depth, const juce::Identifier& jack) const
     {
-        const auto wiring { model.getSource (row, depth, Id::placeholder) };
-        jassert (wiring.contains (jack));
-
-        const auto wiringValue { wiring.at (jack) };
-        const auto shapeBindings { model.getSource (row, depth, Id::structure) };
-        jassert (shapeBindings.contains (jack));
-
-        const auto shapeId { juce::Identifier (
-            jam::Format::getPostColon (shapeBindings.at (jack)).trim()) };
-        const auto isTableReference { wiringValue.startsWithChar (Chars::at)
-                                      and wiringValue.containsChar (Chars::colon) };
+        const auto wiring { model.getSource (row, depth, Id::placeholder).at (jack) };
+        const auto shapeBinding { model.getSource (row, depth, Id::structure).at (jack) };
+        const auto shapeId { juce::Identifier (jam::Format::getPostColon (shapeBinding).trim()) };
+        const auto isTableReference { wiring.startsWithChar (Chars::at)
+                                      and wiring.containsChar (Chars::colon) };
 
         jam::Array<Element*> sourceRows;
+        jam::Strings sourceValues;
+        juce::Identifier sourceKey { jack };
 
         if (isTableReference)
         {
-            if (auto* wiredTable { model.getTables (row, wiringValue) })
+            if (auto* wiredTable { model.getTables (row, wiring) })
                 sourceRows = model.getTableRows (*wiredTable);
         }
         else
         {
-            const auto source { juce::Identifier (wiringValue) };
+            const auto source { juce::Identifier (wiring) };
             const auto tables { model.getTables() };
 
-            const auto hasColumnSource { std::any_of (
-                tables.begin(),
+            const auto hasColumnSource { std::any_of (tables.begin(),
                 tables.end(),
                 [&model, &source] (Element* table)
                 {
@@ -146,57 +190,66 @@ struct TemplateDocument : jam::MarkdownDocument
                            and model.getTableHeaders (*table).contains (source.toString());
                 }) };
 
-            const auto currentFile { model.getValue (row, model.getTableValue (row, Id::file)) };
-            jam::Strings seenValues;
+            if (hasColumnSource)
+            {
+                sourceKey = source;
+                const auto currentFile { model.getValue (row, model.getTableValue (row, Id::file)) };
+                jam::Strings seenValues;
 
-            for (auto* table : tables)
-                if (model.isOutputTable (*table))
-                    for (auto* candidate : model.getTableRows (*table))
-                    {
-                        bool matches { false };
-
-                        if (hasColumnSource)
+                for (auto* table : tables)
+                    if (model.isOutputTable (*table))
+                        for (auto* candidate : model.getTableRows (*table))
                         {
                             const auto value { model.getValue (
                                 *candidate, model.getTableValue (*candidate, source)) };
 
-                            matches = value.isNotEmpty() and value != currentFile
-                                      and not seenValues.contains (value, false);
-
-                            if (matches)
+                            if (value.isNotEmpty() and value != currentFile
+                                and not seenValues.contains (value, false))
+                            {
                                 seenValues.add (value);
+                                sourceValues.add (value);
+                            }
                         }
-                        else
+            }
+            else
+            {
+                for (auto* table : tables)
+                    if (model.isOutputTable (*table))
+                        for (auto* candidate : model.getTableRows (*table))
                         {
-                            const auto candidateBindings { model.getSource (
-                                *candidate, Id::structure) };
+                            const auto candidateBindings { model.getSource (*candidate, Id::structure) };
 
-                            matches = std::any_of (
-                                candidateBindings.begin(),
+                            const auto matches { std::any_of (candidateBindings.begin(),
                                 candidateBindings.end(),
                                 [&source] (const auto& entry)
                                 {
                                     const auto& [entryDepth, entryKey, entryValue] { entry };
                                     juce::ignoreUnused (entryDepth, entryValue);
                                     return entryKey == source;
-                                });
-                        }
+                                }) };
 
-                        if (matches)
-                            sourceRows.add (candidate);
-                    }
+                            if (matches)
+                                sourceRows.add (candidate);
+                        }
+            }
         }
 
         jam::Strings texts;
 
         for (auto* sourceRow : sourceRows)
         {
-            const auto rowText { build (model, row, *sourceRow, depth, {}, shapeId)
-                                     .trimCharactersAtEnd (
-                                         juce::String::charToString (Chars::newline)) };
+            const auto itemText { getItem (model, sourceRow, {}, sourceKey, shapeId) };
 
-            if (rowText.isNotEmpty())
-                texts.add (rowText);
+            if (itemText.isNotEmpty())
+                texts.add (itemText);
+        }
+
+        for (const auto& value : sourceValues)
+        {
+            const auto itemText { getItem (model, nullptr, value, sourceKey, shapeId) };
+
+            if (itemText.isNotEmpty())
+                texts.add (itemText);
         }
 
         const auto separatorValue { getSeparator (model, row, depth, jack) };
@@ -214,301 +267,73 @@ struct TemplateDocument : jam::MarkdownDocument
                                            juce::String::charToString (Chars::newline) + indent);
     }
 
-    juce::String build (const Model& model,
-                        Element& row,
-                        Element& sourceRow,
-                        int depth,
-                        const jam::HashMap<juce::Identifier, juce::String>& tokens,
-                        const juce::Identifier& codeId) const
+    juce::String getItem (const Model& model,
+                          Element* sourceRow,
+                          const juce::String& sourceValue,
+                          const juce::Identifier& sourceKey,
+                          const juce::Identifier& shapeId) const
     {
-        constexpr int lineIsVacant { 0 };
-        constexpr int lineIsBlank { 1 };
-        constexpr int lineIsContent { 2 };
-
-        auto* block { getCodeBlock (codeId) };
+        auto* block { getCodeBlock (shapeId) };
         jassert (block != nullptr);
 
-        if (block == nullptr)
-        {
-            jam::debug::Log::write (text::Diagnostics::failTemplateMissing + Id::diagnosticSeparator
-                                    + codeId.toString());
-            return {};
-        }
-
-        const auto templateText { block->getAllSubText() };
         static const jam::Array<juce::Identifier> empty;
-        const auto& candidates { placeholders.contains (codeId) ? placeholders.at (codeId)
-                                                                 : empty };
+        const auto& candidates { placeholders.contains (shapeId) ? placeholders.at (shapeId) : empty };
 
-        jam::Strings assembledLines;
-        juce::Array<int> lineClassifications;
-        jam::HashMap<juce::Identifier, int> occurrences;
-        const auto extension { jam::Format::onlyExtensionFromFilename (
-            model.getValue (row, model.getTableValue (row, Id::file))) };
+        const auto extension { sourceRow != nullptr
+                                   ? jam::Format::onlyExtensionFromFilename (model.getValue (
+                                         *sourceRow, model.getTableValue (*sourceRow, Id::file)))
+                                   : jam::Format::onlyExtensionFromFilename (sourceValue) };
 
-        for (const auto& templateLine : jam::Strings::fromLines (templateText))
+        auto itemText { block->getAllSubText() };
+
+        for (const auto& name : candidates)
         {
-            auto lineText { templateLine };
-            bool lineHasPlaceholder { false };
+            juce::String value;
 
-            for (const auto& name : candidates)
+            if (sourceRow != nullptr)
             {
-                const auto marker { Id::tripleColon + name.toString() + Id::tripleColon };
+                int deepestDepth { -1 };
+                juce::String deepestValue;
 
-                if (jam::Format::hasPlaceholder (lineText, name.toString()))
+                for (auto& entry : model.getSource (*sourceRow, Id::structure))
                 {
-                    occurrences.try_emplace (name, 0);
-                    ++occurrences.at (name);
+                    const auto& [entryDepth, entryKey, entryValue] { entry };
 
-                    const auto value { getReplacement (model,
-                                                       row,
-                                                       sourceRow,
-                                                       depth,
-                                                       tokens,
-                                                       name,
-                                                       occurrences.at (name),
-                                                       extension) };
-                    lineHasPlaceholder = true;
-
-                    if (value.isNotEmpty() and value != marker)
-                        lineText = jam::Format::replaceholder (lineText, name.toString(), value);
-                    else if (lineText.trim() != marker)
+                    if (entryKey == name and entryDepth >= deepestDepth)
                     {
-                        const auto spacedMarker { juce::String::charToString (Chars::space)
-                                                  + marker };
-                        lineText = lineText.replace (spacedMarker, juce::String());
-                        lineText =
-                            jam::Format::replaceholder (lineText, name.toString(), juce::String());
+                        deepestDepth = entryDepth;
+                        deepestValue = entryValue;
                     }
                 }
 
-                for (const auto& [transformName, transformFunction] : Transforms::getTransforms())
-                {
-                    juce::ignoreUnused (transformFunction);
-                    const auto tagged { name.toString() + juce::String::charToString (Chars::colon)
-                                        + transformName };
-
-                    if (jam::Format::hasPlaceholder (lineText, tagged))
-                    {
-                        lineHasPlaceholder = true;
-
-                        const auto replacement { getReplacement (
-                            model, row, sourceRow, depth, tokens, name, 1, extension) };
-                        const auto taggedMarker { Id::tripleColon + tagged + Id::tripleColon };
-
-                        const auto value { replacement != marker and replacement.isNotEmpty()
-                                               ? Transforms::getTransformed (
-                                                     transformName, replacement, extension)
-                                               : juce::String() };
-
-                        if (value.isNotEmpty())
-                            lineText = jam::Format::replaceholder (lineText, tagged, value);
-                        else
-                        {
-                            const auto spacedMarker { juce::String::charToString (Chars::space)
-                                                      + taggedMarker };
-                            lineText = lineText.replace (spacedMarker, juce::String());
-                            lineText =
-                                jam::Format::replaceholder (lineText, tagged, juce::String());
-                        }
-                    }
-                }
-            }
-
-            lineClassifications.add (lineText.trim().isEmpty()
-                                         ? (lineHasPlaceholder ? lineIsVacant : lineIsBlank)
-                                         : lineIsContent);
-
-            assembledLines.add (lineText);
-        }
-
-        bool hasEmittedContent { false };
-        bool pendingBlank { false };
-        bool suppressNextBlank { false };
-        jam::Strings emittedLines;
-
-        for (int lineIndex { 0 }; lineIndex < assembledLines.size(); ++lineIndex)
-        {
-            const auto lineText { assembledLines.at (lineIndex) };
-            const auto classification { lineClassifications[lineIndex] };
-
-            if (classification == lineIsContent)
-            {
-                if (pendingBlank and hasEmittedContent)
-                    emittedLines.add (juce::String());
-
-                emittedLines.add (lineText);
-                hasEmittedContent = true;
-                pendingBlank = false;
-                suppressNextBlank = false;
-            }
-            else if (classification == lineIsBlank)
-            {
-                if (suppressNextBlank)
-                    suppressNextBlank = false;
-                else
-                    pendingBlank = true;
+                value = deepestDepth >= 0 ? deepestValue
+                                          : model.getTableValue (*sourceRow, name);
             }
             else
+                value = name == sourceKey ? sourceValue : juce::String();
+
+            if (jam::Format::hasPlaceholder (itemText, name.toString()))
+                itemText = jam::Format::replaceholder (itemText, name.toString(), value);
+
+            for (const auto& [transformName, transformFunction] : Transforms::getTransforms())
             {
-                pendingBlank = false;
-                suppressNextBlank = true;
+                juce::ignoreUnused (transformFunction);
+                const auto tagged { name.toString() + juce::String::charToString (Chars::colon)
+                                    + transformName };
+
+                if (jam::Format::hasPlaceholder (itemText, tagged))
+                {
+                    const auto transformedValue { value.isNotEmpty()
+                                                      ? Transforms::getTransformed (
+                                                            transformName, value, extension)
+                                                      : juce::String() };
+                    itemText = jam::Format::replaceholder (itemText, tagged, transformedValue);
+                }
             }
         }
 
-        return emittedLines.joinIntoString (juce::String::charToString (Chars::newline), 0, -1);
+        return itemText;
     }
 
     const jam::HashMap<juce::Identifier, jam::Array<juce::Identifier>> placeholders {};
-
-private:
-    juce::String getReplacement (const Model& model,
-                                 Element& row,
-                                 Element& sourceRow,
-                                 int depth,
-                                 const jam::HashMap<juce::Identifier, juce::String>& tokens,
-                                 const juce::Identifier& name,
-                                 int occurrence,
-                                 const juce::String& extension) const
-    {
-        const auto marker { Id::tripleColon + name.toString() + Id::tripleColon };
-
-        if (tokens.contains (name))
-            return tokens.at (name);
-
-        const auto hasNested { model.getStructure (row, depth + 1).isNotEmpty() };
-        const auto upperBound { hasNested ? depth + 1 : std::numeric_limits<int>::max() };
-
-        jam::Array<std::tuple<int, juce::Identifier, juce::String>> ownedWiring;
-
-        for (auto& entry : model.getSource (row, Id::placeholder))
-        {
-            const auto& [entryDepth, entryKey, entryValue] { entry };
-
-            if (entryKey == name and entryDepth >= depth and entryDepth < upperBound)
-                ownedWiring.add (entry);
-        }
-
-        if (occurrence >= 1 and occurrence <= ownedWiring.size())
-        {
-            const auto& [jackDepth, jackName, jackValue] { ownedWiring.at (occurrence - 1) };
-            juce::ignoreUnused (jackValue);
-            return getExpansion (model, row, jackDepth, jackName);
-        }
-
-        const auto bindings { model.getSource (row, depth, Id::structure) };
-
-        if (bindings.contains (name))
-            return getBinding (model, row, depth, bindings.at (name), name);
-
-        const auto sourceHeaders { model.getTableHeaders (*sourceRow.parent) };
-        const auto isEntryTable { not sourceHeaders.isEmpty()
-                                  and *sourceHeaders.begin() == Id::entry.toString() };
-
-        if (sourceHeaders.contains (name.toString())
-            or (isEntryTable and (name == Id::entry or name == Id::value)))
-            return getCell (model, sourceRow, name, extension);
-
-        for (auto& entry : model.getSource (row, Id::placeholder))
-        {
-            const auto& [entryDepth, entryKey, entryValue] { entry };
-            juce::ignoreUnused (entryDepth, entryKey);
-
-            if (entryValue.startsWithChar (Chars::at) and entryValue.containsChar (Chars::colon))
-                if (auto* wiredTable { model.getTables (row, entryValue) })
-                    if (model.getTableHeaders (*wiredTable).contains (name.toString()))
-                        if (auto* firstRow { model.getTableRows (*wiredTable).first() })
-                            return getCell (model, *firstRow, name, extension);
-        }
-
-        const auto indexed { model.getValue (
-            row, juce::String::charToString (Chars::at) + name.toString()) };
-
-        if (indexed.isNotEmpty())
-            return indexed;
-
-        {
-            Element* preceding { nullptr };
-
-            for (auto* sibling : *sourceRow.parent->parent)
-            {
-                if (sibling == sourceRow.parent)
-                {
-                    if (preceding != nullptr and preceding->isTag (Id::p))
-                        return preceding->getAllSubText();
-
-                    break;
-                }
-
-                preceding = sibling;
-            }
-        }
-
-        return marker;
-    }
-
-    juce::String getCell (const Model& model,
-                          Element& sourceRow,
-                          const juce::Identifier& name,
-                          const juce::String& extension) const
-    {
-        const auto headers { model.getTableHeaders (*sourceRow.parent) };
-        const auto isEntryTable { not headers.isEmpty()
-                                  and *headers.begin() == Id::entry.toString() };
-
-        if (isEntryTable and (name == Id::entry or name == Id::value))
-        {
-            const auto lexiconTables { model.getTables (Id::lexicon) };
-
-            if (not lexiconTables.isEmpty())
-            {
-                auto* lexiconRow { model.getTableRow (*lexiconTables.first(), sourceRow.id) };
-
-                jassert (lexiconRow != nullptr);
-
-                if (lexiconRow == nullptr)
-                {
-                    jam::debug::Log::write (jam::MarkdownValidator::getLocation (
-                                                *sourceRow.parent, sourceRow, name.toString())
-                                            + Id::diagnosticSeparator
-                                            + text::Diagnostics::failEntityMissing
-                                            + Id::diagnosticSeparator + sourceRow.id.toString());
-                    return {};
-                }
-
-                return name == Id::entry ? lexiconRow->id.toString()
-                                         : getCell (model, *lexiconRow, Id::value, extension);
-            }
-        }
-
-        if (not headers.contains (name.toString()))
-            return {};
-
-        if (*headers.begin() == name.toString())
-            return model.getTableValue (sourceRow, name);
-
-        const auto rowKey { model.getTableValue (sourceRow,
-                                                 juce::Identifier (*headers.begin())) };
-        auto* cellElement { model.getTableCell (sourceRow, name) };
-        const auto isLiteral { cellElement != nullptr and cellElement->firstChild != nullptr
-                               and cellElement->firstChild->isTag (Id::code)
-                               and cellElement->firstChild->nextSibling == nullptr };
-        const auto cell { model.getTableValue (sourceRow, name) };
-
-        juce::String value;
-
-        if (isLiteral)
-            value = cell;
-        else if (cell.isEmpty())
-            value = rowKey;
-        else if (Transforms::contains (cell))
-            value = Transforms::getTransformed (cell, rowKey, extension);
-        else
-            value = cell;
-
-        if (const auto format { model.getFormat (sourceRow, name) }; format.isNotEmpty())
-            value = Transforms::getTransformed (format, value, extension);
-
-        return value;
-    }
 };

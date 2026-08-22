@@ -268,9 +268,6 @@ public:
             }
         }
 
-        jam::debug::Log::write ("getTables miss: reference=" + referenceText
-                                + " declaredPath=" + declaredPath + " candidates="
-                                + juce::String (getTables (juce::Identifier (tableName)).size()));
         return nullptr;
     }
 
