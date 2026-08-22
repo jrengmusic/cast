@@ -29,7 +29,6 @@ struct Processor
     juce::Result format()
     {
         static const jam::MarkdownWriter formatter;
-        static const jam::MarkdownValidator validator;
 
         jam::Array<juce::File> tableFiles { documentFile };
 
@@ -46,9 +45,6 @@ struct Processor
             const auto current { file.loadFileAsString() };
             const auto document { jam::MarkdownDocument::parse (
                 current, file.getRelativePathFrom (documentFile.getParentDirectory())) };
-
-            if (const auto validation { validator.isValid (document) }; not validation.wasOk())
-                return validation;
 
             if (const auto canonical { formatter.getText (document) }; canonical != current)
                 file.replaceWithText (canonical,

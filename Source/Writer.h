@@ -50,30 +50,28 @@ struct Writer : jam::Document::Writer
                 for (auto* row : rows)
                 {
                     const auto origin { *row->parent->get<juce::String> (Id::path) };
-                    const auto file {
-                        model.getValue (origin, model.getTableValue (*row, Id::file))
-                    };
+                    const auto file { model.getValue (
+                        origin, model.getTableValue (*row, Id::file)) };
                     files.addIfNotAlreadyThere (file);
                     rowsByFile[file].add (row);
                 }
 
-                runJobs (
-                    files.size(),
-                    [this, &outputPath, &files, &rowsByFile, &written] (int index)
-                    {
-                        const auto& file { files.at (index) };
-                        const auto& fileRows { rowsByFile.at (file) };
+                runJobs (files.size(),
+                         [this, &outputPath, &files, &rowsByFile, &written] (int index)
+                         {
+                             const auto& file { files.at (index) };
+                             const auto& fileRows { rowsByFile.at (file) };
 
-                        TemplateDocument output;
-                        output.addChild (*output.root, Id::text)
-                            ->add<juce::String> (Id::text, getBanner (file));
-                        getFile (output, fileRows);
+                             TemplateDocument output;
+                             output.addChild (*output.root, Id::text)
+                                 ->add<juce::String> (Id::text, getBanner (file));
+                             getFile (output, fileRows);
 
-                        const auto outputFile { jam::File::getOrCreate (outputPath, file) };
+                             const auto outputFile { jam::File::getOrCreate (outputPath, file) };
 
-                        if (not toFile (output, outputFile))
-                            written = false;
-                    });
+                             if (not toFile (output, outputFile))
+                                 written = false;
+                         });
             }
         }
 
@@ -102,11 +100,13 @@ private:
 
             if (index < depths.size() - 1)
             {
-                const auto dryBuild { templateDocument->build (model, row, row, depth, {}, shapeId) };
+                const auto dryBuild { templateDocument->build (
+                    model, row, row, depth, {}, shapeId) };
 
-                const auto candidates { templateDocument->placeholders.contains (shapeId)
-                                            ? templateDocument->placeholders.at (shapeId)
-                                            : jam::Array<juce::Identifier>() };
+                static const jam::Array<juce::Identifier> empty;
+                const auto& candidates { templateDocument->placeholders.contains (shapeId)
+                                              ? templateDocument->placeholders.at (shapeId)
+                                              : empty };
 
                 jam::Array<juce::Identifier> residue;
 
@@ -119,19 +119,19 @@ private:
                 if (residue.size() == 1)
                     injection.try_emplace (residue.first(), innerText);
                 else
-                    jam::debug::Log::write (
-                        jam::MarkdownValidator::getLocation (
-                            *row.parent, row, Id::structure.toString())
-                        + Id::diagnosticSeparator + text::Diagnostics::failNoMatch);
+                    jam::debug::Log::write (jam::MarkdownValidator::getLocation (
+                                                *row.parent, row, Id::structure.toString())
+                                            + Id::diagnosticSeparator
+                                            + text::Diagnostics::failNoMatch);
             }
 
             innerText = templateDocument->build (model, row, row, depth, injection, shapeId)
                             .trimCharactersAtEnd (juce::String::charToString (Chars::newline));
         }
 
-        jassert (not innerText.contains (Id::tripleColon.toString()));
+        jassert (not innerText.contains (Id::tripleColon));
 
-        if (innerText.contains (Id::tripleColon.toString()))
+        if (innerText.contains (Id::tripleColon))
             jam::debug::Log::write (
                 jam::MarkdownValidator::getLocation (*row.parent, row, Id::structure.toString())
                 + Id::diagnosticSeparator + text::Diagnostics::failNoSource);
@@ -143,12 +143,13 @@ private:
     {
         auto* firstRow { fileRows.first() };
         auto* separatorCell { model.getTableCell (*firstRow, Id::separator) };
-        const auto hasJackEntries {
-            separatorCell != nullptr
-            and std::any_of (separatorCell->begin(),
-                separatorCell->end(),
-                [] (Model::Element* block) { return block->isTag (Id::ul); })
-        };
+        const auto hasJackEntries { separatorCell != nullptr
+                                    and std::any_of (separatorCell->begin(),
+                                                     separatorCell->end(),
+                                                     [] (Model::Element* block)
+                                                     {
+                                                         return block->isTag (Id::ul);
+                                                     }) };
 
         auto joinText { juce::String::charToString (Chars::newline) };
 
@@ -158,14 +159,13 @@ private:
 
             if (flatValue.isNotEmpty())
             {
-                const auto resolved {
-                    templateDocument->getBinding (model, *firstRow, 0, flatValue, Id::separator)
-                };
+                const auto resolved { templateDocument->getBinding (
+                    model, *firstRow, 0, flatValue, Id::separator) };
 
                 joinText = juce::String::charToString (Chars::newline)
-                         + juce::String::charToString (Chars::newline) + resolved
-                         + juce::String::charToString (Chars::newline)
-                         + juce::String::charToString (Chars::newline);
+                           + juce::String::charToString (Chars::newline) + resolved
+                           + juce::String::charToString (Chars::newline)
+                           + juce::String::charToString (Chars::newline);
             }
         }
 
@@ -191,9 +191,8 @@ private:
 
         banner << syntax.at (Id::bannerOpen) << Chars::newline
                << document.getCodeBlock (Id::banner)->getAllSubText() << Chars::newline
-               << syntax.at (Id::bannerClose) << Chars::newline
-               << Chars::newline << syntax.at (Id::pragma)
-               << Chars::newline << Chars::newline;
+               << syntax.at (Id::bannerClose) << Chars::newline << Chars::newline
+               << syntax.at (Id::pragma) << Chars::newline << Chars::newline;
 
         return banner;
     }

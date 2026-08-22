@@ -111,6 +111,60 @@
 
 ## SPRINT HISTORY
 
+## Handoff to COUNSELOR: Framework API Compliance — Table Subsystem + Engine Foundation
+
+**From:** COUNSELOR
+**Date:** 2026-08-22
+**Status:** In Progress — all code changes applied; ARCHITECT build + `./cast jam/cast/CAST.md` + 12-file cmp is the next action
+
+### Context
+ARCHITECT surfaced three compounding failures after the Bimap<Key> redesign: (1) formatter inflates pipe table column widths to ~275 chars from inline `- comment:` text; (2) validator rejects binding-only continuation rows (`CAST.md:159 (structure): not found`); (3) cast bootstrap files use old 3-arg Bimap signature. Root cause: the foundation (MarkdownDocument parser, MarkdownWriter, cast engine) hand-rolls text parsing instead of using `jam::Format`/`jam::Strings` API — CONTRACT VIOLATION. ARCHITECT directed: framework API to its fullest extent, no hand-rolling, fix the foundation before chasing symptoms.
+
+### Completed
+- **Bimap bootstrap** — cast `Source/generated/Bimaps.h` migrated to `Bimap<int>` (no `override`, `getInstance()`); `Generated.h` `jam::Generated` → `map::Generated`
+- **Format order** — `main.cpp` + `Processor.h`: format runs BEFORE generate; format drops content validation (structural normalization only)
+- **Writer rawText** — `jam_MarkdownWriter.h`: pipe table cell content from `rawText` property (stored at parse time, trimmed) instead of re-serializing from block-level DOM elements. Eliminates width inflation feedback loop.
+- **splitTableRow** — `jam_MarkdownDocument.h`: char-by-char `appendTableRowChar` deleted; `splitTableRow` rewritten on `Format::from`/`Format::upTo` with escape-aware pipe splitting
+- **TemplateDocument scanning** — `TemplateDocument.h`: `while(true)` indexOf/substring loop replaced with `Format::from`/`upTo`/`getPreColon` chain; `jam::Array` non-copyable fixes (static empty + const ref, `std::move`)
+- **Validator fix** — `Validator.h`: binding-only rows (empty structure at depth 0) `continue` instead of `return fail` — unblocks generation on CAST.md continuation rows
+- **Comment SSOT** — 128 inline `- comment:` lines removed from `jam/cast/CAST.md`; engine heading-paragraph fallback added to `TemplateDocument.h::getReplacement` (reads paragraph between `## heading` and table as the construct's brief)
+- **Inline LUT** — `jam_MarkdownDocument.h`: `htmlBlockConditions` LookupTable moved from `getHtmlBlockCondition()` function body to `BlockParser` class scope (name ratification pending — was `conditions`, renamed for class-scope semantics)
+
+### Remaining
+- **ARCHITECT build** — rebuild jam + cast with all changes, run `./cast jam/cast/CAST.md`, verify formatter produces readable aligned tables and generation completes without assertion/validation errors
+- **12-file cmp** — `cmp -s jam/diff/<f> jam/generated/<f>` — iterate residuals to byte-identical
+- **Fixpoint** — 2nd `./cast` = zero changes; 2nd format = zero changes
+- **Step 5 deferred items** — `cellAlignment*` constants → enum/bimap; spec constants (`maxAtxLevel`, `minFenceLength`, etc.) → data table/generated struct. Blocked on cast running successfully (needs regeneration pipeline).
+- **`htmlBlockConditions` name** — Engineer renamed `conditions` → `htmlBlockConditions` at class scope; ARCHITECT has not ratified
+- **Auditor sweep** — once per sprint, after all steps
+- **Doxygen pass** — post-audit
+
+### Key Decisions
+- **Framework API is non-negotiable** — `jam::Format::from`/`upTo`/`getPreColon`/`getPostColon`, `jam::Strings::fromTokens`, `jam::Format::replaceholder`/`hasPlaceholder` are the ground truth. Hand-rolled `indexOf`/`substring`/char loops are CONTRACT VIOLATIONS.
+- **rawText is the cell SSOT** — writer uses `rawText` (trimmed at parse time) for pipe table cell content and width computation. Block-element re-serialization is not used for writing.
+- **Heading paragraph = table-level documentation** — text between `## Table Name` and the table is the construct's brief, read by the engine via `getReplacement` fallback. Per-row documentation stays in the `doc` column. Inline `- comment:` bindings are dead.
+- **Format before generate** — formatter normalizes structure first; content validation is generation's job, not the formatter's.
+- **Binding rows are valid** — continuation rows with `- name:`, `- type:`, empty spacers in the `## output` table are not standalone constructs. Validator skips them.
+
+### Files Modified
+- jam: `jam_markdown/document/jam_MarkdownDocument.h` (splitTableRow rewrite, LUT move), `jam_markdown/document/jam_MarkdownWriter.h` (rawText cell content)
+- jam data: `jam/cast/CAST.md` (128 comment lines removed)
+- cast engine: `Source/TemplateDocument.h` (placeholder scanning, Array fixes, heading-paragraph fallback), `Source/Writer.h` (Array fix), `Source/Validator.h` (binding-row continue), `Source/Processor.h` (format order, validator removed), `Source/main.cpp` (format→generate order)
+- cast bootstrap: `Source/generated/Bimaps.h` (Bimap<int>), `Source/generated/Generated.h` (map::Generated)
+
+### Open Questions
+- **`htmlBlockConditions` name** — ratify or revert to `conditions`
+- **cellAlignment / spec constants** — deferred to after cast runs successfully; data table design TBD
+
+### Next Steps
+1. ARCHITECT: build jam + cast, run `./cast jam/cast/CAST.md`
+2. Verify: formatter produces readable tables (rawText widths); generation completes; no assertion
+3. `cmp -s` 12 files, iterate residuals
+4. Fixpoint (2nd run = zero changes)
+5. Ratify `htmlBlockConditions` name
+6. Step 5 deferred items (cellAlignment enum, spec constants) if ARCHITECT directs
+7. Auditor → doxygen → log sprint
+
 ## Handoff to COUNSELOR: Explicit-Template Restructure — Steps 1-5 Complete, Step 6 Convergence Pending
 
 **From:** COUNSELOR

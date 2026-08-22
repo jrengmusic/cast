@@ -129,14 +129,15 @@ int main (int argc, char* argv[])
 
     if (documentFile.existsAsFile())
     {
-        auto result { isFormatOnly
-                          ? processor.format()
-                          : processor.generate ((argc == 3 and manifestIndex == 1)
-                                                     ? juce::String::fromUTF8 (argv[2])
-                                                     : juce::String {}) };
+        auto result { juce::Result::ok() };
 
-        if (result.wasOk() and not isFormatOnly and not isSkipFormat)
+        if (not isSkipFormat)
             result = processor.format();
+
+        if (result.wasOk() and not isFormatOnly)
+            result = processor.generate ((argc == 3 and manifestIndex == 1)
+                                              ? juce::String::fromUTF8 (argv[2])
+                                              : juce::String {});
 
         if (result.wasOk())
             return 0;

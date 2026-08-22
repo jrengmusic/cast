@@ -158,9 +158,7 @@ struct Validator : jam::MarkdownValidator
                     const auto shapeId { model.getStructure (*row, 0) };
 
                     if (shapeId.isEmpty())
-                        return juce::Result::fail (getLocation (*table, *row, Id::structure.toString())
-                                                   + Id::diagnosticSeparator
-                                                   + text::Diagnostics::failNotFound);
+                        continue;
 
                     for (int depth { 0 }; model.getStructure (*row, depth).isNotEmpty(); ++depth)
                     {
