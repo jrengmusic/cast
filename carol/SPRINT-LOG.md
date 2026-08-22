@@ -111,6 +111,49 @@
 
 ## SPRINT HISTORY
 
+## Handoff to COUNSELOR: Explicit-Template Convergence — Runtime Debug Loop In Progress
+
+**From:** COUNSELOR
+**Date:** 2026-08-22
+**Status:** In Progress — mid debug loop, ARCHITECT rebuild/run pending
+
+### Context
+Continuing PLAN-render-unification.md (rev 6 — read it FIRST, decisions 26-35 are this session's rulings). Sprint objective: jam/cast data on the explicit-template canon + engine debugged to `./cast jam/cast/CAST.md` generating, then 12-file byte convergence vs jam/generated. Chat rulings are ground truth; the plan mirrors them (decision 35). NO SANDBOX NO BUILD — ARCHITECT builds and runs everything; COUNSELOR reads evidence (decision 34).
+
+### Completed
+- Data (jam/cast/): code fragments out of tables — 23 specialized `lookupTable*` blocks (types+capacity baked, ALL single-arg), `hashMapString`/`hashMapInt`, `bimap` (int) + `bimapUint32`; generic lookupTable/hashMap blocks deleted; all type/type1/type2/keyType/valueType/capacity bindings and 8 index type aliases deleted; 24 default value bindings + 16 default/value codeblocks deleted (first-row law: LookupTable ctor jam_LookupTable.h:82-100, Bimap base getDefault jam_Bimap.h:184-187 — generated structs emit NO getDefault override); 96 bimap split blocks merged to one bordered row each (241→145); mermaid.md 19 headings un-prefixed (`- name:` symbols keep prefix); 13 structure `- line:` binding depths aligned to wiring/tab depth (HELP.md:132 same-depth law)
+- Engine (jam): grid head-row flush continuation for quote-marker cells (`quoteMarker` mirrors `bulletMarker`, jam_MarkdownDocument.h:~2415); addTableRow row tag = first cell only when `juce::Identifier::isValidIdentifier`, else Id::tableRow (tags are O(1) probe keys — jam getTableRow:157; content reads must use cells)
+- Engine (cast): Validator binding-only depth-0 `continue` concession removed (fail restored); lone unresolved placeholder line survives build (parent-fill jack must be detectable by Writer residue check, Writer.h:101-126; inline unresolved still trims per trim law); getCell first-column + row-key fallback read CELLS not row tags (TemplateDocument.h:~483-505); placeholder scanner strips leading colons (`Prefix:::::name:::` idiom cached empty Identifier — source of ~55 juce_Identifier.cpp:61 asserts and all mermaid-construct failNoSource)
+- Debug loop (runtime evidence from ARCHITECT's runs): TemplateDocument.h:120 depth asserts → fixed; wrap-mismatch FATAL (Validator.h:185) from tag-gated index rows → fixed; ThreadPool asserts were downstream job deaths
+
+### Remaining
+- ARCHITECT rebuild + run; read ~/Desktop/cast.ode — instrumentation now logs offending marker LINES per failNoSource row and getTables misses
+- Residual unexplained rows from last run (may clear with scanner fix): CAST.md:150 (lexicon→jam_Identifiers), 195 (@mermaid:operators via template:char), 1203 (## output index: `- files: file` + `- line: instance` second-order forms — verify getExpansion implements column/binding wiring per HELP.md:133-134)
+- 1 residual juce_Identifier.cpp:61 assert (likely a spaced/invalid table heading via getTableId:2124 — e.g. `## output index`)
+- REMOVE ephemeral debug::Log instrumentation (Model.h getTables miss, Writer.h failNoSource lines) same sprint per ODE
+- Then: 12-file `cmp` convergence loop (expected diff classes: getDefault first-row values, brief-line removal), fixpoint ×2, Auditor sweep (once), post-audit doxygen
+- `@id`/`@string` note: getCell returns type cells RAW (`@id` unresolved?) — verify identifier construct emits `juce::Identifier` via per-file index (lexicon.md:1-8) once generation runs
+
+### Key Decisions
+- All in PLAN-render-unification.md rev 6 decisions 26-35 (grid canon + continuation law, specialized blocks, first-row default ALL map types in the framework type, comment abolition, generated namespace-map reversal, mermaid un-prefix, one-row bimaps, no code fragments in tables, no sandbox/build, chat-is-ground-truth)
+
+### Files Modified
+- `~/Documents/Poems/dev/jam/cast/template.cast` — specialized blocks, no default machinery
+- `~/Documents/Poems/dev/jam/cast/CAST.md` — fragment-free grid manifest, merged bimaps, depth fixes
+- `~/Documents/Poems/dev/jam/cast/mermaid.md` — un-prefixed headings
+- `~/Documents/Poems/dev/jam/jam_markdown/document/jam_MarkdownDocument.h` — continuation law, row-tag gate
+- `Source/TemplateDocument.h` — lone-marker survival, cell-based getCell, scanner colon fix
+- `Source/Validator.h` — concession removed
+- `Source/Writer.h`, `Source/Model.h` — EPHEMERAL debug::Log (remove before sprint log)
+- `PLAN-render-unification.md` — rev 6
+
+### Open Questions
+- None gated — execute from the plan; new decisions surface to ARCHITECT with citations only
+
+### Next Steps
+- Read PLAN-render-unification.md rev 6 + Source/HELP.md (cookbooks = authored grammar truth) BEFORE touching anything
+- Resume the runtime debug loop from ARCHITECT's next cast.ode paste; one cited fix per isolated fact; never relitigate rulings
+
 ## Handoff to COUNSELOR: Framework API Compliance — Table Subsystem + Engine Foundation
 
 **From:** COUNSELOR
