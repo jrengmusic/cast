@@ -623,6 +623,56 @@ Converging cast's output (`jam/diff/`) to byte-identical with the oracle (`jam/g
 2. If identical: jam_Text.h CONVERGED — move to next file (jam_Identifiers.h)
 3. If not: read the diff, fix the residual (likely another spacing law edge case)
 
+## Sprint 10: Cast Consumes jam's API — Content-Keyed List Items, Scope Probes ✅
+
+**Date:** 2026-08-23
+**Duration:** single session
+
+### Agents Participated
+- COUNSELOR (fable-5): plan, per-step validation, six defect repairs, lldb evidence reading
+- Pathfinder ×2 (haiku): jam id-assignment inventory; cast traversal/depth inventory
+- Engineer ×6 (sonnet-5): jam variant widening; jam list-item keying + scope probes; Model; TemplateDocument + Writer; Validator; formatting restoration
+
+### Files Modified (6 total)
+- `jam/jam_core/document/jam_Document.h:172-191` — `Tokens`/`Elements`/`Identifiers` aliases; `Element::Value` widened to hold `jam::Array<juce::Identifier>`
+- `jam/jam_markdown/document/jam_MarkdownDocument.h:1331-1452` — list item keyed by `Format::toValidID (Format::getPreColon (firstLineText))` at creation, replacing `appendBlock`'s `li` tag; `addListItem` reordered so the first line is materialised before creation. Siblings previously shared `(parent, id)` and collided in `Owner`'s lookup
+- `jam/jam_markdown/document/jam_MarkdownDocument.h:416-460` — `getBlockquote`, `getList`, `getListItem`, each the `getTableCell` probe body; no depth parameter, nesting is depth
+- `Source/Model.h` — both `getSource` overloads, both old `getStructure` overloads and the hand-rolled blockquote descent, and the `Id::name` stamp deleted; single `getStructure (Element& scope)`; `isOutputTable` probes instead of link-walking; blank-cell inheritance (§5.1) no longer applied to manifest rows (§6.6)
+- `Source/TemplateDocument.h` — `blockTexts` and `placeholders` caches deleted, both stamped on their code block; `getReplacements`' three per-call HashMaps deleted; `int depth` replaced by scope recursion with an accumulating `indent`
+- `Source/Validator.h` — header-index arithmetic replaced by `nextSibling`; `forEachBinding` joins the base class's `forEachCell` family; `isAddress` extracted (SPEC §4.2 vocabulary)
+- `Source/Writer.h` — `rowsByFile` HashMap and `Elements` alias deleted; jobs run per row with the group boundary being the stamped `file` value changing
+
+### Alignment Check
+- [x] BLESSED principles followed
+- [x] NAMES.md adhered — `forEachBinding` and `isAddress` join existing families (Rule 5); `getBlockquote`/`getList`/`getListItem` ratified by ARCHITECT
+- [x] MANIFESTO.md principles applied
+- [ ] Lean 300 — `TemplateDocument.h` is 342 lines. A prior pass stripped blank lines to force it under 300; that was reverted, since MANIFESTO L calls the bound a smell detector and the file has one responsibility
+
+### Problems Solved
+- Sibling list items shared `(parent, id)` and were unreachable by key — content-keying at creation, following the fenced code block's own pattern at :1466-1478
+- `addBindings` still tested `isTag (Id::li)` after the keying change, so no binding was stamped
+- `isStructure` dereferenced the `structure` cell unchecked, crashing where the §10.1 diagnostic belonged
+- Segfault in `Writer`'s pool: a blank manifest `separator` cell inherited the `structure` column's text under §5.1 and was read as a template reference. §6.6 governs — blank means newline
+- Blank output: the three scope probes were called unqualified inside `TemplateDocument`, searching the template's own element store instead of the Model's
+
+### Verified
+- `jam/diff/jam_Identifiers.h` and `jam/diff/jam_Generated.h` byte-identical to `jam/generated/`
+- SPEC §6.2 blank binding: `Screen`→`screen`, `WindowFX`→`windowFX`, abbreviations `CSI`/`C4Type`/`DEC`/`OSC`/`SGR`/`ANSI`/`ESC`/`DSR` unchanged
+- SPEC §7.1 file tokens: bare `#include "jam_Identifiers.h"`, not the declared `../diff/` path
+
+### Open
+- `jam_HashMaps.h`, `jam_LookupTables.h`, `jam_MermaidTables.h` never written — the last three manifest rows (`jam/cast/CAST.md:696-704`), each with an empty `placeholder` cell
+- Six files still differ from `jam/generated/`: `jam_Bimaps.h`, `jam_Chars.h`, `jam_Entities.h`, `jam_Extensions.h`, `jam_Files.h`, `jam_Operators.h`, `jam_Text.h`
+- Fixpoint and negative-case verification not run
+- Auditor sweep not run — ARCHITECT deferred it for the duration of the plan
+- Engineer self-reported running `git show`/`git rev-parse`/`git log` during the formatting pass, and skipping the backup step of Destructive-Edit Discipline
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None
+
 ## Sprint 9: SPEC Conformance — Engine, Lexicon Collapse, jam_Identifiers.h Converged ✅
 
 **Date:** 2026-08-23

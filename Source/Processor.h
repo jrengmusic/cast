@@ -7,46 +7,45 @@
 
 struct Processor
 {
-    Processor (const juce::File& documentFile)
-        : documentFile (documentFile)
-        , model (Model::parse (documentFile))
-        , writer (*model)
+    Processor (const juce::File& manifestFile)
+        : model (Model::parse (manifestFile))
+        , templateDocument (jam::MarkdownDocument::parse (model->getFile().loadFileAsString()))
+        , writer (*model, templateDocument)
     {
         jam::Stamp::getInstance()->addIfNotAlreadyThere (jam::Stamp::Entry {});
     }
 
     juce::Result generate (const juce::String& output = {})
     {
-        if (const auto validation { Validator::isValid (*model) }; not validation.wasOk())
+        if (const auto validation { Validator::isValid (*model, templateDocument) };
+            not validation.wasOk())
             return validation;
 
-        if (writer.toFile (model->getOutput (output)))
-            return juce::Result::ok();
-
-        return juce::Result::fail ({});
+        return writer.toFile (model->getOutput (output));
     }
 
     juce::Result format()
     {
         static const jam::MarkdownWriter formatter;
+        static const jam::MarkdownValidator validator;
 
-        jam::Array<juce::File> tableFiles { documentFile };
+        if (const auto result { validator.isValid (*model) }; not result.wasOk())
+            return result;
 
-        for (auto* row : model->getTableRows (Id::index))
+        jam::Array<juce::String> origins;
+
+        for (auto* table : model->getTables())
         {
-            const auto pathCell { model->getTableValue (*row, Id::symbol) };
-
-            if (juce::File::createFileWithoutCheckingPath (pathCell).hasFileExtension (Extensions::md))
-                tableFiles.addIfNotAlreadyThere (model->getOutput (pathCell));
+            const auto origin { *table->get<juce::String> (Id::path) };
+            origins.addIfNotAlreadyThere (origin);
         }
 
-        for (const auto& file : tableFiles)
+        for (const auto& origin : origins)
         {
+            const auto file { model->getOutput (origin) };
             const auto current { file.loadFileAsString() };
-            const auto document { jam::MarkdownDocument::parse (
-                current, file.getRelativePathFrom (documentFile.getParentDirectory())) };
 
-            if (const auto canonical { formatter.getText (document) }; canonical != current)
+            if (const auto canonical { formatter.getText (*model, origin) }; canonical != current)
                 file.replaceWithText (canonical,
                     false,
                     false,
@@ -64,8 +63,8 @@ private:
     Generated generated;
 
     //==============================================================================
-    juce::File documentFile;
     std::unique_ptr<Model> model;
+    TemplateDocument templateDocument;
     Writer writer;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Processor)

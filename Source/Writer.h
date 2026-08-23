@@ -5,11 +5,11 @@
 
 struct Writer : jam::Document::Writer
 {
-    using Elements = jam::Array<jam::Document::Element*>;
     using jam::Document::Writer::toFile;
 
-    Writer (const Model& document)
+    Writer (const Model& document, const TemplateDocument& templateDocument)
         : model (document)
+        , templateDocument (templateDocument)
     {
     }
 
@@ -18,14 +18,9 @@ struct Writer : jam::Document::Writer
         return document.root->getAllSubText();
     }
 
-    bool toFile (const juce::File& outputPath)
+    juce::Result toFile (const juce::File& outputPath)
     {
-        const auto templateFile { model.getFile() };
-
-        templateDocument = std::make_unique<TemplateDocument> (
-            jam::MarkdownDocument::parse (templateFile.loadFileAsString()));
-
-        std::atomic<bool> written { true };
+        jam::Strings failures;
 
         for (auto* table : model.getTables())
         {
@@ -33,104 +28,114 @@ struct Writer : jam::Document::Writer
             {
                 const auto rows { model.getTableRows (*table) };
 
-                jam::Array<juce::String> files;
-                jam::HashMap<juce::String, Elements> rowsByFile;
+                jam::Array<juce::String> tableFailures;
+                tableFailures.resize (rows.size());
 
-                for (auto* row : rows)
-                {
-                    const auto origin { *row->parent->get<juce::String> (Id::path) };
-                    const auto file { model.getValue (
-                        origin, model.getTableValue (*row, Id::file)) };
-                    files.addIfNotAlreadyThere (file);
-
-                    auto [fileEntry, wasInserted] { rowsByFile.try_emplace (file) };
-                    juce::ignoreUnused (wasInserted);
-                    fileEntry->second.add (row);
-                }
-
-                runJobs (files.size(),
-                         [this, &outputPath, &files, &rowsByFile, &written] (int index)
+                runJobs (rows.size(),
+                         [this, &outputPath, &rows, &tableFailures] (int index)
                          {
-                             const auto& file { files.at (index) };
-                             const auto& fileRows { rowsByFile.at (file) };
+                             const auto& file { model.getValue (*rows.at (index), Id::file) };
 
-                             TemplateDocument output;
-                             output.addChild (*output.root, Id::text)
-                                 ->add<juce::String> (Id::text, getBanner (file));
-                             apply (output, fileRows);
+                             if (index == 0
+                                 or file != model.getValue (*rows.at (index - 1), Id::file))
+                             {
+                                 TemplateDocument output;
+                                 output.addChild (*output.root, Id::text)
+                                     ->add<juce::String> (Id::text, getBanner (file));
+                                 apply (output, rows, index);
 
-                             const auto outputFile { jam::File::getOrCreate (outputPath, file) };
+                                 const auto outputFile { jam::File::getOrCreate (outputPath,
+                                                                                  file) };
 
-                             if (not toFile (output, outputFile))
-                                 written = false;
+                                 if (not toFile (output, outputFile))
+                                     tableFailures.at (index) = outputFile.getFullPathName();
+                             }
                          });
+
+                for (const auto& failedFile : tableFailures)
+                    if (failedFile.isNotEmpty())
+                        failures.add (failedFile + Id::diagnosticSeparator
+                                     + text::Diagnostics::failOutputWrite);
             }
         }
 
-        return written;
+        if (failures.size() > 0)
+            return juce::Result::fail (
+                failures.joinIntoString (juce::String::charToString (Chars::newline), 0, -1));
+
+        return juce::Result::ok();
     }
 
 private:
     const Model& model;
-    std::unique_ptr<TemplateDocument> templateDocument;
+    const TemplateDocument& templateDocument;
 
-    void apply (TemplateDocument& output, const Elements& fileRows) const
+    void apply (TemplateDocument& output, const jam::Array<Model::Element*>& rows, int index) const
     {
-        auto* firstRow { fileRows.first() };
-        auto* separatorCell { model.getTableCell (*firstRow, Id::separator) };
-        const auto hasJackEntries { separatorCell != nullptr
-                                    and std::any_of (separatorCell->begin(),
+        auto* firstRow { rows.at (index) };
+        auto joinText { juce::String::charToString (Chars::newline) };
+
+        if (auto* separatorCell { model.getTableCell (*firstRow, Id::separator) })
+        {
+            const auto hasJackEntries { std::any_of (separatorCell->begin(),
                                                      separatorCell->end(),
                                                      [] (Model::Element* block)
                                                      {
                                                          return block->isTag (Id::ul);
                                                      }) };
 
-        auto joinText { juce::String::charToString (Chars::newline) };
-
-        if (separatorCell != nullptr and not hasJackEntries)
-        {
-            const auto flatValue { separatorCell->getAllSubText() };
-
-            if (flatValue.isNotEmpty())
+            if (not hasJackEntries)
             {
-                const auto resolved { templateDocument->getBinding (
-                    model, *firstRow, 0, flatValue, Id::separator) };
+                const auto& value { *separatorCell->get<juce::String> (Id::value) };
 
-                joinText = juce::String::charToString (Chars::newline)
-                           + juce::String::charToString (Chars::newline) + resolved
-                           + juce::String::charToString (Chars::newline)
-                           + juce::String::charToString (Chars::newline);
+                if (value.isNotEmpty())
+                {
+                    const auto binding { templateDocument.getBinding (
+                        model, *firstRow, value) };
+
+                    joinText = juce::String::charToString (Chars::newline)
+                               + juce::String::charToString (Chars::newline) + binding
+                               + juce::String::charToString (Chars::newline)
+                               + juce::String::charToString (Chars::newline);
+                }
             }
         }
 
-        for (int index { 0 }; index < fileRows.size(); ++index)
+        const auto& file { model.getValue (*firstRow, Id::file) };
+
+        for (; index < rows.size() and model.getValue (*rows.at (index), Id::file) == file;
+             ++index)
         {
-            if (index > 0)
+            if (rows.at (index) != firstRow)
                 output.addChild (*output.root, Id::text)->add<juce::String> (Id::text, joinText);
 
             output.addChild (*output.root, Id::text)
                 ->add<juce::String> (Id::text,
-                    templateDocument->getShape (model, *fileRows.at (index), 0));
+                    templateDocument.getShape (model, *rows.at (index),
+                        *model.getTableCell (*rows.at (index), Id::structure),
+                        model.getTableCell (*rows.at (index), Id::placeholder),
+                        model.getTableCell (*rows.at (index), Id::separator),
+                        juce::String()));
         }
 
         output.addChild (*output.root, Id::text)
             ->add<juce::String> (Id::text, juce::String::charToString (Chars::newline));
     }
 
-    juce::String getBanner (const juce::String& file) const noexcept
+    juce::String getBanner (const juce::String& file) const
     {
         static const auto document { jam::MarkdownDocument::parse (
             BinaryData::getString (files::castOutput)) };
 
         const auto extension { jam::Format::onlyExtensionFromFilename (file) };
-        const auto syntax { map::commentSyntax.get (extension) };
+        const auto& syntax { map::commentSyntax.get (extension) };
         juce::String banner;
 
-        banner << syntax.get (Id::bannerOpen) << Chars::newline
-               << document.getCodeBlock (Id::banner)->getAllSubText() << Chars::newline
-               << syntax.get (Id::bannerClose) << Chars::newline << Chars::newline
-               << syntax.get (Id::pragma) << Chars::newline << Chars::newline;
+        if (auto* bannerBlock { document.getCodeBlock (Id::banner) })
+            banner << syntax.get (Id::bannerOpen) << Chars::newline
+                   << bannerBlock->getAllSubText() << Chars::newline
+                   << syntax.get (Id::bannerClose) << Chars::newline << Chars::newline
+                   << syntax.get (Id::pragma) << Chars::newline << Chars::newline;
 
         return banner;
     }

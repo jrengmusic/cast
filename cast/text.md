@@ -11,7 +11,6 @@
 | failTemplateMissing      | template not found                                                   |
 | failFragmentMissing      | fragment not found                                                   |
 | failOrphan               | orphan template                                                      |
-| failNoSource             | placeholder has no source                                            |
 | failTableMissing         | table not found                                                      |
 | failAlreadyDeclared      | `" already declared at `                                             |
 | failEntityMissing        | entity not declared in lexicon                                       |
@@ -24,7 +23,7 @@
 | failRedundantValue       | `value byte-equals `                                                 |
 | failRedundantValueSuffix | ` projection of name; delete it, let the template project it`        |
 | failPlaceholderUnknown   | region names a placeholder not declared in dispatch                  |
-| failColumnUnknown        | region names a column not in the matched table                       |
+| failColumnUnknown        | column not in the matched table                                      |
 | failRowReserved          | row is a reserved name                                               |
 | failRowRegionColumn      | row region takes no column; use the column's name as the region name |
 | failPlaceholderMissing   | placeholder has no placeholder or region in any root                 |
@@ -35,4 +34,9 @@
 | failAliasMissing         | alias not declared in index                                          |
 | failNoMatch              | value does not match                                                 |
 | failDuplicate            | `duplicate "`                                                        |
+| failFormatAdjacent       | format column has no column to format                                |
+| failColumnInvalid        | column name is not a valid identifier                                |
+| failAmbiguous            | nested shape has more than one candidate                             |
+| failBlockUnnamed         | code block has no id                                                 |
+| failOutputWrite          | cannot write output                                                  |
 +--------------------------+----------------------------------------------------------------------+

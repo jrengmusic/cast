@@ -3,16 +3,17 @@
 #include "generated/Identifiers.h"
 #include "Operators.h"
 
+static constexpr int indefiniteTimeoutMs { -1 };
+
 template <typename Function>
-static void runJobs (int count, Function&& function) noexcept
+static void runJobs (int count, Function&& function)
 {
     juce::ThreadPool pool;
 
     for (int index { 0 }; index < count; ++index)
         pool.addJob ([&function, index] { function (index); });
 
-    while (pool.getNumJobs() > 0)
-        juce::Thread::sleep (1);
+    pool.removeAllJobs (false, indefiniteTimeoutMs);
 }
 
 class Model : public jam::MarkdownDocument
@@ -27,71 +28,25 @@ public:
         auto document { std::make_unique<Model>() };
 
         if (documentFile.existsAsFile())
-        {
-            const auto parent { documentFile.getParentDirectory() };
-
-            document->path = parent;
-            document->appendChildren (jam::MarkdownDocument::parse (
-                documentFile.loadFileAsString(), documentFile.getRelativePathFrom (parent)));
-
-            const auto indexTables { document->getTables (Id::index) };
-
-            if (not indexTables.isEmpty())
-            {
-                const auto indexRows { document->getTableRows (*indexTables.at (0)) };
-
-                jam::Array<juce::File> tableFiles;
-                jam::Array<juce::String> tableOrigins;
-
-                const auto manifestOrigin { documentFile.getRelativePathFrom (parent) };
-
-                for (auto* indexRow : indexRows)
-                {
-                    const auto pathCell { document->getTableValue (*indexRow, Id::symbol) };
-
-                    if (juce::File::createFileWithoutCheckingPath (pathCell).hasFileExtension (
-                            Extensions::md)
-                        and pathCell != manifestOrigin)
-                    {
-                        tableFiles.add (parent.getChildFile (pathCell));
-                        tableOrigins.add (pathCell);
-                    }
-                }
-
-                jam::Array<jam::MarkdownDocument> parsedTables;
-                parsedTables.resize (tableFiles.size());
-
-                runJobs (tableFiles.size(),
-                    [&tableFiles, &tableOrigins, &parsedTables] (int index)
-                    {
-                        const auto& file { tableFiles.at (index) };
-
-                        parsedTables.at (index) = jam::MarkdownDocument::parse (
-                            file.loadFileAsString(), tableOrigins.at (index));
-                    });
-
-                for (auto& table : parsedTables)
-                    document->appendChildren (std::move (table));
-            }
-        }
+            parse (*document, documentFile);
 
         return document;
     }
 
     juce::String getValue (juce::StringRef file, juce::StringRef alias) const
     {
-        if (alias.isEmpty() or *alias.text != Chars::at)
-            return {};
-
-        const juce::String aliasText { alias };
-
-        if (juce::Identifier::isValidIdentifier (aliasText))
+        if (alias.isNotEmpty() and *alias.text == Chars::at)
         {
-            for (auto* table : getTables (Id::index))
+            const juce::String aliasText { alias };
+
+            if (juce::Identifier::isValidIdentifier (aliasText))
             {
-                if (table->contains (Id::path) and *table->get<juce::String> (Id::path) == file)
+                for (auto* table : getTables (Id::index))
                 {
-                    return getTableValue (*table, Id::symbol, juce::Identifier (aliasText));
+                    if (table->contains (Id::path) and *table->get<juce::String> (Id::path) == file)
+                    {
+                        return getTableValue (*table, Id::symbol, juce::Identifier (aliasText));
+                    }
                 }
             }
         }
@@ -105,173 +60,30 @@ public:
         return getValue (origin, alias);
     }
 
-    juce::String getValue (Element& row, const juce::Identifier& column) const
+    const juce::String& getValue (Element& row, const juce::Identifier& column) const
     {
-        const auto headers { getTableHeaders (*row.parent) };
-        const auto columnIndex { headers.indexOf (column.toString()) };
-
-        jassert (columnIndex >= 0);
-
-        jam::Array<Element*> cells;
-
-        for (auto* cell : row)
-            cells.add (cell);
-
-        const auto getCellValue = [] (Element& cell) -> juce::String
-        {
-            const auto rawText { *cell.get<juce::String> (Id::rawText) };
-            const auto isBackticked { rawText.length() >= 2
-                                      and rawText.startsWithChar (Chars::backtick)
-                                      and rawText.endsWithChar (Chars::backtick) };
-
-            return isBackticked
-                       ? jam::Format::toLiteral (rawText.substring (1, rawText.length() - 1))
-                       : cell.getAllSubText();
-        };
-
-        auto resolved { getCellValue (*cells.at (columnIndex)) };
-
-        if (resolved.isEmpty())
-        {
-            int sourceIndex { columnIndex - 1 };
-
-            while (sourceIndex >= 0 and headers.at (sourceIndex) == Id::format.toString())
-                --sourceIndex;
-
-            if (sourceIndex >= 0)
-                resolved = getCellValue (*cells.at (sourceIndex));
-        }
-
-        if (resolved.startsWithChar (Chars::at))
-            return getValue (row, resolved);
-
-        const auto formatIndex { columnIndex + 1 };
-        const auto hasFormat { formatIndex < headers.size()
-                               and headers.at (formatIndex) == Id::format.toString() };
-
-        if (hasFormat)
-        {
-            jassert (formatIndex + 1 >= headers.size()
-                   or headers.at (formatIndex + 1) != Id::format.toString());
-
-            const auto operation { cells.at (formatIndex)->getAllSubText() };
-
-            if (operation.isNotEmpty())
-                resolved = Transforms::getTransformed (operation, resolved, {});
-        }
-
-        return resolved;
+        return *getTableCell (row, column)->get<juce::String> (Id::value);
     }
 
-    Element* getStructure (Element& row) const
+    juce::String getStructure (Element& scope) const
     {
-        return getTableHeaders (*row.parent).contains (Id::structure.toString())
-                  ? getTableCell (row, Id::structure)
-                  : nullptr;
-    }
-
-    juce::String getStructure (Element& row, int depth) const
-    {
-        juce::String head;
-
-        if (auto* scope { getStructure (row, depth, Id::structure) })
-            for (auto* block : *scope)
-                if (block->isTag (Id::p))
-                {
-                    const auto blockText { block->getAllSubText() };
-
-                    if (jam::Format::getPreColon (blockText).trim() == Id::templatePath.toString())
-                        head = jam::Format::getPostColon (blockText).trim();
-                }
-
-        return head;
-    }
-
-    Element* getStructure (Element& row, int depth, const juce::Identifier& column) const
-    {
-        auto* scope { getTableCell (row, column) };
-
-        for (int scopeDepth { 0 }; scopeDepth < depth and scope != nullptr; ++scopeDepth)
-        {
-            Element* nested { nullptr };
-
-            for (auto* block : *scope)
-                if (block->isTag (Id::blockquote))
-                    nested = block;
-
-            scope = nested;
-        }
-
-        return scope;
-    }
-
-    jam::HashMap<juce::Identifier, juce::String>
-    getSource (Element& row, int depth, const juce::Identifier& column) const
-    {
-        jam::HashMap<juce::Identifier, juce::String> bullets;
-
-        if (auto* scope { getStructure (row, depth, column) })
-            for (auto* block : *scope)
-                if (block->isTag (Id::ul))
-                    for (auto* item : *block)
-                        if (item->isTag (Id::li))
-                        {
-                            const auto itemText { item->getAllSubText() };
-                            const auto key { jam::Format::getPreColon (itemText).trim() };
-                            const auto value { jam::Format::getPostColon (itemText).trim() };
-                            bullets.try_emplace (juce::Identifier (key), value);
-                        }
-
-        return bullets;
-    }
-
-    jam::Array<std::tuple<int, juce::Identifier, juce::String>>
-    getSource (Element& row, const juce::Identifier& column) const
-    {
-        jam::Array<std::tuple<int, juce::Identifier, juce::String>> bullets;
-
-        if (auto* cell { getTableCell (row, column) })
-        {
-            std::function<void (Element&, int)> walk;
-            walk = [&bullets, &walk] (Element& scope, int depth)
+        for (auto* block : scope)
+            if (block->isTag (Id::p))
             {
-                for (auto* block : scope)
-                {
-                    if (block->isTag (Id::ul))
-                        for (auto* item : *block)
-                            if (item->isTag (Id::li))
-                            {
-                                const auto itemText { item->getAllSubText() };
-                                const auto key { jam::Format::getPreColon (itemText).trim() };
-                                const auto value { jam::Format::getPostColon (itemText).trim() };
-                                bullets.add (
-                                    std::make_tuple (depth, juce::Identifier (key), value));
-                            }
+                const auto blockText { block->getAllSubText() };
 
-                    if (block->isTag (Id::blockquote))
-                        walk (*block, depth + 1);
-                }
-            };
+                if (jam::Format::getPreColon (blockText).trim() == Id::templatePath.toString())
+                    return jam::Format::getPostColon (blockText).trim();
+            }
 
-            walk (*cell, 0);
-        }
-
-        return bullets;
+        return {};
     }
 
     bool isOutputTable (Element& table) const noexcept
     {
-        return not table.isTag (Id::index) and getTableHeaders (table).contains (Id::file.toString());
-    }
-
-    juce::File getFile (Element& row, juce::StringRef alias) const
-    {
-        const auto symbolPath { getValue (row, alias) };
-
-        if (symbolPath.isNotEmpty())
-            return getOutput (symbolPath);
-
-        return {};
+        auto* headerRow { getTableHeaderRow (table) };
+        return not table.isTag (Id::index) and headerRow != nullptr
+               and getTableCell (*headerRow, Id::file) != nullptr;
     }
 
     juce::File getFile() const
@@ -300,44 +112,187 @@ public:
         const auto parts { jam::Strings::fromTokens (
             reference, juce::String::charToString (Chars::colon), {}) };
         const auto sourceName { parts.size() > 0 ? parts.at (0).trim() : juce::String() };
+        const auto tableName { parts.size() > 1 ? parts.at (1).trim() : juce::String() };
         const auto declaredPath { getValue (row, sourceName) };
 
-        if (declaredPath.isNotEmpty())
+        return declaredPath.isNotEmpty() ? getTables (declaredPath, tableName) : nullptr;
+    }
+
+private:
+    static void parse (Model& document, const juce::File& documentFile)
+    {
+        const auto parent { documentFile.getParentDirectory() };
+        const auto manifestOrigin { documentFile.getRelativePathFrom (parent) };
+
+        document.path = parent;
+        document.appendChildren (jam::MarkdownDocument::parse (
+            documentFile.loadFileAsString(), manifestOrigin));
+
+        jam::Array<juce::File> tableFiles;
+        jam::Array<juce::String> tableOrigins;
+
+        for (auto* indexRow : document.getTableRows (Id::index))
         {
-            const auto tableName { parts.size() > 1 ? parts.at (1).trim() : juce::String() };
+            const auto pathCell { document.getTableValue (*indexRow, Id::symbol) };
 
-            if (tableName.isNotEmpty())
+            if (juce::File::createFileWithoutCheckingPath (pathCell).hasFileExtension (
+                    Extensions::md)
+                and pathCell != manifestOrigin)
             {
-                for (auto* candidate : getTables (juce::Identifier (tableName)))
-                    if (candidate->contains (Id::path)
-                        and *candidate->get<juce::String> (Id::path) == declaredPath)
-                        return candidate;
-            }
-            else
-            {
-                jam::Array<Element*> fileTables;
-
-                for (auto* candidate : getTables())
-                    if (candidate->contains (Id::path)
-                        and *candidate->get<juce::String> (Id::path) == declaredPath)
-                        fileTables.add (candidate);
-
-                if (fileTables.size() == 1)
-                    return fileTables.at (0);
-
-                const auto fileStem { juce::File::createFileWithoutCheckingPath (declaredPath)
-                                          .getFileNameWithoutExtension() };
-
-                for (auto* candidate : fileTables)
-                    if (candidate->id == juce::Identifier (fileStem))
-                        return candidate;
+                tableFiles.add (parent.getChildFile (pathCell));
+                tableOrigins.add (pathCell);
             }
         }
+
+        parse (document, tableFiles, tableOrigins);
+
+        for (auto* table : document.getTables())
+        {
+            auto* headerRow { getTableHeaderRow (*table) };
+
+            for (auto* row : document.getTableRows (*table))
+            {
+                document.addValues (*headerRow, *row);
+
+                for (const auto& column : { Id::structure, Id::placeholder, Id::separator })
+                    if (auto* cell { document.getTableCell (*row, column) })
+                        addBindings (*cell);
+            }
+        }
+    }
+
+    static void parse (Model& document, const jam::Array<juce::File>& tableFiles,
+                       const jam::Array<juce::String>& tableOrigins)
+    {
+        jam::Array<jam::MarkdownDocument> parsedTables;
+        parsedTables.resize (tableFiles.size());
+
+        runJobs (tableFiles.size(),
+            [&tableFiles, &tableOrigins, &parsedTables] (int index)
+            {
+                const auto& file { tableFiles.at (index) };
+
+                parsedTables.at (index) = jam::MarkdownDocument::parse (
+                    file.loadFileAsString(), tableOrigins.at (index));
+            });
+
+        for (auto& table : parsedTables)
+            document.appendChildren (std::move (table));
+    }
+
+    static void addBindings (Element& scope)
+    {
+        juce::String precedingBinding;
+
+        for (auto* block : scope)
+        {
+            if (block->isTag (Id::ul))
+                for (auto* item : *block)
+                {
+                    const auto itemText { item->getAllSubText() };
+                    auto value { jam::Format::getPostColon (itemText).trim() };
+
+                    if (value.isEmpty())
+                        value = jam::Format::toCamelCase (precedingBinding);
+
+                    item->add<juce::String> (Id::value, value);
+
+                    precedingBinding = value;
+                }
+
+            if (block->isTag (Id::blockquote))
+                addBindings (*block);
+        }
+    }
+
+    static juce::String getCellValue (Element& cell)
+    {
+        const Element* codeChild { nullptr };
+
+        cell.applyFunctionRecursively (
+            [&codeChild] (const Element& node) -> bool
+            {
+                if (codeChild == nullptr and node.isTag (Id::code))
+                    codeChild = &node;
+
+                return codeChild == nullptr;
+            });
+
+        if (codeChild != nullptr)
+            return jam::Format::toLiteral (codeChild->getAllSubText());
+
+        return cell.getAllSubText();
+    }
+
+    void addValue (Element& headerCell, Element& row, Element& cell, juce::String& precedingAuthored)
+    {
+        const auto authored { getCellValue (cell) };
+        const auto isFormatColumn { headerCell.id == Id::format };
+        const auto isManifestRow { isOutputTable (*row.parent) };
+        auto value { authored.isNotEmpty() or isManifestRow ? authored : precedingAuthored };
+
+        if (value.startsWithChar (Chars::at))
+            value = getValue (row, value);
+
+        if (auto* formatCell { cell.nextSibling })
+            if (formatCell->id == Id::format)
+            {
+                const auto operation { formatCell->getAllSubText() };
+
+                if (operation.isNotEmpty())
+                    value = Transforms::getTransformed (operation, value, {});
+            }
+
+        if (not isFormatColumn)
+            precedingAuthored = authored;
+
+        cell.add<juce::String> (Id::value, value);
+    }
+
+    void addValues (Element& headerRow, Element& row)
+    {
+        juce::String precedingAuthored;
+        auto* headerCell { headerRow.firstChild };
+        auto* cell { row.firstChild };
+
+        while (cell != nullptr)
+        {
+            addValue (*headerCell, row, *cell, precedingAuthored);
+            headerCell = headerCell->nextSibling;
+            cell = cell->nextSibling;
+        }
+    }
+
+    Element* getTables (const juce::String& declaredPath, const juce::String& tableName) const
+    {
+        if (tableName.isNotEmpty())
+        {
+            for (auto* candidate : getTables (juce::Identifier (jam::Format::toValidID (tableName))))
+                if (candidate->contains (Id::path) and *candidate->get<juce::String> (Id::path) == declaredPath)
+                    return candidate;
+
+            return nullptr;
+        }
+
+        jam::Array<Element*> fileTables;
+
+        for (auto* candidate : getTables())
+            if (candidate->contains (Id::path) and *candidate->get<juce::String> (Id::path) == declaredPath)
+                fileTables.add (candidate);
+
+        if (fileTables.size() == 1)
+            return fileTables.at (0);
+
+        const auto fileStem { juce::File::createFileWithoutCheckingPath (declaredPath)
+                                  .getFileNameWithoutExtension() };
+
+        for (auto* candidate : fileTables)
+            if (candidate->id == juce::Identifier (jam::Format::toValidID (fileStem)))
+                return candidate;
 
         return nullptr;
     }
 
-private:
     juce::File path;
 
     //==============================================================================

@@ -5,9 +5,28 @@
 
 struct Validator : jam::MarkdownValidator
 {
-    static juce::Result isValid (const Model& model)
+    static juce::Result isValid (const Model& model, const TemplateDocument& templateDocument)
     {
-        return isManifest (model);
+        return isManifest (model, templateDocument);
+    }
+
+    template <typename Function>
+    static juce::Result
+    forEachBinding (const Model& model, const juce::Identifier& column, Function&& function)
+    {
+        for (auto* table : model.getTables())
+            if (model.isOutputTable (*table))
+                for (auto* row : model.getTableRows (*table))
+                    for (auto* scope { model.getTableCell (*row, column) }; scope != nullptr;
+                         scope = model.getBlockquote (*scope))
+                        if (auto* list { model.getList (*scope) })
+                            for (auto* item : *list)
+                                if (const auto result { function (
+                                        *table, *row, *item->get<juce::String> (Id::value)) };
+                                    not result.wasOk())
+                                    return result;
+
+        return juce::Result::ok();
     }
 
     static juce::Result isIndex (const Model& model)
@@ -52,24 +71,23 @@ struct Validator : jam::MarkdownValidator
             if (model.isOutputTable (*table))
                 for (auto* row : model.getTableRows (*table))
                 {
-                    const auto shapeId { model.getStructure (*row, 0) };
+                    auto* scope { model.getTableCell (*row, Id::structure) };
 
-                    if (shapeId.isEmpty())
-                        return juce::Result::fail (getLocation (*table, *row, Id::structure.toString())
-                                                   + Id::diagnosticSeparator
-                                                   + text::Diagnostics::failTemplateMissing);
+                    if (scope == nullptr or model.getStructure (*scope).isEmpty())
+                        return juce::Result::fail (
+                            getLocation (*table, *row, Id::structure.toString())
+                            + Id::diagnosticSeparator + text::Diagnostics::failTemplateMissing);
 
-                    for (int depth { 0 }; model.getStructure (*row, depth).isNotEmpty(); ++depth)
-                    {
-                        const auto depthShapeId { model.getStructure (*row, depth) };
-                        const juce::Identifier codeId { depthShapeId };
-
-                        if (templateDocument.getCodeBlock (codeId) == nullptr)
-                            return juce::Result::fail (
-                                getLocation (*table, *row, Id::structure.toString())
-                                + Id::diagnosticSeparator + text::Diagnostics::failTemplateMissing
-                                + Id::diagnosticSeparator + depthShapeId);
-                    }
+                    for (; scope != nullptr; scope = model.getBlockquote (*scope))
+                        if (const auto depthShapeId { model.getStructure (*scope) };
+                            depthShapeId.isNotEmpty())
+                            if (templateDocument.getCodeBlock (juce::Identifier (depthShapeId))
+                                == nullptr)
+                                return juce::Result::fail (
+                                    getLocation (*table, *row, Id::structure.toString())
+                                    + Id::diagnosticSeparator
+                                    + text::Diagnostics::failTemplateMissing
+                                    + Id::diagnosticSeparator + depthShapeId);
                 }
 
         return juce::Result::ok();
@@ -78,123 +96,89 @@ struct Validator : jam::MarkdownValidator
     static juce::Result
     isPlaceholders (const Model& model, const TemplateDocument& templateDocument)
     {
-        for (auto* table : model.getTables())
-            if (model.isOutputTable (*table))
-                for (auto* row : model.getTableRows (*table))
-                    for (const auto& column : { Id::placeholder, Id::structure })
-                        for (auto& entry : model.getSource (*row, column))
+        for (const auto& column : { Id::placeholder, Id::structure })
+            if (const auto result { forEachBinding (model, column,
+                    [&templateDocument, &column] (Element& table, Element& row,
+                        const juce::String& entryValue) -> juce::Result
+                    {
+                        if (jam::Format::getPreColon (entryValue).trim()
+                            == Id::templatePath.toString())
                         {
-                            const auto& [entryDepth, entryKey, entryValue] { entry };
-                            juce::ignoreUnused (entryDepth, entryKey);
+                            const juce::Identifier codeId {
+                                jam::Format::getPostColon (entryValue).trim()
+                            };
 
-                            if (jam::Format::getPreColon (entryValue).trim()
-                                == Id::templatePath.toString())
-                            {
-                                const juce::Identifier codeId {
-                                    jam::Format::getPostColon (entryValue).trim()
-                                };
-
-                                if (templateDocument.getCodeBlock (codeId) == nullptr)
-                                    return juce::Result::fail (
-                                        getLocation (*table, *row, column.toString())
-                                        + Id::diagnosticSeparator
-                                        + text::Diagnostics::failTemplateMissing
-                                        + Id::diagnosticSeparator + codeId.toString());
-                            }
+                            if (templateDocument.getCodeBlock (codeId) == nullptr)
+                                return juce::Result::fail (
+                                    getLocation (table, row, column.toString())
+                                    + Id::diagnosticSeparator
+                                    + text::Diagnostics::failTemplateMissing
+                                    + Id::diagnosticSeparator + codeId.toString());
                         }
+
+                        return juce::Result::ok();
+                    }) };
+                not result.wasOk())
+                return result;
 
         return juce::Result::ok();
     }
 
     static juce::Result isReference (const Model& model)
     {
-        for (auto* table : model.getTables())
-            if (model.isOutputTable (*table))
-                for (auto* row : model.getTableRows (*table))
-                    for (const auto& column : { Id::placeholder, Id::structure })
-                        for (auto& entry : model.getSource (*row, column))
-                        {
-                            const auto& [entryDepth, entryKey, entryValue] { entry };
-                            juce::ignoreUnused (entryDepth, entryKey);
+        for (const auto& column : { Id::placeholder, Id::structure })
+            if (const auto result { forEachBinding (model, column,
+                    [&model, &column] (Element& table, Element& row,
+                        const juce::String& entryValue) -> juce::Result
+                    {
+                        if (entryValue.startsWithChar (Chars::at))
+                            return isAddress (model, table, row, column, entryValue);
 
-                            if (entryValue.startsWithChar (Chars::at))
-                            {
-                                const auto parts { jam::Strings::fromTokens (
-                                    entryValue, juce::String::charToString (Chars::colon), {}) };
-                                const auto aliasName { parts.at (0).trim() };
-
-                                if (model.getValue (*row, aliasName).isEmpty())
-                                    return juce::Result::fail (
-                                        getLocation (*table, *row, column.toString())
-                                        + Id::diagnosticSeparator
-                                        + text::Diagnostics::failAliasMissing
-                                        + Id::diagnosticSeparator + aliasName);
-
-                                if (parts.size() > 1)
-                                {
-                                    const auto tableReference { parts.size() > 2
-                                        ? aliasName + juce::String::charToString (Chars::colon)
-                                              + parts.at (1).trim()
-                                        : aliasName };
-                                    auto* referencedTable { model.getTables (*row, tableReference) };
-
-                                    if (referencedTable == nullptr)
-                                        return juce::Result::fail (
-                                            getLocation (*table, *row, column.toString())
-                                            + Id::diagnosticSeparator
-                                            + text::Diagnostics::failTableMissing
-                                            + Id::diagnosticSeparator + tableReference);
-
-                                    const auto columnName { parts.at (parts.size() - 1).trim() };
-
-                                    if (not model.getTableHeaders (*referencedTable)
-                                                .contains (columnName))
-                                        return juce::Result::fail (
-                                            getLocation (*table, *row, column.toString())
-                                            + Id::diagnosticSeparator
-                                            + text::Diagnostics::failColumnUnknown
-                                            + Id::diagnosticSeparator + columnName);
-                                }
-                            }
-                        }
+                        return juce::Result::ok();
+                    }) };
+                not result.wasOk())
+                return result;
 
         return juce::Result::ok();
     }
 
-    static juce::Result
-    isAssembled (const Model& model, const TemplateDocument& templateDocument)
+    static juce::Result isAddress (const Model& model, Element& table, Element& row,
+        const juce::Identifier& column, const juce::String& entryValue)
     {
-        for (auto* table : model.getTables())
-            if (model.isOutputTable (*table))
-                for (auto* row : model.getTableRows (*table))
-                {
-                    for (int depth { 0 }; model.getStructure (*row, depth).isNotEmpty(); ++depth)
-                    {
-                        const auto codeId { juce::Identifier (model.getStructure (*row, depth)) };
-                        const auto nestedShapeId { model.getStructure (*row, depth + 1) };
+        const auto parts { jam::Strings::fromTokens (
+            entryValue, juce::String::charToString (Chars::colon), {}) };
+        const auto aliasName { parts.at (0).trim() };
 
-                        if (nestedShapeId.isNotEmpty() and templateDocument.getPlaceholders().contains (codeId))
-                        {
-                            const auto placeholderKeys { model.getSource (*row, depth, Id::placeholder) };
-                            const auto structureKeys { model.getSource (*row, depth, Id::structure) };
+        if (model.getValue (row, aliasName).isEmpty())
+            return juce::Result::fail (getLocation (table, row, column.toString())
+                                       + Id::diagnosticSeparator
+                                       + text::Diagnostics::failAliasMissing
+                                       + Id::diagnosticSeparator + aliasName);
 
-                            const auto hasUnbound { std::any_of (
-                                templateDocument.getPlaceholders().at (codeId).begin(),
-                                templateDocument.getPlaceholders().at (codeId).end(),
-                                [&placeholderKeys, &structureKeys] (const juce::Identifier& name)
-                                {
-                                    return not placeholderKeys.contains (name)
-                                           and not structureKeys.contains (name);
-                                }) };
+        if (parts.size() > 1)
+        {
+            const auto tableReference { aliasName + juce::String::charToString (Chars::colon)
+                                        + parts.at (1).trim() };
+            auto* referencedTable { model.getTables (row, tableReference) };
 
-                            if (not hasUnbound)
-                                return juce::Result::fail (
-                                    getLocation (*table, *row, Id::structure.toString())
-                                    + Id::diagnosticSeparator + text::Diagnostics::failOrphan
-                                    + Id::diagnosticSeparator + nestedShapeId);
-                        }
-                    }
-                }
+            if (referencedTable == nullptr)
+                return juce::Result::fail (getLocation (table, row, column.toString())
+                                           + Id::diagnosticSeparator
+                                           + text::Diagnostics::failTableMissing
+                                           + Id::diagnosticSeparator + tableReference);
+
+            if (parts.size() > 2)
+            {
+                const auto columnName { parts.at (2).trim() };
+
+                if (not model.getTableHeaders (*referencedTable)
+                            .contains (jam::Format::toValidID (columnName)))
+                    return juce::Result::fail (getLocation (table, row, column.toString())
+                                               + Id::diagnosticSeparator
+                                               + text::Diagnostics::failColumnUnknown
+                                               + Id::diagnosticSeparator + columnName);
+            }
+        }
 
         return juce::Result::ok();
     }
@@ -204,29 +188,33 @@ struct Validator : jam::MarkdownValidator
         for (auto* table : model.getTables())
             if (model.isOutputTable (*table))
             {
-                const auto headers { model.getTableHeaders (*table) };
+                auto* headerRow { model.getTableRow (*table, Id::headerRow) };
 
-                if (headers.contains (Id::format.toString()))
-                    for (auto* row : model.getTableRows (*table))
-                    {
-                        const auto operation { model.getTableValue (*row, Id::format) };
-
-                        if (operation.isNotEmpty() and not Transforms::contains (operation))
-                            return juce::Result::fail (
-                                getLocation (*table, *row, Id::format.toString())
-                                + Id::diagnosticSeparator + text::Diagnostics::failUnknownTransform
-                                + Id::diagnosticSeparator + operation);
-                    }
+                for (auto* cell : *headerRow)
+                    if (cell->id == Id::format and cell->nextSibling != nullptr
+                        and cell->nextSibling->id == Id::format)
+                        return juce::Result::fail (getLocation (*table, *table, Id::format.toString())
+                                                   + Id::diagnosticSeparator
+                                                   + text::Diagnostics::failFormatAdjacent);
             }
 
-        return juce::Result::ok();
+        return forEachCell (model, Id::format.toString(),
+            [&model] (Element& table, Element& row, const juce::String& operation) -> juce::Result
+            {
+                if (model.isOutputTable (table) and operation.isNotEmpty()
+                    and not Transforms::contains (operation))
+                    return juce::Result::fail (getLocation (table, row, Id::format.toString())
+                                               + Id::diagnosticSeparator
+                                               + text::Diagnostics::failUnknownTransform
+                                               + Id::diagnosticSeparator + operation);
+
+                return juce::Result::ok();
+            });
     }
 
     static juce::Result isUnique (const Model& model)
     {
         const auto indexTables { model.getTables (Id::index) };
-        jassert (not indexTables.isEmpty());
-
         const auto manifestOrigin { *indexTables.at (0)->get<juce::String> (Id::path) };
 
         for (auto* table : model.getTables())
@@ -236,32 +224,34 @@ struct Validator : jam::MarkdownValidator
             if (tableOrigin != manifestOrigin and not table->isTag (Id::index))
             {
                 const auto headers { model.getTableHeaders (*table) };
+                const auto rows { model.getTableRows (*table) };
 
                 for (const auto& column : headers)
                 {
                     if (column != Id::format.toString())
                     {
-                        jam::Strings seen;
+                        jam::HashSet<juce::String> seen;
 
-                        for (auto* row : model.getTableRows (*table))
+                        for (auto* row : rows)
                         {
-                            auto* cell { model.getTableCell (*row, juce::Identifier (column)) };
-                            jassert (cell != nullptr);
-
-                            const auto rawText { *cell->get<juce::String> (Id::rawText) };
-
-                            if (rawText.isNotEmpty() and not rawText.startsWithChar (Chars::at)
-                                and not Transforms::contains (rawText))
+                            if (auto* cell { model.getTableCell (*row, juce::Identifier (column)) })
                             {
-                                const auto value { model.getValue (*row, juce::Identifier (column)) };
+                                const auto rawText { *cell->get<juce::String> (Id::rawText) };
 
-                                if (seen.contains (value, false))
-                                    return juce::Result::fail (
-                                        getLocation (*table, *row, column) + Id::diagnosticSeparator
-                                        + text::Diagnostics::failDuplicate + value
-                                        + juce::String::charToString (Chars::doubleQuote));
+                                if (not rawText.startsWithChar (Chars::at))
+                                {
+                                    if (const auto& value { *cell->get<juce::String> (Id::value) };
+                                        value.isNotEmpty())
+                                    {
+                                        if (seen.contains (value))
+                                            return juce::Result::fail (
+                                                getLocation (*table, *row, column) + Id::diagnosticSeparator
+                                                + text::Diagnostics::failDuplicate + value
+                                                + juce::String::charToString (Chars::doubleQuote));
 
-                                seen.add (value);
+                                        seen.insert (value);
+                                    }
+                                }
                             }
                         }
                     }
@@ -272,7 +262,7 @@ struct Validator : jam::MarkdownValidator
         return juce::Result::ok();
     }
 
-    static juce::Result isManifest (const Model& model)
+    static juce::Result isManifest (const Model& model, const TemplateDocument& templateDocument)
     {
         if (const auto result { isIndex (model) }; not result.wasOk())
             return result;
@@ -286,41 +276,12 @@ struct Validator : jam::MarkdownValidator
         if (const auto result { isFormatted (model) }; not result.wasOk())
             return result;
 
-        const auto templateFile { model.getFile() };
-
-        const TemplateDocument templateDocument {
-            jam::MarkdownDocument::parse (templateFile.loadFileAsString())
-        };
-
         if (const auto result { isStructure (model, templateDocument) }; not result.wasOk())
             return result;
 
         if (const auto result { isPlaceholders (model, templateDocument) }; not result.wasOk())
             return result;
 
-        if (const auto result { isReference (model) }; not result.wasOk())
-            return result;
-
-        return isAssembled (model, templateDocument);
-    }
-
-    const Rules& getRules() const override
-    {
-        static const Rules rules {
-            []
-            {
-                Rules rules;
-
-                rules.add<const jam::Document&> (Id::index.toString(),
-                    [] (const jam::Document& document) -> juce::Result
-                    {
-                        return isValid (static_cast<const Model&> (document));
-                    });
-
-                return rules;
-            }()
-        };
-
-        return rules;
+        return isReference (model);
     }
 };
