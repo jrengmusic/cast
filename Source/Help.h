@@ -5,15 +5,15 @@ static constexpr int widthCap { 80 };
 static constexpr int documentMargin { 2 };
 
 /**
- * @brief Renders and prints the SPEC.md text as the `--help` banner body.
+ * @brief Renders and prints the HELP.md text as the `--help` banner body.
  *
  * Parses @p specText as markdown, projects it through jam::MarkdownComponent
  * onto a headless jam::terminal::GraphicsEngine frame (word-wrapped to
  * @c widthCap columns, minus a left/right margin of @c documentMargin
  * columns), and prints the resulting cell grid to stdout.
  *
- * @param specText The specification text (SPEC §9: printed verbatim on `--help`
- *                 and when no manifest is found).
+ * @param specText The HELP.md text, printed verbatim on `--help` and when
+ *                 no manifest is found.
  */
 static inline void printHelp (const juce::String& specText)
 {

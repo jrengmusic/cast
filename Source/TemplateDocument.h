@@ -30,11 +30,8 @@ struct TemplateDocument : jam::MarkdownDocument
                               if (not remaining.contains (Id::tripleColon))
                                   break;
 
-                              const auto interior { jam::Format::upTo (remaining, Id::tripleColon, false)
-                                                        .trimCharactersAtStart (
-                                                            juce::String::charToString (Chars::colon)) };
-                              names.addIfNotAlreadyThere (
-                                  juce::Identifier (jam::Format::getPreColon (interior)));
+                              const auto interior { jam::Format::upTo (remaining, Id::tripleColon, false) };
+                              names.add (juce::Identifier (jam::Format::getPreColon (interior)));
                               remaining = jam::Format::from (remaining, Id::tripleColon, false);
                           }
 
@@ -47,6 +44,12 @@ struct TemplateDocument : jam::MarkdownDocument
     }
 
     static constexpr int indentWidth { 4 };
+    static inline const jam::Array<juce::Identifier> empty {};
+
+    const jam::HashMap<juce::Identifier, jam::Array<juce::Identifier>>& getPlaceholders() const
+    {
+        return placeholders;
+    }
 
     juce::String getContent (const juce::String& value) const
     {
@@ -92,10 +95,6 @@ struct TemplateDocument : jam::MarkdownDocument
         auto* block { getCodeBlock (codeId) };
         jassert (block != nullptr);
 
-        const auto childText { model.getStructure (row, depth + 1).isNotEmpty()
-                                   ? getShape (model, row, depth + 1)
-                                   : juce::String() };
-
         const auto placeholderBindings { model.getSource (row, depth, Id::placeholder) };
         jam::HashMap<juce::Identifier, juce::String> replacements;
 
@@ -109,46 +108,45 @@ struct TemplateDocument : jam::MarkdownDocument
             replacements.try_emplace (key, getExpansion (model, row, depth, key));
         }
 
-        static const jam::Array<juce::Identifier> empty;
-        const auto& candidates { placeholders.contains (codeId) ? placeholders.at (codeId) : empty };
+        const auto& candidates {
+            getPlaceholders().contains (codeId) ? getPlaceholders().at (codeId) : empty
+        };
+        const auto nestedShapeId { model.getStructure (row, depth + 1) };
 
-        juce::Identifier soleChildCandidate;
-        int childCandidateCount { 0 };
-
-        for (const auto& name : candidates)
-            if (not replacements.contains (name))
-            {
-                soleChildCandidate = name;
-                ++childCandidateCount;
-            }
+        if (nestedShapeId.isNotEmpty())
+            for (const auto& name : candidates)
+                if (not replacements.contains (name))
+                {
+                    replacements.try_emplace (name, getShape (model, row, depth + 1));
+                    break;
+                }
 
         jam::Strings emittedLines;
-        bool previousLineElided { false };
+        auto previousLineElided { false };
 
         for (const auto& templateLine : jam::Strings::fromLines (block->getAllSubText()))
         {
             auto lineText { templateLine };
-            bool lineElided { false };
+            auto lineHasPlaceholder { false };
 
             for (const auto& name : candidates)
                 if (jam::Format::hasPlaceholder (lineText, name.toString()))
                 {
-                    const auto value { replacements.contains (name)
-                                           ? replacements.at (name)
-                                           : (childCandidateCount == 1 and soleChildCandidate == name
-                                                  ? childText
-                                                  : juce::String()) };
-
-                    if (value.isNotEmpty())
-                        lineText = jam::Format::replaceholder (lineText, name.toString(), value);
-                    else
-                        lineElided = true;
+                    lineHasPlaceholder = true;
+                    lineText = jam::Format::replaceholder (lineText, name.toString(),
+                        replacements.contains (name) ? replacements.at (name) : juce::String());
                 }
 
-            if (lineElided)
+            const auto lineIsElided { lineHasPlaceholder and lineText.trim().isEmpty() };
+
+            if (lineIsElided)
+            {
                 previousLineElided = true;
+            }
             else if (previousLineElided and lineText.trim().isEmpty())
+            {
                 previousLineElided = false;
+            }
             else
             {
                 emittedLines.add (lineText);
@@ -159,14 +157,13 @@ struct TemplateDocument : jam::MarkdownDocument
         return emittedLines.joinIntoString (juce::String::charToString (Chars::newline), 0, -1);
     }
 
-    juce::String
-    getExpansion (const Model& model, Element& row, int depth, const juce::Identifier& jack) const
+    jam::Strings getItems (const Model& model,
+                           Element& row,
+                           const juce::String& wiring,
+                           const juce::Identifier& jack,
+                           const juce::Identifier& shapeId) const
     {
-        const auto wiring { model.getSource (row, depth, Id::placeholder).at (jack) };
-        const auto shapeBinding { model.getSource (row, depth, Id::structure).at (jack) };
-        const auto shapeId { juce::Identifier (jam::Format::getPostColon (shapeBinding).trim()) };
-        const auto isTableReference { wiring.startsWithChar (Chars::at)
-                                      and wiring.containsChar (Chars::colon) };
+        const auto isTableReference { wiring.startsWithChar (Chars::at) };
 
         jam::Array<Element*> sourceRows;
         jam::Strings sourceValues;
@@ -252,6 +249,19 @@ struct TemplateDocument : jam::MarkdownDocument
                 texts.add (itemText);
         }
 
+        return texts;
+    }
+
+    juce::String
+    getExpansion (const Model& model, Element& row, int depth, const juce::Identifier& jack) const
+    {
+        const auto wiring { model.getSource (row, depth, Id::placeholder).at (jack) };
+        const auto structureBindings { model.getSource (row, depth, Id::structure) };
+        const auto shapeBinding { structureBindings.contains (jack) ? structureBindings.at (jack)
+                                                                     : juce::String() };
+        const auto shapeId { juce::Identifier (jam::Format::getPostColon (shapeBinding).trim()) };
+        const auto texts { getItems (model, row, wiring, jack, shapeId) };
+
         const auto separatorValue { getSeparator (model, row, depth, jack) };
         const auto separator { separatorValue.isNotEmpty()
                                    ? separatorValue
@@ -274,22 +284,15 @@ struct TemplateDocument : jam::MarkdownDocument
                           const juce::Identifier& shapeId) const
     {
         auto* block { getCodeBlock (shapeId) };
-        jassert (block != nullptr);
 
-        static const jam::Array<juce::Identifier> empty;
-        const auto& candidates { placeholders.contains (shapeId) ? placeholders.at (shapeId) : empty };
+        const auto& candidates {
+            getPlaceholders().contains (shapeId) ? getPlaceholders().at (shapeId) : empty
+        };
 
-        const auto extension { sourceRow != nullptr
-                                   ? jam::Format::onlyExtensionFromFilename (model.getValue (
-                                         *sourceRow, model.getTableValue (*sourceRow, Id::file)))
-                                   : jam::Format::onlyExtensionFromFilename (sourceValue) };
-
-        auto itemText { block->getAllSubText() };
+        auto itemText { block != nullptr ? block->getAllSubText() : juce::String() };
 
         for (const auto& name : candidates)
         {
-            juce::String value;
-
             if (sourceRow != nullptr)
             {
                 int deepestDepth { -1 };
@@ -306,34 +309,20 @@ struct TemplateDocument : jam::MarkdownDocument
                     }
                 }
 
-                value = deepestDepth >= 0 ? deepestValue
-                                          : model.getTableValue (*sourceRow, name);
+                const auto value { deepestDepth >= 0 ? deepestValue
+                                                      : model.getValue (*sourceRow, name) };
+
+                if (jam::Format::hasPlaceholder (itemText, name.toString()))
+                    itemText = jam::Format::replaceholder (itemText, name.toString(), value);
             }
-            else
-                value = name == sourceKey ? sourceValue : juce::String();
-
-            if (jam::Format::hasPlaceholder (itemText, name.toString()))
-                itemText = jam::Format::replaceholder (itemText, name.toString(), value);
-
-            for (const auto& [transformName, transformFunction] : Transforms::getTransforms())
-            {
-                juce::ignoreUnused (transformFunction);
-                const auto tagged { name.toString() + juce::String::charToString (Chars::colon)
-                                    + transformName };
-
-                if (jam::Format::hasPlaceholder (itemText, tagged))
-                {
-                    const auto transformedValue { value.isNotEmpty()
-                                                      ? Transforms::getTransformed (
-                                                            transformName, value, extension)
-                                                      : juce::String() };
-                    itemText = jam::Format::replaceholder (itemText, tagged, transformedValue);
-                }
-            }
+            else if (jam::Format::hasPlaceholder (itemText, name.toString()))
+                itemText = jam::Format::replaceholder (itemText, name.toString(),
+                    name == sourceKey ? sourceValue : juce::String());
         }
 
         return itemText;
     }
 
+private:
     const jam::HashMap<juce::Identifier, jam::Array<juce::Identifier>> placeholders {};
 };

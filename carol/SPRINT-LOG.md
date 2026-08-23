@@ -623,6 +623,60 @@ Converging cast's output (`jam/diff/`) to byte-identical with the oracle (`jam/g
 2. If identical: jam_Text.h CONVERGED — move to next file (jam_Identifiers.h)
 3. If not: read the diff, fix the residual (likely another spacing law edge case)
 
+## Sprint 9: SPEC Conformance — Engine, Lexicon Collapse, jam_Identifiers.h Converged ✅
+
+**Date:** 2026-08-23
+**Duration:** single session
+
+### Agents Participated
+- COUNSELOR: SPEC.md rewritten to ARCHITECT's ratified data language; HELP.md re-derived; PLAN authored and executed; every Engineer BRIEF validated against reference bytes; three self-authored rules withdrawn after evidence contradicted them
+- Pathfinder ×5: manifest/table/template survey; jam::Document + MarkdownDocument + Strings + Function::Map API surface; byte-exact duplicate inventory (23 values / 50 rows, arithmetic self-checked); two convergence diffs with per-hunk categorisation
+- Engineer (engine) ×6: deletion pass, cell resolution, ordered pairing, reference law, uniqueness, caches, pessimism removal, getExpansion split
+- Engineer (data) ×4: 27-row collapse + 7 call-site migration, 1277-row reshape, manifest wiring, baseline swap — all under Destructive-Edit Discipline
+- Engineer (CLI): `--help` / `--format` argument handling, 52 dead symbols drained
+- Auditor: one sweep, 60 findings, all resolved or ARCHITECT-accepted
+
+### Files Modified (cast repo)
+- `SPEC.md` — v0.2. §3.2 backslash-escaped pipe; §5.1 three cell forms (plain / backtick = `toLiteral` / blank = preceding column); §5.2 one-op `format` bound to its predecessor, `| format | format |` invalid; §5.3 byte-exact per table; §4.1 index carries no `format`; §6.4 name-resolves-once; §7 no `:::token:op:::`; §11 rewritten
+- `Source/HELP.md` — re-derived from SPEC; documented run order corrected to format-then-generate per `main.cpp:134-137`
+- `Source/Model.h` — both `getFormat` overloads deleted; `getValue (Element&, const juce::Identifier&)` added — positional walk against `getTableHeaders`, `Id::rawText` literal detection, blank inherits preceding data column, `@`-cells resolved as references; `getTables` splits multi-colon addresses via `jam::Strings::fromTokens`; `getFile()` overload owns template-file lookup; `.at()`, `jassert`, explicit lambda capture
+- `Source/TemplateDocument.h` — transform-tag loop deleted (§7); occurrence cache no longer dedupes, restoring §6.4 order; `getItems` extracted, `getExpansion` 107 → 24 lines; `getPlaceholders()` accessor, member now private; `@`-sigil routing without a colon; `HashMap::at` abort guarded; unresolved token substitutes nothing and its orphaned blank line drops
+- `Source/Validator.h` — `isUnique` (byte-exact, per data table, exemption judged on `Id::rawText` before resolution), `isReference` (§4.3), `isFormatted` (sole owner of the known-operation invariant); `failNoSource` removed — an unfilled token is not an error
+- `Source/Operators.h` — `quoted`, `toSymbol`, `toUnicode`, `fromId`, `fromMap`, `fromIdentifier`, `fromLiteral` deleted (§8); comment family reads through `jam::HashMap::get`, branch-free, no `std::terminate` path
+- `Source/Writer.h` — `getFile` → `apply` (Verb Contract); `model.isOutputTable`; `try_emplace`; banner via `get`
+- `Source/main.cpp` — `--help` matched `--HELP.md`; `--format`/`--no-format` ignored in second position
+- `Source/Help.h` — doxygen named SPEC.md and SPEC §9; corrected to HELP.md
+- `Source/generated/{Identifiers,Text}.h` — 52 zero-caller symbols drained
+
+### Files Modified (jam repo)
+- `jam_core/text/jam_Format.cpp/.h` — `toLiteral` now delimits as well as escapes (§9); `fromLiteral` deleted, zero callers
+- `jam_core/utils/jam_HashMap.h` — `get` added beside `at`: total, `noexcept`, yields a default when absent. A lookup has no miss
+- `cast/identifiers.md` — 27 domain-qualified duplicates collapsed; reshaped to `| type | name | value | format |`; `out` added (referenced 15× in jam_mermaid, declared nowhere); copyright de-double-escaped; index reduced to `| alias | symbol |`
+- `cast/CAST.md` — `@identifiers` declared; `placeholder` column added across `## output` (102 borders, 472 content lines, 0 mismatches); `@jam_Identifiers` wired at depth 0; index `format` column dropped; widths canonicalised
+- `cast/template.cast` — `identifier` fragment added, unquoted; `:::file:toFileName:::` and `:::name:toCamel:::` removed
+- `generated/jam_Identifiers.h` — CRLF → LF; collapsed; baselined byte-for-byte from CAST output — 1278 declarations
+- `jam_lua/jam_lua_utils.cpp`, `jam_core/text/jam_Format.cpp`, `jam_plugin_bootstrap/view/jam_ViewManagerPanel.cpp` — 7 call sites migrated to surviving symbols
+
+### Alignment Check
+- [x] BLESSED principles followed
+- [x] NAMES.md adhered — every new name ratified: `isUnique`, `isReference`, `isFormatted`, `getItems`, `getPlaceholders`, `apply`, `HashMap::get`, and the six collapse survivors
+- [x] MANIFESTO.md principles applied — SSOT duplications removed, encapsulation restored, the format double-check eliminated as pessimistic
+- [ ] MANIFESTO L — `getShape` 62, `getValue` 56, `Model.h` 345, `Validator.h` 335. ARCHITECT ruled: split `getExpansion` only, accept the rest. Splitting the others would relocate lines without reducing responsibility
+
+### Problems Solved
+- Three rules in the previous SPEC were COUNSELOR inventions, not ARCHITECT rulings, and each was withdrawn on evidence: multi-op format chains; occurrence-multiplicity pairing, which would have made every `namespace` fragment fatal; and backtick-protects-pipe, which would have rewritten a working scanner
+- 23 strings were declared under 50 names, one datum per domain prefix — an SSOT violation. Collapsed to one symbol each; where the datum was a C++ keyword or punctuation, ARCHITECT ratified the survivor
+- `isUnique` compared resolved values, so `@id` became `juce::Identifier` and the alias exemption never fired. Exemption now judged on the authored cell
+- `Model::getValue` re-checked an invariant `isFormatted` already owned, then silently swallowed the failure — MANIFESTO D
+- `jam::HashMap` had no total accessor, so every call site grew a branch or risked `std::terminate` inside `noexcept`
+- Wiring placed the placeholder bullet at depth 0 and its structure bullet at depth 1; both working rows pair at equal depth
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None
+
 ## Sprint 8: Render Engine Rewrite + jam_Bimaps Unification ✅ (checkpoint — Steps 1-3 of PLAN-render-unification.md; converge/fixpoint/audit pending)
 
 **Date:** 2026-08-21 → 2026-08-22

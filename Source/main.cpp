@@ -96,9 +96,15 @@ int main (int argc, char* argv[])
 
     const auto formatFlag { Id::doubleDash + Id::format.toString() };
     const auto noFormatFlag { Id::doubleDash + juce::String::fromUTF8 ("no-format") };
-    const auto isFormatOnly { argc >= 2 and juce::String::fromUTF8 (argv[1]) == formatFlag };
-    const auto isSkipFormat { argc >= 2 and juce::String::fromUTF8 (argv[1]) == noFormatFlag };
-    const auto manifestIndex { (isFormatOnly or isSkipFormat) ? 2 : 1 };
+    const auto isFormatOnly { (argc >= 2 and juce::String::fromUTF8 (argv[1]) == formatFlag)
+                              or (argc >= 3 and juce::String::fromUTF8 (argv[2]) == formatFlag) };
+    const auto isSkipFormat { (argc >= 2 and juce::String::fromUTF8 (argv[1]) == noFormatFlag)
+                              or (argc >= 3 and juce::String::fromUTF8 (argv[2]) == noFormatFlag) };
+    const auto manifestIndex { (argc >= 2
+                                and (juce::String::fromUTF8 (argv[1]) == formatFlag
+                                     or juce::String::fromUTF8 (argv[1]) == noFormatFlag))
+                                    ? 2
+                                    : 1 };
 
     const juce::File documentFile {
         (argc > manifestIndex) ? juce::File::getCurrentWorkingDirectory().getChildFile (
@@ -121,7 +127,7 @@ int main (int argc, char* argv[])
     }
 
     if (argc == 2
-        and juce::String::fromUTF8 (argv[1]) == Id::doubleDash + files::castHelp)
+        and juce::String::fromUTF8 (argv[1]) == Id::doubleDash + Id::help.toString())
     {
         printBannerAndHelp();
         return 0;
@@ -135,7 +141,7 @@ int main (int argc, char* argv[])
             result = processor.format();
 
         if (result.wasOk() and not isFormatOnly)
-            result = processor.generate ((argc == 3 and manifestIndex == 1)
+            result = processor.generate ((argc == 3 and manifestIndex == 1 and not isSkipFormat)
                                               ? juce::String::fromUTF8 (argv[2])
                                               : juce::String {});
 

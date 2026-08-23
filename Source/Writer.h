@@ -20,16 +20,7 @@ struct Writer : jam::Document::Writer
 
     bool toFile (const juce::File& outputPath)
     {
-        juce::File templateFile;
-
-        for (auto* indexRow : model.getTableRows (Id::index))
-        {
-            const auto pathCell { model.getTableValue (*indexRow, Id::symbol) };
-
-            if (juce::File::createFileWithoutCheckingPath (pathCell).hasFileExtension (
-                    Extensions::cast))
-                templateFile = model.getOutput (pathCell);
-        }
+        const auto templateFile { model.getFile() };
 
         templateDocument = std::make_unique<TemplateDocument> (
             jam::MarkdownDocument::parse (templateFile.loadFileAsString()));
@@ -38,9 +29,7 @@ struct Writer : jam::Document::Writer
 
         for (auto* table : model.getTables())
         {
-            const auto columns { model.getTableHeaders (*table) };
-
-            if (columns.contains (Id::file.toString()) and table->id != Id::index)
+            if (model.isOutputTable (*table))
             {
                 const auto rows { model.getTableRows (*table) };
 
@@ -53,7 +42,10 @@ struct Writer : jam::Document::Writer
                     const auto file { model.getValue (
                         origin, model.getTableValue (*row, Id::file)) };
                     files.addIfNotAlreadyThere (file);
-                    rowsByFile[file].add (row);
+
+                    auto [fileEntry, wasInserted] { rowsByFile.try_emplace (file) };
+                    juce::ignoreUnused (wasInserted);
+                    fileEntry->second.add (row);
                 }
 
                 runJobs (files.size(),
@@ -65,7 +57,7 @@ struct Writer : jam::Document::Writer
                              TemplateDocument output;
                              output.addChild (*output.root, Id::text)
                                  ->add<juce::String> (Id::text, getBanner (file));
-                             getFile (output, fileRows);
+                             apply (output, fileRows);
 
                              const auto outputFile { jam::File::getOrCreate (outputPath, file) };
 
@@ -82,7 +74,7 @@ private:
     const Model& model;
     std::unique_ptr<TemplateDocument> templateDocument;
 
-    void getFile (TemplateDocument& output, const Elements& fileRows) const
+    void apply (TemplateDocument& output, const Elements& fileRows) const
     {
         auto* firstRow { fileRows.first() };
         auto* separatorCell { model.getTableCell (*firstRow, Id::separator) };
@@ -121,6 +113,9 @@ private:
                 ->add<juce::String> (Id::text,
                     templateDocument->getShape (model, *fileRows.at (index), 0));
         }
+
+        output.addChild (*output.root, Id::text)
+            ->add<juce::String> (Id::text, juce::String::charToString (Chars::newline));
     }
 
     juce::String getBanner (const juce::String& file) const noexcept
@@ -129,14 +124,13 @@ private:
             BinaryData::getString (files::castOutput)) };
 
         const auto extension { jam::Format::onlyExtensionFromFilename (file) };
+        const auto syntax { map::commentSyntax.get (extension) };
         juce::String banner;
 
-        const auto& syntax { map::commentSyntax.at (extension) };
-
-        banner << syntax.at (Id::bannerOpen) << Chars::newline
+        banner << syntax.get (Id::bannerOpen) << Chars::newline
                << document.getCodeBlock (Id::banner)->getAllSubText() << Chars::newline
-               << syntax.at (Id::bannerClose) << Chars::newline << Chars::newline
-               << syntax.at (Id::pragma) << Chars::newline << Chars::newline;
+               << syntax.get (Id::bannerClose) << Chars::newline << Chars::newline
+               << syntax.get (Id::pragma) << Chars::newline << Chars::newline;
 
         return banner;
     }
