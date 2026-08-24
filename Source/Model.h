@@ -1,20 +1,8 @@
 #pragma once
 #include <JuceHeader.h>
 #include "generated/Identifiers.h"
-#include "Operators.h"
-
-static constexpr int indefiniteTimeoutMs { -1 };
-
-template <typename Function>
-static void runJobs (int count, Function&& function)
-{
-    juce::ThreadPool pool;
-
-    for (int index { 0 }; index < count; ++index)
-        pool.addJob ([&function, index] { function (index); });
-
-    pool.removeAllJobs (false, indefiniteTimeoutMs);
-}
+#include "Jobs.h"
+#include "Transforms.h"
 
 class Model : public jam::MarkdownDocument
 {
@@ -22,6 +10,7 @@ public:
     Model() = default;
 
     using jam::MarkdownDocument::getTables;
+    using jam::MarkdownDocument::getTableHeaderRow;
 
     static std::unique_ptr<Model> parse (const juce::File& documentFile)
     {
@@ -128,7 +117,6 @@ private:
         document.appendChildren (jam::MarkdownDocument::parse (
             documentFile.loadFileAsString(), manifestOrigin));
 
-        jam::Array<juce::File> tableFiles;
         jam::Array<juce::String> tableOrigins;
 
         for (auto* indexRow : document.getTableRows (Id::index))
@@ -138,13 +126,10 @@ private:
             if (juce::File::createFileWithoutCheckingPath (pathCell).hasFileExtension (
                     Extensions::md)
                 and pathCell != manifestOrigin)
-            {
-                tableFiles.add (parent.getChildFile (pathCell));
                 tableOrigins.add (pathCell);
-            }
         }
 
-        parse (document, tableFiles, tableOrigins);
+        parse (document, parent, tableOrigins);
 
         for (auto* table : document.getTables())
         {
@@ -161,19 +146,20 @@ private:
         }
     }
 
-    static void parse (Model& document, const jam::Array<juce::File>& tableFiles,
+    static void parse (Model& document, const juce::File& parent,
                        const jam::Array<juce::String>& tableOrigins)
     {
         jam::Array<jam::MarkdownDocument> parsedTables;
-        parsedTables.resize (tableFiles.size());
+        parsedTables.resize (tableOrigins.size());
 
-        runJobs (tableFiles.size(),
-            [&tableFiles, &tableOrigins, &parsedTables] (int index)
+        Jobs::run (tableOrigins.size(),
+            [&parent, &tableOrigins, &parsedTables] (int index)
             {
-                const auto& file { tableFiles.at (index) };
+                const auto& origin { tableOrigins.at (index) };
+                const auto file { parent.getChildFile (origin) };
 
                 parsedTables.at (index) = jam::MarkdownDocument::parse (
-                    file.loadFileAsString(), tableOrigins.at (index));
+                    file.loadFileAsString(), origin);
             });
 
         for (auto& table : parsedTables)
@@ -212,7 +198,10 @@ private:
         cell.applyFunctionRecursively (
             [&codeChild] (const Element& node) -> bool
             {
-                if (codeChild == nullptr and node.isTag (Id::code))
+                if (codeChild == nullptr
+                    and (node.isTag (Id::code)
+                         or (node.contains (Id::type)
+                             and *node.get<int> (Id::type) == map::BlockType::codeBlock)))
                     codeChild = &node;
 
                 return codeChild == nullptr;
@@ -237,10 +226,10 @@ private:
         if (auto* formatCell { cell.nextSibling })
             if (formatCell->id == Id::format)
             {
-                const auto operation { formatCell->getAllSubText() };
+                const auto transform { formatCell->getAllSubText() };
 
-                if (operation.isNotEmpty())
-                    value = Transforms::getTransformed (operation, value, {});
+                if (transform.isNotEmpty())
+                    value = Transforms::getTransformed (transform, value, {});
             }
 
         if (not isFormatColumn)
@@ -251,6 +240,11 @@ private:
 
     void addValues (Element& headerRow, Element& row)
     {
+        int rowCellCount { 0 };
+        for (auto* rowCell : row) { juce::ignoreUnused (rowCell); ++rowCellCount; }
+
+        jassert (rowCellCount == getTableHeaders (*headerRow.parent).size());
+
         juce::String precedingAuthored;
         auto* headerCell { headerRow.firstChild };
         auto* cell { row.firstChild };

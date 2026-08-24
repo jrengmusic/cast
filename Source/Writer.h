@@ -1,6 +1,8 @@
 #pragma once
 #include <JuceHeader.h>
+#include "Jobs.h"
 #include "Model.h"
+#include "Shapes.h"
 #include "TemplateDocument.h"
 
 struct Writer : jam::Document::Writer
@@ -31,26 +33,28 @@ struct Writer : jam::Document::Writer
                 jam::Array<juce::String> tableFailures;
                 tableFailures.resize (rows.size());
 
-                runJobs (rows.size(),
-                         [this, &outputPath, &rows, &tableFailures] (int index)
-                         {
-                             const auto& file { model.getValue (*rows.at (index), Id::file) };
+                for (int index { 0 }; index < rows.size(); ++index)
+                    tablePool.addJob (
+                        [this, &outputPath, &rows, &tableFailures, index]
+                        {
+                            const auto& file { model.getValue (*rows.at (index), Id::file) };
 
-                             if (index == 0
-                                 or file != model.getValue (*rows.at (index - 1), Id::file))
-                             {
-                                 TemplateDocument output;
-                                 output.addChild (*output.root, Id::text)
-                                     ->add<juce::String> (Id::text, getBanner (file));
-                                 apply (output, rows, index);
+                            if (index == 0
+                                or file != model.getValue (*rows.at (index - 1), Id::file))
+                            {
+                                TemplateDocument output;
+                                output.addChild (*output.root, Id::text)
+                                    ->add<juce::String> (Id::text, getBanner (file));
+                                apply (output, rows, index);
 
-                                 const auto outputFile { jam::File::getOrCreate (outputPath,
-                                                                                  file) };
+                                const auto outputFile { jam::File::getOrCreate (outputPath, file) };
 
-                                 if (not toFile (output, outputFile))
-                                     tableFailures.at (index) = outputFile.getFullPathName();
-                             }
-                         });
+                                if (not toFile (output, outputFile))
+                                    tableFailures.at (index) = outputFile.getFullPathName();
+                            }
+                        });
+
+                tablePool.removeAllJobs (false, Jobs::indefiniteTimeoutMs);
 
                 for (const auto& failedFile : tableFailures)
                     if (failedFile.isNotEmpty())
@@ -69,6 +73,7 @@ struct Writer : jam::Document::Writer
 private:
     const Model& model;
     const TemplateDocument& templateDocument;
+    juce::ThreadPool tablePool;
 
     void apply (TemplateDocument& output, const jam::Array<Model::Element*>& rows, int index) const
     {
@@ -77,14 +82,14 @@ private:
 
         if (auto* separatorCell { model.getTableCell (*firstRow, Id::separator) })
         {
-            const auto hasJackEntries { std::any_of (separatorCell->begin(),
+            const auto hasTokenEntries { std::any_of (separatorCell->begin(),
                                                      separatorCell->end(),
                                                      [] (Model::Element* block)
                                                      {
                                                          return block->isTag (Id::ul);
                                                      }) };
 
-            if (not hasJackEntries)
+            if (not hasTokenEntries)
             {
                 const auto& value { *separatorCell->get<juce::String> (Id::value) };
 
@@ -111,8 +116,10 @@ private:
 
             output.addChild (*output.root, Id::text)
                 ->add<juce::String> (Id::text,
-                    templateDocument.getShape (model, *rows.at (index),
-                        *model.getTableCell (*rows.at (index), Id::structure),
+                    Shapes::getShape (model, templateDocument, *rows.at (index),
+                        juce::Identifier (model.getStructure (
+                            *model.getTableCell (*rows.at (index), Id::structure))),
+                        model.getTableCell (*rows.at (index), Id::structure),
                         model.getTableCell (*rows.at (index), Id::placeholder),
                         model.getTableCell (*rows.at (index), Id::separator),
                         juce::String()));

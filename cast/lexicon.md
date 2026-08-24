@@ -35,6 +35,7 @@
 | from identifier     | from identifier    | @string |
 | from literal        | from literal       | @string |
 | from map            | from map           | @string |
+| from UTF8           | from UTF8          | @string |
 | generated           | generated          | @id     |
 | hazard chars        | `<>`               | @string |
 | headers             | headers            | @id     |

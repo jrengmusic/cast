@@ -77,9 +77,38 @@ A cell is one of three things:
 |---|---|
 | plain text | that text, verbatim |
 | `` `text` `` | `toLiteral` of those bytes — quoted and escaped, ready to drop into a literal |
+| a fenced block | the same, over a datum that spans lines |
 | empty | the **preceding** column's value, verbatim |
 
 Backticks are not decoration and not an escape. A backtick **is** the `toLiteral` operation, so a backticked cell never needs a `format` column beside it.
+
+A code span cannot hold a line break. When the datum has one, author the cell as a fence — each line between the delimiters is one line of the value, joined by line breaks:
+
+```
++-------------------------------+-----------------------------------+
+| alertNewerVersionPresetSuffix | ```                               |
+|                               |                                   |
+|                               | To use this preset correctly:     |
+|                               | ```                               |
++-------------------------------+-----------------------------------+
+```
+
+That cell's value begins with a line break, because the fence's first content line is empty. Write the real characters; `toLiteral` turns them into `\n` for you.
+
+A cell is delimited by its pipes on every line it spans, and the padding between them is never data — `|this|` and `| this |` are the same datum, and the formatter rewrites the first as the second. That holds inside a fence too.
+
+So a space at the very start or end of a line cannot be written as a space; it would be indistinguishable from padding. Write it as `U+0020` and put `fromUTF8` in the row's `format` cell:
+
+```
++-------------------------------+---------------------------------------+----------+
+| alertNewerVersionPresetSuffix | ```                                   | fromUTF8 |
+|                               |                                       |          |
+|                               | please install the newest version:U+0020 |       |
+|                               | ```                                   |          |
++-------------------------------+---------------------------------------+----------+
+```
+
+`fromUTF8` decodes every `U+XXXX` token in the value and leaves every other byte alone.
 
 To put a `|` inside a cell, precede it with a backslash. The scanner eats that backslash when it rejoins the split, so a datum that needs a backslash *and* a pipe is written with two — `` `\\|` `` yields the two bytes `\|`.
 
@@ -235,7 +264,31 @@ struct Outer
 
 ### Pairing
 
-A token name resolves once per depth, and every occurrence of it carries the same value. Write `:::name:::` as often as the shape needs — `namespace :::name:::` and `}// namespace :::name:::` are one binding, not two.
+A token name resolves once per depth. Where a shape names that token once, every occurrence of it carries the same value — `namespace :::name:::` and `}// namespace :::name:::` are one binding, not two.
+
+Where a shape names the same token **more than once**, the occurrences cascade: the first takes the shallowest depth, the second the next, and so on, each indented by its own depth.
+
+```
+```chars
+struct Chars
+{
+:::line:::
+
+    inline static const jam::HashMap<juce::juce_wchar, juce::juce_wchar> escape
+    {
+:::line:::
+    };
+};
+```
+
+| - line: @chars:chars    | template:chars           |
+| > - line: @chars:escape | > - line: template:wchar |
+|                         | > > - line: template:map |
+```
+
+The first `:::line:::` takes depth 1 indented one tab; the second takes depth 2 indented two.
+
+A depth belongs to exactly one shape. When a bullet names a shape and the depth below carries that shape's own token names, that depth configures the named shape — the shape that referenced it does not read those bullets again.
 
 Distinct token names that no bullet claims pair with the depth's remaining sources, in authored order. A nested head counts as a source.
 
@@ -260,9 +313,15 @@ Operations are optional. A table may carry finished text and use none at all.
 
 An all-uppercase word is an abbreviation and survives every case operation in every position: `UI scale` becomes `UIScale`, `fail hazard URI` becomes `failHazardURI`.
 
-**Encoding** — `toLiteral`, `toUTF8`, `toHex`, `toCodepoint`, `fromCodepoint`
+**Encoding** — `toLiteral`, `toUTF8`, `fromUTF8`, `toHex`, `toCodepoint`, `fromCodepoint`
 
-`toLiteral` produces a complete string literal: it quotes the value, escapes backslashes and quotes, and turns bytes above `0x7F` into escapes. Quoting and escaping are one operation and never travel separately. Writing a cell in backticks is the same thing, spelled shorter.
+`toLiteral` produces a complete string literal: it quotes the value, escapes backslashes and quotes, turns control characters into their named escapes, and turns bytes above `0x7F` into hex escapes. Quoting and escaping are one operation and never travel separately. Writing a cell in backticks is the same thing, spelled shorter.
+
+Write the real character, not its escape. A line break in the datum comes out as `\n`; a `"` comes out as `\"`; `©` comes out as `\xc2\xa9`. Typing `\n` yourself produces `\\n`, because a backslash you wrote is a backslash you meant.
+
+`fromUTF8` is the exception, for the one character you cannot write: a space at the very start or end of a line, which the formatter's padding would swallow. Write `U+0020` and the operation decodes it back to a space, leaving every other byte alone.
+
+A `format` cell names one operation, never two. The one composition CAST performs is its own — a backticked or fenced cell is quoted and escaped first, and the cell's operation then applies to that value. That is how `fromUTF8` reaches inside a finished literal.
 
 **Text** — `join`, `toFileName`
 
@@ -351,9 +410,9 @@ Depth 0 is the namespace, and `- name: jam` fills its `:::name:::`. Depth 1 is t
 
 Every declared markdown file is rewritten to canonical form, write-if-different.
 
-- layout only — cell content, backtick literals, row order and authored borders all survive
+- layout only — cell content, backtick literals, fenced cells, row order and authored borders all survive
 - borders are re-emitted exactly where you authored them; the formatter neither adds nor removes one
-- columns pad to their widest cell
+- columns pad to their widest cell, on every line of every cell, a fence's content lines included — the right edge is always aligned, and `|this|` comes back as `| this |`
 - `format (format (x)) == format (x)` — a canonical file reformats to itself, byte for byte
 - a malformed table is reported with its `path:line` and the file is never rewritten
 

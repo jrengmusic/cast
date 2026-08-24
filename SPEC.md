@@ -70,6 +70,16 @@ content, and are never a diagnostic.
 A backtick code span is verbatim data. Its bytes — leading and trailing spaces,
 punctuation, non-ASCII characters — are the cell's value, untouched.
 
+A cell holding a fenced code block is the multi-line form of the same law. A code span
+cannot carry a line break; a fence is how a multi-line datum is authored. Each line
+between the delimiters is one line of the cell's value, joined by line breaks.
+
+Whitespace a cell carries for alignment is not data, and a cell is delimited by its
+pipes on every line it spans. The reader strips that padding from every line — a fenced
+cell's content lines included — so `|this|` and `| this |` are one datum. A space at the
+very start or end of a line therefore cannot be authored as a space; it is written as a
+codepoint token and decoded by an operation (§9).
+
 A `|` is written into a cell by preceding it with a backslash. The row scanner consumes
 that backslash when it rejoins the split, so a datum that must itself contain a
 backslash before the pipe is authored with two.
@@ -80,6 +90,9 @@ CAST rewrites its own declared markdown to canonical form, write-if-different.
 
 - layout only: cell content, row order and authored borders survive
 - borders are re-emitted exactly where they were authored
+- every line of every cell pads to its column's width, both sides, with no exception for
+  a cell that holds a fence — the right edge is always aligned. `|this|` is a legal row
+  and is rewritten as `| this |`
 - `format (format (x)) == format (x)`
 - a malformed table is reported and the file is never rewritten
 
@@ -153,10 +166,13 @@ A data cell is exactly one of:
 |---|---|
 | plain | the text, verbatim |
 | backticked | `toLiteral` applied to the span's bytes |
+| fenced | `toLiteral` applied to the fence's content, line breaks included |
 | blank | the preceding column's value, verbatim |
 
 A backtick is not decoration and not an escape — it *is* the `toLiteral` operation. A
-backticked cell needs no `format` column beside it.
+backticked cell needs no `format` column beside it. A fenced cell is the same operation
+over a datum that spans lines (§3.2), and needs one only where a line's own edge space
+must survive the formatter's padding (§9).
 
 A blank cell takes the preceding column's authored value without that column's own
 formatting. Its own `format`, if present, still applies.
@@ -256,8 +272,19 @@ the inner scope and wins within it.
 
 ### 6.5 Pairing
 
-A token name resolves once per depth. Every occurrence of that name in the fragment
-carries the same value — a shape may name its token as often as its structure requires.
+A token name resolves once per depth. Where a shape names that token once, every
+occurrence of it carries the same value — `namespace :::name:::` and
+`}// namespace :::name:::` are one binding, not two.
+
+Where a shape names the same token more than once, the occurrences cascade: the Nth
+occurrence, counting from the top of the block, takes the Nth depth, counting from the
+shallowest. A shape that names `:::line:::` twice, wired by `> - line:` and
+`> > - line:`, fills the first from depth 1 and the second from depth 2, each indented
+by its own depth (§6.4).
+
+A depth belongs to exactly one shape. When a bullet names a shape and the depth below it
+carries bullets whose names are that shape's own tokens, that depth configures the named
+shape and is not read again by the shape that referenced it.
 
 A fragment token takes its value from, in order:
 
@@ -313,7 +340,7 @@ The operation keywords are the only vocabulary the engine hardcodes. They transf
 datum's own characters:
 
 - **case** — `toUpper`, `toTitle`, `toPascal`, `toCamel`, `toKebab`, `toSnake`, `toScreamingSnake`
-- **encoding** — `toLiteral`, `toUTF8`, `toHex`, `toCodepoint`, `fromCodepoint`
+- **encoding** — `toLiteral`, `toUTF8`, `fromUTF8`, `toHex`, `toCodepoint`, `fromCodepoint`
 - **text** — `join`, `toFileName`
 - **comment** — `toComment`, `toCommentBlock`, `brief`, for the banner CAST stamps
 
@@ -321,8 +348,10 @@ In every case operation, an all-uppercase word is an abbreviation and passes thr
 unchanged in every position. `WindowFX` camel-cases to `windowFX`; `CSI` and `C4Type`
 are unchanged.
 
-A `format` cell names one of these and only one. Chaining is not a form — a datum that
-needs a different shape is authored in that shape.
+A `format` cell names one of these and only one. Two operations are never chained in a
+`format` cell — a datum that needs a different shape is authored in that shape. The one
+composition the engine performs is its own: a backticked or fenced cell is delimited and
+escaped by `toLiteral` before the cell's operation applies (§9).
 
 ---
 
@@ -332,8 +361,23 @@ Text that CAST places inside a target-language literal is made safe by CAST, nev
 the author.
 
 `toLiteral` delimits and escapes as one operation: the value is quoted, backslashes and
-quotes are escaped, and bytes above `0x7F` become escape sequences. Delimiting and
-escaping never travel separately, and a template never authors the quotes itself.
+quotes are escaped, control characters become their named escapes, and bytes above
+`0x7F` become hex escape sequences. Delimiting and escaping never travel separately, and
+a template never authors the quotes itself.
+
+The author writes a real line break; `toLiteral` writes `\n`. The mapping from control
+character to escape character is data, declared in a table like any other, never a
+constant inside the operation.
+
+A space the author cannot write is written as `U+XXXX`, and `fromUTF8` decodes every
+such token in a datum back to the character it names, leaving every other byte untouched.
+This is how a value carries a space at the very start or end of one of its lines, where
+the formatter's own padding would otherwise be indistinguishable from it (§3.2). The
+token is ordinary text to every other part of the engine — the reader has nothing to
+strip, because there is no space there to strip.
+
+`toLiteral` and a `format` operation compose: a backticked or fenced cell is quoted and
+escaped first, and the operation then applies to that value.
 
 The author writes the datum. CAST makes it legal.
 

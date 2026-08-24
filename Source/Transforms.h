@@ -45,6 +45,7 @@ struct Transforms
         return getTransforms().get (name, input, extension);
     }
 
+private:
     static const jam::Function::Map<juce::String, juce::String>& getTransforms() noexcept
     {
         static const jam::Function::Map<juce::String, juce::String> transforms {
@@ -63,6 +64,16 @@ struct Transforms
                     [] (const juce::String& input, const juce::String&)
                     {
                         return jam::Format::toUTF8 (input);
+                    });
+                map.add<const juce::String&, const juce::String&> (
+                    jam::Format::toCamelCase (Id::fromUTF8),
+                    [] (const juce::String& input, const juce::String&)
+                    {
+                        const std::string_view text { input.getCharPointer().getAddress() };
+                        const auto result { jam::Format::fromUTF8 (text) };
+
+                        return juce::String::fromUTF8 (result.data(),
+                                                        static_cast<int> (result.size()));
                     });
                 map.add<const juce::String&, const juce::String&> (
                     jam::Format::toCamelCase (Id::toTitle),

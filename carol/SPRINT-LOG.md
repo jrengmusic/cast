@@ -623,6 +623,66 @@ Converging cast's output (`jam/diff/`) to byte-identical with the oracle (`jam/g
 2. If identical: jam_Text.h CONVERGED — move to next file (jam_Identifiers.h)
 3. If not: read the diff, fix the residual (likely another spacing law edge case)
 
+## Sprint 11: Four jam Targets Converged — Whitespace Law, `fromUTF8`, Clean Sweep ✅
+
+**Date:** 2026-08-24
+**Duration:** single session
+
+### Agents Participated
+- COUNSELOR: orchestration; whitespace-law derivation from ARCHITECT's rulings; verification of every BRIEF against file bytes; disproved the Auditor's CRITICAL #1 by reading `addTableRow`
+- Pathfinder ×4: diff evidence for the four targets; backslash-dependency census; `jam::Format`/`jam::Strings` API surface
+- Engineer ×8: writer fence handling (3 iterations), `text.md` fence interiors, `jam::Format::fromUTF8` + helpers, transform wiring, and the four-way clean sweep
+- Auditor ×1: 36 findings across the sprint's file set
+
+### Files Modified (17 total)
+- `jam/jam_markdown/document/jam_MarkdownWriter.h` — fence-interior special case added then removed on ARCHITECT's "align right edge" ruling; `getText` 439→6 lines over `getBlocks()`/`getInlines()`; `getFencedBlockText` unifies codeBlock+mermaid; `getLinkText` unifies inline `a`/`img` and block `image`; `getCellText` trusts `Id::rawText`; alignment padding is a `jam::Function::Map`; nine constants named; `content`/`row`/`gridRow`/`border` renamed into the `get*Text` family
+- `jam/jam_markdown/document/jam_MarkdownDocument.h` — reader fence branch added then removed to match the writer; five `gridRow*` members unified into one class-scope `GridRow`, so `closeLeaf` now honours its doxygen; `addAccumulatedRow`'s `bool isHeader` replaced by two functions, branch resolved statically at six call sites; `hasGridTableRowSeparator`→`isGridTableFormat`, decomposed to 29 lines; stale `@param isHeader` at `addTableCell` corrected; two design-history comments deleted
+- `jam/jam_core/text/jam_Format.cpp:936` — `fromUTF8` added: `U+XXXX` decoded in place, all other bytes verbatim, single scan, `std::string_view` in / `std::string` out
+- `jam/jam_core/text/jam_Format.cpp:862` — `decodeUPlusToken`, `encodeCodepointAsUtf8`, `utf8BytesPerCodepoint`; digit run bounded by the existing `codepointHexDigits`
+- `jam/jam_core/text/jam_Format.cpp:99-188` — `toValidID` 71→12 lines over five units; diacritics fold returns on match, ending map-order dependence (D)
+- `jam/jam_core/text/jam_Format.h:171` — `escape`'s parallel `bad`/`rep` arrays replaced by one `jam::HashMap<char, std::string_view>`, removing an out-of-bounds read on a `0x00` input byte; `copy_asciiz` deleted
+- `jam/cast/text.md` — `## english` gained a `format` column; three cells carry `fromUTF8` and express their edge space as `U+0020`
+- `jam/cast/chars.md`, `jam/cast/CAST.md`, `jam/cast/template.cast` — `## escape` and `## Diacritics` tables, `@jam_Chars` manifest row, `chars`/`wchar`/`mapEntry` blocks
+- `cast/Source/Model.h` — `addValues` asserts the header/row cell-count invariant; parallel `tableFiles`/`tableOrigins` collapsed to one array
+- `cast/Source/TemplateDocument.h` — `getReplacements` 128→26-line orchestrator, persisted `matches` boolean removed; `getLines`' `previousLineWasEmpty` replaced by `getSubstitutedLine`; `seenValues` shadow deleted
+- `cast/Source/Validator.h` — `isUnique` split three ways; `getLocation (*table, *table, …)` corrected to pass the header row
+- `cast/Source/Transforms.h` — renamed from `Operators.h`; `fromUTF8` registered; `getTransforms()` made private
+- `cast/Source/Writer.h` — one `juce::ThreadPool` owned by the Writer instead of one per table
+- `cast/Source/generated/Identifiers.h:26` — `Id::fromUTF8` hand-authored as bootstrap baseline on ARCHITECT's instruction
+- `cast/cast/lexicon.md:38` — `| from UTF8 | from UTF8 | @string |`
+- `cast/SPEC.md`, `cast/Source/HELP.md` — fenced-cell, cascade and control-character passages; **now stale**, see Debts Deferred
+
+### Alignment Check
+- [x] BLESSED principles followed
+- [x] NAMES.md adhered — every new name joins a stated existing family; full list surfaced to ARCHITECT
+- [x] MANIFESTO.md principles applied
+- [ ] Auditor clean sweep incomplete — SPEC/HELP reconciliation and three held items remain (below)
+
+### Problems Solved
+- Whitespace law settled: a grid table's right edge is always aligned, so padding owns the byte adjacent to every line break; significant whitespace is authored as `U+XXXX` and decoded by the `fromUTF8` format op. Two intermediate designs (unpadded fence interiors, then one-space fence interiors) were built and removed on ARCHITECT's rulings.
+- Fixpoint drift: the reader kept the closing fence's pipe padding while the writer added its own, growing the column one character per format pass. Closed by trimming the delimiter fragments.
+- Duplicate `already exists.` entry removed from the oracle; `getPresetAlreadyExists` now uses `fileAlreadyExistsSuffix`.
+- Diacritics table inverted to satisfy SPEC §5.3 uniqueness — 84 rows to 30, expressed as readable UTF-8.
+- Auditor CRITICAL #1 (null dereference in `addValues`) disproved at `jam_MarkdownDocument.h:2166,2180` — every row is built by iterating `alignments.size()`, so a row can never differ from its header. Recorded as an assert, not a guard.
+- Auditor CRITICAL #2 (out-of-bounds `rep[3]`) fixed at the root — one keyed table, not two parallel arrays.
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- SPEC.md `:73-77`, `:79-81`, `:93-95` and HELP.md `:85`, `:98`, `:398` describe unpadded fence interiors that no longer exist; SPEC `:341-342` and HELP `:303` omit `fromUTF8`; neither document mentions `U+XXXX`. SPEC is normative and HELP derives from it — reconcile SPEC first.
+- ITEM 7 (cast): asserting `Model::getValue`'s empty returns would abort on malformed end-user manifests, because `Model::parse` runs in `Processor`'s constructor before `Validator::isValid`. Needs an ARCHITECT ruling on ordering.
+- ITEM 4 (cast): `TemplateDocument.h` is 512 lines; every function is now ≤30, but a type-level split needs a cooperating-type relationship the engine does not speak.
+- `cast/Source/Model.h` is 305 lines (303 before this sprint).
+- `jam_MarkdownDocument.h` `addGridTableLine` is ~97 lines and 6+ branches; ~100 raw `source[...]` subscripts remain in the per-character scanners; the file is 5188 lines holding three objects (query API `:16-571`, `BlockParser` `:584+`, inline pass `~:3400+`).
+- Bare `127` duplicated in `Format::isUsingStandardChars` and `jam_core/debug/jam_Log.h:154` where `Chars::nonAsciiStart` already exists.
+- `Id::fromUtF8Prefix` / `fromUtF8Suffix` misspelled against `UTF8` everywhere else (jam table, out of this sprint's scope).
+- `cast/Source/generated/Identifiers.h` is hand-authored baseline; regeneration from `lexicon.md` is untested. ARCHITECT ruled cast tables out of scope and directed the rename to `identifiers.md` in a later sprint.
+- Doxygen prose pass for all new and renamed units.
+
+### Protocol Note
+- One Engineer ran `git show HEAD:… | diff` mid-task, which CAROL forbids for any agent. It stopped on recognising it; no code decision relied on the output. Disclosed to ARCHITECT, acknowledgement pending.
+
 ## Sprint 10: Cast Consumes jam's API — Content-Keyed List Items, Scope Probes ✅
 
 **Date:** 2026-08-23
