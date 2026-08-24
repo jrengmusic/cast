@@ -48,7 +48,7 @@ struct TemplateDocument : jam::MarkdownDocument
                     if (not remaining.contains (Id::tripleColon))
                         break;
                     const auto interior { jam::Format::upTo (remaining, Id::tripleColon, false) };
-                    names.add (juce::Identifier (jam::Format::getPreColon (interior)));
+                    names.add (juce::Identifier (interior));
                     remaining = jam::Format::from (remaining, Id::tripleColon, false);
                 }
                 block->add<jam::Document::Identifiers> (Id::placeholder, std::move (names));

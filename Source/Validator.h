@@ -15,6 +15,31 @@
 struct Validator : jam::MarkdownValidator
 {
     /**
+     * @brief Checks that @p shapeId names a code block that exists in
+     *        @p templateDocument.
+     *
+     * @param templateDocument The template document @p shapeId is looked up
+     *                         against.
+     * @param table            The table named in a failure's location.
+     * @param row              The row named in a failure's location.
+     * @param column           The column named in a failure's location.
+     * @param shapeId          The shape id to look up.
+     * @returns juce::Result::ok() when @p shapeId resolves, or a failure
+     *          naming the missing shape.
+     */
+    static juce::Result isKnownTemplate (const TemplateDocument& templateDocument, Element& table,
+        Element& row, const juce::Identifier& column, const juce::String& shapeId)
+    {
+        if (templateDocument.getCodeBlock (juce::Identifier (shapeId)) == nullptr)
+            return juce::Result::fail (getLocation (table, row, column.toString())
+                                       + Id::diagnosticSeparator
+                                       + text::Diagnostics::failTemplateMissing
+                                       + Id::diagnosticSeparator + shapeId);
+
+        return juce::Result::ok();
+    }
+
+    /**
      * @brief Runs every manifest-level check against @p model and
      *        @p templateDocument, in order, stopping at the first failure.
      *
@@ -164,13 +189,10 @@ struct Validator : jam::MarkdownValidator
                     for (; scope != nullptr; scope = model.getBlockquote (*scope))
                         if (const auto depthShapeId { model.getStructure (*scope) };
                             depthShapeId.isNotEmpty())
-                            if (templateDocument.getCodeBlock (juce::Identifier (depthShapeId))
-                                == nullptr)
-                                return juce::Result::fail (
-                                    getLocation (*table, *row, Id::structure.toString())
-                                    + Id::diagnosticSeparator
-                                    + text::Diagnostics::failTemplateMissing
-                                    + Id::diagnosticSeparator + depthShapeId);
+                            if (const auto result { isKnownTemplate (
+                                    templateDocument, *table, *row, Id::structure, depthShapeId) };
+                                not result.wasOk())
+                                return result;
                 }
 
         return juce::Result::ok();
@@ -198,16 +220,9 @@ struct Validator : jam::MarkdownValidator
                         if (jam::Format::getPreColon (entryValue).trim()
                             == Id::templatePath.toString())
                         {
-                            const juce::Identifier shapeId {
-                                jam::Format::getPostColon (entryValue).trim()
-                            };
+                            const auto shapeId { jam::Format::getPostColon (entryValue).trim() };
 
-                            if (templateDocument.getCodeBlock (shapeId) == nullptr)
-                                return juce::Result::fail (
-                                    getLocation (table, row, column.toString())
-                                    + Id::diagnosticSeparator
-                                    + text::Diagnostics::failTemplateMissing
-                                    + Id::diagnosticSeparator + shapeId.toString());
+                            return isKnownTemplate (templateDocument, table, row, column, shapeId);
                         }
 
                         return juce::Result::ok();
@@ -355,6 +370,44 @@ struct Validator : jam::MarkdownValidator
     }
 
     /**
+     * @brief Checks that every row declaring a given @c file value stays
+     *        contiguous with the rows that already declared that file --
+     *        no other file's rows may interleave between them.
+     *
+     * @param model The model @p table belongs to.
+     * @param table The output table whose rows are checked.
+     * @returns juce::Result::ok() when every file's rows stay contiguous,
+     *          or a failure naming the file that reappears after its group
+     *          closed.
+     */
+    static juce::Result isContiguous (const Model& model, Element& table)
+    {
+        jam::HashSet<juce::String> closedFiles;
+        juce::String previousFile;
+
+        for (auto* row : model.getTableRows (table))
+        {
+            const auto& file { model.getValue (*row, Id::file) };
+
+            if (file != previousFile)
+            {
+                if (previousFile.isNotEmpty())
+                    closedFiles.insert (previousFile);
+
+                previousFile = file;
+            }
+
+            if (closedFiles.contains (file))
+                return juce::Result::fail (getLocation (table, *row, Id::file.toString())
+                                           + Id::diagnosticSeparator
+                                           + text::Diagnostics::failDuplicate + file
+                                           + juce::String::charToString (Chars::doubleQuote));
+        }
+
+        return juce::Result::ok();
+    }
+
+    /**
      * @brief Checks that @p column's resolved, non-reference values are
      *        unique, byte-exact, across @p rows.
      *
@@ -446,8 +499,8 @@ struct Validator : jam::MarkdownValidator
     /**
      * @brief Runs every manifest fatal against @p model and
      *        @p templateDocument, in the order they are listed: index,
-     *        alias uniqueness, column uniqueness, formatting, structure,
-     *        placeholders, then reference resolution.
+     *        alias uniqueness, column uniqueness, formatting, contiguity,
+     *        structure, placeholders, then reference resolution.
      *
      * @param model            The parsed manifest and its data tables.
      * @param templateDocument The parsed template file the manifest wires
@@ -468,6 +521,11 @@ struct Validator : jam::MarkdownValidator
 
         if (const auto result { isFormatted (model) }; not result.wasOk())
             return result;
+
+        for (auto* table : model.getTables())
+            if (model.isOutputTable (*table))
+                if (const auto result { isContiguous (model, *table) }; not result.wasOk())
+                    return result;
 
         if (const auto result { isStructure (model, templateDocument) }; not result.wasOk())
             return result;

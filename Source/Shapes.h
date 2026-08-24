@@ -25,6 +25,20 @@ struct Shapes
     static constexpr int indentWidth { 4 };
 
     /**
+     * @brief Widens @p indent by @p depth levels of indentWidth spaces.
+     *
+     * @param indent The enclosing indentation prefix.
+     * @param depth  The number of indentation levels to add.
+     * @returns @p indent, widened by @p depth levels.
+     */
+    static juce::String getIndent (const juce::String& indent, int depth)
+    {
+        return indent
+               + juce::String::repeatedString (juce::String::charToString (Chars::space),
+                                               indentWidth * depth);
+    }
+
+    /**
      * @brief Answers whether every item in @p list is one of @p shapeId's
      *        distinct placeholder names.
      *
@@ -111,9 +125,7 @@ struct Shapes
                       model.getBlockquote (structureScope),
                       placeholderScope != nullptr ? model.getBlockquote (*placeholderScope) : nullptr,
                       separatorScope != nullptr ? model.getBlockquote (*separatorScope) : nullptr,
-                      indent
-                          + juce::String::repeatedString (
-                              juce::String::charToString (Chars::space), indentWidth * (depth + 1))));
+                      getIndent (indent, depth + 1)));
 
         return nestedShapeMatches;
     }
@@ -142,14 +154,14 @@ struct Shapes
      *                         resolved.
      */
     static void addPlaceholderListReplacements (Replacements& replacements,
-                                                 const Model& model,
-                                                 const TemplateDocument& templateDocument,
-                                                 Element& row,
-                                                 Element* structureList,
-                                                 Element* separatorScope,
-                                                 const juce::String& indent,
-                                                 int depth,
-                                                 Element& placeholderList)
+                                                const Model& model,
+                                                const TemplateDocument& templateDocument,
+                                                Element& row,
+                                                Element* structureList,
+                                                Element* separatorScope,
+                                                const juce::String& indent,
+                                                int depth,
+                                                Element& placeholderList)
     {
         for (auto* item : placeholderList)
         {
@@ -169,10 +181,7 @@ struct Shapes
                                        *item->get<juce::String> (Id::value),
                                        shapeId,
                                        separatorScope,
-                                       indent
-                                           + juce::String::repeatedString (
-                                               juce::String::charToString (Chars::space),
-                                               indentWidth * depth)));
+                                       getIndent (indent, depth)));
         }
     }
 
@@ -279,9 +288,7 @@ struct Shapes
                               &structureScope,
                               placeholderScope,
                               separatorScope,
-                              indent
-                                  + juce::String::repeatedString (
-                                      juce::String::charToString (Chars::space), indentWidth * depth)));
+                              getIndent (indent, depth)));
                 break;
             }
     }
@@ -474,5 +481,114 @@ struct Shapes
         const auto replacements { getReplacements (model, templateDocument, row, structureScope,
             placeholderScope, separatorScope, tokens, indent) };
         return getLines (templateDocument, shapeId, tokens, replacements);
+    }
+
+    /**
+     * @brief Resolves @p name's @p occurrence-th value across
+     *        @p rowReplacements -- the single shared value when every row
+     *        that carries @p name agrees, or every row's value joined by
+     *        @p joinText when they diverge.
+     *
+     * @param rowReplacements Every row's own Replacements, one per merged
+     *                        row.
+     * @param name            The token whose occurrence is resolved.
+     * @param occurrence      The occurrence index into each row's values
+     *                        for @p name.
+     * @param joinText        The text joining diverging rows' values.
+     * @returns @p name's merged value at @p occurrence.
+     */
+    static juce::String getMergedOccurrenceValue (const jam::Array<Replacements>& rowReplacements,
+                                                  const juce::Identifier& name, int occurrence,
+                                                  const juce::String& joinText)
+    {
+        jam::Strings occurrenceValues;
+
+        for (const auto& rowReplacement : rowReplacements)
+            if (rowReplacement.contains (name))
+            {
+                const auto& values { rowReplacement.at (name) };
+
+                if (occurrence < values.size())
+                    occurrenceValues.add (values.at (occurrence));
+            }
+
+        return std::all_of (occurrenceValues.begin(), occurrenceValues.end(),
+                   [&occurrenceValues] (const juce::String& value)
+                   { return value == occurrenceValues.at (0); })
+                   ? occurrenceValues.at (0)
+                   : occurrenceValues.joinIntoString (joinText, 0, -1);
+    }
+
+    /**
+     * @brief Merges every row's own Replacements in @p rowReplacements
+     *        into one Replacements, resolving each of @p tokens' every
+     *        occurrence through getMergedOccurrenceValue().
+     *
+     * @param rowReplacements Every row's own Replacements, one per merged
+     *                        row.
+     * @param tokens          The shape's distinct placeholder names.
+     * @param joinText        The text joining diverging rows' values.
+     * @returns Every one of @p tokens mapped to its merged occurrence
+     *          values.
+     */
+    static Replacements getMergedReplacements (const jam::Array<Replacements>& rowReplacements,
+                                               const jam::Document::Identifiers& tokens,
+                                               const juce::String& joinText)
+    {
+        Replacements mergedReplacements;
+
+        for (const auto& name : tokens)
+        {
+            int occurrenceCount { 0 };
+
+            for (const auto& rowReplacement : rowReplacements)
+                if (rowReplacement.contains (name))
+                    occurrenceCount = std::max (occurrenceCount, rowReplacement.at (name).size());
+
+            for (int occurrence { 0 }; occurrence < occurrenceCount; ++occurrence)
+                mergedReplacements[name].add (
+                    getMergedOccurrenceValue (rowReplacements, name, occurrence, joinText));
+        }
+
+        return mergedReplacements;
+    }
+
+    /**
+     * @brief Renders @p rows' shared shape once, merging each row's own
+     *        resolved replacements through getMergedReplacements() and
+     *        substituting them through getLines().
+     *
+     * @param model            The model @p rows belong to.
+     * @param templateDocument The template document the shape is read
+     *                         from.
+     * @param rows             The rows sharing one shape and one rendering,
+     *                         at least one row.
+     * @param joinText         The text joining rows whose resolved values
+     *                         diverge.
+     * @returns The shared shape's merged, rendered text.
+     */
+    static juce::String getShape (const Model& model,
+                                  const TemplateDocument& templateDocument,
+                                  const jam::Array<Element*>& rows,
+                                  const juce::String& joinText)
+    {
+        jassert (rows.size() > 0);
+
+        auto* firstRow { rows.first() };
+        const auto shapeId { juce::Identifier (
+            model.getStructure (*model.getTableCell (*firstRow, Id::structure))) };
+        const auto& tokens { *templateDocument.getCodeBlock (shapeId)
+                                   ->get<jam::Document::Identifiers> (Id::placeholder) };
+
+        jam::Array<Replacements> rowReplacements;
+
+        for (auto* row : rows)
+            rowReplacements.add (getReplacements (model, templateDocument, *row,
+                model.getTableCell (*row, Id::structure), model.getTableCell (*row, Id::placeholder),
+                model.getTableCell (*row, Id::separator), tokens, juce::String()));
+
+        const auto mergedReplacements { getMergedReplacements (rowReplacements, tokens, joinText) };
+
+        return getLines (templateDocument, shapeId, tokens, mergedReplacements);
     }
 };

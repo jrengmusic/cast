@@ -203,6 +203,8 @@ A block is the literal text of the output. Braces, keywords, punctuation — all
 
 Do not author the quotes around a literal. `toLiteral` supplies them, and doubling up produces `""value""`.
 
+Joining more than one item from a single-line shape aligns their token columns: fill spaces land in the literal between two tokens, right after that literal's first run of whitespace, sized to the widest replacement any item in the join gives that token. Fill never lands inside a token's own replacement, so a quoted include path still emits verbatim. Nothing pads before the first token or after the last, and no emitted line carries trailing whitespace. A single item, or a multi-line shape, renders unpadded — there is no column limit and no wrapping.
+
 Jack markers sit at column 0. Indentation comes from the manifest's depth, never from the block:
 
 ```
@@ -303,6 +305,12 @@ Every unclaimed token must find a source and every source must be used. A mismat
 
 Optional. Named per token, keyed the same way the wiring is. Blank joins by newline; anything else joins by that text. There is no horizontal mode — a one-line shape is simply authored on one line.
 
+### file — merging rows into one file
+
+Rows that declare the same `file` render as one merged shape; the wrap is emitted once per file. Merging is per token, per occurrence: a value that is byte-identical across the group's rows resolves once, and values that differ join in authored row order by the first row's `separator`, framed by one blank line on each side. A group of one row merges to itself.
+
+Same-file rows must be authored contiguously — a row for a file already closed by an intervening row of another file is a fatal error.
+
 ---
 
 ## Operations
@@ -317,7 +325,9 @@ An all-uppercase word is an abbreviation and survives every case operation in ev
 
 `toLiteral` produces a complete string literal: it quotes the value, escapes backslashes and quotes, turns control characters into their named escapes, and turns bytes above `0x7F` into hex escapes. Quoting and escaping are one operation and never travel separately. Writing a cell in backticks is the same thing, spelled shorter.
 
-Write the real character, not its escape. A line break in the datum comes out as `\n`; a `"` comes out as `\"`; `©` comes out as `\xc2\xa9`. Typing `\n` yourself produces `\\n`, because a backslash you wrote is a backslash you meant.
+Write the real character, not its escape. A line break in the datum comes out as `\n`; a `"` comes out as `\"`; `©` comes out as `\xc2\xa9`.
+
+An escape you cannot write as a real character is written as its escape sequence, and `toLiteral` passes it through: a backslash followed by a data-declared escape character is an authored escape and survives verbatim — `\n` authors a line break. A backslash followed by a backslash is one literal backslash, doubled on output — `\\n` authors the two characters backslash-n. Both stay expressible.
 
 `fromUTF8` is the exception, for the one character you cannot write: a space at the very start or end of a line, which the formatter's padding would swallow. Write `U+0020` and the operation decodes it back to a space, leaving every other byte alone.
 

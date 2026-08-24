@@ -41,6 +41,7 @@
 | headers             | headers            | @id     |
 | join                | join               | @string |
 | lexicon             | lexicon            | @id     |
+| no format           | no-format          | @id     |
 | output row label    | ` output row:`     | @string |
 | patch               | patch              | @id     |
 | placeholder         | placeholder        | @id     |

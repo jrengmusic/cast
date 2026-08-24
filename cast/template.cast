@@ -44,7 +44,7 @@ inline const jam::HashMap<:::keyType:::, :::valueType:::> :::name:::
 ```
 
 ```bimap
-/** :::comment:brief::: */
+/** :::comment::: */
 struct :::name::: : public jam::Bimap<:::type:::>
 {
     :::name:::()
@@ -91,7 +91,7 @@ struct :::name::: : public jam::Bimap<:::type:::>
 ```
 
 ```include
-#include ":::file:toFileName:::"
+#include ":::file:::"
 ```
 
 ```sharedInstance

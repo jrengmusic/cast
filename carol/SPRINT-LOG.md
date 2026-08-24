@@ -623,6 +623,63 @@ Converging cast's output (`jam/diff/`) to byte-identical with the oracle (`jam/g
 2. If identical: jam_Text.h CONVERGED — move to next file (jam_Identifiers.h)
 3. If not: read the diff, fix the residual (likely another spacing law edge case)
 
+## Sprint 12: jam_HashMaps Converged — Merge Law, Padding Law, Grapheme Formatter, Clean Sweep ✅
+
+**Date:** 2026-08-25
+**Duration:** ~05:30 (single session, 24 Aug 22:00 → 25 Aug 03:40)
+
+### Agents Participated
+- COUNSELOR: SPEC amendments (§5.1 substrate entity law + manifest blank-cell rule, §6.7 File Merge + contiguity, §7 repeated-occurrence law, §7.2 Alignment boundary-fill, §9 authored-escape + verbatim-source carve-out); manifest surgery (stale @jam_Entities/@jam_HashMaps rows); trivial engine fixes (TemplateDocument verbatim interior, Model transform gate, Model lockstep assert, map::code rename); oracle blessing; audit triage
+- Engineer (×20+): entities.md dedup/revert cycles; syntax/CAST/template wiring; merge law (Shapes/Writer); padding law (Items, Format::toPadded); grapheme display-width (MarkdownWriter); splitTableRow parity; Jobs drain fix; clean-sweep waves (cast + jam); HELP.md sync; doxygen pass; identifier row batches (14 er* + 11 mermaid); blessing copies
+- Pathfinder (×10+): byte-level cell dumps; nvim strdisplaywidth/virtcol measurement; sandboxed cast runs; diff/oracle verification sweeps
+- Librarian: nvim display-width model (utf_char2cells/transchar/composing, cited)
+- Auditor: full sprint sweep — 75 findings, all resolved (fixes, SPEC amendments, or cited rejections)
+
+### Files Modified (~30 total)
+- `SPEC.md` — §5.1/§6.7/§7/§7.2/§9/§10.1 amendments: entity substrate, blank-cell scope, merge contiguity + 3 legalized fatals, repeated-occurrence value reuse, boundary fill after first whitespace run, authored escapes, verbatim-source carve-out
+- `Source/Shapes.h` — same-file merge overload (getMergedReplacements/getMergedOccurrenceValue), getIndent SSOT
+- `Source/Writer.h` — group render via merge law; groupStarts single-owner grouping; Jobs::run dispatch (removeAllJobs culled queued jobs — root cause of missing tail outputs)
+- `Source/Jobs.h` — drain-to-completion loop, drainPollMs
+- `Source/Items.h` — padding law: getMeasuredWidths/getPaddedItem occurrence-order walk, getFilledLiteral (fill after literal's first whitespace run), getColumnValue/getMarker SSOT
+- `Source/Model.h` — transform applied only when known (validator owns §10.1 fatal); lockstep header/cell assert
+- `Source/Validator.h` — isKnownTemplate SSOT; isContiguous (§6.7 fatal)
+- `Source/Transforms.h` — getTransforms decomposed into four ≤30-line registrars
+- `Source/TemplateDocument.h` — placeholder interior verbatim (colon form dead per ARCHITECT ruling)
+- `Source/main.cpp` — Processor constructed after flag dispatch; Id::noFormat; named arg indices
+- `Source/HELP.md` — §9 escape law corrected (was inverted), File Merge + Alignment sections added
+- `cast/lexicon.md`, `Source/generated/Identifiers.h` — noFormat identifier (bootstrap pair)
+- `cast/template.cast` — colon-op placeholders removed
+- `../jam/jam_core/text/jam_Format.h/.cpp` — toPadded primitive; toLiteral authored-escape grammar; escape() uses map::xmlEscapes
+- `../jam/jam_markdown/document/jam_MarkdownWriter.h` — grapheme-cluster display width (extenders 0, invisible heads 4/6-cell placeholders, ambiguous clamp); getFillText/getFillWidth SSOT; cell emission = parser inverse (backslash-run doubling before pipes)
+- `../jam/jam_markdown/document/jam_MarkdownDocument.h` — splitTableRow backslash-parity escape law + pair collapse at boundaries
+- `../jam/jam_markdown/layout/jam_MarkdownSyntax.h` — full Lean rewrite: family lookup replaces 6-arm switch, getToken decomposed, vocab renames (cLang/python), pointer members removed, map::code
+- `../jam/cast/{entities.md,syntax.md,text.md,chars.md,identifiers.md,template.cast,CAST.md}` — entities 2-col canon (1510 rows, dedup, raw values); xmlEscapes table (double-encoded entities); languageFamily @-alias SSOT; 25 identifier rows added (er*/lineHeight/stateCornerRadius + mermaid sequence*/edgeLabelPadding), cLike/pythonLike deleted; escapedPipe re-authored to parity form; 5th HashMaps row group; stale Entities wiring removed
+- `../jam/generated/{jam_HashMaps.h,jam_Identifiers.h,jam_Text.h,jam_Chars.h,jam_Generated.h,jam_LookupTables.h,jam_Bimaps.h}` — blessed from diff (5 files byte-identical fixpoint); map::code rename; xmlEscapes bootstrap seed
+
+### Alignment Check
+- [x] BLESSED principles followed
+- [x] NAMES.md adhered (all sweep names ratified via clean-sweep ruling)
+- [x] MANIFESTO.md principles applied (pessimistic re-assert findings rejected with citation)
+
+### Problems Solved
+- jam_HashMaps.h empty/missing: (1) stale wrap-only manifest row raced the 4-row group; (2) juce::ThreadPool::removeAllJobs used as "wait" silently culled queued tail jobs — replaced with drain loop
+- Formatter alignment: byte/char/codepoint counts all fail exotic glyphs — final law measures rendered cells via jam's UAX #29 grapheme machinery (ZWJ/marks compose to 0, invisibles get their <xxxx> placeholder width), verified against nvim strdisplaywidth/virtcol and cross-terminal screenshots
+- Boundary fill inside literals (`#include "x.h  "`, `fromUTF8 (   "…")`) — fill now inserts after the inter-token literal's first whitespace run
+- Markdown substrate decodes entities in plain cells — xmlEscapes authored double-encoded, law written into SPEC §5.1
+- splitTableRow escape parity (`\\|` vs `\|`) + writer made the parser's exact inverse
+- Oracle protected from parallel-work erasure: 25 hand-added identifiers backfilled into identifiers.md before blessing
+
+### Debts Paid
+- None (DEBT.md empty)
+
+### Debts Deferred
+- None
+
+### Residuals (next sprints)
+- 6 outputs unwired (Files, Extensions, Operators, Bimaps, LookupTables, MermaidTables — diff renders stubs; oracles remain hand-maintained)
+- cast self-hosting: `fromLiteral` op in cast/lexicon.md is undefined (Sprint 7 continuation); bare `./cast` runs the self-manifest
+- Project CLAUDE.md cites stale `cast/tables/cast.md` path (now `cast/lexicon.md`)
+
 ## Sprint 11: Four jam Targets Converged — Whitespace Law, `fromUTF8`, Clean Sweep ✅
 
 **Date:** 2026-08-24

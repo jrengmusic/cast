@@ -12,8 +12,9 @@
  */
 struct Jobs
 {
-    /** Timeout passed to juce::ThreadPool::removeAllJobs() to wait indefinitely. */
-    static constexpr int indefiniteTimeoutMs { -1 };
+    /** Poll interval, in milliseconds, between checks of the thread pool's
+     *  remaining job count while draining. */
+    static constexpr int drainPollMs { 1 };
 
     /**
      * @brief Runs @p function once per index in [0, @p count), each
@@ -32,6 +33,7 @@ struct Jobs
         for (int index { 0 }; index < count; ++index)
             pool.addJob ([&function, index] { function (index); });
 
-        pool.removeAllJobs (false, indefiniteTimeoutMs);
+        while (pool.getNumJobs() > 0)
+            juce::Thread::sleep (drainPollMs);
     }
 };

@@ -175,7 +175,13 @@ over a datum that spans lines (§3.2), and needs one only where a line's own edg
 must survive the formatter's padding (§9).
 
 A blank cell takes the preceding column's authored value without that column's own
-formatting. Its own `format`, if present, still applies.
+formatting. Its own `format`, if present, still applies. Blank inheritance is a data
+table rule — a blank manifest cell is blank and inherits nothing (§6).
+
+The substrate is markdown: an HTML entity in a plain cell decodes at parse — `&amp;`
+reaches the model as `&`. A datum that must carry an entity's own spelling authors it
+double-encoded (`&amp;amp;` yields `&amp;`), which is also the formatter's canonical
+emission. Backticked and fenced spans decode nothing.
 
 Column order carries no meaning beyond these two adjacency rules and §5.2's.
 
@@ -304,6 +310,18 @@ Optional. Named per token, keyed as the wiring is. Blank joins by newline; any o
 value joins by that value. There is no second axis — a horizontal shape is one item
 authored on one line.
 
+### 6.7 File Merge
+
+Rows declaring the same `file` render as one merged shape — the wrap is emitted once
+per file. Their depth-0 structure is byte-identical by authorship. Merging is
+per-token, per-occurrence: a value byte-identical across the group's rows resolves
+once; values that differ join in authored row order by the group's join text — the
+first row's `separator` column resolved as §6.6, a non-blank separator framed by one
+blank line on each side. A group of one row merges to itself.
+
+Same-file rows are authored contiguously. A row declaring a file already closed by an
+intervening row of another file is fatal (§10.1) — two groups never write one file.
+
 ---
 
 ## 7. Templates
@@ -319,6 +337,10 @@ Any symbol delimited by `:::` is a valid placeholder, and the interior is its na
 **verbatim** — the interior is never split, and `:::name:operation:::` is not a form.
 A template never names an operation; operations are declared in the table (§5.2).
 
+A token may occur more than once in a block. Occurrences consume the token's resolved
+values in order; when occurrences outnumber values, the last value serves every
+remaining occurrence.
+
 Jack markers sit at column 0. Indent comes from the wiring depth, never from the block.
 
 Delimiters, wraps, braces and punctuation are structure and are authored in the block —
@@ -329,6 +351,19 @@ except the quotes around a literal, which `toLiteral` supplies (§9).
 A token fed by the `file` column carries the **file name**, not the declared path. The
 manifest declares where a file is written; a template that names a file — an include,
 for instance — receives `jam_Identifiers.h`, never `../diff/jam_Identifiers.h`.
+
+### 7.2 Alignment
+
+A join of more than one item rendered from a single-line shape aligns its token
+columns: fill spaces are inserted into the literal between two tokens, immediately
+after that literal's first whitespace run — at the literal's end when it contains
+none — sized to the preceding token's deficit against the byte width of that token's
+widest replacement across the join set. Fill never enters a token's replacement, so a
+token wrapped in literals (a quoted include path) emits verbatim. Content before the
+first token and after the last token never pads — a single-token shape emits unpadded
+and no emitted line carries trailing whitespace. Multi-line shapes and single-item
+joins render unpadded. There is no column limit and no wrapping — a long line stays
+long.
 
 ---
 
@@ -369,6 +404,14 @@ The author writes a real line break; `toLiteral` writes `\n`. The mapping from c
 character to escape character is data, declared in a table like any other, never a
 constant inside the operation.
 
+An escape the author cannot write as a real character is written as its escape
+sequence, and `toLiteral` passes it through: a backslash followed by one of the
+data-declared escape characters is an authored escape and survives verbatim; a
+backslash followed by a backslash is one literal backslash, doubled on output; a
+backslash followed by anything else is a literal backslash, doubled as before. `\n`
+authors a line break, `\\n` authors the two characters backslash-n — both remain
+expressible.
+
 A space the author cannot write is written as `U+XXXX`, and `fromUTF8` decodes every
 such token in a datum back to the character it names, leaving every other byte untouched.
 This is how a value carries a space at the very start or end of one of its lines, where
@@ -378,6 +421,11 @@ strip, because there is no space there to strip.
 
 `toLiteral` and a `format` operation compose: a backticked or fenced cell is quoted and
 escaped first, and the operation then applies to that value.
+
+§9's guarantee covers text CAST wraps into a string literal. A datum that is already
+target-language source — a char literal like `'&'`, a type name, an expression — is
+authored plain and passes verbatim; its safety is the author's, like a template's own
+structure.
 
 The author writes the datum. CAST makes it legal.
 
@@ -412,6 +460,9 @@ These, and nothing else:
 | duplicate entry within one column of one table | §5.3 |
 | `template:<id>` names a block that does not exist | §7 |
 | malformed table, during formatting only | §3.3 |
+| index `symbol` cell empty | §4.1 |
+| output row declares no structure | §6.3 |
+| same-file output rows not contiguous | §6.7 |
 
 Any check the engine performs that is not in this table is a defect in the engine.
 

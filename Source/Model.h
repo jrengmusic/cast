@@ -319,7 +319,7 @@ private:
             {
                 const auto transform { formatCell->getAllSubText() };
 
-                if (transform.isNotEmpty())
+                if (Transforms::contains (transform))
                     value = Transforms::getTransformed (transform, value, {});
             }
 
@@ -340,17 +340,14 @@ private:
      */
     void addValues (Element& headerRow, Element& row)
     {
-        int rowCellCount { 0 };
-        for (auto* rowCell : row) { juce::ignoreUnused (rowCell); ++rowCellCount; }
-
-        jassert (rowCellCount == getTableHeaders (*headerRow.parent).size());
-
         juce::String precedingAuthored;
         auto* headerCell { headerRow.firstChild };
         auto* cell { row.firstChild };
 
         while (cell != nullptr)
         {
+            jassert (headerCell != nullptr);
+
             addValue (*headerCell, row, *cell, precedingAuthored);
             headerCell = headerCell->nextSibling;
             cell = cell->nextSibling;

@@ -18,6 +18,7 @@
 static void paintBanner (jam::terminal::GraphicsContext& context)
 {
     const auto& [firstName, firstText] { *map::banner.begin() };
+    juce::ignoreUnused (firstText);
     auto priorName { firstName };
     int row { 0 };
 
@@ -62,6 +63,7 @@ static void paintBanner (jam::terminal::GraphicsContext& context)
 static void printBanner()
 {
     const auto& [firstName, firstText] { *map::banner.begin() };
+    juce::ignoreUnused (firstName);
     const auto cols { firstText.length() };
     const auto rows { static_cast<int> (map::banner.size()) };
 
@@ -88,6 +90,9 @@ static void printBannerAndHelp()
     printHelp (BinaryData::getString (files::castHelp));
 }
 
+static constexpr int flagArgIndex { 1 };
+static constexpr int postFlagArgIndex { 2 };
+
 int main (int argc, char* argv[])
 {
 #if JUCE_DEBUG
@@ -95,16 +100,19 @@ int main (int argc, char* argv[])
 #endif
 
     const auto formatFlag { Id::doubleDash + Id::format.toString() };
-    const auto noFormatFlag { Id::doubleDash + juce::String::fromUTF8 ("no-format") };
-    const auto isFormatOnly { (argc >= 2 and juce::String::fromUTF8 (argv[1]) == formatFlag)
-                              or (argc >= 3 and juce::String::fromUTF8 (argv[2]) == formatFlag) };
-    const auto isSkipFormat { (argc >= 2 and juce::String::fromUTF8 (argv[1]) == noFormatFlag)
-                              or (argc >= 3 and juce::String::fromUTF8 (argv[2]) == noFormatFlag) };
+    const auto noFormatFlag { Id::doubleDash + Id::noFormat.toString() };
+    const auto isFormatOnly { (argc >= 2 and juce::String::fromUTF8 (argv[flagArgIndex]) == formatFlag)
+                              or (argc >= 3
+                                  and juce::String::fromUTF8 (argv[postFlagArgIndex]) == formatFlag) };
+    const auto isSkipFormat { (argc >= 2
+                               and juce::String::fromUTF8 (argv[flagArgIndex]) == noFormatFlag)
+                              or (argc >= 3
+                                  and juce::String::fromUTF8 (argv[postFlagArgIndex]) == noFormatFlag) };
     const auto manifestIndex { (argc >= 2
-                                and (juce::String::fromUTF8 (argv[1]) == formatFlag
-                                     or juce::String::fromUTF8 (argv[1]) == noFormatFlag))
-                                    ? 2
-                                    : 1 };
+                                and (juce::String::fromUTF8 (argv[flagArgIndex]) == formatFlag
+                                     or juce::String::fromUTF8 (argv[flagArgIndex]) == noFormatFlag))
+                                    ? postFlagArgIndex
+                                    : flagArgIndex };
 
     const juce::File documentFile {
         (argc > manifestIndex) ? juce::File::getCurrentWorkingDirectory().getChildFile (
@@ -112,9 +120,8 @@ int main (int argc, char* argv[])
                     : juce::File::getCurrentWorkingDirectory().getChildFile (files::cast)
     };
 
-    Processor processor { documentFile };
-
-    if (argc == 2 and juce::String::fromUTF8 (argv[1]) == Id::doubleDash + Id::version.toString())
+    if (argc == 2
+        and juce::String::fromUTF8 (argv[flagArgIndex]) == Id::doubleDash + Id::version.toString())
     {
         const auto versionLine { ProjectInfo::projectName
                                  + juce::String::charToString (Chars::space)
@@ -127,7 +134,7 @@ int main (int argc, char* argv[])
     }
 
     if (argc == 2
-        and juce::String::fromUTF8 (argv[1]) == Id::doubleDash + Id::help.toString())
+        and juce::String::fromUTF8 (argv[flagArgIndex]) == Id::doubleDash + Id::help.toString())
     {
         printBannerAndHelp();
         return 0;
@@ -135,15 +142,17 @@ int main (int argc, char* argv[])
 
     if (documentFile.existsAsFile())
     {
+        Processor processor { documentFile };
         auto result { juce::Result::ok() };
 
         if (not isSkipFormat)
             result = processor.format();
 
         if (result.wasOk() and not isFormatOnly)
-            result = processor.generate ((argc == 3 and manifestIndex == 1 and not isSkipFormat)
-                                              ? juce::String::fromUTF8 (argv[2])
-                                              : juce::String {});
+            result = processor.generate (
+                (argc == 3 and manifestIndex == flagArgIndex and not isSkipFormat)
+                    ? juce::String::fromUTF8 (argv[postFlagArgIndex])
+                    : juce::String {});
 
         if (result.wasOk())
             return 0;

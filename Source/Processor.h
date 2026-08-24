@@ -7,7 +7,7 @@
 
 struct Processor
 {
-    Processor (const juce::File& manifestFile)
+    explicit Processor (const juce::File& manifestFile)
         : model (Model::parse (manifestFile))
         , templateDocument (jam::MarkdownDocument::parse (model->getFile().loadFileAsString()))
         , writer (*model, templateDocument)
