@@ -5,21 +5,52 @@
 #include "Shapes.h"
 #include "TemplateDocument.h"
 
+/**
+ * @struct Writer
+ * @brief Renders every output table's rows into their declared files and
+ *        writes them, one table at a time, one juce::ThreadPool job per
+ *        output file.
+ *
+ * A Writer owns one juce::ThreadPool for its own lifetime, reused across
+ * every table's write pass rather than recreated per table.
+ */
 struct Writer : jam::Document::Writer
 {
     using jam::Document::Writer::toFile;
 
+    /**
+     * @brief Constructs a Writer bound to @p document's rows and
+     *        @p templateDocument's shapes.
+     *
+     * @param document         The model whose output tables are written.
+     * @param templateDocument The template document rows are rendered
+     *                         against.
+     */
     Writer (const Model& document, const TemplateDocument& templateDocument)
         : model (document)
         , templateDocument (templateDocument)
     {
     }
 
+    /**
+     * @brief Returns @p document's root subtree text, verbatim.
+     *
+     * @param document The document whose text is returned.
+     * @returns @p document's root subtree text.
+     */
     juce::String getText (const jam::Document& document) const override
     {
         return document.root->getAllSubText();
     }
 
+    /**
+     * @brief Renders and writes every output table's rows to their
+     *        declared files under @p outputPath, one job per file.
+     *
+     * @param outputPath The directory output files are resolved against.
+     * @returns juce::Result::ok() when every file wrote successfully, or a
+     *          failure naming every file that failed to write.
+     */
     juce::Result toFile (const juce::File& outputPath)
     {
         jam::Strings failures;

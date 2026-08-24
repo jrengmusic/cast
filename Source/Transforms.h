@@ -1,8 +1,23 @@
 #pragma once
 #include <JuceHeader.h>
 
+/**
+ * @struct Transforms
+ * @brief The engine's registry of named format operations -- case,
+ *        encoding, text, and comment transforms -- looked up by name and
+ *        applied to a cell's resolved value.
+ */
 struct Transforms
 {
+    /**
+     * @brief Prefixes @p input with @p extension's single-line comment
+     *        syntax.
+     *
+     * @param input     The text to comment.
+     * @param extension The target file extension whose comment syntax is
+     *                  applied.
+     * @returns @p input, prefixed with @p extension's comment marker.
+     */
     static juce::String toComment (const juce::String& input, const juce::String& extension) noexcept
     {
         const auto syntax { map::commentSyntax.get (extension) };
@@ -11,6 +26,15 @@ struct Transforms
             .trim();
     }
 
+    /**
+     * @brief Wraps @p input in @p extension's block-comment delimiters.
+     *
+     * @param input     The text to wrap.
+     * @param extension The target file extension whose block-comment
+     *                  syntax is applied.
+     * @returns @p input, wrapped in @p extension's block-comment open and
+     *          close markers.
+     */
     static juce::String
     toCommentBlock (const juce::String& input, const juce::String& extension) noexcept
     {
@@ -21,6 +45,16 @@ struct Transforms
             .trim();
     }
 
+    /**
+     * @brief Wraps @p input in @p extension's block-comment delimiters,
+     *        prefixed by its brief marker.
+     *
+     * @param input     The text to wrap.
+     * @param extension The target file extension whose block-comment and
+     *                  brief syntax is applied.
+     * @returns @p input, wrapped in @p extension's block-comment open and
+     *          close markers with the brief marker inserted.
+     */
     static juce::String toBrief (const juce::String& input, const juce::String& extension) noexcept
     {
         const auto syntax { map::commentSyntax.get (extension) };
@@ -31,11 +65,26 @@ struct Transforms
             .trim();
     }
 
+    /**
+     * @brief Answers whether @p name is a known transform.
+     *
+     * @param name The camel-cased transform name to look up.
+     * @returns @c true when @p name is a known transform.
+     */
     static bool contains (const juce::String& name) noexcept
     {
         return getTransforms().contains (name);
     }
 
+    /**
+     * @brief Applies the transform named @p name to @p input.
+     *
+     * @param name      The camel-cased transform name to apply.
+     * @param input     The text the transform is applied to.
+     * @param extension The target file extension, used by the comment
+     *                  transforms.
+     * @returns @p input, transformed by @p name.
+     */
     static juce::String getTransformed (const juce::String& name,
                                         const juce::String& input,
                                         const juce::String& extension)
@@ -46,6 +95,14 @@ struct Transforms
     }
 
 private:
+    /**
+     * @brief The registry mapping every known transform's camel-cased name
+     *        to its implementation, built once on first use -- the case
+     *        transforms, the encoding transforms including @c fromUTF8,
+     *        the text transforms, and the comment transforms.
+     *
+     * @returns The transform registry.
+     */
     static const jam::Function::Map<juce::String, juce::String>& getTransforms() noexcept
     {
         static const jam::Function::Map<juce::String, juce::String> transforms {

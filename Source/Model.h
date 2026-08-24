@@ -4,14 +4,38 @@
 #include "Jobs.h"
 #include "Transforms.h"
 
+/**
+ * @class Model
+ * @brief The parsed manifest and every data file it declares, spliced into
+ *        one addressable jam::MarkdownDocument, plus the row and reference
+ *        lookups the rest of the engine reads it through.
+ *
+ * A Model is built once, by parse(), from a manifest file and the data
+ * files its index declares -- every table lands in the one document tree,
+ * addressed by table id and (parent, id) as jam::MarkdownDocument already
+ * provides. Model adds no second copy of that tree; it only answers
+ * questions the tree does not already answer directly -- resolving an
+ * @-sigiled alias to its symbol, reading a structure scope's shape name,
+ * and telling an output table apart from a plain data table.
+ */
 class Model : public jam::MarkdownDocument
 {
 public:
+    /** Constructs an empty model with no parsed tables. */
     Model() = default;
 
     using jam::MarkdownDocument::getTables;
     using jam::MarkdownDocument::getTableHeaderRow;
 
+    /**
+     * @brief Parses @p documentFile as the manifest and every data file its
+     *        index declares, the data files parsed in parallel through
+     *        Jobs::run(), and returns the resulting Model.
+     *
+     * @param documentFile The manifest file to parse.
+     * @returns The parsed Model, empty when @p documentFile does not exist
+     *          as a file.
+     */
     static std::unique_ptr<Model> parse (const juce::File& documentFile)
     {
         auto document { std::make_unique<Model>() };
@@ -22,6 +46,16 @@ public:
         return document;
     }
 
+    /**
+     * @brief Resolves @p alias against @p file's index, when @p alias is
+     *        an @-sigiled identifier.
+     *
+     * @param file  The file whose index @p alias is resolved against.
+     * @param alias The @-sigiled alias to resolve.
+     * @returns @p alias's symbol, or an empty string when @p alias is not
+     *          an @-sigiled identifier or is absent from @p file's
+     *          index.
+     */
     juce::String getValue (juce::StringRef file, juce::StringRef alias) const
     {
         if (alias.isNotEmpty() and *alias.text == Chars::at)
@@ -43,17 +77,41 @@ public:
         return {};
     }
 
+    /**
+     * @brief Resolves @p alias against @p row's own file's index.
+     *
+     * @param row   The row whose file's index @p alias is resolved
+     *              against.
+     * @param alias The @-sigiled alias to resolve.
+     * @returns @p alias's symbol, or an empty string when @p alias does not
+     *          resolve.
+     */
     juce::String getValue (Element& row, const juce::String& alias) const
     {
         const auto origin { *row.parent->get<juce::String> (Id::path) };
         return getValue (origin, alias);
     }
 
+    /**
+     * @brief Returns @p row's resolved value for @p column.
+     *
+     * @param row    The row @p column's cell is read from.
+     * @param column The column whose cell value is read.
+     * @returns @p row's resolved value for @p column.
+     */
     const juce::String& getValue (Element& row, const juce::Identifier& column) const
     {
         return *getTableCell (row, column)->get<juce::String> (Id::value);
     }
 
+    /**
+     * @brief Reads @p scope's own @c template:\<id\> head, when it carries
+     *        one.
+     *
+     * @param scope The blockquote scope whose head is read.
+     * @returns The shape id named by @p scope's head, or an empty string
+     *          when @p scope carries no @c template:\<id\> head.
+     */
     juce::String getStructure (Element& scope) const
     {
         for (auto* block : scope)
@@ -68,6 +126,13 @@ public:
         return {};
     }
 
+    /**
+     * @brief Answers whether @p table is an output table -- not the index,
+     *        and carrying a @c file column on its header row.
+     *
+     * @param table The table to test.
+     * @returns @c true when @p table is an output table.
+     */
     bool isOutputTable (Element& table) const noexcept
     {
         auto* headerRow { getTableHeaderRow (table) };
@@ -75,6 +140,13 @@ public:
                and getTableCell (*headerRow, Id::file) != nullptr;
     }
 
+    /**
+     * @brief Returns the manifest's declared template file, resolved
+     *        against getOutput().
+     *
+     * @returns The template file named by the index row whose symbol has
+     *          the @c .cast extension.
+     */
     juce::File getFile() const
     {
         juce::File templateFile;
@@ -91,11 +163,30 @@ public:
         return templateFile;
     }
 
+    /**
+     * @brief Resolves @p relativePath against the manifest's own
+     *        directory.
+     *
+     * @param relativePath The path to resolve, relative to the manifest's
+     *                     directory.
+     * @returns The resolved file.
+     */
     juce::File getOutput (juce::StringRef relativePath) const
     {
         return path.getChildFile (relativePath);
     }
 
+    /**
+     * @brief Resolves @p reference's address -- @c alias\[:table\] -- to
+     *        the table it names.
+     *
+     * @param row       The row @p reference's alias part is resolved
+     *                  against.
+     * @param reference The address: an alias name, optionally followed by
+     *                  @c :table.
+     * @returns The referenced table, or @c nullptr when @p reference's
+     *          alias does not resolve.
+     */
     Element* getTables (Element& row, juce::StringRef reference) const
     {
         const auto parts { jam::Strings::fromTokens (
@@ -238,6 +329,15 @@ private:
         cell.add<juce::String> (Id::value, value);
     }
 
+    /**
+     * @brief Stamps every one of @p row's cells with its resolved value,
+     *        through addValue().
+     *
+     * @pre @p row carries the same cell count as @p headerRow.
+     *
+     * @param headerRow @p row's table's header row.
+     * @param row       The row whose cells are stamped.
+     */
     void addValues (Element& headerRow, Element& row)
     {
         int rowCellCount { 0 };

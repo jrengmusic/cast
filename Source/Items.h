@@ -3,10 +3,33 @@
 #include "Model.h"
 #include "TemplateDocument.h"
 
+/**
+ * @struct Items
+ * @brief Static utility that discovers a placeholder list's source rows or
+ *        column values across a Model's tables and renders each one
+ *        through a TemplateDocument shape.
+ *
+ * Items owns no state of its own and derives from neither Model nor
+ * TemplateDocument -- every member is a pure function of the arguments it
+ * is called with, operating on a Model's rows and a TemplateDocument's code
+ * blocks through their public API.
+ */
 struct Items
 {
     using Element = Model::Element;
 
+    /**
+     * @brief Collects every distinct, non-empty value of @p source's
+     *        column across @p tables' output rows, excluding the value
+     *        belonging to @p row's own file.
+     *
+     * @param model  The model @p row and @p tables belong to.
+     * @param row    The row whose own file's value is excluded.
+     * @param tables The tables searched for @p source's column.
+     * @param source The column name whose values are collected.
+     * @returns Every distinct, non-empty column value found, in discovery
+     *          order.
+     */
     static jam::Strings getColumnSourceValues (const Model& model,
                                                 Element& row,
                                                 const jam::Array<Element*>& tables,
@@ -31,6 +54,18 @@ struct Items
         return sourceValues;
     }
 
+    /**
+     * @brief Collects every output row across @p tables whose structure
+     *        wiring, at any depth, declares @p source as a blank-binding
+     *        selector.
+     *
+     * @param model  The model @p tables belong to.
+     * @param tables The tables searched for rows selecting @p source.
+     * @param source The blank binding name a row must declare to be
+     *               collected.
+     * @returns Every row whose structure wiring selects @p source, in
+     *          discovery order.
+     */
     static jam::Array<Element*> getBindingSourceRows (const Model& model,
                                                        const jam::Array<Element*>& tables,
                                                        const juce::Identifier& source)
@@ -57,6 +92,17 @@ struct Items
         return sourceRows;
     }
 
+    /**
+     * @brief Resolves @p name's value for @p sourceRow -- the deepest
+     *        structure-wiring binding of that name, or, absent one, the
+     *        row's own column value.
+     *
+     * @param model     The model @p sourceRow belongs to.
+     * @param sourceRow The row @p name is resolved against.
+     * @param name      The token or column name to resolve.
+     * @returns The resolved value, or an empty string when neither a
+     *          binding nor a column named @p name exists on @p sourceRow.
+     */
     static juce::String
     getSourceValue (const Model& model, Element& sourceRow, const juce::Identifier& name)
     {
@@ -80,6 +126,25 @@ struct Items
         return columnValue;
     }
 
+    /**
+     * @brief Renders @p shapeId's text for one item -- @p sourceRow's
+     *        binding and column values when @p sourceRow is not
+     *        @c nullptr, or @p sourceValue substituted into @p shapeId's
+     *        @p sourceKey token alone when it is.
+     *
+     * @param model            The model @p sourceRow, when present,
+     *                         belongs to.
+     * @param templateDocument The template document @p shapeId is read
+     *                         from.
+     * @param sourceRow        The item's source row, or @c nullptr when the
+     *                         item is a bare column value.
+     * @param sourceValue      The column value substituted into
+     *                         @p sourceKey when @p sourceRow is @c nullptr.
+     * @param sourceKey        The token name @p sourceValue is substituted
+     *                         into when @p sourceRow is @c nullptr.
+     * @param shapeId          The shape to render.
+     * @returns The item's rendered text.
+     */
     static juce::String getItem (const Model& model,
                                  const TemplateDocument& templateDocument,
                                  Element* sourceRow,
@@ -106,6 +171,22 @@ struct Items
         return itemText;
     }
 
+    /**
+     * @brief Renders @p shapeId's text for every row in @p sourceRows,
+     *        then for every value in @p sourceValues, dropping any item
+     *        whose rendered text is empty.
+     *
+     * @param model            The model @p sourceRows belong to.
+     * @param templateDocument The template document @p shapeId is read
+     *                         from.
+     * @param sourceRows       The binding-selected source rows to render.
+     * @param sourceValues     The column source values to render.
+     * @param sourceKey        The token name each of @p sourceValues is
+     *                         substituted into.
+     * @param shapeId          The shape to render.
+     * @returns Every non-empty rendered item, in the order @p sourceRows
+     *          then @p sourceValues were authored.
+     */
     static jam::Strings getItemTexts (const Model& model,
                                       const TemplateDocument& templateDocument,
                                       const jam::Array<Element*>& sourceRows,
@@ -134,6 +215,25 @@ struct Items
         return texts;
     }
 
+    /**
+     * @brief Discovers @p source's items -- an address's table rows, a
+     *        column name's distinct values across every output table, or a
+     *        blank binding's selected rows -- and renders each through
+     *        @p shapeId.
+     *
+     * @param model            The model @p row belongs to.
+     * @param templateDocument The template document @p shapeId is read
+     *                         from.
+     * @param row              The row @p source is resolved against.
+     * @param source           The placeholder list's authored source: an
+     *                         @-sigiled address, a column name, or a
+     *                         blank binding name.
+     * @param token            The token @p source's list feeds, used as
+     *                         the substitution key when @p source names a
+     *                         column.
+     * @param shapeId          The shape to render each item through.
+     * @returns Every non-empty rendered item.
+     */
     static jam::Strings getItems (const Model& model,
                                   const TemplateDocument& templateDocument,
                                   Element& row,
@@ -175,6 +275,25 @@ struct Items
         return getItemTexts (model, templateDocument, sourceRows, sourceValues, sourceKey, shapeId);
     }
 
+    /**
+     * @brief Renders @p source's items through getItems() and joins them
+     *        by @p token's authored separator, indenting every joined line
+     *        by @p indent.
+     *
+     * @param model            The model @p row belongs to.
+     * @param templateDocument The template document the items' shape is
+     *                         read from.
+     * @param row              The row @p source is resolved against.
+     * @param token            The placeholder token @p source's list feeds.
+     * @param source           The placeholder list's authored source.
+     * @param shapeId          The shape to render each item through.
+     * @param separatorScope   The blockquote scope carrying @p token's
+     *                         separator binding, or @c nullptr.
+     * @param indent           The indentation prefix applied to every
+     *                         joined line.
+     * @returns The joined, indented item text, or an empty string when no
+     *          item rendered.
+     */
     static juce::String getJoinedItems (const Model& model,
                                         const TemplateDocument& templateDocument,
                                         Element& row,

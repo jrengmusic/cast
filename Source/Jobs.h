@@ -1,10 +1,29 @@
 #pragma once
 #include <JuceHeader.h>
 
+/**
+ * @struct Jobs
+ * @brief Static utility that dispatches a fixed count of indexed units of
+ *        work across a transient juce::ThreadPool and blocks until every
+ *        unit has completed.
+ *
+ * Jobs owns no state of its own -- the pool it creates lives for the
+ * duration of a single run() call and is torn down before run() returns.
+ */
 struct Jobs
 {
+    /** Timeout passed to juce::ThreadPool::removeAllJobs() to wait indefinitely. */
     static constexpr int indefiniteTimeoutMs { -1 };
 
+    /**
+     * @brief Runs @p function once per index in [0, @p count), each
+     *        invocation dispatched to its own job on a transient thread
+     *        pool, and blocks until every job has completed.
+     *
+     * @param count    The number of indexed units of work to run.
+     * @param function Callable invoked as @c function(index) for each
+     *                 index in [0, @p count).
+     */
     template <typename Function>
     static void run (int count, Function&& function)
     {
