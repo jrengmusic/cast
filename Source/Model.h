@@ -282,7 +282,7 @@ private:
         }
     }
 
-    static juce::String getCellValue (Element& cell)
+    static juce::String getCellValue (Element& cell, const juce::String& transform, bool& isLiteral)
     {
         const Element* codeChild { nullptr };
 
@@ -299,14 +299,30 @@ private:
             });
 
         if (codeChild != nullptr)
-            return jam::Format::toLiteral (codeChild->getAllSubText());
+        {
+            isLiteral = true;
+
+            juce::String text { codeChild->getAllSubText() };
+
+            if (Transforms::contains (transform))
+                text = Transforms::getTransformed (transform, text, {});
+
+            return jam::Format::toLiteral (text);
+        }
 
         return cell.getAllSubText();
     }
 
     void addValue (Element& headerCell, Element& row, Element& cell, juce::String& precedingAuthored)
     {
-        const auto authored { getCellValue (cell) };
+        juce::String transform;
+
+        if (auto* formatCell { cell.nextSibling })
+            if (formatCell->id == Id::format)
+                transform = formatCell->getAllSubText();
+
+        auto isLiteral { false };
+        const auto authored { getCellValue (cell, transform, isLiteral) };
         const auto isFormatColumn { headerCell.id == Id::format };
         const auto isManifestRow { isOutputTable (*row.parent) };
         auto value { authored.isNotEmpty() or isManifestRow ? authored : precedingAuthored };
@@ -314,14 +330,8 @@ private:
         if (value.startsWithChar (Chars::at))
             value = getValue (row, value);
 
-        if (auto* formatCell { cell.nextSibling })
-            if (formatCell->id == Id::format)
-            {
-                const auto transform { formatCell->getAllSubText() };
-
-                if (Transforms::contains (transform))
-                    value = Transforms::getTransformed (transform, value, {});
-            }
+        if (not isLiteral and Transforms::contains (transform))
+            value = Transforms::getTransformed (transform, value, {});
 
         if (not isFormatColumn)
             precedingAuthored = authored;

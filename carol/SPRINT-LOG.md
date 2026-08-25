@@ -111,6 +111,48 @@
 
 ## SPRINT HISTORY
 
+## Sprint: Token Lexicon Fold into Chars — jam 7/10 ✅
+
+**Date:** 2026-08-25
+**Duration:** —
+
+### Agents Participated
+- COUNSELOR — design facilitation (value-unique lexicon law, naming slate), plan, per-step validation, dead-audit gap-closure, two violation disclosures
+- Pathfinder ×4 — member liveness audit (115 members), wiring/escape-precedent inventory, residual classification, cmp sweep
+- Engineer ×8 dispatches — toLiteral extension, oracle authoring (jam_Tokens→jam_Tok→Chars fold), call-site sweeps, tok.md/chars.md/CAST.md/template.cast, Model.h transform-order swap
+
+### Files Modified (~20 total)
+- `jam/generated/jam_Chars.h:133-177` — 45 string-token members folded in (44 ratified + `special` moved from template); wchar section, escape, isNumeric untouched
+- `jam/generated/jam_Operators.h`, `jam_Tok.h` — deleted (generated + diff); `jam_Generated.h` include list updated
+- `jam/generated/jam_LookupTables.h:310-338` — 12 dead `Id::MarkdownOperators::` refs resurrected onto `Chars::`
+- `jam/generated/jam_Identifiers.h` — oracle re-baselined from diff (1326 lines; mermaid vocabulary + blockOpen/blockClose)
+- `jam/jam_core/text/jam_Format.cpp:939` — toLiteral hex-escapes control bytes < 0x20 (`\x1b` renders textually)
+- `jam/cast/chars.md` — new `## tokens` section, 45 rows (csiIntroducer `U+001B[`+fromUTF8, special with U+0060 backtick); `tok.md`/`tokens.md`/`files: operators` artifacts deleted
+- `jam/cast/template.cast` — chars block rebuilt with ARCHITECT-authored `:::wchar:::`/`:::char:::` slots; baked `special` removed
+- `jam/cast/CAST.md` — chars block rebound (wchar/char/mapEntry), @jam_Operators/@jam_Tok/@tok rows removed
+- Call sites (9 files): jam_XML.h, jam_Html.h, jam_Css.h, jam_MarkdownDocument.h, jam_MarkdownWriter.h, jam_MarkdownSyntax.h, jam_SettingsModel.cpp, jam_TerminalGraphicsEngine.h, jam_MermaidDiagram.h — `Id::*Operators::` → ratified `Chars::` names; single-char sites migrated to Chars wchar API (`charToString`, direct compares)
+- `cast/Source/Model.h:285-339` — format transform applies before backtick toLiteral for literal cells (isLiteral out-param); alias path order preserved
+
+### Alignment Check
+- [x] BLESSED principles followed (SSOT: 115 duplicated/dead members → 45 value-unique; L: live-only sweep; E: control bytes explicit)
+- [x] NAMES.md adhered — all new names ARCHITECT-ratified (doubleDash family, chevron pair, markupCommentOpen, processingOpen/Close, doublePercent, Tok→fold)
+- [x] MANIFESTO.md principles applied
+- [ ] Auditor sweep not run — sprint logged on ARCHITECT command; sweep outstanding
+
+### Problems Solved
+- Value-unique flat lexicon law: shared-value tokens get glyph names when semantics diverge (`doubleDashChevronRight`), semantic names when they coincide (`markupCommentOpen`); singles live in Chars wchars; char-set `operators` members deleted (LookupTables own byte classes)
+- `Tokens` name collision with `jam::Document::Tokens` alias caught at compile → `Tok` → ARCHITECT folded Tok into Chars entirely; dual expansion slots (`:::wchar:::`/`:::char:::`) named after their fragments (mapEntry precedent)
+- csiIntroducer `"\x1b["` chain: fromUTF8 U+ decode must precede toLiteral quoting (Model.h order swap) + toLiteral control-byte hex branch
+- Dead-audit misses disclosed and corrected: generated/ consumers (LookupTables) excluded from first audit — 8 members resurrected; faulty negation-glob grep accepted as clean
+- jam_Identifiers oracle staleness (blockOpen/blockClose compile break) → cast-side interim patch, then oracle re-baseline and patch revert
+- Convergence tally after fold: byte-identical jam_Chars, jam_Identifiers, jam_HashMaps, jam_Text (+ dissolved jam_Tok); whitespace-only jam_Files, jam_Generated; unwired jam_Bimaps, jam_LookupTables, jam_MermaidTables
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None
+
 ## Sprint: jam_Files.h Convergence — jam 6/11 ✅
 
 **Date:** 2026-08-25
