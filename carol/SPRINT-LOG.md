@@ -111,6 +111,49 @@
 
 ## SPRINT HISTORY
 
+## Sprint: MermaidTables Dissolution + MermaidStyleSheet + Bimaps/LookupTables Tables — jam 8-9/9 ✅
+
+**Date:** 2026-08-25
+**Duration:** —
+
+### Agents Participated
+- COUNSELOR — design facilitation (MermaidStyleSheet chain, flat-palette contract, alias-derivation law), plan, per-step validation, ratification routing for every stalled name, three FAILED-call recoveries via SPEC/HELP comprehensive re-read
+- Pathfinder — KANJUT/JFS ancestry inventory (ColourIdMap, "--" dissection, per-type LAF), registration-path verification
+- Engineer ×N dispatches — MermaidStyleSheet oracle + ColourIdMap slim, StyleManager flat rewrite, jam_mermaid sweep, mermaid.css .metrics, template blocks, bimaps.md, lookuptables.md, CAST.md wiring, C4Relations default absorption
+
+### Files Modified (~16 total)
+- `jam/generated/jam_Bimaps.h` — `MermaidStyleSheet : Bimap<int, juce::Identifier>` authored (163 colour ids 0x4300001+ preserved + 86 metric ordinals 0-85, enum in map order); ColourIdMap slimmed by 163 rows; 4 mermaid Bimaps folded in; WindowFX normalized to #if JUCE_MAC / #elif JUCE_WINDOWS shape
+- `jam/generated/jam_LookupTables.h` — 20 mermaid LUTs + 2 using aliases folded in; mermaidShapeCornerRadii keys → MermaidStyleSheet::; mermaidC4Relations default absorbs rows 3-7 (`pack (false, true, false)`, 3 rows remain)
+- `jam/generated/jam_MermaidTables.h` — deleted (generated/ + diff/); MermaidMetric bespoke struct + factors LUT die
+- `jam/generated/jam_Generated.h` — MermaidTables include dropped; `SharedInstance<MermaidStyleSheet> mermaidStyleSheet` added
+- `jam/jam_style/style_manager/jam_StyleManager.h/.cpp` — flat palette: `jam::HashMap<juce::String, int> colourScheme`; `registerColourIds` template seeds it from any Bimap; getColourId flat lookup; deleted getColour(int), colourIdStrings, ColourScheme tree usage, getColourIdString, all "--" dissection (0 copy / 0 shadow / 0 alloc / 0 mutation contract)
+- `jam/jam_style/jam_StyleMermaid.h` — registers MermaidStyleSheet; getFont/getMetrics route through style.getMetrics keyed by MermaidStyleSheet identifiers
+- `jam/resources/mermaid.css` — `.metrics` section, 86 declarations (stateFontSize: 16 base + em factors) — metrics now CSS-customizable
+- `jam/jam_mermaid/{jam_MermaidLayout.h,jam_MermaidGraphics.h,jam_MermaidDiagram.h}` + `sandbox/mermaid/Main.cpp` — ~190 `MermaidMetric`/`ColourIdMap::mermaid*` refs swept to `MermaidStyleSheet::`; getC4LabelStackHeight moved public
+- `jam/cast/template.cast` — 8 blocks added: bimap, bimapEntry, identifierEntry, enumEntry, nameEntry, lookupTable, lookupTableDefault, windowFX (baked platform-macro wrapper)
+- `jam/cast/bimaps.md` — new: 97 sections, 4333 rows; `name | key` (70 self-named) or `name | key | value`; `## windowFX mac` / `## windowFX windows` split resolves platform key duplicate
+- `jam/cast/lookuptables.md` — new: 953 lines; file-local `## index` (129 aliases — every expression/repeated symbol declared once) + 34 `key | value` sections; zero §5.3 duplicates, alias usage == index set, verified programmatically
+- `jam/cast/CAST.md` — @bimaps/@lookuptables index rows; 96 bimap + 34 LUT row-groups wired (HashMaps model); @jam_MermaidTables output removed
+
+### Alignment Check
+- [x] BLESSED principles followed (SSOT: one CSS chain mermaid.css → MermaidStyleSheet → StyleMermaid; factors-LUT shadow state dies; S/E: StyleManager domain-ignorant flat palette, single lookup)
+- [x] NAMES.md adhered — every new name ARCHITECT-ratified (MermaidStyleSheet, registerColourIds, nameEntry, windowFX sections, alias-derivation rule, NodeShape/Decoration suffix schemes, @red/@week/@hour/@month/@year/@hourInDays/@titleCase, C4Type-member stereotype aliases)
+- [x] MANIFESTO.md principles applied — no engine change, no spec change, no new semantics: all table tension resolved spec-native via file-local `## index` (languageFamily precedent)
+- [ ] Auditor sweep not run — sprint logged on ARCHITECT command; sweep outstanding
+- [ ] Fixpoint run pending — ARCHITECT gate: build, `./cast jam/cast/CAST.md`, diff jam/diff/ vs jam/generated/
+
+### Problems Solved
+- Per-type organization law enforced: jam_MermaidTables' 4 Bimaps → jam_Bimaps.h, 20 LUTs → jam_LookupTables.h; MermaidMetric bespoke struct replaced by CSS-driven MermaidStyleSheet
+- StyleManager two-map smell → single flat palette after KANJUT/JFS ancestry check; per-type LAF preserved by per-component LAF instances + `.style` sections; "--" prefix stays CssDocument-internal
+- Three FAILED calls (engine-accommodate suggestion, C++ leaked into cells, invented column semantics) → comprehensive SPEC/HELP re-read → spec-native rewrite: table is data, expressions live once in `## index`, aliases derived from existing member names only
+- Alias collisions resolved by ratified suffix schemes: NodeShape tables (Shape/Mindmap/Geometry/Padding), Decoration (crowsFoot pairs); intra-table doubleCircle disambiguated by key member; 22 unresolvable rows deliberately left literal (safe — no intra-table duplication), zero names invented by agents
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None
+
 ## Sprint: Token Lexicon Fold into Chars — jam 7/10 ✅
 
 **Date:** 2026-08-25
