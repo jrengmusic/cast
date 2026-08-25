@@ -111,6 +111,38 @@
 
 ## SPRINT HISTORY
 
+## Sprint: jam_Files.h Convergence — jam 6/11 ✅
+
+**Date:** 2026-08-25
+**Duration:** —
+
+### Agents Participated
+- COUNSELOR: pipeline read (manifest, template.cast, engine read path, oracle, converged siblings), wiring design iterations with ARCHITECT, per-step validation, diff analysis
+- Engineer: files.md rewrite to current spec; `line` block + manifest wiring + jam_Extensions cleanup
+
+### Files Modified (5 total)
+- `jam/cast/files.md` — rewritten to canon: `## index` alias|symbol (format column dropped); `## extensions` name|value, values backticked (30 rows, template:char has no type token); `## files` type|name|format|value|format (54 rows, @string/toCamel/toLiteral — type column restored after COUNSELOR wrongly dropped it; template:identifier carries `:::type:::`)
+- `jam/cast/CAST.md` — `@files` index alias added; `@jam_Extensions` alias + output row deleted; `@jam_Files` rewired as TWO `template:line` rows (row 1: `- line: template:struct` / Extensions / `@files:extensions` via template:char; row 2: `- line: template:namespace` / files / `@files:files` via template:identifier), both `separator | template:linebreak`
+- `jam/cast/template.cast` — new `line` pass-through block, body exactly `:::line:::` (ARCHITECT-authored design)
+- `jam/generated/jam_Extensions.h` — DELETED (empty shell after ARCHITECT merged Extensions into jam_Files.h oracle)
+- `jam/diff/jam_Extensions.h` — DELETED
+
+### Alignment Check
+- [x] BLESSED principles followed
+- [x] NAMES.md adhered (`line` block name ARCHITECT-authored; zero improvised names)
+- [x] MANIFESTO.md principles applied (SSOT: no baked frames — generic struct/namespace blocks reused through the wrapper)
+
+### Problems Solved
+- **struct-above-namespace + `//===` expression**: unreachable through the `:::files:::` slot (no divergence → no join). ARCHITECT's design: `template:line` pass-through wrapper — each row renders its whole construct into the shared `line` token, merge law joins diverging rows with `\n\n//===\n\n` (jam_HashMaps law, Shapes.h:500-519). Fully generic, zero engine change.
+- **COUNSELOR violation, corrected**: instructed dropping the `type` column from `## files`; template:identifier resolves `:::type:::` from the source row's type column (Items.h:121-124). Restored same sprint.
+- **Result**: jam_Files.h byte-compile-identical — 30 Extensions members + 54 files entries, identical token streams. Residuals whitespace-only: (1) files entries indent 4 vs oracle 0 (nested-namespace recursion adds a level, Shapes.h:128 — ARCHITECT ruling pending), (2) padding law vs unpadded oracle, (3) oracle clang-format wraps. Oracle re-baseline pending ARCHITECT.
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None
+
 ## Handoff to COUNSELOR: Engine Deleted and Rewritten — Minimal jam_Generated.h Case
 
 **From:** COUNSELOR

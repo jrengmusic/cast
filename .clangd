@@ -1,41 +1,14 @@
 CompileFlags:
-  CompilationDatabase: /Users/jreng/Documents/Poems/dev/cast/Builds/Ninja/Debug/
-  Remove:
-    - -arch
-    - -mmacosx-version-min*
+  CompilationDatabase: /Users/jreng/Documents/Poems/dev/cast
+  Remove: [--target=*]
   Add:
-    - --target=arm64-apple-darwin
-    - -I/Users/jreng/Documents/Poems/dev/cast/../jam/jam_clap
-    - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Ninja/Debug/cast_App_artefacts/JuceLibraryCode
-    - -I/Users/jreng/Documents/Poems/dev/cast/Source
-    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules/juce_graphics/fonts/harfbuzz
-    - -I/Users/jreng/Documents/Poems/dev/cast/../jam/jam_freetype/freetype/include
-    - -I/Users/jreng/Documents/Poems/dev/cast/../jam
-    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules
-    - -I/Users/jreng/Documents/Poems/dev/cast/../jam/jam_style/.
-    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules/juce_audio_processors_headless/format_types/VST3_SDK
-    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules/juce_audio_processors_headless/format_types/LV2_SDK
-    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules/juce_audio_processors_headless/format_types/LV2_SDK/lv2
-    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules/juce_audio_processors_headless/format_types/LV2_SDK/serd
-    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules/juce_audio_processors_headless/format_types/LV2_SDK/sord
-    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules/juce_audio_processors_headless/format_types/LV2_SDK/sord/src
-    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules/juce_audio_processors_headless/format_types/LV2_SDK/sratom
-    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules/juce_audio_processors_headless/format_types/LV2_SDK/lilv
-    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules/juce_audio_processors_headless/format_types/LV2_SDK/lilv/src
-    - -I/Users/jreng/Documents/Poems/dev/cast/../jam/jam_web/.
-    - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Ninja/Debug/juce_binarydata_jam_graphics_FontData/JuceLibraryCode
-    - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Ninja/Debug/juce_binarydata_jam_vulkan_ShaderData/JuceLibraryCode
-    - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Ninja/Debug/juce_binarydata_cast_BinaryData/JuceLibraryCode
-    - -DCAST_COMMIT=
+    - -DCAST_COMMIT=\"c58c889\"
     - -DDEBUG=1
     - -DDONT_SET_USING_JUCE_NAMESPACE=1
-    - -DJUCE_APPLICATION_NAME_STRING=
-    - -DJUCE_APPLICATION_VERSION_STRING=
+    - -DJUCE_APPLICATION_NAME_STRING=\"cast\"
+    - -DJUCE_APPLICATION_VERSION_STRING=\"0.1.0\"
     - -DJUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1
     - -DJUCE_IN_APP_PURCHASES=0
-    - -DJUCE_IOS=0
-    - -DJUCE_LINUX=0
-    - -DJUCE_MAC=1
     - -DJUCE_MODULE_AVAILABLE_jam_animation=1
     - -DJUCE_MODULE_AVAILABLE_jam_audio_devices=1
     - -DJUCE_MODULE_AVAILABLE_jam_clap=1
@@ -68,22 +41,42 @@ CompileFlags:
     - -DJUCE_MODULE_AVAILABLE_juce_gui_extra=1
     - -DJUCE_STANDALONE_APPLICATION=1
     - -DJUCE_TARGET_HAS_BINARY_DATA=1
-    - -DJUCE_WINDOWS=0
-    - -DTARGET_OS_IPHONE=0
     - -DVMA_VULKAN_VERSION=1002000
     - -D_DEBUG=1
-    - -D__APPLE__=1
-    - -Wno-deprecated-declarations
+    - -I/Users/jreng/Documents/Poems/dev/cast/../jam/jam_clap
+    - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Ninja/Debug/cast_App_artefacts/JuceLibraryCode
+    - -I/Users/jreng/Documents/Poems/dev/cast/Source
+    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules/juce_graphics/fonts/harfbuzz
+    - -I/Users/jreng/Documents/Poems/dev/cast/../jam/jam_freetype/freetype/include
+    - -I/Users/jreng/Documents/Poems/dev/cast/../jam
+    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules
+    - -I/Users/jreng/Documents/Poems/dev/cast/../jam/jam_style/.
+    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules/juce_audio_processors_headless/format_types/VST3_SDK
+    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules/juce_audio_processors_headless/format_types/LV2_SDK
+    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules/juce_audio_processors_headless/format_types/LV2_SDK/lv2
+    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules/juce_audio_processors_headless/format_types/LV2_SDK/serd
+    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules/juce_audio_processors_headless/format_types/LV2_SDK/sord
+    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules/juce_audio_processors_headless/format_types/LV2_SDK/sord/src
+    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules/juce_audio_processors_headless/format_types/LV2_SDK/sratom
+    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules/juce_audio_processors_headless/format_types/LV2_SDK/lilv
+    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules/juce_audio_processors_headless/format_types/LV2_SDK/lilv/src
+    - -I/Users/jreng/Documents/Poems/dev/cast/../jam/jam_web/.
+    - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Ninja/Debug/juce_binarydata_jam_graphics_FontData/JuceLibraryCode
+    - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Ninja/Debug/juce_binarydata_jam_vulkan_ShaderData/JuceLibraryCode
+    - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Ninja/Debug/juce_binarydata_cast_BinaryData/JuceLibraryCode
+    - -isystem
+    - /Users/jreng/Documents/Poems/dev/../Vulkan/macOS/include
+    - -g
+    - -std=c++17
+    - -arch
+    - arm64
+    - -mmacosx-version-min=11.0
+    - -Wno-float-equal
+    - -Wno-sign-conversion
+    - -Wno-implicit-float-conversion
+    - -Wno-switch-enum
+    - -Wno-shadow
     - -Wno-unused-parameter
-
-Index:
-  Background: Build
-
 Diagnostics:
-  UnusedIncludes: None
   MissingIncludes: None
-
-InlayHints:
-  Enabled: Yes
-  ParameterNames: Yes
-  DeducedTypes: Yes
+  UnusedIncludes: None
