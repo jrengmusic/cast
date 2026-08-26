@@ -234,7 +234,7 @@ struct Shapes
             const auto shapeId { juce::Identifier (model.getStructure (source)) };
             replacements[Id::list].add (
                 getShape (model, templateDocument, tables, row, shapeId, source, depth, extension));
-            listDepths.add (0);
+            listDepths.add (depth - 1);
         }
     }
 
@@ -252,10 +252,12 @@ struct Shapes
 
         const auto indent { juce::String::repeatedString (
             juce::String::charToString (Chars::space), indentWidth * listDepths.at (index)) };
+        jam::Strings indentedLines;
 
-        return indent
-               + jam::Strings::fromLines (value).joinIntoString (
-                     juce::String::charToString (Chars::newline) + indent, 0, -1);
+        for (const auto& line : jam::Strings::fromLines (value))
+            indentedLines.add (line.isNotEmpty() ? indent + line : line);
+
+        return indentedLines.joinIntoString (juce::String::charToString (Chars::newline), 0, -1);
     }
 
     static juce::String getTokenValue (const Model& model,
