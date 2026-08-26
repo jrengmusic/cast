@@ -4,270 +4,84 @@
 #include "Model.h"
 #include "TemplateDocument.h"
 
-/**
- * @struct Shapes
- * @brief Static utility that expands a manifest row's structure into
- *        rendered text by walking the row's wiring depth by depth and
- *        substituting each depth's shape against a Model and a
- *        TemplateDocument.
- *
- * Shapes owns no state of its own and derives from neither Model nor
- * TemplateDocument -- every member is a pure function of the arguments it
- * is called with, operating on a Model's rows and a TemplateDocument's code
- * blocks through their public API.
- */
 struct Shapes
 {
     using Element = Model::Element;
-    using Replacements = jam::HashMap<juce::Identifier, jam::Array<juce::String>>;
-    using Sources = jam::Array<Element*>;
 
-    /** Column width of one level of shape-expansion indentation. */
     static constexpr int indentWidth { 4 };
 
-    static Element* getScopeAtDepth (const Model& model, Element& cellRoot, int depth)
+    static int getArity (const TemplateDocument& templateDocument, Element& line)
     {
-        auto* scope { &cellRoot };
+        const juce::Identifier shapeId { *line.get<juce::String> (Id::templatePath) };
+        const auto& tokens { *templateDocument.getCodeBlock (shapeId)
+                                   ->get<jam::Document::Identifiers> (Id::placeholder) };
 
-        for (int hop { 0 }; hop < depth and scope != nullptr; ++hop)
-            scope = model.getBlockquote (*scope);
-
-        return scope;
+        return static_cast<int> (std::count (tokens.begin(), tokens.end(), Id::list));
     }
 
-    static Element* getListLine (const Model& model, Element& cellRoot, int depth, int ordinal)
+    static Element*
+    getLineAfter (const Model& model, const TemplateDocument& templateDocument, Element& line)
     {
-        auto* scope { getScopeAtDepth (model, cellRoot, depth) };
-        auto* list { scope != nullptr ? model.getList (*scope) : nullptr };
-        auto index { 0 };
+        auto* cursor { model.getNextLine (line) };
 
-        if (list != nullptr)
-            for (auto* item : *list)
-                if (item->id == Id::list)
+        if (line.isTag (Id::p))
+            for (int occurrence { 0 }; occurrence < getArity (templateDocument, line); ++occurrence)
+                cursor = getLineAfter (model, templateDocument, *cursor);
+
+        return cursor;
+    }
+
+    static Element* getSourceLine (const Model& model, const TemplateDocument& templateDocument,
+        Element& line, int occurrence)
+    {
+        auto* cursor { model.getNextLine (line) };
+
+        for (int index { 0 }; index < occurrence; ++index)
+            cursor = getLineAfter (model, templateDocument, *cursor);
+
+        return cursor;
+    }
+
+    static Element* getFirstLine (const Model& model, Element& row)
+    {
+        Element* line { nullptr };
+
+        model.getTableCell (row, Id::structure)
+            ->applyFunctionRecursively (
+                [&line] (const Element& candidate) -> bool
                 {
-                    if (index == ordinal)
-                        return item;
+                    if (line == nullptr and candidate.contains (Id::shape)
+                        and *candidate.get<int> (Id::shape) == 0
+                        and (candidate.isTag (Id::p) or candidate.id == Id::list))
+                        line = const_cast<Element*> (&candidate);
 
-                    ++index;
-                }
+                    return line == nullptr;
+                });
+
+        return line;
+    }
+
+    static Element* getCommentTable (const Model& model, const TemplateDocument& templateDocument,
+        Element& row, Element& line)
+    {
+        if (not line.isTag (Id::p))
+            return model.getTable (row,
+                *model.getSource (row, *line.get<int> (Id::level), *line.get<int> (Id::line))
+                     ->get<juce::String> (Id::value));
+
+        for (int occurrence { 0 }; occurrence < getArity (templateDocument, line); ++occurrence)
+            if (auto* candidate { getCommentTable (
+                    model, templateDocument, row, *getSourceLine (model, templateDocument, line, occurrence)) })
+                return candidate;
 
         return nullptr;
     }
 
-    static void addListSources (Sources& sources,
-                                jam::Array<int>& sourceDepths,
-                                jam::Array<int>& sourceOrdinals,
-                                Replacements& bindings,
-                                jam::HashMap<int, int>& ordinals,
-                                Element& list,
-                                int depth)
+    static juce::String getTokenValue (const Model& model, const TemplateDocument& templateDocument,
+        Element& row, Element& line, Element* commentTable, const juce::Identifier& name)
     {
-        for (auto* item : list)
-            if (item->id == Id::list)
-            {
-                sources.add (item);
-                sourceDepths.add (depth);
-                sourceOrdinals.add (ordinals[depth]++);
-            }
-            else
-                bindings[item->id].add (*item->get<juce::String> (Id::value));
-    }
-
-    static void addSources (Sources& sources,
-                            jam::Array<int>& sourceDepths,
-                            jam::Array<int>& sourceOrdinals,
-                            Replacements& bindings,
-                            jam::HashMap<int, int>& ordinals,
-                            const Model& model,
-                            Element& scope,
-                            int depth)
-    {
-        for (auto* child : scope)
-        {
-            if (child->isTag (Id::ul))
-                addListSources (
-                    sources, sourceDepths, sourceOrdinals, bindings, ordinals, *child, depth);
-
-            if (child->isTag (Id::blockquote))
-            {
-                if (model.getStructure (*child).isNotEmpty())
-                {
-                    sources.add (child);
-                    sourceDepths.add (depth + 1);
-                    sourceOrdinals.add (0);
-                }
-                else
-                    addSources (sources, sourceDepths, sourceOrdinals, bindings, ordinals, model,
-                        *child, depth + 1);
-            }
-        }
-    }
-
-    static juce::String getJoin (const Model& model,
-                                 const TemplateDocument& templateDocument,
-                                 Element& row,
-                                 Element* separatorItem)
-    {
-        juce::String join;
-
-        if (separatorItem != nullptr)
-            join = templateDocument.getBinding (
-                model, row, *separatorItem->get<juce::String> (Id::value));
-
-        return join.isNotEmpty() ? join : juce::String::charToString (Chars::newline);
-    }
-
-    static juce::String getChildSource (const Model& model, Element& row, int depth)
-    {
-        auto* childItem { getListLine (model, *model.getTableCell (row, Id::list), depth + 1, 0) };
-
-        return childItem != nullptr ? *childItem->get<juce::String> (Id::value) : juce::String();
-    }
-
-    static juce::String getChildJoin (const Model& model,
-                                      const TemplateDocument& templateDocument,
-                                      Element& row,
-                                      int depth)
-    {
-        auto* separatorItem {
-            getListLine (model, *model.getTableCell (row, Id::separator), depth + 1, 0)
-        };
-
-        return getJoin (model, templateDocument, row, separatorItem);
-    }
-
-    static juce::String getListSourceValue (Element*& commentTable,
-                                            const Model& model,
-                                            const TemplateDocument& templateDocument,
-                                            const jam::Array<Element*>& tables,
-                                            Element& row,
-                                            const juce::String& structureValue,
-                                            int depth,
-                                            int ordinal,
-                                            const juce::String& extension)
-    {
-        const auto shapeId { juce::Identifier (jam::Format::getPostColon (structureValue).trim()) };
-        auto* listItem { getListLine (model, *model.getTableCell (row, Id::list), depth, ordinal) };
-        auto* separatorItem {
-            getListLine (model, *model.getTableCell (row, Id::separator), depth, ordinal)
-        };
-        const auto& source { *listItem->get<juce::String> (Id::value) };
-        const auto join { getJoin (model, templateDocument, row, separatorItem) };
-        const auto childSource { getChildSource (model, row, depth) };
-        const auto childJoin { getChildJoin (model, templateDocument, row, depth) };
-
-        if (commentTable == nullptr and source.startsWithChar (Chars::at))
-            commentTable = model.getTable (row, source);
-
-        return Items::getJoinedItems (model, templateDocument, tables, row, source, shapeId, join,
-            childSource, childJoin, extension);
-    }
-
-    static juce::String getShape (const Model& model,
-                                  const TemplateDocument& templateDocument,
-                                  const jam::Array<Element*>& tables,
-                                  Element& row,
-                                  const juce::Identifier& shapeId,
-                                  Element& structureScope,
-                                  int depth,
-                                  const juce::String& extension)
-    {
-        const auto& tokens { *templateDocument.getCodeBlock (shapeId)
-                                   ->get<jam::Document::Identifiers> (Id::placeholder) };
-        jam::Array<int> listDepths;
-        Element* commentTable { nullptr };
-        Replacements replacements;
-        addReplacements (listDepths, commentTable, replacements, model, templateDocument,
-            tables, row, structureScope, depth, extension);
-        return getLines (model, row, commentTable, templateDocument, shapeId, tokens, replacements,
-            listDepths, extension);
-    }
-
-    static void addReplacements (jam::Array<int>& listDepths,
-                                 Element*& commentTable,
-                                 Replacements& replacements,
-                                 const Model& model,
-                                 const TemplateDocument& templateDocument,
-                                 const jam::Array<Element*>& tables,
-                                 Element& row,
-                                 Element& structureScope,
-                                 int depth,
-                                 const juce::String& extension)
-    {
-        Sources sources;
-        jam::Array<int> sourceDepths;
-        jam::Array<int> sourceOrdinals;
-        jam::HashMap<int, int> ordinals;
-        Replacements bindings;
-
-        addSources (sources, sourceDepths, sourceOrdinals, bindings, ordinals, model, structureScope, depth);
-
-        for (const auto& [name, values] : bindings)
-            replacements[name].add (templateDocument.getBinding (model, row, values.at (0)));
-
-        for (int index { 0 }; index < sources.size(); ++index)
-            addSourceReplacement (replacements, listDepths, commentTable, model, templateDocument,
-                tables, row, *sources.at (index), sourceDepths.at (index), sourceOrdinals.at (index),
-                extension);
-    }
-
-    static void addSourceReplacement (Replacements& replacements,
-                                      jam::Array<int>& listDepths,
-                                      Element*& commentTable,
-                                      const Model& model,
-                                      const TemplateDocument& templateDocument,
-                                      const jam::Array<Element*>& tables,
-                                      Element& row,
-                                      Element& source,
-                                      int depth,
-                                      int ordinal,
-                                      const juce::String& extension)
-    {
-        if (source.id == Id::list)
-        {
-            replacements[Id::list].add (getListSourceValue (commentTable, model, templateDocument,
-                tables, row, *source.get<juce::String> (Id::value), depth, ordinal, extension));
-            listDepths.add (depth);
-        }
-        else
-        {
-            const auto shapeId { juce::Identifier (model.getStructure (source)) };
-            replacements[Id::list].add (
-                getShape (model, templateDocument, tables, row, shapeId, source, depth, extension));
-            listDepths.add (depth - 1);
-        }
-    }
-
-    static juce::String getListValue (const Replacements& replacements,
-                                      const jam::Array<int>& listDepths,
-                                      int occurrenceIndex,
-                                      bool isAtColumnZero)
-    {
-        const auto& values { replacements.at (Id::list) };
-        const auto index { std::min (occurrenceIndex, values.size() - 1) };
-        const auto& value { values.at (index) };
-
-        if (not isAtColumnZero or listDepths.at (index) == 0)
-            return value;
-
-        const auto indent { juce::String::repeatedString (
-            juce::String::charToString (Chars::space), indentWidth * listDepths.at (index)) };
-        jam::Strings indentedLines;
-
-        for (const auto& line : jam::Strings::fromLines (value))
-            indentedLines.add (line.isNotEmpty() ? indent + line : line);
-
-        return indentedLines.joinIntoString (juce::String::charToString (Chars::newline), 0, -1);
-    }
-
-    static juce::String getTokenValue (const Model& model,
-                                       Element& row,
-                                       Element* commentTable,
-                                       const Replacements& replacements,
-                                       const juce::Identifier& name)
-    {
-        if (replacements.contains (name))
-            return replacements.at (name).at (0);
+        if (auto* binding { model.getBinding (row, Id::structure, line, name) })
+            return templateDocument.getBinding (model, row, *binding->get<juce::String> (Id::value));
 
         if (auto* cell { model.getTableCell (row, name) })
             return *cell->get<juce::String> (Id::value);
@@ -279,14 +93,11 @@ struct Shapes
     }
 
     static std::pair<juce::String, bool> getSubstitutedLine (const Model& model,
-                                                              Element& row,
-                                                              Element* commentTable,
-                                                              const jam::Document::Identifiers& tokens,
-                                                              const Replacements& replacements,
-                                                              const jam::Array<int>& listDepths,
-                                                              jam::HashMap<juce::Identifier, int>& occurrence,
-                                                              const juce::String& templateLine,
-                                                              const juce::String& extension)
+        const TemplateDocument& templateDocument, const jam::Array<Element*>& tables,
+        const jam::Array<Element*>& rows, const jam::Array<Element*>& lines, Element* commentTable,
+        const jam::Document::Identifiers& tokens, jam::HashMap<juce::Identifier, int>& occurrence,
+        const juce::String& templateLine, const juce::String& joinText, int parentIndent,
+        const juce::String& extension)
     {
         auto lineText { templateLine };
         auto lineHasPlaceholder { false };
@@ -298,9 +109,10 @@ struct Shapes
                 const auto isAtColumnZero { templateLine.indexOf (Items::getMarker (name)) == 0 };
                 auto& tokenOccurrence { occurrence[name] };
                 auto value { name == Id::list
-                                 ? getListValue (
-                                       replacements, listDepths, tokenOccurrence, isAtColumnZero)
-                                 : getTokenValue (model, row, commentTable, replacements, name) };
+                                 ? getFill (model, templateDocument, tables, rows, lines,
+                                       tokenOccurrence, joinText, parentIndent, isAtColumnZero, extension)
+                                 : getTokenValue (model, templateDocument, *rows.first(), *lines.first(),
+                                       commentTable, name) };
 
                 if (name == Id::comment and value.isNotEmpty())
                     value = templateLine.trim() == Items::getMarker (name)
@@ -314,25 +126,22 @@ struct Shapes
         return { lineText, lineHasPlaceholder };
     }
 
-    static juce::String getLines (const Model& model,
-                                  Element& row,
-                                  Element* commentTable,
-                                  const TemplateDocument& templateDocument,
-                                  const juce::Identifier& shapeId,
-                                  const jam::Document::Identifiers& tokens,
-                                  const Replacements& replacements,
-                                  const jam::Array<int>& listDepths,
-                                  const juce::String& extension)
+    static juce::String getLines (const Model& model, const TemplateDocument& templateDocument,
+        const jam::Array<Element*>& tables, const jam::Array<Element*>& rows,
+        const jam::Array<Element*>& lines, Element* commentTable, const juce::Identifier& shapeId,
+        const jam::Document::Identifiers& tokens, const juce::String& joinText, int parentIndent,
+        const juce::String& extension)
     {
-        jam::Strings lines;
+        jam::Strings textLines;
         auto previousLineIsEmpty { false };
         jam::HashMap<juce::Identifier, int> occurrence;
 
         for (const auto& templateLine : jam::Strings::fromLines (
                  *templateDocument.getCodeBlock (shapeId)->get<juce::String> (Id::value)))
         {
-            const auto [lineText, lineHasPlaceholder] { getSubstitutedLine (model, row, commentTable,
-                tokens, replacements, listDepths, occurrence, templateLine, extension) };
+            const auto [lineText, lineHasPlaceholder] { getSubstitutedLine (model, templateDocument,
+                tables, rows, lines, commentTable, tokens, occurrence, templateLine, joinText,
+                parentIndent, extension) };
             const auto lineIsEmpty { lineHasPlaceholder and lineText.trim().isEmpty() };
 
             if (lineIsEmpty)
@@ -341,110 +150,145 @@ struct Shapes
                 previousLineIsEmpty = false;
             else
             {
-                lines.add (lineText);
+                textLines.add (lineText);
                 previousLineIsEmpty = false;
             }
         }
 
-        return lines.joinIntoString (juce::String::charToString (Chars::newline), 0, -1);
+        return textLines.joinIntoString (juce::String::charToString (Chars::newline), 0, -1);
     }
 
-    /**
-     * @brief Resolves one occurrence's merged value across @p
-     *        occurrenceValues -- the single shared value when every row
-     *        that carries the token agrees, or every row's value joined by
-     *        @p joinText when they diverge.
-     *
-     * @param occurrenceValues Every merged row's own value for the same
-     *                         token occurrence.
-     * @param joinText         The text joining diverging rows' values.
-     * @returns The occurrence's merged value.
-     */
-    static juce::String getMergedOccurrenceValue (const jam::Strings& occurrenceValues,
-                                                  const juce::String& joinText)
+    static juce::String getFill (const Model& model, const TemplateDocument& templateDocument,
+        const jam::Array<Element*>& tables, const jam::Array<Element*>& rows,
+        const jam::Array<Element*>& lines, int occurrence, const juce::String& joinText,
+        int parentIndent, bool isAtColumnZero, const juce::String& extension)
     {
-        return std::all_of (occurrenceValues.begin(), occurrenceValues.end(),
-                   [&occurrenceValues] (const juce::String& value)
-                   { return value == occurrenceValues.at (0); })
-                   ? occurrenceValues.at (0)
-                   : occurrenceValues.joinIntoString (joinText, 0, -1);
-    }
+        jam::Array<Element*> sourceLines;
 
-    /**
-     * @brief Fills @p mergedReplacements with every one of @p tokens
-     *        mapped to its merged occurrence values, merging every row's
-     *        own Replacements in @p rowReplacements through
-     *        getMergedOccurrenceValue().
-     *
-     * @param mergedReplacements Filled with every one of @p tokens mapped
-     *                           to its merged occurrence values.
-     * @param rowReplacements    Every row's own Replacements, one per
-     *                           merged row.
-     * @param tokens             The shape's distinct placeholder names.
-     * @param joinText           The text joining diverging rows' values.
-     */
-    static void addMergedReplacements (Replacements& mergedReplacements,
-                                       const jam::Array<Replacements>& rowReplacements,
-                                       const jam::Document::Identifiers& tokens,
-                                       const juce::String& joinText)
-    {
-        jam::HashMap<juce::Identifier, jam::Array<jam::Strings>> occurrenceValues;
+        for (auto* structureLine : lines)
+            sourceLines.add (getSourceLine (model, templateDocument, *structureLine, occurrence));
 
-        for (const auto& rowReplacement : rowReplacements)
-            for (const auto& [name, values] : rowReplacement)
-                for (int occurrence { 0 }; occurrence < values.size(); ++occurrence)
-                {
-                    if (occurrenceValues[name].size() <= occurrence)
-                        occurrenceValues[name].resize (occurrence + 1);
+        juce::String text;
 
-                    occurrenceValues[name].at (occurrence).add (values.at (occurrence));
-                }
-
-        for (const auto& name : tokens)
-            for (const auto& occurrenceValue : occurrenceValues[name])
-                mergedReplacements[name].add (getMergedOccurrenceValue (occurrenceValue, joinText));
-    }
-
-    static juce::String getShape (const Model& model,
-                                  const TemplateDocument& templateDocument,
-                                  const jam::Array<Element*>& tables,
-                                  const jam::Array<Element*>& rows,
-                                  const juce::String& joinText)
-    {
-        jassert (rows.size() > 0);
-
-        auto* firstRow { rows.first() };
-        auto& firstStructureScope { *model.getTableCell (*firstRow, Id::structure) };
-        const auto shapeId { juce::Identifier (model.getStructure (firstStructureScope)) };
-        const auto& tokens { *templateDocument.getCodeBlock (shapeId)
-                                   ->get<jam::Document::Identifiers> (Id::placeholder) };
-
-        const auto extension { jam::Format::onlyExtensionFromFilename (
-            jam::Format::toFileName (model.getValue (*firstRow, Id::file))) };
-
-        jam::Array<Replacements> rowReplacements;
-        jam::Array<int> listDepths;
-        Element* commentTable { nullptr };
-
-        for (auto* row : rows)
+        if (sourceLines.first()->isTag (Id::p))
         {
-            jam::Array<int> rowListDepths;
-            Element* rowCommentTable { nullptr };
-            rowReplacements.add ({});
-            addReplacements (rowListDepths, rowCommentTable, rowReplacements.last(), model,
-                templateDocument, tables, *row, *model.getTableCell (*row, Id::structure), 0, extension);
+            text = getShape (model, templateDocument, tables, rows, sourceLines, joinText,
+                *sourceLines.first()->get<int> (Id::level) * indentWidth, extension);
+        }
+        else
+        {
+            jam::Strings itemTexts;
 
-            if (row == firstRow)
+            for (int index { 0 }; index < rows.size(); ++index)
             {
-                listDepths = std::move (rowListDepths);
-                commentTable = rowCommentTable;
+                auto& row { *rows.at (index) };
+                auto& sourceLine { *sourceLines.at (index) };
+                const auto indent { *sourceLine.get<int> (Id::level) };
+                const auto ordinal { *sourceLine.get<int> (Id::line) };
+                const auto sourceValue {
+                    *model.getSource (row, indent, ordinal)->get<juce::String> (Id::value)
+                };
+                const auto shapeId { juce::Identifier (*sourceLine.get<juce::String> (Id::templatePath)) };
+                auto* separatorLine { model.getSeparator (row, indent, ordinal) };
+                const auto join { separatorLine != nullptr
+                                       ? templateDocument.getBinding (
+                                             model, row, *separatorLine->get<juce::String> (Id::value))
+                                       : juce::String::charToString (Chars::newline) };
+                auto* childSourceLine { model.getSource (row, indent + 1, 0) };
+                const auto childSource { childSourceLine != nullptr
+                                              ? *childSourceLine->get<juce::String> (Id::value)
+                                              : juce::String() };
+                auto* childSeparatorLine { model.getSeparator (row, indent + 1, 0) };
+                const auto childJoin { childSeparatorLine != nullptr
+                                            ? templateDocument.getBinding (model, row,
+                                                  *childSeparatorLine->get<juce::String> (Id::value))
+                                            : juce::String() };
+                const auto itemText { Items::getJoinedItems (model, templateDocument, tables, row,
+                    sourceValue, shapeId, join, childSource, childJoin, extension) };
+
+                if (not itemTexts.contains (itemText, false))
+                    itemTexts.add (itemText);
+            }
+
+            text = itemTexts.joinIntoString (joinText, 0, -1);
+        }
+
+        if (isAtColumnZero)
+        {
+            const auto indent { *sourceLines.first()->get<int> (Id::level) * indentWidth - parentIndent };
+
+            if (indent != 0)
+            {
+                const auto prefix { juce::String::repeatedString (
+                    juce::String::charToString (Chars::space), indent) };
+                jam::Strings prefixedLines;
+
+                for (const auto& textLine : jam::Strings::fromLines (text))
+                    prefixedLines.add (textLine.isNotEmpty() ? prefix + textLine : textLine);
+
+                text = prefixedLines.joinIntoString (juce::String::charToString (Chars::newline), 0, -1);
             }
         }
 
-        Replacements mergedReplacements;
-        addMergedReplacements (mergedReplacements, rowReplacements, tokens, joinText);
+        return text;
+    }
 
-        return getLines (model, *firstRow, commentTable, templateDocument, shapeId, tokens,
-            mergedReplacements, listDepths, extension);
+    static juce::String getShape (const Model& model, const TemplateDocument& templateDocument,
+        const jam::Array<Element*>& tables, const jam::Array<Element*>& rows,
+        const jam::Array<Element*>& lines, const juce::String& joinText, int parentIndent,
+        const juce::String& extension)
+    {
+        jam::Strings keys;
+
+        for (int index { 0 }; index < rows.size(); ++index)
+        {
+            auto& row { *rows.at (index) };
+            auto& line { *lines.at (index) };
+            auto* commentTable { getCommentTable (model, templateDocument, row, line) };
+            const auto shapeId { juce::Identifier (*line.get<juce::String> (Id::templatePath)) };
+            const auto& tokens { *templateDocument.getCodeBlock (shapeId)
+                                       ->get<jam::Document::Identifiers> (Id::placeholder) };
+            jam::Strings key;
+            key.add (shapeId.toString());
+
+            for (const auto& name : tokens)
+                if (name != Id::list)
+                    key.add (getTokenValue (model, templateDocument, row, line, commentTable, name));
+
+            keys.add (key.joinIntoString (juce::String::charToString (Chars::newline), 0, -1));
+        }
+
+        jam::Strings groupTexts;
+        jam::Strings seenKeys;
+
+        for (int index { 0 }; index < rows.size(); ++index)
+            if (not seenKeys.contains (keys.at (index), true))
+            {
+                seenKeys.add (keys.at (index));
+
+                jam::Array<Element*> groupRows;
+                jam::Array<Element*> groupLines;
+
+                for (int candidate { 0 }; candidate < rows.size(); ++candidate)
+                    if (keys.at (candidate) == keys.at (index))
+                    {
+                        groupRows.add (rows.at (candidate));
+                        groupLines.add (lines.at (candidate));
+                    }
+
+                auto* commentTable {
+                    getCommentTable (model, templateDocument, *groupRows.first(), *groupLines.first())
+                };
+                const auto shapeId {
+                    juce::Identifier (*groupLines.first()->get<juce::String> (Id::templatePath))
+                };
+                const auto& tokens { *templateDocument.getCodeBlock (shapeId)
+                                           ->get<jam::Document::Identifiers> (Id::placeholder) };
+
+                groupTexts.add (getLines (model, templateDocument, tables, groupRows, groupLines,
+                    commentTable, shapeId, tokens, joinText, parentIndent, extension));
+            }
+
+        return groupTexts.joinIntoString (joinText, 0, -1);
     }
 };

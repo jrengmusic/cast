@@ -268,49 +268,54 @@ text, or `template:<id>`, resolved the same way everywhere a bullet value is rea
 
 ### 6.2 Blank Binding
 
-A bullet with a name and **no source** takes the value of the preceding binding at the
-same depth, through `toCamel` (§8):
+A bullet with a name and **no source** takes the value of the preceding binding of the
+same shape, through `toCamel` (§8):
 
 ```
-> - name: Screen
-> - instance:              instance is "screen"
+- name: Screen
+- instance:              instance is "screen"
 
-> - name: WindowFX
-> - instance:              instance is "windowFX"   FX is an abbreviation
+- name: WindowFX
+- instance:              instance is "windowFX"   FX is an abbreviation
 
-> - name: CSI
-> - instance:              instance is "CSI"        wholly an abbreviation
+- name: CSI
+- instance:              instance is "CSI"        wholly an abbreviation
 ```
 
 This is the identifier form of the preceding value — the conventional relationship
 between a type name and an instance name. A blank binding at the first position of its
-depth has no predecessor and its value is empty.
+shape has no predecessor and its value is empty.
 
 A blank binding is also a **selector**: a row that declares it is a row that
 participates wherever that binding's name is used as a source (§6.5).
 
 ### 6.3 Structure
 
-A head line is `template:<id>` — a shape. The depth-0 head is the row's own shape; a
-nested head is a source for the shape that owns it (§6.5).
+The structure column is read top to bottom. Two lines name a shape:
 
-A named bullet binds one token of its depth's shape (§6.1). A `- list:` bullet declares
-an expansion: its value names the shape each item renders through, and its partner in
-the list column names what iterates (§6.5).
+- `template:<id>` — the shape renders once
+- `- list: template:<id>` — the shape renders once per item of the line's source (§6.5)
 
-### 6.4 Depth
+Both are **sources**: each fills one `:::list:::` occurrence of the shape above it. The
+first line of the column is the row's own shape.
 
-`> ` count is indentation, and nothing else:
+A named bullet binds one token of the nearest shape line above it (§6.1).
 
-- a `- list:` line's `>` count is the **absolute** indent of the lines it fills — one
-  tab (four spaces) per `>`, measured from column 0 of the output file
-- a nested head contributes no indent of its own: its shape's lines land where the
-  block authored them, and only its expansions indent, each by its own line's count
-- depth also expresses nesting between expansions: a `- list:` line one deeper than a
-  row expansion runs once per item of that enclosing expansion — the `cells` source
-  (§6.5) reads the enclosing expansion's current row
+### 6.4 Arity
 
-Depth never selects which token a line feeds. Pairing is positional (§6.5).
+A shape's arity is its count of `:::list:::` occurrences (§7). A shape consumes the next
+*arity* source lines, in order; each consumed source consumes its own arity first, so
+nesting is declared by the template and never authored. A shape whose arity does not
+match the sources the column supplies is fatal (§10.1).
+
+`> ` count is indentation, and nothing else: one tab (four spaces) per `>`, the
+**absolute** column — measured from column 0 of the output file — at which that line's
+shape renders. No `>` is column 0. Indentation never selects a token, an owner, or a
+nesting level.
+
+The list and separator columns carry the same `>` count as the structure line they pair
+with, and it is read: a line pairs with the line carrying the same `>` count at the same
+ordinal within that count (§6.5). One symbol, one meaning, in all three columns.
 
 ### 6.5 Expansion and Pairing
 
@@ -321,17 +326,19 @@ takes its value from, in order:
 2. the column of that name — on the manifest row, or, for an item shape, on the source
    row
 3. the table documentation (§5.4), for the name `comment` at shape level
-4. the empty string
 
-Expansion pairs by position:
+A supplier that carries no text renders empty, and a line left empty by its own
+placeholder is elided (§7). A named token that no binding, column, or documentation
+names at all is fatal (§10.1).
 
-- The list column's `- list:` lines pair with the structure column's `- list:` lines
-  by depth and ordinal within that depth. The list column names **what iterates**; the
-  structure line names **the shape** each item renders through.
-- Each shape **owns** the `- list:` structure lines and nested `template:<id>` heads
-  beneath its own head, down to the next head. The shape's `:::list:::` occurrences,
-  in block order, consume those sources in authored order.
-- A separator line pairs with the `- list:` line at its own depth and ordinal (§6.6).
+Expansion pairs by order:
+
+- The list column's `- list:` lines pair with the structure column's `- list:` lines by
+  `>` count and by ordinal within that count (§6.4). The list column names **what
+  iterates**; the structure line names **the shape** each item renders through.
+- A shape consumes the source lines that follow it, bounded by its arity (§6.4). Its
+  `:::list:::` occurrences, in block order, take those sources in the same order.
+- A separator line pairs with the `- list:` line of the same ordinal (§6.6).
 
 A `- list:` source is one of:
 
@@ -342,39 +349,44 @@ A `- list:` source is one of:
   order; `format` columns apply to their bound column (§5.2) and never emit
 
 A list-column line with no structure partner renders its items **verbatim** — the
-datum itself, unshaped. That is the ordinary form for `cells`, whose items are the
-row's own values. A structure `- list:` line or a separator line with no list-column
-partner at its depth and ordinal is fatal (§10.1).
+datum itself, unshaped — and fills the occupied occurrence of the shape it follows.
+That is the ordinary form for `cells`, whose items are the row's own values. A
+structure `- list:` line, or a separator line past the row join, with no list-column
+line of its ordinal is fatal (§10.1).
 
 A shape-level `:::comment:::` (§5.4) falls back to the documentation of the first
-table addressed by the shape's owned expansions, in authored order.
+table addressed by the shape's own sources, in authored order.
 
 Matching the template, the tables and the expression is the author's responsibility.
 The engine reads the expression and generates; its one check is the count: a shape
-whose `:::list:::` occurrences do not match its source count is fatal (§10.1).
+whose arity does not match the sources supplied is fatal (§6.4, §10.1).
 
 ### 6.6 Separator
 
-The separator column carries `- list:` lines mirroring the list column's depths. The
-line at depth D, ordinal K is the join text for the expansion wired at depth D, ordinal
-K. No line, or a blank value, joins by newline. A value resolves like any bullet value
-(§6.1) — `template:<id>` names a block whose text is the join.
+The separator column carries `- list:` lines mirroring the list column's. The line at
+ordinal K is the join text for the expansion wired at ordinal K. No line, or a blank
+value, joins by newline. A value resolves like any bullet value (§6.1) —
+`template:<id>` names a block whose text is the join.
 
-The **depth-0** separator line is the row join: it joins the file group's diverging
-values (§6.7). Its partner is the row group itself — it is exempt from the list-column
-partner requirement (§6.5). There is no other separator mechanism.
+The column's leading `>`-less line is the row join: it joins the diverging values of the
+rows declaring the same `file` (§6.7). Its partner is those rows themselves — it is
+exempt from the list-column partner requirement (§6.5), and the lines after it carry the
+ordinals. There is no other separator mechanism.
 
 ### 6.7 File Merge
 
-Rows declaring the same `file` render as one merged shape — the wrap is emitted once
-per file. Their depth-0 structure is byte-identical by authorship. Merging is
-per-token, per-occurrence: a value byte-identical across the group's rows resolves
-once; values that differ join in authored row order by the group's join text — the
-first row's depth-0 separator line resolved as §6.6, a non-blank separator framed by
-one blank line on each side. A group of one row merges to itself.
+Rows declaring the same `file` render as one. Their first structure line is
+byte-identical by authorship and is emitted once.
+
+Merging is per line. At each structure line, the rows that carry the same value for that
+line emit it once; the rows whose values differ emit each value, in authored row order,
+joined by the row join — the first row's row-join line resolved as §6.6, a non-blank
+separator framed by one blank line on each side. The sources a line consumes (§6.4)
+merge inside that line by the same rule, so merging follows the structure the template
+declares and never crosses it. One row declaring a file merges to itself.
 
 Same-file rows are authored contiguously. A row declaring a file already closed by an
-intervening row of another file is fatal (§10.1) — two groups never write one file.
+intervening row of another file is fatal (§10.1) — one file is written once.
 
 ---
 
@@ -386,11 +398,12 @@ block's id. A shape is named `template:<id>`.
 A block is literal output text and nothing else. Structure only — no conditionals, no
 logic, no formatting.
 
-`:::list:::` is the expansion token. Each occurrence is filled by one expansion — its
-items joined by that expansion's separator (§6.6):
+`:::list:::` is the expansion token. A block's occurrence count is its arity (§6.4);
+each occurrence is filled by one source — its items joined by that source's separator
+(§6.6):
 
 - a marker at **column 0** fills vertically: every line of the join is prefixed by the
-  wiring line's indent (§6.4)
+  source line's indent (§6.4)
 - a marker **inside a line** fills horizontally, in place, unindented
 
 Marker position is the only axis. There is no axis vocabulary and no second mechanism.
@@ -524,9 +537,10 @@ These, and nothing else:
 | index `symbol` cell empty | §4.1 |
 | output row declares no structure | §6.3 |
 | same-file output rows not contiguous | §6.7 |
-| a shape's `:::list:::` occurrences do not match its source count | §6.5 |
-| a structure or separator `- list:` line without its list-column partner, the depth-0 separator line excepted | §6.5, §6.6 |
-| duplicate binding name within one structure scope | §6.4 |
+| a shape's arity does not match the sources supplied | §6.4 |
+| a structure or separator `- list:` line without its list-column line of the same ordinal, the row join excepted | §6.5, §6.6 |
+| duplicate binding name among one shape's bindings | §6.1 |
+| a named token no binding, column, or documentation names | §6.5 |
 | unterminated `:::` marker in a shape block | §7 |
 
 Any check the engine performs that is not in this table is a defect in the engine.
@@ -579,3 +593,10 @@ string that travels downstream and emits blank output.
 The engine implements superseded rules. Each is debt against this document:
 
 - placeholder names truncated at the first colon rather than taken verbatim (§7)
+- a named token with no supplier yielding an empty string rather than failing (§6.5, §10.1)
+- an occurrence index clamped to the last value supplied rather than trusting the arity
+  gate (§6.4, §11.2)
+- merging resolved per token occurrence across every row declaring the file, rather than
+  per line (§6.7)
+- each line's template id, indentation and paired source recomputed at every read rather
+  than stamped once at parse (§11.1)

@@ -117,15 +117,91 @@ public:
     juce::String getStructure (Element& scope) const
     {
         for (auto* block : scope)
-            if (block->isTag (Id::p))
-            {
-                const auto blockText { block->getAllSubText() };
-
-                if (jam::Format::getPreColon (blockText).trim() == Id::templatePath.toString())
-                    return jam::Format::getPostColon (blockText).trim();
-            }
+            if (block->isTag (Id::p) and block->contains (Id::templatePath))
+                return *block->get<juce::String> (Id::templatePath);
 
         return {};
+    }
+
+    Element* getSource (Element& row, int indent, int ordinal) const
+    {
+        Element* item { nullptr };
+
+        getTableCell (row, Id::list)->applyFunctionRecursively (
+            [&item, indent, ordinal] (const Element& candidate) -> bool
+            {
+                if (item == nullptr and candidate.parent->isTag (Id::ul) and candidate.id == Id::list
+                    and *candidate.get<int> (Id::level) == indent
+                    and *candidate.get<int> (Id::line) == ordinal)
+                    item = const_cast<Element*> (&candidate);
+
+                return item == nullptr;
+            });
+
+        return item;
+    }
+
+    Element* getSeparator (Element& row, int indent, int ordinal) const
+    {
+        Element* item { nullptr };
+
+        getTableCell (row, Id::separator)->applyFunctionRecursively (
+            [&item, indent, ordinal] (const Element& candidate) -> bool
+            {
+                if (item == nullptr and candidate.parent->isTag (Id::ul) and candidate.id == Id::list
+                    and *candidate.get<int> (Id::level) == indent
+                    and *candidate.get<int> (Id::line) == ordinal)
+                    item = const_cast<Element*> (&candidate);
+
+                return item == nullptr;
+            });
+
+        return item;
+    }
+
+    Element* getNextLine (Element& line) const
+    {
+        auto* walk { &line };
+        Element* candidate { nullptr };
+
+        while (candidate == nullptr
+               or not (candidate->contains (Id::shape)
+                       and (candidate->isTag (Id::p) or candidate->id == Id::list)))
+        {
+            candidate = walk->firstChild != nullptr ? walk->firstChild : walk->nextSibling;
+
+            while (candidate == nullptr and not isBlockType (*walk, map::BlockType::tableCell))
+            {
+                walk = walk->parent;
+                candidate = walk->nextSibling;
+            }
+
+            if (candidate == nullptr)
+                return nullptr;
+
+            walk = candidate;
+        }
+
+        return candidate;
+    }
+
+    Element* getBinding (Element& row, const juce::Identifier& column, Element& line,
+                         const juce::Identifier& name) const
+    {
+        Element* item { nullptr };
+        const auto ordinal { *line.get<int> (Id::shape) };
+
+        getTableCell (row, column)->applyFunctionRecursively (
+            [&item, ordinal, name] (const Element& candidate) -> bool
+            {
+                if (item == nullptr and candidate.parent->isTag (Id::ul) and candidate.id != Id::list
+                    and candidate.id == name and *candidate.get<int> (Id::shape) == ordinal)
+                    item = const_cast<Element*> (&candidate);
+
+                return item == nullptr;
+            });
+
+        return item;
     }
 
     /**
@@ -249,7 +325,13 @@ private:
 
                 for (const auto& column : { Id::structure, Id::list, Id::separator })
                     if (auto* cell { document.getTableCell (*row, column) })
-                        addBindings (*cell);
+                    {
+                        juce::String precedingBinding;
+                        addBindings (*cell, precedingBinding);
+                        jam::Array<int> ordinals;
+                        int lineIndex { 0 };
+                        addLines (*cell, 0, ordinals, lineIndex);
+                    }
             }
         }
     }
@@ -300,12 +382,15 @@ private:
             document.appendChildren (std::move (table));
     }
 
-    static void addBindings (Element& scope)
+    static void addBindings (Element& scope, juce::String& precedingBinding)
     {
-        juce::String precedingBinding;
-
         for (auto* block : scope)
         {
+            if (block->isTag (Id::p)
+                and jam::Format::getPreColon (block->getAllSubText()).trim()
+                        == Id::templatePath.toString())
+                precedingBinding.clear();
+
             if (block->isTag (Id::ul))
                 for (auto* item : *block)
                 {
@@ -317,11 +402,60 @@ private:
 
                     item->add<juce::String> (Id::value, value);
 
-                    precedingBinding = value;
+                    precedingBinding = jam::Format::getPreColon (value).trim()
+                                                == Id::templatePath.toString()
+                                            ? juce::String()
+                                            : value;
                 }
 
             if (block->isTag (Id::blockquote))
-                addBindings (*block);
+                addBindings (*block, precedingBinding);
+        }
+    }
+
+    static void addLines (Element& cell, int indent, jam::Array<int>& ordinals, int& lineIndex)
+    {
+        if (indent == ordinals.size())
+            ordinals.resize (indent + 1);
+
+        for (auto* block : cell)
+        {
+            if (block->isTag (Id::p))
+            {
+                const auto blockText { block->getAllSubText() };
+
+                if (jam::Format::getPreColon (blockText).trim() == Id::templatePath.toString())
+                {
+                    block->add<int> (Id::level, indent);
+                    block->add<juce::String> (Id::templatePath, jam::Format::getPostColon (blockText).trim());
+                    block->add<int> (Id::shape, lineIndex);
+                    ++lineIndex;
+                }
+            }
+
+            if (block->isTag (Id::ul))
+                for (auto* item : *block)
+                {
+                    if (item->id == Id::list)
+                    {
+                        item->add<int> (Id::level, indent);
+                        item->add<int> (Id::line, ordinals.at (indent)++);
+                        item->add<int> (Id::shape, lineIndex);
+                        ++lineIndex;
+                    }
+                    else
+                    {
+                        item->add<int> (Id::shape, lineIndex - 1);
+                    }
+
+                    const auto& blockText { *item->get<juce::String> (Id::value) };
+
+                    if (jam::Format::getPreColon (blockText).trim() == Id::templatePath.toString())
+                        item->add<juce::String> (Id::templatePath, jam::Format::getPostColon (blockText).trim());
+                }
+
+            if (block->isTag (Id::blockquote))
+                addLines (*block, indent + 1, ordinals, lineIndex);
         }
     }
 

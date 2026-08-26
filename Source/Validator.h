@@ -2,7 +2,6 @@
 #include <JuceHeader.h>
 #include "Items.h"
 #include "Model.h"
-#include "Shapes.h"
 #include "TemplateDocument.h"
 
 /**
@@ -77,14 +76,32 @@ struct Validator : jam::MarkdownValidator
         for (auto* table : model.getTables())
             if (model.isOutputTable (*table))
                 for (auto* row : model.getTableRows (*table))
-                    for (auto* scope { model.getTableCell (*row, column) }; scope != nullptr;
-                         scope = model.getBlockquote (*scope))
-                        if (auto* list { model.getList (*scope) })
-                            for (auto* item : *list)
-                                if (const auto result { function (
-                                        *table, *row, *item->get<juce::String> (Id::value)) };
-                                    not result.wasOk())
-                                    return result;
+                    if (auto* scope { model.getTableCell (*row, column) })
+                        if (const auto result { forEachBinding (*table, *row, *scope, function) };
+                            not result.wasOk())
+                            return result;
+
+        return juce::Result::ok();
+    }
+
+    template <typename Function>
+    static juce::Result
+    forEachBinding (Element& table, Element& row, Element& scope, Function&& function)
+    {
+        for (auto* child : scope)
+        {
+            if (child->isTag (Id::ul))
+                for (auto* item : *child)
+                    if (const auto result { function (
+                            table, row, *item->get<juce::String> (Id::value)) };
+                        not result.wasOk())
+                        return result;
+
+            if (child->isTag (Id::blockquote))
+                if (const auto result { forEachBinding (table, row, *child, function) };
+                    not result.wasOk())
+                    return result;
+        }
 
         return juce::Result::ok();
     }
@@ -130,36 +147,32 @@ struct Validator : jam::MarkdownValidator
      */
     static juce::Result isIndex (const Model& model)
     {
-        const auto indexTables { model.getTables (Id::index) };
+        for (auto* indexTable : model.getTables (Id::index))
+            for (auto* row : model.getTableRows (*indexTable))
+            {
+                const auto pathCell { model.getTableValue (*row, Id::symbol) };
 
-        if (indexTables.isEmpty())
-            return juce::Result::fail (Id::index.toString() + Id::diagnosticSeparator
-                                       + text::Diagnostics::failTableMissing);
+                if (pathCell.isEmpty())
+                    return juce::Result::fail (getLocation (*indexTable, *row, Id::symbol.toString())
+                                               + Id::diagnosticSeparator
+                                               + text::Diagnostics::failNotFound);
 
-        Element& indexTable { *indexTables.at (0) };
+                if (juce::File::createFileWithoutCheckingPath (pathCell)
+                        .hasFileExtension (Extensions::md)
+                    and not model.getFile (pathCell).existsAsFile())
+                    return juce::Result::fail (getLocation (*indexTable, *row, Id::symbol.toString())
+                                               + Id::diagnosticSeparator
+                                               + text::Diagnostics::failOutputMissing
+                                               + Id::diagnosticSeparator + pathCell);
 
-        for (auto* row : model.getTableRows (indexTable))
-        {
-            const auto pathCell { model.getTableValue (*row, Id::symbol) };
-
-            if (pathCell.isEmpty())
-                return juce::Result::fail (getLocation (indexTable, *row, Id::symbol.toString())
-                                           + Id::diagnosticSeparator + text::Diagnostics::failNotFound);
-
-            if (juce::File::createFileWithoutCheckingPath (pathCell).hasFileExtension (Extensions::md)
-                and not model.getFile (pathCell).existsAsFile())
-                return juce::Result::fail (getLocation (indexTable, *row, Id::symbol.toString())
-                                           + Id::diagnosticSeparator
-                                           + text::Diagnostics::failOutputMissing + Id::diagnosticSeparator
-                                           + pathCell);
-
-            if (juce::File::createFileWithoutCheckingPath (pathCell).hasFileExtension (Extensions::cast)
-                and not model.getFile (pathCell).existsAsFile())
-                return juce::Result::fail (getLocation (indexTable, *row, Id::symbol.toString())
-                                           + Id::diagnosticSeparator
-                                           + text::Diagnostics::failTemplateMissing
-                                           + Id::diagnosticSeparator + pathCell);
-        }
+                if (juce::File::createFileWithoutCheckingPath (pathCell)
+                        .hasFileExtension (Extensions::cast)
+                    and not model.getFile (pathCell).existsAsFile())
+                    return juce::Result::fail (getLocation (*indexTable, *row, Id::symbol.toString())
+                                               + Id::diagnosticSeparator
+                                               + text::Diagnostics::failTemplateMissing
+                                               + Id::diagnosticSeparator + pathCell);
+            }
 
         return juce::Result::ok();
     }
@@ -181,20 +194,29 @@ struct Validator : jam::MarkdownValidator
             if (model.isOutputTable (*table))
                 for (auto* row : model.getTableRows (*table))
                 {
-                    auto* scope { model.getTableCell (*row, Id::structure) };
+                    auto& structureScope { *model.getTableCell (*row, Id::structure) };
 
-                    if (scope == nullptr or model.getStructure (*scope).isEmpty())
+                    if (model.getStructure (structureScope).isEmpty())
                         return juce::Result::fail (
                             getLocation (*table, *row, Id::structure.toString())
                             + Id::diagnosticSeparator + text::Diagnostics::failTemplateMissing);
 
-                    for (; scope != nullptr; scope = model.getBlockquote (*scope))
-                        if (const auto depthShapeId { model.getStructure (*scope) };
-                            depthShapeId.isNotEmpty())
-                            if (const auto result { isKnownTemplate (
-                                    templateDocument, *table, *row, Id::structure, depthShapeId) };
-                                not result.wasOk())
-                                return result;
+                    juce::String shapeId;
+
+                    structureScope.applyFunctionRecursively (
+                        [&shapeId, &templateDocument] (const Element& candidate) -> bool
+                        {
+                            if (shapeId.isEmpty() and candidate.contains (Id::templatePath)
+                                and templateDocument.getCodeBlock (juce::Identifier (
+                                        *candidate.get<juce::String> (Id::templatePath)))
+                                       == nullptr)
+                                shapeId = *candidate.get<juce::String> (Id::templatePath);
+
+                            return shapeId.isEmpty();
+                        });
+
+                    if (shapeId.isNotEmpty())
+                        return isKnownTemplate (templateDocument, *table, *row, Id::structure, shapeId);
                 }
 
         return juce::Result::ok();
@@ -204,7 +226,6 @@ struct Validator : jam::MarkdownValidator
      * @brief Checks that no two bindings under @p scope share the same
      *        name, then checks the same for every nested blockquote scope.
      *
-     * @param model  The model @p scope belongs to.
      * @param table  The table @p row belongs to, named in a failure's
      *               location.
      * @param row    The row @p scope belongs to, named in a failure's
@@ -212,18 +233,25 @@ struct Validator : jam::MarkdownValidator
      * @param column The column @p scope was read from, named in a
      *               failure's location.
      * @param scope  The blockquote scope whose bindings are checked.
+     * @param seen   The binding names seen for the current shape, reset at
+     *               each shape line.
      * @returns juce::Result::ok() when every scope's bindings are unique,
      *          or a failure naming the duplicate binding.
      */
-    static juce::Result isBindingCountValid (
-        const Model& model, Element& table, Element& row, const juce::Identifier& column, Element& scope)
+    static juce::Result isBindingCountValid (Element& table, Element& row,
+        const juce::Identifier& column, Element& scope, jam::HashSet<juce::Identifier>& seen)
     {
-        jam::HashSet<juce::Identifier> seen;
+        for (auto* child : scope)
+        {
+            if (child->isTag (Id::p) and child->contains (Id::templatePath))
+                seen.clear();
 
-        for (auto* block : scope)
-            if (block->isTag (Id::ul))
-                for (auto* item : *block)
-                    if (item->id != Id::list)
+            if (child->isTag (Id::ul))
+                for (auto* item : *child)
+                {
+                    if (item->id == Id::list)
+                        seen.clear();
+                    else
                     {
                         if (seen.contains (item->id))
                             return juce::Result::fail (getLocation (table, row, column.toString())
@@ -233,9 +261,13 @@ struct Validator : jam::MarkdownValidator
 
                         seen.insert (item->id);
                     }
+                }
 
-        if (auto* nested { model.getBlockquote (scope) })
-            return isBindingCountValid (model, table, row, column, *nested);
+            if (child->isTag (Id::blockquote))
+                if (const auto result { isBindingCountValid (table, row, column, *child, seen) };
+                    not result.wasOk())
+                    return result;
+        }
 
         return juce::Result::ok();
     }
@@ -256,10 +288,14 @@ struct Validator : jam::MarkdownValidator
                 for (auto* row : model.getTableRows (*table))
                     for (const auto& column : { Id::structure, Id::separator })
                         if (auto* scope { model.getTableCell (*row, column) })
-                            if (const auto result { isBindingCountValid (
-                                    model, *table, *row, column, *scope) };
+                        {
+                            jam::HashSet<juce::Identifier> seen;
+
+                            if (const auto result {
+                                    isBindingCountValid (*table, *row, column, *scope, seen) };
                                 not result.wasOk())
                                 return result;
+                        }
 
         return juce::Result::ok();
     }
@@ -268,7 +304,6 @@ struct Validator : jam::MarkdownValidator
      * @brief Checks that every depth of @p structureScope's own shape
      *        carries an even count of @c ::: markers.
      *
-     * @param model            The model @p structureScope belongs to.
      * @param templateDocument The template document each depth's shape is
      *                         read from.
      * @param table            The table @p row belongs to, named in a
@@ -280,30 +315,40 @@ struct Validator : jam::MarkdownValidator
      * @returns juce::Result::ok() when every depth's marker count is even,
      *          or a failure naming the shape with an odd count.
      */
-    static juce::Result isMarkerCountValid (const Model& model,
-        const TemplateDocument& templateDocument, Element& table, Element& row, Element& structureScope)
+    static juce::Result isMarkerCountValid (const TemplateDocument& templateDocument, Element& table,
+        Element& row, Element& structureScope)
     {
-        for (auto* scope { &structureScope }; scope != nullptr; scope = model.getBlockquote (*scope))
-            if (const auto depthShapeId { model.getStructure (*scope) }; depthShapeId.isNotEmpty())
-            {
-                const auto& blockText { *templateDocument.getCodeBlock (juce::Identifier (depthShapeId))
-                                            ->get<juce::String> (Id::value) };
-                int count { 0 };
-                int cursor { 0 };
+        juce::String shapeId;
 
-                for (auto position { blockText.indexOf (cursor, Id::tripleColon) }; position >= 0;
-                     position = blockText.indexOf (cursor, Id::tripleColon))
+        structureScope.applyFunctionRecursively (
+            [&shapeId, &templateDocument] (const Element& candidate) -> bool
+            {
+                if (shapeId.isEmpty() and candidate.contains (Id::templatePath))
                 {
-                    ++count;
-                    cursor = position + Id::tripleColon.length();
+                    const auto& blockText { *templateDocument.getCodeBlock (juce::Identifier (
+                            *candidate.get<juce::String> (Id::templatePath)))
+                            ->get<juce::String> (Id::value) };
+                    int count { 0 };
+                    int cursor { 0 };
+
+                    for (auto position { blockText.indexOf (cursor, Id::tripleColon) }; position >= 0;
+                         position = blockText.indexOf (cursor, Id::tripleColon))
+                    {
+                        ++count;
+                        cursor = position + Id::tripleColon.length();
+                    }
+
+                    if (count % 2 != 0)
+                        shapeId = *candidate.get<juce::String> (Id::templatePath);
                 }
 
-                if (count % 2 != 0)
-                    return juce::Result::fail (getLocation (table, row, Id::structure.toString())
-                                               + Id::diagnosticSeparator
-                                               + text::Diagnostics::failMarkerUnterminated
-                                               + Id::diagnosticSeparator + depthShapeId);
-            }
+                return shapeId.isEmpty();
+            });
+
+        if (shapeId.isNotEmpty())
+            return juce::Result::fail (getLocation (table, row, Id::structure.toString())
+                                       + Id::diagnosticSeparator + text::Diagnostics::failMarkerUnterminated
+                                       + Id::diagnosticSeparator + shapeId);
 
         return juce::Result::ok();
     }
@@ -327,11 +372,93 @@ struct Validator : jam::MarkdownValidator
                 {
                     auto& structureScope { *model.getTableCell (*row, Id::structure) };
 
-                    if (const auto result { isMarkerCountValid (
-                            model, templateDocument, *table, *row, structureScope) };
+                    if (const auto result {
+                            isMarkerCountValid (templateDocument, *table, *row, structureScope) };
                         not result.wasOk())
                         return result;
                 }
+
+        return juce::Result::ok();
+    }
+
+    static juce::Result isShapeSupplied (const Model& model, const TemplateDocument& templateDocument,
+        Element& table, Element& row, const juce::Identifier& column, Element& precedingShape,
+        const jam::HashSet<juce::Identifier>& seen)
+    {
+        const auto shapeId { juce::Identifier (*precedingShape.get<juce::String> (Id::templatePath)) };
+        const auto& tokens { *templateDocument.getCodeBlock (shapeId)
+                                  ->get<jam::Document::Identifiers> (Id::placeholder) };
+        jam::Array<juce::String> headers;
+
+        if (not precedingShape.isTag (Id::p))
+        {
+            const auto indent { *precedingShape.get<int> (Id::level) };
+            const auto ordinal { *precedingShape.get<int> (Id::line) };
+            auto* sourceItem { model.getSource (row, indent, ordinal) };
+            const auto& sourceValue { *sourceItem->get<juce::String> (Id::value) };
+
+            if (auto* sourceTable { model.getTable (row, sourceValue) })
+                headers = model.getTableHeaders (*sourceTable);
+        }
+
+        for (const auto& name : tokens)
+            if (name != Id::list and name != Id::comment and not seen.contains (name)
+                and model.getTableCell (row, name) == nullptr and not headers.contains (name.toString()))
+                return juce::Result::fail (getLocation (table, row, column.toString())
+                                           + Id::diagnosticSeparator + text::Diagnostics::failNotFound
+                                           + Id::diagnosticSeparator + name.toString());
+
+        return juce::Result::ok();
+    }
+
+    static juce::Result isPlaceholderScope (const Model& model, const TemplateDocument& templateDocument,
+        Element& table, Element& row, const juce::Identifier& column, Element& scope,
+        Element*& precedingShape, jam::HashSet<juce::Identifier>& seen)
+    {
+        for (auto* block : scope)
+        {
+            if (block->isTag (Id::p) and block->contains (Id::templatePath) and column == Id::structure)
+            {
+                if (precedingShape != nullptr)
+                    if (const auto result { isShapeSupplied (
+                            model, templateDocument, table, row, column, *precedingShape, seen) };
+                        not result.wasOk())
+                        return result;
+
+                precedingShape = block;
+                seen.clear();
+            }
+
+            if (block->isTag (Id::ul))
+                for (auto* item : *block)
+                {
+                    if (item->contains (Id::templatePath))
+                        if (const auto result { isKnownTemplate (templateDocument, table, row, column,
+                                *item->get<juce::String> (Id::templatePath)) };
+                            not result.wasOk())
+                            return result;
+
+                    if (item->id == Id::list and column == Id::structure)
+                    {
+                        if (precedingShape != nullptr)
+                            if (const auto result { isShapeSupplied (
+                                    model, templateDocument, table, row, column, *precedingShape, seen) };
+                                not result.wasOk())
+                                return result;
+
+                        precedingShape = item;
+                        seen.clear();
+                    }
+                    else if (item->id != Id::list)
+                        seen.insert (item->id);
+                }
+
+            if (block->isTag (Id::blockquote))
+                if (const auto result { isPlaceholderScope (model, templateDocument, table, row, column,
+                        *block, precedingShape, seen) };
+                    not result.wasOk())
+                    return result;
+        }
 
         return juce::Result::ok();
     }
@@ -340,22 +467,25 @@ struct Validator : jam::MarkdownValidator
     isPlaceholders (const Model& model, const TemplateDocument& templateDocument)
     {
         for (const auto& column : { Id::structure, Id::separator })
-            if (const auto result { forEachBinding (model, column,
-                    [&templateDocument, &column] (Element& table, Element& row,
-                        const juce::String& entryValue) -> juce::Result
-                    {
-                        if (jam::Format::getPreColon (entryValue).trim()
-                            == Id::templatePath.toString())
+            for (auto* table : model.getTables())
+                if (model.isOutputTable (*table))
+                    for (auto* row : model.getTableRows (*table))
+                        if (auto* scope { model.getTableCell (*row, column) })
                         {
-                            const auto shapeId { jam::Format::getPostColon (entryValue).trim() };
+                            Element* precedingShape { nullptr };
+                            jam::HashSet<juce::Identifier> seen;
 
-                            return isKnownTemplate (templateDocument, table, row, column, shapeId);
+                            if (const auto result { isPlaceholderScope (model, templateDocument, *table,
+                                    *row, column, *scope, precedingShape, seen) };
+                                not result.wasOk())
+                                return result;
+
+                            if (precedingShape != nullptr and column == Id::structure)
+                                if (const auto result { isShapeSupplied (model, templateDocument, *table,
+                                        *row, column, *precedingShape, seen) };
+                                    not result.wasOk())
+                                    return result;
                         }
-
-                        return juce::Result::ok();
-                    }) };
-                not result.wasOk())
-                return result;
 
         return juce::Result::ok();
     }
@@ -376,40 +506,6 @@ struct Validator : jam::MarkdownValidator
         return count;
     }
 
-    static juce::Result isShapeSourceCountValid (const Model& model,
-        const TemplateDocument& templateDocument, Element& table, Element& row,
-        Element& structureScope, const juce::Identifier& shapeId, int depth)
-    {
-        Shapes::Sources sources;
-        jam::Array<int> sourceDepths;
-        jam::Array<int> sourceOrdinals;
-        Shapes::Replacements bindings;
-        jam::HashMap<int, int> ordinals;
-
-        Shapes::addSources (
-            sources, sourceDepths, sourceOrdinals, bindings, ordinals, model, structureScope, depth);
-
-        const auto occurrenceCount { getOccurrenceCount (
-            *templateDocument.getCodeBlock (shapeId)->get<juce::String> (Id::value), Id::list) };
-
-        if (occurrenceCount != sources.size())
-            return juce::Result::fail (getLocation (table, row, Id::structure.toString())
-                                       + Id::diagnosticSeparator + text::Diagnostics::failAmbiguous);
-
-        for (int index { 0 }; index < sources.size(); ++index)
-        {
-            auto* source { sources.at (index) };
-
-            if (source->id != Id::list)
-                if (const auto result { isShapeSourceCountValid (model, templateDocument, table, row,
-                        *source, juce::Identifier (model.getStructure (*source)), sourceDepths.at (index)) };
-                    not result.wasOk())
-                    return result;
-        }
-
-        return juce::Result::ok();
-    }
-
     static juce::Result isSourceCountValid (const Model& model, const TemplateDocument& templateDocument)
     {
         for (auto* table : model.getTables())
@@ -417,36 +513,57 @@ struct Validator : jam::MarkdownValidator
                 for (auto* row : model.getTableRows (*table))
                 {
                     auto& structureScope { *model.getTableCell (*row, Id::structure) };
-                    const auto shapeId { juce::Identifier (model.getStructure (structureScope)) };
+                    int demanded { 0 };
+                    int supplied { 0 };
 
-                    if (const auto result { isShapeSourceCountValid (
-                            model, templateDocument, *table, *row, structureScope, shapeId, 0) };
-                        not result.wasOk())
-                        return result;
+                    structureScope.applyFunctionRecursively (
+                        [&demanded, &supplied, &templateDocument] (const Element& candidate)
+                        {
+                            if (candidate.isTag (Id::p) and candidate.contains (Id::templatePath))
+                            {
+                                ++supplied;
+                                demanded += getOccurrenceCount (*templateDocument.getCodeBlock (
+                                        juce::Identifier (*candidate.get<juce::String> (Id::templatePath)))
+                                        ->get<juce::String> (Id::value), Id::list);
+                            }
+
+                            if (candidate.parent->isTag (Id::ul) and candidate.id == Id::list)
+                                ++supplied;
+                        });
+
+                    if (demanded != supplied - 1)
+                        return juce::Result::fail (getLocation (*table, *row, Id::structure.toString())
+                                                   + Id::diagnosticSeparator
+                                                   + text::Diagnostics::failAmbiguous);
                 }
 
         return juce::Result::ok();
     }
 
     static juce::Result isColumnPartnered (const Model& model, Element& table, Element& row,
-        const juce::Identifier& column, Element& scope, int depth, jam::HashMap<int, int>& ordinals)
+        const juce::Identifier& column, Element& scope)
     {
-        if (auto* list { model.getList (scope) })
-            for (auto* item : *list)
-                if (item->id == Id::list)
-                {
-                    const auto ordinal { ordinals[depth]++ };
+        for (auto* block : scope)
+        {
+            if (block->isTag (Id::ul))
+                for (auto* item : *block)
+                    if (item->id == Id::list)
+                    {
+                        const auto indent { *item->get<int> (Id::level) };
+                        const auto ordinal { *item->get<int> (Id::line) };
 
-                    if (column == Id::structure or depth > 0)
-                        if (Shapes::getListLine (model, *model.getTableCell (row, Id::list), depth, ordinal)
-                            == nullptr)
+                        if (not (column == Id::separator and indent == 0 and ordinal == 0)
+                            and model.getSource (row, indent, ordinal) == nullptr)
                             return juce::Result::fail (getLocation (table, row, column.toString())
                                                        + Id::diagnosticSeparator
                                                        + text::Diagnostics::failOrphan);
-                }
+                    }
 
-        if (auto* nested { model.getBlockquote (scope) })
-            return isColumnPartnered (model, table, row, column, *nested, depth + 1, ordinals);
+            if (block->isTag (Id::blockquote))
+                if (const auto result { isColumnPartnered (model, table, row, column, *block) };
+                    not result.wasOk())
+                    return result;
+        }
 
         return juce::Result::ok();
     }
@@ -456,15 +573,17 @@ struct Validator : jam::MarkdownValidator
         for (auto* table : model.getTables())
             if (model.isOutputTable (*table))
                 for (auto* row : model.getTableRows (*table))
-                    for (const auto& column : { Id::structure, Id::separator })
-                    {
-                        jam::HashMap<int, int> ordinals;
+                {
+                    if (const auto result { isColumnPartnered (
+                            model, *table, *row, Id::structure, *model.getTableCell (*row, Id::structure)) };
+                        not result.wasOk())
+                        return result;
 
-                        if (const auto result { isColumnPartnered (model, *table, *row, column,
-                                *model.getTableCell (*row, column), 0, ordinals) };
-                            not result.wasOk())
-                            return result;
-                    }
+                    if (const auto result { isColumnPartnered (
+                            model, *table, *row, Id::separator, *model.getTableCell (*row, Id::separator)) };
+                        not result.wasOk())
+                        return result;
+                }
 
         return juce::Result::ok();
     }
@@ -703,14 +822,16 @@ struct Validator : jam::MarkdownValidator
      */
     static juce::Result isUnique (const Model& model)
     {
-        const auto indexTables { model.getTables (Id::index) };
-        const auto manifestOrigin { *indexTables.at (0)->get<juce::String> (Id::path) };
+        juce::StringArray manifestOrigin;
+
+        for (auto* table : model.getTables (Id::index))
+            manifestOrigin.add (*table->get<juce::String> (Id::path));
 
         for (auto* table : model.getTables())
         {
             const auto tableOrigin { *table->get<juce::String> (Id::path) };
 
-            if (tableOrigin != manifestOrigin and not table->isTag (Id::index))
+            if (not manifestOrigin.contains (tableOrigin) and not table->isTag (Id::index))
                 if (const auto result { isUniqueTable (model, *table) }; not result.wasOk())
                     return result;
         }
@@ -746,15 +867,15 @@ struct Validator : jam::MarkdownValidator
         if (const auto result { isMarkerCountValid (model, templateDocument) }; not result.wasOk())
             return result;
 
-        if (const auto result { isPlaceholders (model, templateDocument) }; not result.wasOk())
-            return result;
-
         if (const auto result { isPaired (model) }; not result.wasOk())
             return result;
 
-        if (const auto result { isSourceCountValid (model, templateDocument) }; not result.wasOk())
+        if (const auto result { isReference (model) }; not result.wasOk())
             return result;
 
-        return isReference (model);
+        if (const auto result { isPlaceholders (model, templateDocument) }; not result.wasOk())
+            return result;
+
+        return isSourceCountValid (model, templateDocument);
     }
 };

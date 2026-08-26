@@ -111,6 +111,45 @@
 
 ## SPRINT HISTORY
 
+## Sprint: Declarative Engine — the Authored Line Is the Declaration ⚠️ (code-complete, unbuilt)
+
+**Date:** 2026-08-27
+**Duration:** —
+
+### Agents Participated
+- COUNSELOR — diagnosis (26 string-surgery sites, indent recovered by counting recursion, nesting unrepresented), law design, SPEC amendments, per-step validation, three Engineer outputs corrected before acceptance
+- Engineer (seven waves) — parse-time stamps, Model primitives, Validator on stamps, Shapes rewrite, Writer wiring, audit fixes
+- Auditor — single sprint-end sweep, 59 findings
+- Pathfinder — Items/Validator inventory, mermaid.md ↔ oracle reconciliation (52 tables, zero delta)
+
+### Files Modified (7 total)
+- `Source/Model.h` — `addLines` stamps every structure/list/separator line at parse with `Id::level` (the `>` count), `Id::line` (ordinal within that count), `Id::shape` (line index, and its owning line on each binding) and `Id::templatePath` (the block id, split once, here); new `getSource`/`getSeparator` (pairing by stamp), `getNextLine` (document-order successor over the AST's own links), `getBinding` (a shape's binding by name); `getStructure` reads the stamp instead of re-splitting text
+- `Source/Shapes.h` — full rewrite, 13 units deleted (`addListLines`, `getListLine`, `addSources`, `addShapeBindings`, `getOrdinal`, `getJoin`, `getChildSource`, `getChildJoin`, `getListSourceValue`, `addReplacements`, `addSourceReplacement`, `getMergedOccurrenceValue`, `addMergedReplacements`, the `Replacements` bag and the `Sources`/`listDepths` arrays). New: arity from the stamped placeholder list, source lines reached by `getSourceLine`/`getLineAfter`, merge per line by value (`getShape` groups rows by the line's key and renders each group once), the occurrence clamp deleted. Zero `getPreColon`/`getPostColon`/`startsWithChar (Chars::at)` remain
+- `Source/Validator.h` — every structure gate moved onto the stamps and off `Shapes::`; `isShapeSourceCountValid`'s recursive cursor over a materialised array replaced by counted arity in one walk; new §10.1 gate for an unsupplied named token; `isPaired`/`isReference` moved ahead of `isPlaceholders` so no gate re-checks another's invariant; the undeclared missing-index fatal deleted; `isIndex`/`isUnique` no longer assume an index table exists
+- `Source/Writer.h` — calls the new `getShape` with each row's first line; row join read through `Model::getSeparator`; extension resolution moved here from Shapes
+- `Source/Items.h` — address dispatch through `Model::getTable` instead of testing the `@` character
+- `SPEC.md` — §6.4/§6.5 state the ratified pairing law (`>` is read, identically, in all three columns); §6.5 separates elision (a supplier with no text) from the new fatal (no supplier at all); §6.6/§6.7 drop the "file group"/"row group" vocabulary the table never declares and state merge per line; §10.1 +1 fatal; §12 records five engine debts, four of them paid here
+- `jam/cast/CAST.md` — six scalar LookupTable blocks re-indented to the sibling law (entry indent = head indent + 2 markers)
+
+### Alignment Check
+- [x] BLESSED principles followed
+- [x] NAMES.md adhered — no new domain name; every identifier from the existing lexicon
+- [x] MANIFESTO.md principles applied
+- [ ] **Not verified by build.** No compile, no `./cast` run, no convergence gate this sprint — agents do not build. The seven byte-identical headers remain the standing regression gate and are UNCHECKED against this rewrite.
+
+### Problems Solved
+- The engine spoke its own vocabulary while the table declared another: every noun (file, template, source, separator, indent) was dissolved into one generic bag and re-derived at each call site by string surgery and recursion counting. Each is now stamped once at parse and read by name (SPEC §11.1)
+- Merge was flat and all-or-nothing across every row of a file, so `struct Shape` emitted seven times where the oracle has one. Merge is now per line by value: rows agreeing at a line share it, rows differing nest inside their own group
+- One addressing method: `Model::getValue`/`getTable` are the only alias resolution; 26 colon-splits and `@` tests removed from the read path
+- `Id::indent` collided with jam's own stamp on list items (jam_MarkdownDocument.h:1426, a `juce::String` under the same key) — every `get<int>` would have returned null. Our depth stamp is `Id::level`
+- Four gates were re-checking invariants other gates own; ordering fixed and the guards deleted (SPEC §11.2)
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None
+
 ## Sprint: Performance Convergence + Audit Sweep — 28.5s → ~1.06s, clean sweep ✅
 
 **Date:** 2026-08-26

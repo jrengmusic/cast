@@ -208,9 +208,9 @@ inline const :::type::: :::name::: { juce::String::fromUTF8 (:::value:::) };
 
 A block is the literal text of the output. Braces, keywords, punctuation, comment frames — all authored, all verbatim. There are no conditionals, no loops, and no formatting.
 
-**`:::list:::` is the one expansion token.** Each occurrence is one expansion: its items joined by that expansion's separator. Where the marker sits decides the axis:
+**`:::list:::` is the one expansion token.** A block's occurrence count is its arity: each occurrence takes one source, its items joined by that source's separator. Where the marker sits decides the axis:
 
-- at **column 0** — vertical: the join fills line by line, each line indented by the wiring line's `>` depth
+- at **column 0** — vertical: the join fills line by line, each line indented by the source line's `>` count
 - **inside a line** — horizontal: the join lands in place, unindented
 
 ```
@@ -251,25 +251,27 @@ Joining more than one item from a single-line shape aligns their token columns: 
 
 ### structure — what shape
 
-A head line names a shape: `template:namespace`. A named bullet binds one token of that shape: `- name: jam` fills its `:::name:::`. A `- list: template:<id>` bullet names the shape each item of the matching expansion renders through.
+Two lines name a shape. `template:namespace` renders it once; `- list: template:<id>` renders it once per item of the line's source. Both are sources: each fills one `:::list:::` of the shape above it. A named bullet binds one token of the nearest shape line above it: `- name: jam` fills its `:::name:::`.
 
-### Depth — where, and how deep
+### Arity — how deep
+
+A shape's arity is how many times its block names `:::list:::`. It consumes that many of the source lines that follow, in order, and each of those consumes its own arity first. Nesting comes from the template; you never author it.
+
+### Indent — where
 
 `> ` count is indentation, nothing else:
 
 ```
-- list: ...            fills at column 0
-> - list: ...          fills at one tab
-> > > - list: ...      fills at three tabs
+- list: ...            renders at column 0
+> - list: ...          renders at one tab
+> > > - list: ...      renders at three tabs
 ```
 
-One tab is four spaces, **absolute** — measured from column 0 of the output file, not from the enclosing shape. A nested head (`> template:bimap`) adds no indent of its own; its block's lines land exactly where the block authored them.
+One tab is four spaces, **absolute** — measured from column 0 of the output file, not from the enclosing shape. The list and separator columns mirror the count for readability; it is never read there.
 
-A `- list:` line one level deeper than a row expansion runs once per row of it — that is how `cells` knows which row to read.
+### Pairing — always by order
 
-### Pairing — always by position, never by depth order
-
-The list column's `- list:` lines pair with the structure column's `- list:` lines at the same depth and ordinal. Each shape owns the `- list:` lines and nested heads beneath its head, down to the next head; the shape's `:::list:::` occurrences, top to bottom, consume those sources **in authored order**.
+The list column's `- list:` lines pair with the structure column's `- list:` lines one for one, in authored order. A shape's `:::list:::` occurrences, top to bottom, take the sources that follow it in the same order.
 
 ```
 +-------------------------------------+---------------------------------+
@@ -277,25 +279,25 @@ The list column's `- list:` lines pair with the structure column's `- list:` lin
 +=====================================+=================================+
 | > > > - list: @tokens:token type    | template:namespace              |
 | > > - list: @tokens:token type      | - name: map                     |
-|                                     | > template:bimap                |
-|                                     | > - name: TemplateTokenType     |
-|                                     | > - type: int                   |
+|                                     | template:bimap                  |
+|                                     | - name: TemplateTokenType       |
+|                                     | - type: int                     |
 |                                     | > > > - list: template:mapEntry |
 |                                     | > > - list: template:enum       |
 +-------------------------------------+---------------------------------+
 ```
 
-The bimap block names `:::list:::` twice — map region first, enum region second. The first occurrence takes the first authored wiring line (mapEntry, three tabs), the second takes the second (enum, two tabs). Matching template, tables and expression is yours; CAST reads the expression and generates. Its one check is the count — a mismatch stops the run and names the block and the row.
+The namespace names `:::list:::` once, so it takes the next source — the bimap, rendered once at column 0. The bimap names it twice — map region first, enum region second — so it takes the next two: mapEntry at three tabs, then enum at two. Matching template, tables and expression is yours; CAST reads the expression and generates. Its one check is the count — a mismatch stops the run and names the block and the row.
 
 ### separator — how items join
 
-`- list:` lines mirroring the list column's depths. The line at a given depth and ordinal joins that expansion's items. Blank or absent joins by newline; anything else joins by that text — `template:<id>` names a block whose text is the join.
+`- list:` lines mirroring the list column's. The line at a given ordinal joins that expansion's items. Blank or absent joins by newline; anything else joins by that text — `template:<id>` names a block whose text is the join.
 
-The **depth-0** separator line is the row join: rows merged into one file join their diverging values by it.
+The leading `>`-less separator line is the row join: rows merged into one file join their diverging values by it.
 
 ### file — merging rows into one file
 
-Rows that declare the same `file` render as one merged shape; the wrap is emitted once per file. Merging is per token, per occurrence: a value that is byte-identical across the group's rows resolves once, and values that differ join in authored row order by the first row's depth-0 separator, framed by one blank line on each side. A group of one row merges to itself.
+Rows that declare the same `file` render as one merged shape; the wrap is emitted once per file. Merging is per token, per occurrence: a value that is byte-identical across the group's rows resolves once, and values that differ join in authored row order by the first row's row-join line, framed by one blank line on each side. A group of one row merges to itself.
 
 Same-file rows must be authored contiguously — a row for a file already closed by an intervening row of another file is a fatal error.
 
@@ -404,13 +406,13 @@ Rows stack vertically at two tabs; each row's cells join horizontally by `, ` in
 +==========================+================================+==========+
 | > - list: @xml:token:key | template:namespace             | @jam_Xml |
 |                          | - name: jam                    |          |
-|                          | > template:bimap               |          |
-|                          | > - name: XmlTokenType         |          |
+|                          | template:bimap                 |          |
+|                          | - name: XmlTokenType           |          |
 |                          | > - list: template:pair        |          |
 +--------------------------+--------------------------------+----------+
 ```
 
-The namespace's `:::list:::` is fed by the nested head — the bimap's built text. The bimap's own `:::list:::` is fed by the wiring line: rows of `@xml:token:key`, each through `template:pair`, indented one tab.
+The namespace names `:::list:::` once, so it takes the next source — the bimap, rendered once at column 0. The bimap names it once, so it takes the wiring line: rows of `@xml:token:key`, each through `template:pair`, at one tab.
 
 ---
 

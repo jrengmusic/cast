@@ -154,13 +154,13 @@ private:
 
     juce::String getRowJoin (Model::Element& firstRow) const
     {
-        auto* rowJoinItem { Shapes::getListLine (
-            model, *model.getTableCell (firstRow, Id::separator), 0, 0) };
+        auto* rowJoinLine { model.getSeparator (firstRow, 0, 0) };
 
-        return rowJoinItem != nullptr
-                   ? templateDocument.getBinding (
-                         model, firstRow, *rowJoinItem->get<juce::String> (Id::value))
-                   : juce::String();
+        if (rowJoinLine != nullptr)
+            return templateDocument.getBinding (
+                model, firstRow, *rowJoinLine->get<juce::String> (Id::value));
+
+        return {};
     }
 
     void apply (TemplateDocument& output, const jam::Array<Model::Element*>& tables,
@@ -176,13 +176,22 @@ private:
                                   : juce::String::charToString (Chars::newline) };
 
         jam::Array<Model::Element*> groupRows;
+        jam::Array<Model::Element*> groupLines;
 
         for (; index < groupEnd; ++index)
-            groupRows.add (rows.at (index));
+        {
+            auto* row { rows.at (index) };
+            groupRows.add (row);
+            groupLines.add (Shapes::getFirstLine (model, *row));
+        }
+
+        const auto extension { jam::Format::onlyExtensionFromFilename (
+            jam::Format::toFileName (model.getValue (*firstRow, Id::file))) };
 
         output.addChild (*output.root, Id::text)
-            ->add<juce::String> (
-                Id::text, Shapes::getShape (model, templateDocument, tables, groupRows, joinText));
+            ->add<juce::String> (Id::text,
+                Shapes::getShape (model, templateDocument, tables, groupRows, groupLines, joinText,
+                    0, extension));
 
         output.addChild (*output.root, Id::text)
             ->add<juce::String> (Id::text, juce::String::charToString (Chars::newline));

@@ -587,9 +587,9 @@ struct Items
         {
             sourceValues = getCells (row);
         }
-        else if (source.startsWithChar (Chars::at))
+        else if (auto* sourceTable { model.getTable (row, source) }; sourceTable != nullptr)
         {
-            sourceRows = model.getTableRows (*model.getTable (row, source));
+            sourceRows = model.getTableRows (*sourceTable);
         }
         else
         {
