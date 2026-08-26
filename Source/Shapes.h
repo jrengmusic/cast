@@ -20,362 +20,271 @@ struct Shapes
 {
     using Element = Model::Element;
     using Replacements = jam::HashMap<juce::Identifier, jam::Array<juce::String>>;
+    using Sources = jam::Array<Element*>;
 
     /** Column width of one level of shape-expansion indentation. */
     static constexpr int indentWidth { 4 };
 
-    /**
-     * @brief Widens @p indent by @p depth levels of indentWidth spaces.
-     *
-     * @param indent The enclosing indentation prefix.
-     * @param depth  The number of indentation levels to add.
-     * @returns @p indent, widened by @p depth levels.
-     */
-    static juce::String getIndent (const juce::String& indent, int depth)
+    static Element* getScopeAtDepth (const Model& model, Element& cellRoot, int depth)
     {
-        return indent
-               + juce::String::repeatedString (juce::String::charToString (Chars::space),
-                                               indentWidth * depth);
+        auto* scope { &cellRoot };
+
+        for (int hop { 0 }; hop < depth and scope != nullptr; ++hop)
+            scope = model.getBlockquote (*scope);
+
+        return scope;
     }
 
-    /**
-     * @brief Answers whether every item in @p list is one of @p shapeId's
-     *        distinct placeholder names.
-     *
-     * @param templateDocument The template document @p shapeId is looked
-     *                         up against.
-     * @param shapeId          The shape whose placeholder names are
-     *                         checked against.
-     * @param list             The list whose item ids are checked.
-     * @returns @c true when every item in @p list matches one of
-     *          @p shapeId's placeholder names.
-     */
-    static bool hasMatchingPlaceholders (const TemplateDocument& templateDocument,
-                                         const juce::Identifier& shapeId, Element& list)
+    static Element* getListLine (const Model& model, Element& cellRoot, int depth, int ordinal)
     {
-        for (auto* candidate : list)
-            if (not templateDocument.getCodeBlock (shapeId)
-                        ->get<jam::Document::Identifiers> (Id::placeholder)
-                        ->contains (candidate->id))
-                return false;
+        auto* scope { getScopeAtDepth (model, cellRoot, depth) };
+        auto* list { scope != nullptr ? model.getList (*scope) : nullptr };
+        auto index { 0 };
 
-        return true;
+        if (list != nullptr)
+            for (auto* item : *list)
+                if (item->id == Id::list)
+                {
+                    if (index == ordinal)
+                        return item;
+
+                    ++index;
+                }
+
+        return nullptr;
     }
 
-    /**
-     * @brief Resolves one structure-list item's value into @p replacements
-     *        -- a resolved binding when the item names plain data, or a
-     *        recursively expanded nested shape when the item names
-     *        @c template:\<id\>.
-     *
-     * @param replacements     The token-to-values map @p item's resolved
-     *                         value is added to, keyed by @p item's id.
-     * @param model            The model @p row belongs to.
-     * @param templateDocument The template document shapes are looked up
-     *                         against.
-     * @param row              The row being expanded.
-     * @param structureScope   The blockquote scope @p item was read from.
-     * @param placeholderScope The blockquote scope carrying placeholder
-     *                         bindings at this depth, or @c nullptr.
-     * @param separatorScope   The blockquote scope carrying separator
-     *                         bindings at this depth, or @c nullptr.
-     * @param indent           The indentation prefix for lines rendered at
-     *                         this depth.
-     * @param depth            The current wiring depth.
-     * @param matchedNestedShape The nested-shape-match result carried in
-     *                         from the caller's fold over the structure
-     *                         list, returned unchanged when @p item is not
-     *                         itself a nested shape reference.
-     * @param item             The structure-list item being resolved.
-     * @returns @p matchedNestedShape, or the nested shape's own
-     *          placeholder match when @p item names @c template:\<id\>.
-     */
-    static bool addStructureItemReplacement (Replacements& replacements,
-                                             const Model& model,
-                                             const TemplateDocument& templateDocument,
-                                             Element& row,
-                                             Element& structureScope,
-                                             Element* placeholderScope,
-                                             Element* separatorScope,
-                                             const juce::String& indent,
-                                             int depth,
-                                             bool matchedNestedShape,
-                                             Element& item)
+    static void addListSources (Sources& sources,
+                                jam::Array<int>& sourceDepths,
+                                jam::Array<int>& sourceOrdinals,
+                                Replacements& bindings,
+                                jam::HashMap<int, int>& ordinals,
+                                Element& list,
+                                int depth)
     {
-        const auto& value { *item.get<juce::String> (Id::value) };
+        for (auto* item : list)
+            if (item->id == Id::list)
+            {
+                sources.add (item);
+                sourceDepths.add (depth);
+                sourceOrdinals.add (ordinals[depth]++);
+            }
+            else
+                bindings[item->id].add (*item->get<juce::String> (Id::value));
+    }
 
-        if (jam::Format::getPreColon (value).trim() != Id::templatePath.toString())
+    static void addSources (Sources& sources,
+                            jam::Array<int>& sourceDepths,
+                            jam::Array<int>& sourceOrdinals,
+                            Replacements& bindings,
+                            jam::HashMap<int, int>& ordinals,
+                            const Model& model,
+                            Element& scope,
+                            int depth)
+    {
+        for (auto* child : scope)
         {
-            replacements[item.id].add (templateDocument.getBinding (model, row, value));
-            return matchedNestedShape;
-        }
+            if (child->isTag (Id::ul))
+                addListSources (
+                    sources, sourceDepths, sourceOrdinals, bindings, ordinals, *child, depth);
 
-        const auto shapeId { juce::Identifier (jam::Format::getPostColon (value).trim()) };
-        auto nestedShapeMatches { false };
-
-        if (auto* scope { model.getBlockquote (structureScope) })
-            if (auto* list { model.getList (*scope) })
-                nestedShapeMatches = hasMatchingPlaceholders (templateDocument, shapeId, *list);
-
-        replacements[item.id].add (
-            getShape (model,
-                      templateDocument,
-                      row,
-                      shapeId,
-                      model.getBlockquote (structureScope),
-                      placeholderScope != nullptr ? model.getBlockquote (*placeholderScope) : nullptr,
-                      separatorScope != nullptr ? model.getBlockquote (*separatorScope) : nullptr,
-                      getIndent (indent, depth + 1)));
-
-        return nestedShapeMatches;
-    }
-
-    /**
-     * @brief Resolves every item of a depth's placeholder list into
-     *        @p replacements, each item's value the joined, rendered items
-     *        of the source it names.
-     *
-     * @param replacements     The token-to-values map each item's rendered
-     *                         text is added to, keyed by the item's id.
-     * @param model            The model @p row belongs to.
-     * @param templateDocument The template document shapes are looked up
-     *                         against.
-     * @param row              The row being expanded.
-     * @param structureList    The structure list at this depth, sharing
-     *                         ids with @p placeholderList's items, or
-     *                         @c nullptr when this depth carries no
-     *                         structure list.
-     * @param separatorScope   The blockquote scope carrying separator
-     *                         bindings at this depth, or @c nullptr.
-     * @param indent           The indentation prefix for lines rendered at
-     *                         this depth.
-     * @param depth            The current wiring depth.
-     * @param placeholderList  The placeholder list whose items are
-     *                         resolved.
-     */
-    static void addPlaceholderListReplacements (Replacements& replacements,
-                                                const Model& model,
-                                                const TemplateDocument& templateDocument,
-                                                Element& row,
-                                                Element* structureList,
-                                                Element* separatorScope,
-                                                const juce::String& indent,
-                                                int depth,
-                                                Element& placeholderList)
-    {
-        for (auto* item : placeholderList)
-        {
-            auto* structureItem { structureList != nullptr
-                                      ? model.getListItem (*structureList, item->id)
-                                      : nullptr };
-            const auto shapeId { juce::Identifier (
-                structureItem != nullptr
-                    ? jam::Format::getPostColon (*structureItem->get<juce::String> (Id::value)).trim()
-                    : juce::String()) };
-
-            replacements[item->id].add (
-                Items::getJoinedItems (model,
-                                       templateDocument,
-                                       row,
-                                       item->id,
-                                       *item->get<juce::String> (Id::value),
-                                       shapeId,
-                                       separatorScope,
-                                       getIndent (indent, depth)));
+            if (child->isTag (Id::blockquote))
+            {
+                if (model.getStructure (*child).isNotEmpty())
+                {
+                    sources.add (child);
+                    sourceDepths.add (depth + 1);
+                    sourceOrdinals.add (0);
+                }
+                else
+                    addSources (sources, sourceDepths, sourceOrdinals, bindings, ordinals, model,
+                        *child, depth + 1);
+            }
         }
     }
 
-    /**
-     * @brief Resolves one depth's structure and placeholder lists into
-     *        @p replacements -- structure-list items not shared with the
-     *        placeholder list through addStructureItemReplacement(), then
-     *        the placeholder list itself through
-     *        addPlaceholderListReplacements().
-     *
-     * @param replacements     The token-to-values map filled by this
-     *                         depth's resolved items.
-     * @param model            The model @p row belongs to.
-     * @param templateDocument The template document shapes are looked up
-     *                         against.
-     * @param row              The row being expanded.
-     * @param structureScope   The blockquote scope carrying this depth's
-     *                         structure list.
-     * @param placeholderScope The blockquote scope carrying this depth's
-     *                         placeholder list, or @c nullptr.
-     * @param separatorScope   The blockquote scope carrying this depth's
-     *                         separator bindings, or @c nullptr.
-     * @param indent           The indentation prefix for lines rendered at
-     *                         this depth.
-     * @param depth            The current wiring depth.
-     * @returns @c true when a structure-list item resolved to a nested
-     *          shape whose placeholders matched the shape's own list.
-     */
-    static bool addStructureListReplacements (Replacements& replacements,
-                                              const Model& model,
-                                              const TemplateDocument& templateDocument,
-                                              Element& row,
-                                              Element& structureScope,
-                                              Element* placeholderScope,
-                                              Element* separatorScope,
-                                              const juce::String& indent,
-                                              int depth)
+    static juce::String getJoin (const Model& model,
+                                 const TemplateDocument& templateDocument,
+                                 Element& row,
+                                 Element* separatorItem)
     {
-        auto* structureList { model.getList (structureScope) };
-        auto* placeholderList { placeholderScope != nullptr ? model.getList (*placeholderScope)
-                                                             : nullptr };
-        auto matchedNestedShape { false };
+        juce::String join;
 
-        if (structureList != nullptr)
-            for (auto* item : *structureList)
-                if (placeholderList == nullptr
-                    or model.getListItem (*placeholderList, item->id) == nullptr)
-                    matchedNestedShape = addStructureItemReplacement (replacements, model,
-                        templateDocument, row, structureScope, placeholderScope, separatorScope,
-                        indent, depth, matchedNestedShape, *item);
+        if (separatorItem != nullptr)
+            join = templateDocument.getBinding (
+                model, row, *separatorItem->get<juce::String> (Id::value));
 
-        if (placeholderList != nullptr)
-            addPlaceholderListReplacements (replacements, model, templateDocument, row,
-                structureList, separatorScope, indent, depth, *placeholderList);
-
-        return matchedNestedShape;
+        return join.isNotEmpty() ? join : juce::String::charToString (Chars::newline);
     }
 
-    /**
-     * @brief Resolves the single unclaimed token of a depth whose scope
-     *        itself names a shape -- @p structureScope's own @c template
-     *        head -- to that nested shape's rendered text.
-     *
-     * Only the first of @p tokens not already present in @p replacements
-     * is filled; a depth that names a shape configures exactly one token.
-     *
-     * @param replacements     The token-to-values map the resolved token is
-     *                         added to.
-     * @param model            The model @p row belongs to.
-     * @param templateDocument The template document shapes are looked up
-     *                         against.
-     * @param row              The row being expanded.
-     * @param structureScope   The blockquote scope whose head names the
-     *                         nested shape.
-     * @param placeholderScope The blockquote scope carrying this depth's
-     *                         placeholder bindings, or @c nullptr.
-     * @param separatorScope   The blockquote scope carrying this depth's
-     *                         separator bindings, or @c nullptr.
-     * @param tokens           The enclosing shape's distinct placeholder
-     *                         names.
-     * @param indent           The indentation prefix for lines rendered at
-     *                         this depth.
-     * @param depth            The current wiring depth.
-     */
-    static void addShapeReplacements (Replacements& replacements,
-                                      const Model& model,
+    static juce::String getChildSource (const Model& model, Element& row, int depth)
+    {
+        auto* childItem { getListLine (model, *model.getTableCell (row, Id::list), depth + 1, 0) };
+
+        return childItem != nullptr ? *childItem->get<juce::String> (Id::value) : juce::String();
+    }
+
+    static juce::String getChildJoin (const Model& model,
                                       const TemplateDocument& templateDocument,
                                       Element& row,
-                                      Element& structureScope,
-                                      Element* placeholderScope,
-                                      Element* separatorScope,
-                                      const jam::Document::Identifiers& tokens,
-                                      const juce::String& indent,
                                       int depth)
     {
-        for (const auto& name : tokens)
-            if (not replacements.contains (name))
-            {
-                replacements[name].add (
-                    getShape (model,
-                              templateDocument,
-                              row,
-                              juce::Identifier (model.getStructure (structureScope)),
-                              &structureScope,
-                              placeholderScope,
-                              separatorScope,
-                              getIndent (indent, depth)));
-                break;
-            }
-    }
-
-    /**
-     * @brief Walks @p row's wiring from @p structureScope outward, depth by
-     *        depth, resolving every one of @p tokens to its rendered value.
-     *
-     * @param model            The model @p row belongs to.
-     * @param templateDocument The template document shapes are looked up
-     *                         against.
-     * @param row              The row being expanded.
-     * @param structureScope   The first depth's blockquote scope, or
-     *                         @c nullptr when @p row has no structure.
-     * @param placeholderScope The first depth's placeholder blockquote
-     *                         scope, or @c nullptr.
-     * @param separatorScope   The first depth's separator blockquote scope,
-     *                         or @c nullptr.
-     * @param tokens           The shape's distinct placeholder names.
-     * @param indent           The indentation prefix for lines rendered at
-     *                         the first depth.
-     * @returns Every one of @p tokens mapped to its resolved value or
-     *          values.
-     */
-    static Replacements getReplacements (const Model& model,
-                                         const TemplateDocument& templateDocument,
-                                         Element& row,
-                                         Element* structureScope,
-                                         Element* placeholderScope,
-                                         Element* separatorScope,
-                                         const jam::Document::Identifiers& tokens,
-                                         const juce::String& indent)
-    {
-        Replacements replacements;
-        int depth { 0 };
-
-        const auto advance = [&model, &structureScope, &placeholderScope, &separatorScope,
-                              &depth]() noexcept
-        {
-            structureScope = structureScope != nullptr ? model.getBlockquote (*structureScope) : nullptr;
-            placeholderScope = placeholderScope != nullptr ? model.getBlockquote (*placeholderScope)
-                                                            : nullptr;
-            separatorScope = separatorScope != nullptr ? model.getBlockquote (*separatorScope) : nullptr;
-            ++depth;
+        auto* separatorItem {
+            getListLine (model, *model.getTableCell (row, Id::separator), depth + 1, 0)
         };
 
-        while (structureScope != nullptr)
-        {
-            auto matchedNestedShape { false };
-
-            if (depth > 0 and model.getStructure (*structureScope).isNotEmpty())
-                addShapeReplacements (replacements, model, templateDocument, row, *structureScope,
-                    placeholderScope, separatorScope, tokens, indent, depth);
-            else
-                matchedNestedShape = addStructureListReplacements (replacements, model,
-                    templateDocument, row, *structureScope, placeholderScope, separatorScope,
-                    indent, depth);
-
-            advance();
-
-            if (matchedNestedShape and structureScope != nullptr)
-                advance();
-        }
-
-        return replacements;
+        return getJoin (model, templateDocument, row, separatorItem);
     }
 
-    /**
-     * @brief Replaces every one of @p tokens' @c :::token::: placeholders
-     *        present on @p templateLine with its resolved value, advancing
-     *        each token's occurrence count in @p occurrence as it is
-     *        consumed.
-     *
-     * @param tokens        The shape's distinct placeholder names.
-     * @param replacements  Every token mapped to its resolved value or
-     *                      values.
-     * @param occurrence    Each token's next occurrence index into its
-     *                      values in @p replacements, advanced in place.
-     * @param templateLine  The shape's authored line, before substitution.
-     * @returns The substituted line, paired with whether the line carried
-     *          at least one placeholder.
-     */
-    static std::pair<juce::String, bool>
-    getSubstitutedLine (const jam::Document::Identifiers& tokens,
-                        const Replacements& replacements,
-                        jam::HashMap<juce::Identifier, int>& occurrence,
-                        const juce::String& templateLine)
+    static juce::String getListSourceValue (Element*& commentTable,
+                                            const Model& model,
+                                            const TemplateDocument& templateDocument,
+                                            const jam::Array<Element*>& tables,
+                                            Element& row,
+                                            const juce::String& structureValue,
+                                            int depth,
+                                            int ordinal,
+                                            const juce::String& extension)
+    {
+        const auto shapeId { juce::Identifier (jam::Format::getPostColon (structureValue).trim()) };
+        auto* listItem { getListLine (model, *model.getTableCell (row, Id::list), depth, ordinal) };
+        auto* separatorItem {
+            getListLine (model, *model.getTableCell (row, Id::separator), depth, ordinal)
+        };
+        const auto& source { *listItem->get<juce::String> (Id::value) };
+        const auto join { getJoin (model, templateDocument, row, separatorItem) };
+        const auto childSource { getChildSource (model, row, depth) };
+        const auto childJoin { getChildJoin (model, templateDocument, row, depth) };
+
+        if (commentTable == nullptr and source.startsWithChar (Chars::at))
+            commentTable = model.getTable (row, source);
+
+        return Items::getJoinedItems (model, templateDocument, tables, row, source, shapeId, join,
+            childSource, childJoin, extension);
+    }
+
+    static juce::String getShape (const Model& model,
+                                  const TemplateDocument& templateDocument,
+                                  const jam::Array<Element*>& tables,
+                                  Element& row,
+                                  const juce::Identifier& shapeId,
+                                  Element& structureScope,
+                                  int depth,
+                                  const juce::String& extension)
+    {
+        const auto& tokens { *templateDocument.getCodeBlock (shapeId)
+                                   ->get<jam::Document::Identifiers> (Id::placeholder) };
+        jam::Array<int> listDepths;
+        Element* commentTable { nullptr };
+        Replacements replacements;
+        addReplacements (listDepths, commentTable, replacements, model, templateDocument,
+            tables, row, structureScope, depth, extension);
+        return getLines (model, row, commentTable, templateDocument, shapeId, tokens, replacements,
+            listDepths, extension);
+    }
+
+    static void addReplacements (jam::Array<int>& listDepths,
+                                 Element*& commentTable,
+                                 Replacements& replacements,
+                                 const Model& model,
+                                 const TemplateDocument& templateDocument,
+                                 const jam::Array<Element*>& tables,
+                                 Element& row,
+                                 Element& structureScope,
+                                 int depth,
+                                 const juce::String& extension)
+    {
+        Sources sources;
+        jam::Array<int> sourceDepths;
+        jam::Array<int> sourceOrdinals;
+        jam::HashMap<int, int> ordinals;
+        Replacements bindings;
+
+        addSources (sources, sourceDepths, sourceOrdinals, bindings, ordinals, model, structureScope, depth);
+
+        for (const auto& [name, values] : bindings)
+            replacements[name].add (templateDocument.getBinding (model, row, values.at (0)));
+
+        for (int index { 0 }; index < sources.size(); ++index)
+            addSourceReplacement (replacements, listDepths, commentTable, model, templateDocument,
+                tables, row, *sources.at (index), sourceDepths.at (index), sourceOrdinals.at (index),
+                extension);
+    }
+
+    static void addSourceReplacement (Replacements& replacements,
+                                      jam::Array<int>& listDepths,
+                                      Element*& commentTable,
+                                      const Model& model,
+                                      const TemplateDocument& templateDocument,
+                                      const jam::Array<Element*>& tables,
+                                      Element& row,
+                                      Element& source,
+                                      int depth,
+                                      int ordinal,
+                                      const juce::String& extension)
+    {
+        if (source.id == Id::list)
+        {
+            replacements[Id::list].add (getListSourceValue (commentTable, model, templateDocument,
+                tables, row, *source.get<juce::String> (Id::value), depth, ordinal, extension));
+            listDepths.add (depth);
+        }
+        else
+        {
+            const auto shapeId { juce::Identifier (model.getStructure (source)) };
+            replacements[Id::list].add (
+                getShape (model, templateDocument, tables, row, shapeId, source, depth, extension));
+            listDepths.add (0);
+        }
+    }
+
+    static juce::String getListValue (const Replacements& replacements,
+                                      const jam::Array<int>& listDepths,
+                                      int occurrenceIndex,
+                                      bool isAtColumnZero)
+    {
+        const auto& values { replacements.at (Id::list) };
+        const auto index { std::min (occurrenceIndex, values.size() - 1) };
+        const auto& value { values.at (index) };
+
+        if (not isAtColumnZero or listDepths.at (index) == 0)
+            return value;
+
+        const auto indent { juce::String::repeatedString (
+            juce::String::charToString (Chars::space), indentWidth * listDepths.at (index)) };
+
+        return indent
+               + jam::Strings::fromLines (value).joinIntoString (
+                     juce::String::charToString (Chars::newline) + indent, 0, -1);
+    }
+
+    static juce::String getTokenValue (const Model& model,
+                                       Element& row,
+                                       Element* commentTable,
+                                       const Replacements& replacements,
+                                       const juce::Identifier& name)
+    {
+        if (replacements.contains (name))
+            return replacements.at (name).at (0);
+
+        if (auto* cell { model.getTableCell (row, name) })
+            return *cell->get<juce::String> (Id::value);
+
+        if (name == Id::comment and commentTable != nullptr)
+            return *commentTable->get<juce::String> (Id::comment);
+
+        return {};
+    }
+
+    static std::pair<juce::String, bool> getSubstitutedLine (const Model& model,
+                                                              Element& row,
+                                                              Element* commentTable,
+                                                              const jam::Document::Identifiers& tokens,
+                                                              const Replacements& replacements,
+                                                              const jam::Array<int>& listDepths,
+                                                              jam::HashMap<juce::Identifier, int>& occurrence,
+                                                              const juce::String& templateLine,
+                                                              const juce::String& extension)
     {
         auto lineText { templateLine };
         auto lineHasPlaceholder { false };
@@ -384,41 +293,34 @@ struct Shapes
             if (jam::Format::hasPlaceholder (lineText, name.toString()))
             {
                 lineHasPlaceholder = true;
-                juce::String value;
+                const auto isAtColumnZero { templateLine.indexOf (Items::getMarker (name)) == 0 };
+                auto& tokenOccurrence { occurrence[name] };
+                auto value { name == Id::list
+                                 ? getListValue (
+                                       replacements, listDepths, tokenOccurrence, isAtColumnZero)
+                                 : getTokenValue (model, row, commentTable, replacements, name) };
 
-                if (replacements.contains (name))
-                {
-                    const auto& values { replacements.at (name) };
-
-                    if (not values.isEmpty())
-                        value = values.at (std::min (occurrence[name], values.size() - 1));
-                }
+                if (name == Id::comment and value.isNotEmpty())
+                    value = templateLine.trim() == Items::getMarker (name)
+                                ? Transforms::toBrief (value, extension)
+                                : Transforms::toComment (value, extension);
 
                 lineText = jam::Format::replaceholder (lineText, name.toString(), value);
-                ++occurrence[name];
+                ++tokenOccurrence;
             }
 
         return { lineText, lineHasPlaceholder };
     }
 
-    /**
-     * @brief Substitutes @p shapeId's authored lines against @p tokens and
-     *        @p replacements, collapsing a run of blank lines produced by
-     *        an unfilled placeholder down to a single blank line.
-     *
-     * @param templateDocument The template document @p shapeId is read
-     *                         from.
-     * @param shapeId          The shape whose authored lines are
-     *                         substituted.
-     * @param tokens           The shape's distinct placeholder names.
-     * @param replacements     Every token mapped to its resolved value or
-     *                         values.
-     * @returns The shape's rendered text, joined by newline.
-     */
-    static juce::String getLines (const TemplateDocument& templateDocument,
+    static juce::String getLines (const Model& model,
+                                  Element& row,
+                                  Element* commentTable,
+                                  const TemplateDocument& templateDocument,
                                   const juce::Identifier& shapeId,
                                   const jam::Document::Identifiers& tokens,
-                                  const Replacements& replacements)
+                                  const Replacements& replacements,
+                                  const jam::Array<int>& listDepths,
+                                  const juce::String& extension)
     {
         jam::Strings lines;
         auto previousLineIsEmpty { false };
@@ -427,8 +329,8 @@ struct Shapes
         for (const auto& templateLine : jam::Strings::fromLines (
                  *templateDocument.getCodeBlock (shapeId)->get<juce::String> (Id::value)))
         {
-            const auto [lineText, lineHasPlaceholder] { getSubstitutedLine (
-                tokens, replacements, occurrence, templateLine) };
+            const auto [lineText, lineHasPlaceholder] { getSubstitutedLine (model, row, commentTable,
+                tokens, replacements, listDepths, occurrence, templateLine, extension) };
             const auto lineIsEmpty { lineHasPlaceholder and lineText.trim().isEmpty() };
 
             if (lineIsEmpty)
@@ -442,76 +344,23 @@ struct Shapes
             }
         }
 
-        const auto composite { lines.joinIntoString (
-            juce::String::charToString (Chars::newline), 0, -1) };
-        return composite;
+        return lines.joinIntoString (juce::String::charToString (Chars::newline), 0, -1);
     }
 
     /**
-     * @brief Renders @p shapeId's text for @p row, resolving every one of
-     *        the shape's placeholders through getReplacements() and
-     *        substituting them through getLines().
-     *
-     * @param model            The model @p row belongs to.
-     * @param templateDocument The template document @p shapeId is read
-     *                         from.
-     * @param row              The row being rendered.
-     * @param shapeId          The shape to render.
-     * @param structureScope   The blockquote scope carrying the shape's
-     *                         structure wiring, or @c nullptr.
-     * @param placeholderScope The blockquote scope carrying the shape's
-     *                         placeholder wiring, or @c nullptr.
-     * @param separatorScope   The blockquote scope carrying the shape's
-     *                         separator wiring, or @c nullptr.
-     * @param indent           The indentation prefix for the shape's
-     *                         rendered lines.
-     * @returns The shape's rendered text.
-     */
-    static juce::String getShape (const Model& model,
-                                  const TemplateDocument& templateDocument,
-                                  Element& row,
-                                  const juce::Identifier& shapeId,
-                                  Element* structureScope,
-                                  Element* placeholderScope,
-                                  Element* separatorScope,
-                                  const juce::String& indent)
-    {
-        const auto& tokens { *templateDocument.getCodeBlock (shapeId)
-                                   ->get<jam::Document::Identifiers> (Id::placeholder) };
-        const auto replacements { getReplacements (model, templateDocument, row, structureScope,
-            placeholderScope, separatorScope, tokens, indent) };
-        return getLines (templateDocument, shapeId, tokens, replacements);
-    }
-
-    /**
-     * @brief Resolves @p name's @p occurrence-th value across
-     *        @p rowReplacements -- the single shared value when every row
-     *        that carries @p name agrees, or every row's value joined by
+     * @brief Resolves one occurrence's merged value across @p
+     *        occurrenceValues -- the single shared value when every row
+     *        that carries the token agrees, or every row's value joined by
      *        @p joinText when they diverge.
      *
-     * @param rowReplacements Every row's own Replacements, one per merged
-     *                        row.
-     * @param name            The token whose occurrence is resolved.
-     * @param occurrence      The occurrence index into each row's values
-     *                        for @p name.
-     * @param joinText        The text joining diverging rows' values.
-     * @returns @p name's merged value at @p occurrence.
+     * @param occurrenceValues Every merged row's own value for the same
+     *                         token occurrence.
+     * @param joinText         The text joining diverging rows' values.
+     * @returns The occurrence's merged value.
      */
-    static juce::String getMergedOccurrenceValue (const jam::Array<Replacements>& rowReplacements,
-                                                  const juce::Identifier& name, int occurrence,
+    static juce::String getMergedOccurrenceValue (const jam::Strings& occurrenceValues,
                                                   const juce::String& joinText)
     {
-        jam::Strings occurrenceValues;
-
-        for (const auto& rowReplacement : rowReplacements)
-            if (rowReplacement.contains (name))
-            {
-                const auto& values { rowReplacement.at (name) };
-
-                if (occurrence < values.size())
-                    occurrenceValues.add (values.at (occurrence));
-            }
-
         return std::all_of (occurrenceValues.begin(), occurrenceValues.end(),
                    [&occurrenceValues] (const juce::String& value)
                    { return value == occurrenceValues.at (0); })
@@ -520,75 +369,80 @@ struct Shapes
     }
 
     /**
-     * @brief Merges every row's own Replacements in @p rowReplacements
-     *        into one Replacements, resolving each of @p tokens' every
-     *        occurrence through getMergedOccurrenceValue().
+     * @brief Fills @p mergedReplacements with every one of @p tokens
+     *        mapped to its merged occurrence values, merging every row's
+     *        own Replacements in @p rowReplacements through
+     *        getMergedOccurrenceValue().
      *
-     * @param rowReplacements Every row's own Replacements, one per merged
-     *                        row.
-     * @param tokens          The shape's distinct placeholder names.
-     * @param joinText        The text joining diverging rows' values.
-     * @returns Every one of @p tokens mapped to its merged occurrence
-     *          values.
+     * @param mergedReplacements Filled with every one of @p tokens mapped
+     *                           to its merged occurrence values.
+     * @param rowReplacements    Every row's own Replacements, one per
+     *                           merged row.
+     * @param tokens             The shape's distinct placeholder names.
+     * @param joinText           The text joining diverging rows' values.
      */
-    static Replacements getMergedReplacements (const jam::Array<Replacements>& rowReplacements,
-                                               const jam::Document::Identifiers& tokens,
-                                               const juce::String& joinText)
+    static void addMergedReplacements (Replacements& mergedReplacements,
+                                       const jam::Array<Replacements>& rowReplacements,
+                                       const jam::Document::Identifiers& tokens,
+                                       const juce::String& joinText)
     {
-        Replacements mergedReplacements;
+        jam::HashMap<juce::Identifier, jam::Array<jam::Strings>> occurrenceValues;
+
+        for (const auto& rowReplacement : rowReplacements)
+            for (const auto& [name, values] : rowReplacement)
+                for (int occurrence { 0 }; occurrence < values.size(); ++occurrence)
+                {
+                    if (occurrenceValues[name].size() <= occurrence)
+                        occurrenceValues[name].resize (occurrence + 1);
+
+                    occurrenceValues[name].at (occurrence).add (values.at (occurrence));
+                }
 
         for (const auto& name : tokens)
-        {
-            int occurrenceCount { 0 };
-
-            for (const auto& rowReplacement : rowReplacements)
-                if (rowReplacement.contains (name))
-                    occurrenceCount = std::max (occurrenceCount, rowReplacement.at (name).size());
-
-            for (int occurrence { 0 }; occurrence < occurrenceCount; ++occurrence)
-                mergedReplacements[name].add (
-                    getMergedOccurrenceValue (rowReplacements, name, occurrence, joinText));
-        }
-
-        return mergedReplacements;
+            for (const auto& occurrenceValue : occurrenceValues[name])
+                mergedReplacements[name].add (getMergedOccurrenceValue (occurrenceValue, joinText));
     }
 
-    /**
-     * @brief Renders @p rows' shared shape once, merging each row's own
-     *        resolved replacements through getMergedReplacements() and
-     *        substituting them through getLines().
-     *
-     * @param model            The model @p rows belong to.
-     * @param templateDocument The template document the shape is read
-     *                         from.
-     * @param rows             The rows sharing one shape and one rendering,
-     *                         at least one row.
-     * @param joinText         The text joining rows whose resolved values
-     *                         diverge.
-     * @returns The shared shape's merged, rendered text.
-     */
     static juce::String getShape (const Model& model,
                                   const TemplateDocument& templateDocument,
+                                  const jam::Array<Element*>& tables,
                                   const jam::Array<Element*>& rows,
                                   const juce::String& joinText)
     {
         jassert (rows.size() > 0);
 
         auto* firstRow { rows.first() };
-        const auto shapeId { juce::Identifier (
-            model.getStructure (*model.getTableCell (*firstRow, Id::structure))) };
+        auto& firstStructureScope { *model.getTableCell (*firstRow, Id::structure) };
+        const auto shapeId { juce::Identifier (model.getStructure (firstStructureScope)) };
         const auto& tokens { *templateDocument.getCodeBlock (shapeId)
                                    ->get<jam::Document::Identifiers> (Id::placeholder) };
 
+        const auto extension { jam::Format::onlyExtensionFromFilename (
+            jam::Format::toFileName (model.getValue (*firstRow, Id::file))) };
+
         jam::Array<Replacements> rowReplacements;
+        jam::Array<int> listDepths;
+        Element* commentTable { nullptr };
 
         for (auto* row : rows)
-            rowReplacements.add (getReplacements (model, templateDocument, *row,
-                model.getTableCell (*row, Id::structure), model.getTableCell (*row, Id::placeholder),
-                model.getTableCell (*row, Id::separator), tokens, juce::String()));
+        {
+            jam::Array<int> rowListDepths;
+            Element* rowCommentTable { nullptr };
+            rowReplacements.add ({});
+            addReplacements (rowListDepths, rowCommentTable, rowReplacements.last(), model,
+                templateDocument, tables, *row, *model.getTableCell (*row, Id::structure), 0, extension);
 
-        const auto mergedReplacements { getMergedReplacements (rowReplacements, tokens, joinText) };
+            if (row == firstRow)
+            {
+                listDepths = std::move (rowListDepths);
+                commentTable = rowCommentTable;
+            }
+        }
 
-        return getLines (templateDocument, shapeId, tokens, mergedReplacements);
+        Replacements mergedReplacements;
+        addMergedReplacements (mergedReplacements, rowReplacements, tokens, joinText);
+
+        return getLines (model, *firstRow, commentTable, templateDocument, shapeId, tokens,
+            mergedReplacements, listDepths, extension);
     }
 };

@@ -24,7 +24,6 @@ public:
     /** Constructs an empty model with no parsed tables. */
     Model() = default;
 
-    using jam::MarkdownDocument::getTables;
     using jam::MarkdownDocument::getTableHeaderRow;
 
     /**
@@ -64,11 +63,14 @@ public:
 
             if (juce::Identifier::isValidIdentifier (aliasText))
             {
-                for (auto* table : getTables (Id::index))
+                for (auto* table : *this)
                 {
-                    if (table->contains (Id::path) and *table->get<juce::String> (Id::path) == file)
+                    if (table->id == Id::index)
                     {
-                        return getTableValue (*table, Id::symbol, juce::Identifier (aliasText));
+                        if (table->contains (Id::path) and *table->get<juce::String> (Id::path) == file)
+                        {
+                            return getTableValue (*table, Id::symbol, juce::Identifier (aliasText));
+                        }
                     }
                 }
             }
@@ -142,12 +144,12 @@ public:
 
     /**
      * @brief Returns the manifest's declared template file, resolved
-     *        against getOutput().
+     *        against getFile().
      *
      * @returns The template file named by the index row whose symbol has
      *          the @c .cast extension.
      */
-    juce::File getFile() const
+    juce::File getTemplateFile() const
     {
         juce::File templateFile;
 
@@ -157,7 +159,7 @@ public:
 
             if (juce::File::createFileWithoutCheckingPath (pathCell).hasFileExtension (
                     Extensions::cast))
-                templateFile = getOutput (pathCell);
+                templateFile = getFile (pathCell);
         }
 
         return templateFile;
@@ -171,9 +173,9 @@ public:
      *                     directory.
      * @returns The resolved file.
      */
-    juce::File getOutput (juce::StringRef relativePath) const
+    juce::File getFile (juce::StringRef relativePath) const
     {
-        return path.getChildFile (relativePath);
+        return directory.getChildFile (relativePath);
     }
 
     /**
@@ -187,7 +189,7 @@ public:
      * @returns The referenced table, or @c nullptr when @p reference's
      *          alias does not resolve.
      */
-    Element* getTables (Element& row, juce::StringRef reference) const
+    Element* getTable (Element& row, juce::StringRef reference) const
     {
         const auto parts { jam::Strings::fromTokens (
             reference, juce::String::charToString (Chars::colon), {}) };
@@ -195,16 +197,30 @@ public:
         const auto tableName { parts.size() > 1 ? parts.at (1).trim() : juce::String() };
         const auto declaredPath { getValue (row, sourceName) };
 
-        return declaredPath.isNotEmpty() ? getTables (declaredPath, tableName) : nullptr;
+        return declaredPath.isNotEmpty() ? getTable (declaredPath, tableName) : nullptr;
     }
 
 private:
+    /**
+     * @brief Answers whether @p element's own @c type equals @p blockType.
+     *
+     * @param element   The element whose block type is tested.
+     * @param blockType The block type compared against.
+     * @returns @c true when @p element carries a @c type equal to
+     *          @p blockType.
+     */
+    static bool isBlockType (const Element& element, int blockType)
+    {
+        return element.contains (Id::type) and *element.get<int> (Id::type) == blockType;
+    }
+
     static void parse (Model& document, const juce::File& documentFile)
     {
         const auto parent { documentFile.getParentDirectory() };
         const auto manifestOrigin { documentFile.getRelativePathFrom (parent) };
 
-        document.path = parent;
+        document.directory = parent;
+
         document.appendChildren (jam::MarkdownDocument::parse (
             documentFile.loadFileAsString(), manifestOrigin));
 
@@ -221,6 +237,7 @@ private:
         }
 
         parse (document, parent, tableOrigins);
+        addComments (document);
 
         for (auto* table : document.getTables())
         {
@@ -230,10 +247,36 @@ private:
             {
                 document.addValues (*headerRow, *row);
 
-                for (const auto& column : { Id::structure, Id::placeholder, Id::separator })
+                for (const auto& column : { Id::structure, Id::list, Id::separator })
                     if (auto* cell { document.getTableCell (*row, column) })
                         addBindings (*cell);
             }
+        }
+    }
+
+    static void addComments (Model& document)
+    {
+        Element* precedingBlock { nullptr };
+
+        for (auto* child : document)
+        {
+            if (isBlockType (*child, map::BlockType::table))
+            {
+                juce::String comment;
+
+                if (precedingBlock != nullptr and precedingBlock->contains (Id::type))
+                {
+                    const auto precedingType { *precedingBlock->get<int> (Id::type) };
+
+                    if (precedingType == map::BlockType::paragraph
+                        or precedingType == map::BlockType::codeBlock)
+                        comment = precedingBlock->getAllSubText();
+                }
+
+                child->add<juce::String> (Id::comment, comment);
+            }
+
+            precedingBlock = child;
         }
     }
 
@@ -282,7 +325,14 @@ private:
         }
     }
 
-    static juce::String getCellValue (Element& cell, const juce::String& transform, bool& isLiteral)
+    /**
+     * @brief Returns @p cell's backtick code child, searched depth-first.
+     *
+     * @param cell The cell searched for a code child.
+     * @returns @p cell's code child, or @c nullptr when it carries none --
+     *          a cell's literality is this pointer's mere existence.
+     */
+    static const Element* getLiteral (Element& cell)
     {
         const Element* codeChild { nullptr };
 
@@ -290,27 +340,13 @@ private:
             [&codeChild] (const Element& node) -> bool
             {
                 if (codeChild == nullptr
-                    and (node.isTag (Id::code)
-                         or (node.contains (Id::type)
-                             and *node.get<int> (Id::type) == map::BlockType::codeBlock)))
+                    and (node.isTag (Id::code) or isBlockType (node, map::BlockType::codeBlock)))
                     codeChild = &node;
 
                 return codeChild == nullptr;
             });
 
-        if (codeChild != nullptr)
-        {
-            isLiteral = true;
-
-            juce::String text { codeChild->getAllSubText() };
-
-            if (Transforms::contains (transform))
-                text = Transforms::getTransformed (transform, text, {});
-
-            return jam::Format::toLiteral (text);
-        }
-
-        return cell.getAllSubText();
+        return codeChild;
     }
 
     void addValue (Element& headerCell, Element& row, Element& cell, juce::String& precedingAuthored)
@@ -321,8 +357,23 @@ private:
             if (formatCell->id == Id::format)
                 transform = formatCell->getAllSubText();
 
-        auto isLiteral { false };
-        const auto authored { getCellValue (cell, transform, isLiteral) };
+        const auto* literal { getLiteral (cell) };
+        juce::String authored;
+
+        if (literal != nullptr)
+        {
+            juce::String text { literal->getAllSubText() };
+
+            if (Transforms::contains (transform))
+                text = Transforms::getTransformed (transform, text, {});
+
+            authored = jam::Format::toLiteral (text);
+        }
+        else
+        {
+            authored = cell.getAllSubText();
+        }
+
         const auto isFormatColumn { headerCell.id == Id::format };
         const auto isManifestRow { isOutputTable (*row.parent) };
         auto value { authored.isNotEmpty() or isManifestRow ? authored : precedingAuthored };
@@ -330,7 +381,7 @@ private:
         if (value.startsWithChar (Chars::at))
             value = getValue (row, value);
 
-        if (not isLiteral and Transforms::contains (transform))
+        if (literal == nullptr and Transforms::contains (transform))
             value = Transforms::getTransformed (transform, value, {});
 
         if (not isFormatColumn)
@@ -364,22 +415,26 @@ private:
         }
     }
 
-    Element* getTables (const juce::String& declaredPath, const juce::String& tableName) const
+    Element* getTable (const juce::String& declaredPath, const juce::String& tableName) const
     {
         if (tableName.isNotEmpty())
         {
-            for (auto* candidate : getTables (juce::Identifier (jam::Format::toValidID (tableName))))
-                if (candidate->contains (Id::path) and *candidate->get<juce::String> (Id::path) == declaredPath)
-                    return candidate;
+            const juce::Identifier tableId { jam::Format::toValidID (tableName) };
+
+            for (auto* candidate : *this)
+                if (candidate->id == tableId)
+                    if (candidate->contains (Id::path) and *candidate->get<juce::String> (Id::path) == declaredPath)
+                        return candidate;
 
             return nullptr;
         }
 
         jam::Array<Element*> fileTables;
 
-        for (auto* candidate : getTables())
-            if (candidate->contains (Id::path) and *candidate->get<juce::String> (Id::path) == declaredPath)
-                fileTables.add (candidate);
+        for (auto* candidate : *this)
+            if (isBlockType (*candidate, map::BlockType::table))
+                if (candidate->contains (Id::path) and *candidate->get<juce::String> (Id::path) == declaredPath)
+                    fileTables.add (candidate);
 
         if (fileTables.size() == 1)
             return fileTables.at (0);
@@ -394,7 +449,7 @@ private:
         return nullptr;
     }
 
-    juce::File path;
+    juce::File directory;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Model)

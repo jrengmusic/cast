@@ -111,6 +111,47 @@
 
 ## SPRINT HISTORY
 
+## Sprint: Performance Convergence + Audit Sweep — 28.5s → ~1.06s, clean sweep ✅
+
+**Date:** 2026-08-26
+**Duration:** —
+
+### Agents Participated
+- COUNSELOR — ODE-driven bottleneck hunt (debug::Log::Timer waves, ~/Desktop/cast.ode), DbC triage, finding verification against Validator invariants, ratification routing, SPEC §10.1 + CLAUDE.md + doc-contract amendments
+- Engineer (multiple waves) — DbC engine refactor, probe strip, audit fixes, ratified renames, Lean splits, gates, doc pass
+- Auditor — single sprint-end sweep (all findings resolved, refuted with citation, or ARCHITECT-dispositioned)
+- Pathfinder — convergence gate verification (7/7 byte-identical)
+
+### Files Modified (13 total)
+- `Source/Items.h` — single token resolution (`addItemReplacements` out-params, comment transformed at measure — kills the size_t underflow), `getPaddedItem` std::string assembly + for-head scan, `getPaddedItemTexts`/`getPlainItemTexts` split
+- `Source/Shapes.h` — `getListValue` quadratic `String::replace` killed (23.2s → 3.6ms), one-pass `addMergedReplacements`, `addSources`/`addReplacements` renames, `bindings` demoted to local
+- `Source/Model.h` — direct root-child iteration (`getTable` singular), parallel per-file parse, `getLiteral` replaces `getCellValue`+bool& (transform SSOT restored), `isBlockType`, `getTemplateFile`/`getFile`/`directory` renames
+- `Source/Writer.h` — tables hoisted once, write-if-different (fixpoint-real), `getGroupStarts` + per-table `toFile` overload split, serial dir pre-creation, `groupEnd` threaded, const
+- `Source/Processor.h` — `format()` parallel via Jobs::run + failure collection (`failOutputWrite`)
+- `Source/Validator.h` — new gates `isBindingCountValid`, `isMarkerCountValid` (SPEC §10.1 +2 fatals)
+- `Source/TemplateDocument.h` — dead `getSeparator` deleted
+- `cast/text.md` + `Source/generated/Text.h` — `failBindingDuplicate`, `failMarkerUnterminated`
+- `SPEC.md` — §10.1 fatal set +2 rows; `CLAUDE.md` — rewritten against actual tree
+- `jam/jam_core/document/jam_Document.h` — `Span` alias (packed Union), `addSource` appendix (+lineOffsets extension), `appendChildren` source transfer + `setSpanOffsets` (std::visit, 18/18 explicit arms, compile-enforced exhaustiveness), Token ordering assert
+- `jam/jam_markdown/document/jam_MarkdownDocument.h` — in-place per-cell parse (stack-local BlockParser, zero mutation — clear()/cellBlocks/root-rebind deleted), span SSOT pipeline (`splitCellSpans` → `getRowSpan`+`addCells`+`addColumnSpans`, 106→28 lines), inline escape detection (splitTableRow sole collapse authority, runtime compare deleted), `getByte` (116 sites), `getTrimmedSpans`, promoteTable dangling-ref UB fix, 13-site if-init pattern restore
+
+### Alignment Check
+- [x] BLESSED principles followed
+- [x] NAMES.md adhered (every new name ARCHITECT-ratified)
+- [x] MANIFESTO.md principles applied
+
+### Problems Solved
+- 28.5s generation → ~1.06s: quadratic replace, collector recollection, double token resolution, serial format, nested-parse cell pipeline — all measured via ODE protocol, fixed at root
+- Escape regression (grid scanner collapse law) solved deterministically: appendix source + parse-time escape detection; damaged .md files restored (ARCHITECT-authorized)
+- Audit clean sweep: every finding resolved, refuted with citation (Jobs.h drain — juce_ThreadPool.cpp:303-307; four "crash paths" — Validator-owned invariants), or closed by ARCHITECT word
+- Convergence gate: 7/7 jam headers byte-identical post-sweep (jam_Generated/jam_Mermaid = deferred mermaid scope)
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None (ledger empty; ARCHITECT deferrals recorded in-sprint: Lean set — isAddress 37, isIndex 33, Model::parse 37, getShape 37, getItems 37, isManifest 31, getTable 31, addCells 47, Shapes/Items file-level splits, parameter-bundle threading; `getListSourceValue` commentTable out-param unruled; mermaid sprint)
+
 ## Sprint: MermaidTables Dissolution + MermaidStyleSheet + Bimaps/LookupTables Tables — jam 8-9/9 ✅
 
 **Date:** 2026-08-25

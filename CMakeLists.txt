@@ -27,6 +27,7 @@ configure_app(
                  jam_style
                  jam_terminal
                  jam_markdown
+                 jam_mermaid_diagram
                  jam_animation
                  jam_audio_devices
                  jam_clap

@@ -67,7 +67,7 @@ Row order is authored order. CAST never sorts.
 
 Column names are yours. Name a column for what it produces, because a template addresses it by that name — a column called `value` fills `:::value:::`.
 
-Two column names are reserved: `format`, and inside the manifest, `placeholder`, `structure`, `separator`, `file`.
+Two column names are reserved: `format`, and inside the manifest, `list`, `separator`, `structure`, `file`.
 
 ### Cells
 
@@ -140,6 +140,15 @@ value ->  "circleCross"    empty, so it takes name, then toLiteral quotes it
 
 Formatting is declared in the table. A template never formats anything.
 
+### Documentation
+
+Two doc channels, both data:
+
+- **per row** — a column named `comment`. An entry shape's `:::comment:::` takes it like any column.
+- **per table** — write a paragraph or a fenced block between the `## table name` heading and the table. A shape-level `:::comment:::` resolves to it; no text means empty.
+
+The comment frame (`/** @brief ... */`, `///< ...`) is authored in the template — it is structure, like braces.
+
 ### Uniqueness
 
 Within one table, every column's entries must be unique, compared byte for byte. `circleCross` and `CircleCross` are two different entries. Cells holding an alias or an operation name are exempt, because those repeat by design.
@@ -192,27 +201,30 @@ Every code shape lives in one `.cast` file. It is markdown: fenced code blocks, 
 inline const :::type::: :::name::: { juce::String::fromUTF8 (:::value:::) };
 ```
 
-```pair
-{ :::value:::, :::key::: },
+```entry
+{ :::list::: },
 ```
 ````
 
-A block is the literal text of the output. Braces, keywords, punctuation — all authored, all verbatim. There are no conditionals, no loops, and no formatting.
+A block is the literal text of the output. Braces, keywords, punctuation, comment frames — all authored, all verbatim. There are no conditionals, no loops, and no formatting.
 
-`:::token:::` is replaced by the column or binding of that name. A token carries no operation — `:::token:op:::` is not a form.
+**`:::list:::` is the one expansion token.** Each occurrence is one expansion: its items joined by that expansion's separator. Where the marker sits decides the axis:
 
-Do not author the quotes around a literal. `toLiteral` supplies them, and doubling up produces `""value""`.
+- at **column 0** — vertical: the join fills line by line, each line indented by the wiring line's `>` depth
+- **inside a line** — horizontal: the join lands in place, unindented
+
+```
+struct :::name:::          vertical — items stack, indent from the wiring
+{
+:::list:::
+};
+
+{ :::list::: },            horizontal — items join in place, e.g. by ", "
+```
+
+Every other `:::token:::` is a named token, replaced by the binding or column of that name. A token carries no operation — `:::token:op:::` is not a form. Do not author the quotes around a literal. `toLiteral` supplies them, and doubling up produces `""value""`.
 
 Joining more than one item from a single-line shape aligns their token columns: fill spaces land in the literal between two tokens, right after that literal's first run of whitespace, sized to the widest replacement any item in the join gives that token. Fill never lands inside a token's own replacement, so a quoted include path still emits verbatim. Nothing pads before the first token or after the last, and no emitted line carries trailing whitespace. A single item, or a multi-line shape, renders unpadded — there is no column limit and no wrapping.
-
-Jack markers sit at column 0. Indentation comes from the manifest's depth, never from the block:
-
-```
-struct :::name:::
-{
-:::line:::
-};
-```
 
 ---
 
@@ -221,93 +233,69 @@ struct :::name:::
 `CAST.md` reserves four column names:
 
 ```
-+-------------+-----------+-----------+------+
-| placeholder | structure | separator | file |
-+=============+===========+===========+======+
++------+-----------+-----------+------+
+| list | separator | structure | file |
++======+===========+===========+======+
 ```
 
 `separator` is optional. Blank means newline.
 
-### placeholder — what data
+### list — what iterates
 
-Wiring bullets, `- <token>: <source>`. The bullet's name is the template token that expands; the source says what feeds it.
+`- list: <source>` lines. Each one is an expansion; the source says what feeds it:
 
-- an address — `- line: @xml:XmlTokenType:key` iterates that table's rows
-- a column name — `- line: file` iterates the unique values of that column
-- a binding name — `- line: instance` selects the rows that declare that binding
+- an address — `- list: @xml:XmlTokenType:key` iterates that table's rows
+- a column name — `- list: file` iterates the unique values of that column
+- a binding name — `- list: instance` selects the rows that declare that binding
+- `cells` — iterates the enclosing expansion's current row's cells, in column order
 
 ### structure — what shape
 
-A head line names a shape: `template:namespace`. A bullet binds one token of that shape: `- name: jam` fills its `:::name:::`.
+A head line names a shape: `template:namespace`. A named bullet binds one token of that shape: `- name: jam` fills its `:::name:::`. A `- list: template:<id>` bullet names the shape each item of the matching expansion renders through.
 
-### Depth
+### Depth — where, and how deep
 
-`> ` count is both which token you mean and how far its rows indent.
-
-```
-template:something          depth 0    no indent
-> - this: nested            depth 1    one tab
-> > template:something      depth 2    two tabs
-```
-
-One tab is four spaces. The same token name at two depths is two different tokens, and the deeper one wins inside its own scope. That is why one shape can nest inside itself:
-
-```cpp
-struct Outer
-{
-    struct Inner
-    {
-        struct InnerMost
-        {
-        };
-    };
-};
-```
-
-### Pairing
-
-A token name resolves once per depth. Where a shape names that token once, every occurrence of it carries the same value — `namespace :::name:::` and `}// namespace :::name:::` are one binding, not two.
-
-Where a shape names the same token **more than once**, the occurrences cascade: the first takes the shallowest depth, the second the next, and so on, each indented by its own depth.
+`> ` count is indentation, nothing else:
 
 ```
-```chars
-struct Chars
-{
-:::line:::
-
-    inline static const jam::HashMap<juce::juce_wchar, juce::juce_wchar> escape
-    {
-:::line:::
-    };
-};
+- list: ...            fills at column 0
+> - list: ...          fills at one tab
+> > > - list: ...      fills at three tabs
 ```
 
-| - line: @chars:chars    | template:chars           |
-| > - line: @chars:escape | > - line: template:wchar |
-|                         | > > - line: template:map |
-```
+One tab is four spaces, **absolute** — measured from column 0 of the output file, not from the enclosing shape. A nested head (`> template:bimap`) adds no indent of its own; its block's lines land exactly where the block authored them.
 
-The first `:::line:::` takes depth 1 indented one tab; the second takes depth 2 indented two.
+A `- list:` line one level deeper than a row expansion runs once per row of it — that is how `cells` knows which row to read.
 
-A depth belongs to exactly one shape. When a bullet names a shape and the depth below carries that shape's own token names, that depth configures the named shape — the shape that referenced it does not read those bullets again.
+### Pairing — always by position, never by depth order
 
-Distinct token names that no bullet claims pair with the depth's remaining sources, in authored order. A nested head counts as a source.
+The list column's `- list:` lines pair with the structure column's `- list:` lines at the same depth and ordinal. Each shape owns the `- list:` lines and nested heads beneath its head, down to the next head; the shape's `:::list:::` occurrences, top to bottom, consume those sources **in authored order**.
 
 ```
-namespace binds :::name::: from   - name: jam
-and its unclaimed :::line::: from  > template:struct
++-------------------------------------+---------------------------------+
+| list                                | structure                       |
++=====================================+=================================+
+| > > > - list: @tokens:token type    | template:namespace              |
+| > > - list: @tokens:token type      | - name: map                     |
+|                                     | > template:bimap                |
+|                                     | > - name: TemplateTokenType     |
+|                                     | > - type: int                   |
+|                                     | > > > - list: template:mapEntry |
+|                                     | > > - list: template:enum       |
++-------------------------------------+---------------------------------+
 ```
 
-Every unclaimed token must find a source and every source must be used. A mismatch stops the run and names the block and the row.
+The bimap block names `:::list:::` twice — map region first, enum region second. The first occurrence takes the first authored wiring line (mapEntry, three tabs), the second takes the second (enum, two tabs). Matching template, tables and expression is yours; CAST reads the expression and generates. Its one check is the count — a mismatch stops the run and names the block and the row.
 
-### separator
+### separator — how items join
 
-Optional. Named per token, keyed the same way the wiring is. Blank joins by newline; anything else joins by that text. There is no horizontal mode — a one-line shape is simply authored on one line.
+`- list:` lines mirroring the list column's depths. The line at a given depth and ordinal joins that expansion's items. Blank or absent joins by newline; anything else joins by that text — `template:<id>` names a block whose text is the join.
+
+The **depth-0** separator line is the row join: rows merged into one file join their diverging values by it.
 
 ### file — merging rows into one file
 
-Rows that declare the same `file` render as one merged shape; the wrap is emitted once per file. Merging is per token, per occurrence: a value that is byte-identical across the group's rows resolves once, and values that differ join in authored row order by the first row's `separator`, framed by one blank line on each side. A group of one row merges to itself.
+Rows that declare the same `file` render as one merged shape; the wrap is emitted once per file. Merging is per token, per occurrence: a value that is byte-identical across the group's rows resolves once, and values that differ join in authored row order by the first row's depth-0 separator, framed by one blank line on each side. A group of one row merges to itself.
 
 Same-file rows must be authored contiguously — a row for a file already closed by an intervening row of another file is a fatal error.
 
@@ -371,48 +359,58 @@ inline const juce::Identifier cdataOpen { juce::String::fromUTF8 ("<![CDATA[") }
 
 Row one's `value` is empty, so it takes `name` and its `format` quotes it. Rows two and three are backticked, which already means `toLiteral` — so their `format` cell stays empty.
 
-### One datum, two shapes
+### Any-arity entries with cells
 
 ```markdown
-## block type
+## colours
 
-+-------------+-------+
-| key         | value |
-+=============+=======+
-| blockQuote  | 3     |
-| codeFence   | 4     |
-+-------------+-------+
++-----+------------+
+| key | value      |
++=====+============+
+| 0   | 0xff000000 |
+| 1   | 0xffcd0000 |
++-----+------------+
 ```
 
 ````markdown
-```enum
-:::key::: = :::value:::,
-```
-
-```pair
-{ :::value:::, :::key::: },
+```entry
+{ :::list::: },
 ```
 ````
 
-One row feeds both shapes. If `pair` needs the key as a string, put a `format` of `toLiteral` beside `key` — never type the quotes into the block.
+```
++----------------------+-------------------+-------------------------------+
+| list                 | separator         | structure                     |
++======================+===================+===============================+
+| > > - list: @colours |                   | ...                           |
+| > > > - list: cells  | > > > - list: `, `| > > - list: template:entry    |
++----------------------+-------------------+-------------------------------+
+```
+
+```cpp
+        { 0, 0xff000000 },
+        { 1, 0xffcd0000 },
+```
+
+Rows stack vertically at two tabs; each row's cells join horizontally by `, ` into the inline `:::list:::`. Three columns tomorrow — same template.
 
 ### Wrapping a shape in another
 
 ```markdown
 ## output
 
-+--------------------------+--------------------------+----------+
-| placeholder              | structure                | file     |
-+==========================+==========================+==========+
-| > - line: @xml:token:key | template:namespace       | @jam_Xml |
-|                          | - name: jam              |          |
-|                          | > template:bimap         |          |
-|                          | > - name: XmlTokenType   |          |
-|                          | > - line: template:pair  |          |
-+--------------------------+--------------------------+----------+
++--------------------------+--------------------------------+----------+
+| list                     | structure                      | file     |
++==========================+================================+==========+
+| > - list: @xml:token:key | template:namespace             | @jam_Xml |
+|                          | - name: jam                    |          |
+|                          | > template:bimap               |          |
+|                          | > - name: XmlTokenType         |          |
+|                          | > - list: template:pair        |          |
++--------------------------+--------------------------------+----------+
 ```
 
-Depth 0 is the namespace, and `- name: jam` fills its `:::name:::`. Depth 1 is the bimap, whose built text fills the namespace's `:::line:::`. The depth-1 wiring feeds the bimap's own `:::line:::` with rows from `@xml:token:key`, indented one tab.
+The namespace's `:::list:::` is fed by the nested head — the bimap's built text. The bimap's own `:::list:::` is fed by the wiring line: rows of `@xml:token:key`, each through `template:pair`, indented one tab.
 
 ---
 
@@ -439,7 +437,7 @@ There are no warnings. Every failure is fatal, exits non-zero, and writes no out
 ```
 identifiers.md:412 (name): duplicate entry "circleCross"
 CAST.md:133 (structure): template not found: namespace
-template.cast (namespace): 2 slots for :::line:::, 1 source
+template.cast (bimap): 2 occurrences of :::list:::, 1 source
 ```
 
 Because CAST runs during the configure phase, a failure stops your build before compilation starts.

@@ -155,6 +155,16 @@ struct Items
         return name == sourceKey ? sourceValue : juce::String();
     }
 
+    static juce::String getChildValue (Element* sourceRow,
+                                       const juce::String& childSource,
+                                       const juce::String& childJoin)
+    {
+        if (sourceRow != nullptr and childSource == Id::cells.toString())
+            return getCells (*sourceRow).joinIntoString (childJoin, 0, -1);
+
+        return {};
+    }
+
     /**
      * @brief Renders @p shapeId's text for one item -- @p sourceRow's
      *        binding and column values when @p sourceRow is not
@@ -172,6 +182,12 @@ struct Items
      * @param sourceKey        The token name @p sourceValue is substituted
      *                         into when @p sourceRow is @c nullptr.
      * @param shapeId          The shape to render.
+     * @param childSource      The shape's own nested @c - list: source
+     *                         word, or an empty string when it owns no
+     *                         child expansion.
+     * @param childJoin        The child expansion's join text.
+     * @param extension        The target file extension the @c Id::comment
+     *                         token's value is commented for.
      * @returns The item's rendered text.
      */
     static juce::String getItem (const Model& model,
@@ -179,7 +195,10 @@ struct Items
                                  Element* sourceRow,
                                  const juce::String& sourceValue,
                                  const juce::Identifier& sourceKey,
-                                 const juce::Identifier& shapeId)
+                                 const juce::Identifier& shapeId,
+                                 const juce::String& childSource,
+                                 const juce::String& childJoin,
+                                 const juce::String& extension)
     {
         const auto& tokens { *templateDocument.getCodeBlock (shapeId)
                                    ->get<jam::Document::Identifiers> (Id::placeholder) };
@@ -187,8 +206,16 @@ struct Items
 
         for (const auto& name : tokens)
             if (jam::Format::hasPlaceholder (itemText, name.toString()))
-                itemText = jam::Format::replaceholder (itemText,
-                    name.toString(), getColumnValue (model, sourceRow, sourceValue, sourceKey, name));
+            {
+                auto value { name == Id::list
+                                 ? getChildValue (sourceRow, childSource, childJoin)
+                                 : getColumnValue (model, sourceRow, sourceValue, sourceKey, name) };
+
+                if (name == Id::comment and value.isNotEmpty())
+                    value = Transforms::toComment (value, extension);
+
+                itemText = jam::Format::replaceholder (itemText, name.toString(), value);
+            }
 
         return itemText;
     }
@@ -206,10 +233,16 @@ struct Items
     }
 
     /**
-     * @brief Measures, in UTF-8 bytes, the widest resolved value of every
-     *        one of @p shapeId's placeholder tokens across @p sourceRows
-     *        and @p sourceValues.
+     * @brief Fills @p itemReplacements with every item's resolved token
+     *        replacements, and @p columnWidths with each placeholder
+     *        token's widest resolved value width in UTF-8 bytes, across
+     *        @p sourceRows and @p sourceValues, in one pass.
      *
+     * @param itemReplacements Filled with one entry per item, mapping each
+     *                         of @p shapeId's placeholder tokens to its
+     *                         resolved value.
+     * @param columnWidths     Filled with every placeholder token's widest
+     *                         resolved value width across all items.
      * @param model            The model @p sourceRows belong to.
      * @param templateDocument The template document @p shapeId is read
      *                         from.
@@ -219,37 +252,46 @@ struct Items
      *                         resolved against.
      * @param shapeId          The shape whose placeholder tokens are
      *                         measured.
-     * @returns Every placeholder token mapped to its widest resolved
-     *          value's byte width.
+     * @param extension        The target file extension the @c Id::comment
+     *                         token's value is commented for.
      */
-    static jam::HashMap<juce::Identifier, size_t>
-    getMeasuredWidths (const Model& model,
+    static void
+    addItemReplacements (jam::Array<jam::HashMap<juce::Identifier, juce::String>>& itemReplacements,
+                       jam::HashMap<juce::Identifier, size_t>& columnWidths,
+                       const Model& model,
                        const TemplateDocument& templateDocument,
                        const jam::Array<Element*>& sourceRows,
                        const jam::Strings& sourceValues,
                        const juce::Identifier& sourceKey,
-                       const juce::Identifier& shapeId)
+                       const juce::Identifier& shapeId,
+                       const juce::String& extension)
     {
         const auto& tokens { *templateDocument.getCodeBlock (shapeId)
                                    ->get<jam::Document::Identifiers> (Id::placeholder) };
 
-        jam::HashMap<juce::Identifier, size_t> columnWidths;
-
-        const auto measureItem = [&model, &tokens, &sourceKey, &columnWidths] (
-            Element* sourceRow, const juce::String& sourceValue)
+        const auto measureItem = [&model, &tokens, &sourceKey, &columnWidths, &itemReplacements,
+                                  &extension] (Element* sourceRow, const juce::String& sourceValue)
         {
-            jam::HashMap<juce::Identifier, juce::String> itemReplacements;
+            itemReplacements.add ({});
+            auto& replacements { itemReplacements.last() };
 
             for (const auto& name : tokens)
-                itemReplacements.emplace (
-                    name, getColumnValue (model, sourceRow, sourceValue, sourceKey, name));
+            {
+                auto value { getColumnValue (model, sourceRow, sourceValue, sourceKey, name) };
 
-            for (const auto& [name, value] : itemReplacements)
+                if (name == Id::comment and value.isNotEmpty())
+                    value = Transforms::toComment (value, extension);
+
+                replacements.emplace (name, value);
+            }
+
+            for (const auto& [name, value] : replacements)
             {
                 const auto tokenWidth { static_cast<size_t> (value.getNumBytesAsUTF8()) };
+                auto& columnWidth { columnWidths[name] };
 
-                if (columnWidths[name] < tokenWidth)
-                    columnWidths[name] = tokenWidth;
+                if (columnWidth < tokenWidth)
+                    columnWidth = tokenWidth;
             }
         };
 
@@ -258,8 +300,6 @@ struct Items
 
         for (const auto& value : sourceValues)
             measureItem (nullptr, value);
-
-        return columnWidths;
     }
 
     /**
@@ -307,88 +347,74 @@ struct Items
      *        text before each placeholder but the first so every column's
      *        values, across the caller's items, align at @p columnWidths.
      *
-     * @param model            The model @p sourceRow, when present,
-     *                         belongs to.
      * @param templateDocument The template document @p shapeId is read
      *                         from.
-     * @param sourceRow        The item's source row, or @c nullptr when the
-     *                         item is a bare column value.
-     * @param sourceValue      The column value substituted into
-     *                         @p sourceKey when @p sourceRow is @c nullptr.
-     * @param sourceKey        The token name @p sourceValue is substituted
-     *                         into when @p sourceRow is @c nullptr.
      * @param shapeId          The shape to render.
+     * @param replacements     The item's already-resolved placeholder
+     *                         token values, from addItemReplacements().
      * @param columnWidths     Every placeholder token's widest resolved
-     *                         value width, from getMeasuredWidths().
+     *                         value width, from addItemReplacements().
      * @returns The item's rendered, column-aligned text.
      */
-    static juce::String getPaddedItem (const Model& model,
-                                       const TemplateDocument& templateDocument,
-                                       Element* sourceRow,
-                                       const juce::String& sourceValue,
-                                       const juce::Identifier& sourceKey,
+    static juce::String getPaddedItem (const TemplateDocument& templateDocument,
                                        const juce::Identifier& shapeId,
+                                       const jam::HashMap<juce::Identifier, juce::String>& replacements,
                                        const jam::HashMap<juce::Identifier, size_t>& columnWidths)
     {
-        const auto& tokens { *templateDocument.getCodeBlock (shapeId)
-                                   ->get<jam::Document::Identifiers> (Id::placeholder) };
-        auto itemText { *templateDocument.getCodeBlock (shapeId)->get<juce::String> (Id::value) };
+        const auto& itemText { *templateDocument.getCodeBlock (shapeId)->get<juce::String> (Id::value) };
 
-        juce::String paddedText;
+        std::string paddedText;
+        paddedText.reserve (static_cast<size_t> (itemText.getNumBytesAsUTF8()));
+
         int cursor { 0 };
         auto isFirstToken { true };
         juce::Identifier previousName;
         juce::String previousValue;
 
-        for (;;)
+        for (auto markerStart { itemText.indexOf (cursor, Id::tripleColon) };
+             markerStart >= 0;
+             markerStart = itemText.indexOf (cursor, Id::tripleColon))
         {
-            juce::Identifier bestName;
-            int bestPosition { -1 };
+            const auto nameStart { markerStart + Id::tripleColon.length() };
+            const auto nameEnd { itemText.indexOf (nameStart, Id::tripleColon) };
+            const auto name { juce::Identifier (itemText.substring (nameStart, nameEnd)) };
+            const auto literal { itemText.substring (cursor, markerStart) };
+            const auto columnValue { replacements.at (name) };
 
-            for (const auto& name : tokens)
+            if (isFirstToken)
+                paddedText.append (literal.toRawUTF8(),
+                                   static_cast<size_t> (literal.getNumBytesAsUTF8()));
+            else
             {
-                const auto marker { getMarker (name) };
-                const auto position { itemText.indexOf (cursor, marker) };
-
-                if (position >= 0 and (bestPosition < 0 or position < bestPosition))
-                {
-                    bestName = name;
-                    bestPosition = position;
-                }
+                const auto filledLiteral { getFilledLiteral (literal,
+                    columnWidths.at (previousName)
+                        - static_cast<size_t> (previousValue.getNumBytesAsUTF8())) };
+                paddedText.append (filledLiteral.toRawUTF8(),
+                                   static_cast<size_t> (filledLiteral.getNumBytesAsUTF8()));
             }
 
-            if (bestPosition < 0)
-                break;
+            paddedText.append (columnValue.toRawUTF8(),
+                               static_cast<size_t> (columnValue.getNumBytesAsUTF8()));
 
-            const auto marker { getMarker (bestName) };
-            const auto position { bestPosition };
-            const auto literal { itemText.substring (cursor, position) };
-            const auto columnValue { getColumnValue (model, sourceRow, sourceValue, sourceKey, bestName) };
-
-            paddedText += isFirstToken
-                              ? literal
-                              : getFilledLiteral (literal,
-                                    columnWidths.at (previousName)
-                                        - static_cast<size_t> (previousValue.getNumBytesAsUTF8()));
-            paddedText += columnValue;
-
-            previousName = bestName;
+            previousName = name;
             previousValue = columnValue;
-            cursor = position + marker.length();
+            cursor = nameEnd + Id::tripleColon.length();
             isFirstToken = false;
         }
 
-        return paddedText + itemText.substring (cursor);
+        const auto trailingText { itemText.substring (cursor) };
+        paddedText.append (trailingText.toRawUTF8(),
+                           static_cast<size_t> (trailingText.getNumBytesAsUTF8()));
+
+        return juce::String::fromUTF8 (paddedText.data(), static_cast<int> (paddedText.size()));
     }
 
     /**
      * @brief Renders @p shapeId's text for every row in @p sourceRows,
-     *        then for every value in @p sourceValues, dropping any item
-     *        whose rendered text is empty.
-     *
-     * When @p shapeId is a single-line shape and more than one item is
-     * rendered, every item is column-aligned through getPaddedItem();
-     * otherwise each item is rendered through getItem().
+     *        then for every value in @p sourceValues, column-aligning
+     *        every item's placeholder values at each token's widest
+     *        resolved width, dropping any item whose rendered text is
+     *        empty.
      *
      * @param model            The model @p sourceRows belong to.
      * @param templateDocument The template document @p shapeId is read
@@ -398,36 +424,79 @@ struct Items
      * @param sourceKey        The token name each of @p sourceValues is
      *                         substituted into.
      * @param shapeId          The shape to render.
+     * @param extension        The target file extension the @c Id::comment
+     *                         token's value is commented for.
      * @returns Every non-empty rendered item, in the order @p sourceRows
      *          then @p sourceValues were authored.
      */
-    static jam::Strings getItemTexts (const Model& model,
-                                      const TemplateDocument& templateDocument,
-                                      const jam::Array<Element*>& sourceRows,
-                                      const jam::Strings& sourceValues,
-                                      const juce::Identifier& sourceKey,
-                                      const juce::Identifier& shapeId)
+    static jam::Strings getPaddedItemTexts (const Model& model,
+                                            const TemplateDocument& templateDocument,
+                                            const jam::Array<Element*>& sourceRows,
+                                            const jam::Strings& sourceValues,
+                                            const juce::Identifier& sourceKey,
+                                            const juce::Identifier& shapeId,
+                                            const juce::String& extension)
     {
         jam::Strings texts;
 
-        const auto usePadding { isSingleLineShape (
-                                     *templateDocument.getCodeBlock (shapeId)->get<juce::String> (
-                                         Id::value))
-                                 and sourceRows.size() + sourceValues.size() > 1 };
+        jam::Array<jam::HashMap<juce::Identifier, juce::String>> itemReplacements;
         jam::HashMap<juce::Identifier, size_t> columnWidths;
+        addItemReplacements (itemReplacements, columnWidths, model, templateDocument,
+            sourceRows, sourceValues, sourceKey, shapeId, extension);
 
-        if (usePadding)
-            columnWidths = getMeasuredWidths (
-                model, templateDocument, sourceRows, sourceValues, sourceKey, shapeId);
-
-        const auto renderItem = [&model, &templateDocument, &sourceKey, &shapeId, &columnWidths,
-                                 usePadding, &texts] (Element* sourceRow, const juce::String& sourceValue)
+        for (int index { 0 }; index < itemReplacements.size(); ++index)
         {
-            const auto itemText { usePadding
-                                       ? getPaddedItem (model, templateDocument, sourceRow,
-                                             sourceValue, sourceKey, shapeId, columnWidths)
-                                       : getItem (
-                                             model, templateDocument, sourceRow, sourceValue, sourceKey, shapeId) };
+            const auto itemText { getPaddedItem (
+                templateDocument, shapeId, itemReplacements.at (index), columnWidths) };
+
+            if (itemText.isNotEmpty())
+                texts.add (itemText);
+        }
+
+        return texts;
+    }
+
+    /**
+     * @brief Renders @p shapeId's text for every row in @p sourceRows,
+     *        then for every value in @p sourceValues, each item rendered
+     *        independently through getItem(), dropping any item whose
+     *        rendered text is empty.
+     *
+     * @param model            The model @p sourceRows belong to.
+     * @param templateDocument The template document @p shapeId is read
+     *                         from.
+     * @param sourceRows       The binding-selected source rows to render.
+     * @param sourceValues     The column source values to render.
+     * @param sourceKey        The token name each of @p sourceValues is
+     *                         substituted into.
+     * @param shapeId          The shape to render.
+     * @param childSource      The shape's own nested @c - list: source
+     *                         word, or an empty string when it owns no
+     *                         child expansion.
+     * @param childJoin        The child expansion's join text.
+     * @param extension        The target file extension the @c Id::comment
+     *                         token's value is commented for.
+     * @returns Every non-empty rendered item, in the order @p sourceRows
+     *          then @p sourceValues were authored.
+     */
+    static jam::Strings getPlainItemTexts (const Model& model,
+                                           const TemplateDocument& templateDocument,
+                                           const jam::Array<Element*>& sourceRows,
+                                           const jam::Strings& sourceValues,
+                                           const juce::Identifier& sourceKey,
+                                           const juce::Identifier& shapeId,
+                                           const juce::String& childSource,
+                                           const juce::String& childJoin,
+                                           const juce::String& extension)
+    {
+        jam::Strings texts;
+
+        const auto renderItem = [&model, &templateDocument, &sourceKey, &shapeId, &childSource,
+                                 &childJoin, &extension, &texts] (
+            Element* sourceRow, const juce::String& sourceValue)
+        {
+            const auto itemText { getItem (model, templateDocument, sourceRow, sourceValue,
+                sourceKey, shapeId, childSource, childJoin, extension) };
 
             if (itemText.isNotEmpty())
                 texts.add (itemText);
@@ -443,43 +512,88 @@ struct Items
     }
 
     /**
-     * @brief Discovers @p source's items -- an address's table rows, a
-     *        column name's distinct values across every output table, or a
-     *        blank binding's selected rows -- and renders each through
-     *        @p shapeId.
+     * @brief Renders @p shapeId's text for @p sourceRows and
+     *        @p sourceValues, dispatching to getPaddedItemTexts() when
+     *        @p shapeId is a single-line shape rendering more than one
+     *        item with no @c list token, or to getPlainItemTexts()
+     *        otherwise.
      *
-     * @param model            The model @p row belongs to.
+     * @param model            The model @p sourceRows belong to.
      * @param templateDocument The template document @p shapeId is read
      *                         from.
-     * @param row              The row @p source is resolved against.
-     * @param source           The placeholder list's authored source: an
-     *                         @-sigiled address, a column name, or a
-     *                         blank binding name.
-     * @param token            The token @p source's list feeds, used as
-     *                         the substitution key when @p source names a
-     *                         column.
-     * @param shapeId          The shape to render each item through.
-     * @returns Every non-empty rendered item.
+     * @param sourceRows       The binding-selected source rows to render.
+     * @param sourceValues     The column source values to render.
+     * @param sourceKey        The token name each of @p sourceValues is
+     *                         substituted into.
+     * @param shapeId          The shape to render.
+     * @param childSource      The shape's own nested @c - list: source
+     *                         word, or an empty string when it owns no
+     *                         child expansion.
+     * @param childJoin        The child expansion's join text.
+     * @param extension        The target file extension the @c Id::comment
+     *                         token's value is commented for.
+     * @returns Every non-empty rendered item, in the order @p sourceRows
+     *          then @p sourceValues were authored.
      */
+    static jam::Strings getItemTexts (const Model& model,
+                                      const TemplateDocument& templateDocument,
+                                      const jam::Array<Element*>& sourceRows,
+                                      const jam::Strings& sourceValues,
+                                      const juce::Identifier& sourceKey,
+                                      const juce::Identifier& shapeId,
+                                      const juce::String& childSource,
+                                      const juce::String& childJoin,
+                                      const juce::String& extension)
+    {
+        const auto& shapeText { *templateDocument.getCodeBlock (shapeId)->get<juce::String> (Id::value) };
+        const auto usePadding { isSingleLineShape (shapeText)
+                                 and sourceRows.size() + sourceValues.size() > 1
+                                 and not jam::Format::hasPlaceholder (shapeText, Id::list.toString()) };
+
+        if (usePadding)
+            return getPaddedItemTexts (
+                model, templateDocument, sourceRows, sourceValues, sourceKey, shapeId, extension);
+
+        return getPlainItemTexts (model, templateDocument, sourceRows, sourceValues, sourceKey,
+            shapeId, childSource, childJoin, extension);
+    }
+
+    static jam::Strings getCells (Element& row)
+    {
+        jam::Strings cells;
+
+        for (auto* cell : row)
+            if (cell->id != Id::format and cell->id != Id::comment)
+                cells.add (*cell->get<juce::String> (Id::value));
+
+        return cells;
+    }
+
     static jam::Strings getItems (const Model& model,
                                   const TemplateDocument& templateDocument,
+                                  const jam::Array<Element*>& tables,
                                   Element& row,
                                   const juce::String& source,
-                                  const juce::Identifier& token,
-                                  const juce::Identifier& shapeId)
+                                  const juce::Identifier& shapeId,
+                                  const juce::String& childSource,
+                                  const juce::String& childJoin,
+                                  const juce::String& extension)
     {
         jam::Array<Element*> sourceRows;
         jam::Strings sourceValues;
-        juce::Identifier sourceKey { token };
+        juce::Identifier sourceKey { Id::list };
 
-        if (source.startsWithChar (Chars::at))
+        if (source == Id::cells.toString())
         {
-            sourceRows = model.getTableRows (*model.getTables (row, source));
+            sourceValues = getCells (row);
+        }
+        else if (source.startsWithChar (Chars::at))
+        {
+            sourceRows = model.getTableRows (*model.getTable (row, source));
         }
         else
         {
             const auto sourceName { juce::Identifier (source) };
-            const auto tables { model.getTables() };
             const auto hasColumnSource { std::any_of (
                 tables.begin(),
                 tables.end(),
@@ -499,47 +613,24 @@ struct Items
                 sourceRows = getBindingSourceRows (model, tables, sourceName);
         }
 
-        return getItemTexts (model, templateDocument, sourceRows, sourceValues, sourceKey, shapeId);
+        return getItemTexts (model, templateDocument, sourceRows, sourceValues, sourceKey, shapeId,
+            childSource, childJoin, extension);
     }
 
-    /**
-     * @brief Renders @p source's items through getItems() and joins them
-     *        by @p token's authored separator, indenting every joined line
-     *        by @p indent.
-     *
-     * @param model            The model @p row belongs to.
-     * @param templateDocument The template document the items' shape is
-     *                         read from.
-     * @param row              The row @p source is resolved against.
-     * @param token            The placeholder token @p source's list feeds.
-     * @param source           The placeholder list's authored source.
-     * @param shapeId          The shape to render each item through.
-     * @param separatorScope   The blockquote scope carrying @p token's
-     *                         separator binding, or @c nullptr.
-     * @param indent           The indentation prefix applied to every
-     *                         joined line.
-     * @returns The joined, indented item text, or an empty string when no
-     *          item rendered.
-     */
     static juce::String getJoinedItems (const Model& model,
                                         const TemplateDocument& templateDocument,
+                                        const jam::Array<Element*>& tables,
                                         Element& row,
-                                        const juce::Identifier& token,
                                         const juce::String& source,
                                         const juce::Identifier& shapeId,
-                                        Element* separatorScope,
-                                        const juce::String& indent)
+                                        const juce::String& separator,
+                                        const juce::String& childSource,
+                                        const juce::String& childJoin,
+                                        const juce::String& extension)
     {
-        const auto texts { getItems (model, templateDocument, row, source, token, shapeId) };
-        const auto separatorValue { templateDocument.getSeparator (model, row, separatorScope, token) };
-        const auto separator { separatorValue.isNotEmpty()
-                                   ? separatorValue
-                                   : juce::String::charToString (Chars::newline) };
-        const auto joined { texts.joinIntoString (separator, 0, -1) };
-        return joined.isEmpty()
-                   ? joined
-                   : indent
-                         + joined.replace (juce::String::charToString (Chars::newline),
-                                           juce::String::charToString (Chars::newline) + indent);
+        const auto texts { getItems (
+            model, templateDocument, tables, row, source, shapeId, childSource, childJoin, extension) };
+
+        return texts.joinIntoString (separator, 0, -1);
     }
 };

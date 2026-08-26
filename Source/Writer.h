@@ -11,7 +11,8 @@
  *        writes them, one table at a time, one juce::ThreadPool job per
  *        output file.
  *
- * Each table's rows dispatch through Jobs::run(), one job per row index,
+ * Each table's rows are grouped by their declared output file, and each
+ * group dispatches through Jobs::run(), one job per output-file group,
  * blocking until every file has written.
  */
 struct Writer : jam::Document::Writer
@@ -44,57 +45,22 @@ struct Writer : jam::Document::Writer
     }
 
     /**
-     * @brief Renders and writes every output table's rows to their
-     *        declared files under @p outputPath, one job per file.
+     * @brief Writes every output table's rows to their declared files
+     *        under @p outputPath, delegating each table to the private
+     *        toFile() overload.
      *
      * @param outputPath The directory output files are resolved against.
      * @returns juce::Result::ok() when every file wrote successfully, or a
      *          failure naming every file that failed to write.
      */
-    juce::Result toFile (const juce::File& outputPath)
+    juce::Result toFile (const juce::File& outputPath) const
     {
         jam::Strings failures;
+        const auto tables { model.getTables() };
 
-        for (auto* table : model.getTables())
-        {
+        for (auto* table : tables)
             if (model.isOutputTable (*table))
-            {
-                const auto rows { model.getTableRows (*table) };
-
-                jam::Array<int> groupStarts;
-
-                for (int index { 0 }; index < rows.size(); ++index)
-                    if (index == 0
-                        or model.getValue (*rows.at (index), Id::file)
-                               != model.getValue (*rows.at (index - 1), Id::file))
-                        groupStarts.add (index);
-
-                jam::Array<juce::String> tableFailures;
-                tableFailures.resize (groupStarts.size());
-
-                Jobs::run (groupStarts.size(),
-                    [this, &outputPath, &rows, &groupStarts, &tableFailures] (int index)
-                    {
-                        const auto start { groupStarts.at (index) };
-                        const auto& file { model.getValue (*rows.at (start), Id::file) };
-
-                        TemplateDocument output;
-                        output.addChild (*output.root, Id::text)
-                            ->add<juce::String> (Id::text, getBanner (file));
-                        apply (output, rows, start);
-
-                        const auto outputFile { jam::File::getOrCreate (outputPath, file) };
-
-                        if (not toFile (output, outputFile))
-                            tableFailures.at (index) = outputFile.getFullPathName();
-                    });
-
-                for (const auto& failedFile : tableFailures)
-                    if (failedFile.isNotEmpty())
-                        failures.add (failedFile + Id::diagnosticSeparator
-                                     + text::Diagnostics::failOutputWrite);
-            }
-        }
+                failures.addArray (toFile (*table, outputPath), 0, -1);
 
         if (failures.size() > 0)
             return juce::Result::fail (
@@ -107,47 +73,116 @@ private:
     const Model& model;
     const TemplateDocument& templateDocument;
 
-    void apply (TemplateDocument& output, const jam::Array<Model::Element*>& rows, int index) const
+    /**
+     * @brief Returns the index of @p rows' first row in every run of
+     *        consecutive rows sharing the same declared output file.
+     *
+     * @param rows The rows searched for output-file group boundaries.
+     * @returns Every group's first index, in @p rows' own order.
+     */
+    jam::Array<int> getGroupStarts (const jam::Array<Model::Element*>& rows) const
     {
-        auto* firstRow { rows.at (index) };
-        auto joinText { juce::String::charToString (Chars::newline) };
+        jam::Array<int> groupStarts;
 
-        if (auto* separatorCell { model.getTableCell (*firstRow, Id::separator) })
+        for (int index { 0 }; index < rows.size(); ++index)
+            if (index == 0
+                or model.getValue (*rows.at (index), Id::file)
+                       != model.getValue (*rows.at (index - 1), Id::file))
+                groupStarts.add (index);
+
+        return groupStarts;
+    }
+
+    /**
+     * @brief Renders and writes @p table's rows to their declared files
+     *        under @p outputPath, one juce::ThreadPool job per
+     *        output-file group.
+     *
+     * @param table      The output table whose rows are written.
+     * @param outputPath The directory output files are resolved against.
+     * @returns Every failed file's diagnostic line, or an empty
+     *          jam::Strings when every file wrote successfully.
+     */
+    jam::Strings toFile (Model::Element& table, const juce::File& outputPath) const
+    {
+        jam::Strings failures;
+        const auto tables { model.getTables() };
+        const auto rows { model.getTableRows (table) };
+        const auto groupStarts { getGroupStarts (rows) };
+
+        jam::Array<juce::String> tableFailures;
+        tableFailures.resize (groupStarts.size());
+
+        for (auto start : groupStarts)
         {
-            const auto hasTokenEntries { std::any_of (separatorCell->begin(),
-                                                     separatorCell->end(),
-                                                     [] (Model::Element* block)
-                                                     {
-                                                         return block->isTag (Id::ul);
-                                                     }) };
-
-            if (not hasTokenEntries)
-            {
-                const auto& value { *separatorCell->get<juce::String> (Id::value) };
-
-                if (value.isNotEmpty())
-                {
-                    const auto binding { templateDocument.getBinding (
-                        model, *firstRow, value) };
-
-                    joinText = juce::String::charToString (Chars::newline)
-                               + juce::String::charToString (Chars::newline) + binding
-                               + juce::String::charToString (Chars::newline)
-                               + juce::String::charToString (Chars::newline);
-                }
-            }
+            const auto& file { model.getValue (*rows.at (start), Id::file) };
+            const auto outputFile { jam::File::getOrCreate (outputPath, file) };
+            outputFile.getParentDirectory().createDirectory();
         }
 
-        const auto& file { model.getValue (*firstRow, Id::file) };
+        Jobs::run (groupStarts.size(),
+            [this, &outputPath, &rows, &groupStarts, &tables, &tableFailures] (int index)
+            {
+                const auto start { groupStarts.at (index) };
+                const auto& file { model.getValue (*rows.at (start), Id::file) };
+
+                TemplateDocument output;
+                output.addChild (*output.root, Id::text)
+                    ->add<juce::String> (Id::text, getBanner (file));
+
+                const auto groupEnd { index + 1 < groupStarts.size()
+                                          ? groupStarts.at (index + 1)
+                                          : rows.size() };
+
+                apply (output, tables, rows, start, groupEnd);
+
+                const auto outputFile { jam::File::getOrCreate (outputPath, file) };
+                const auto current { outputFile.loadFileAsString() };
+                const auto canonical { getText (output) };
+
+                if (canonical != current and not toFile (output, outputFile))
+                    tableFailures.at (index) = outputFile.getFullPathName();
+            });
+
+        for (const auto& failedFile : tableFailures)
+            if (failedFile.isNotEmpty())
+                failures.add (failedFile + Id::diagnosticSeparator
+                             + text::Diagnostics::failOutputWrite);
+
+        return failures;
+    }
+
+    juce::String getRowJoin (Model::Element& firstRow) const
+    {
+        auto* rowJoinItem { Shapes::getListLine (
+            model, *model.getTableCell (firstRow, Id::separator), 0, 0) };
+
+        return rowJoinItem != nullptr
+                   ? templateDocument.getBinding (
+                         model, firstRow, *rowJoinItem->get<juce::String> (Id::value))
+                   : juce::String();
+    }
+
+    void apply (TemplateDocument& output, const jam::Array<Model::Element*>& tables,
+               const jam::Array<Model::Element*>& rows, int index, int groupEnd) const
+    {
+        auto* firstRow { rows.at (index) };
+        const auto rowJoinValue { getRowJoin (*firstRow) };
+        const auto joinText { rowJoinValue.isNotEmpty()
+                                  ? juce::String::charToString (Chars::newline)
+                                        + juce::String::charToString (Chars::newline) + rowJoinValue
+                                        + juce::String::charToString (Chars::newline)
+                                        + juce::String::charToString (Chars::newline)
+                                  : juce::String::charToString (Chars::newline) };
+
         jam::Array<Model::Element*> groupRows;
 
-        for (; index < rows.size() and model.getValue (*rows.at (index), Id::file) == file;
-             ++index)
+        for (; index < groupEnd; ++index)
             groupRows.add (rows.at (index));
 
         output.addChild (*output.root, Id::text)
             ->add<juce::String> (
-                Id::text, Shapes::getShape (model, templateDocument, groupRows, joinText));
+                Id::text, Shapes::getShape (model, templateDocument, tables, groupRows, joinText));
 
         output.addChild (*output.root, Id::text)
             ->add<juce::String> (Id::text, juce::String::charToString (Chars::newline));

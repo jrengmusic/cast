@@ -39,4 +39,6 @@
 | failAmbiguous            | nested shape has more than one candidate                             |
 | failBlockUnnamed         | code block has no id                                                 |
 | failOutputWrite          | cannot write output                                                  |
+| failBindingDuplicate     | duplicate binding                                                    |
+| failMarkerUnterminated   | unterminated marker                                                  |
 +--------------------------+----------------------------------------------------------------------+

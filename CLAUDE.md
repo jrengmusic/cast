@@ -1,18 +1,18 @@
 # CAST — Universal Headless Codegen
 
-**Project ID:** cast  
-**Repository:** /Users/jreng/Documents/Poems/dev/cast  
-**Version:** 0.1.0  
-**Stack:** C++17, JUCE + JAM framework  
-**Type:** CLI — headless table-driven code generator  
+**Project ID:** cast
+**Repository:** /Users/jreng/Documents/Poems/dev/cast
+**Version:** 0.1.0
+**Stack:** C++17, JUCE + JAM framework
+**Type:** CLI — headless table-driven code generator
 
 ---
 
 ## Current State
 
-**Last Sprint:** Sprint 7 — Lexicon Canon Redesign ✅ (checkpoint, 2026-08-09)
+**Last Sprint:** MermaidTables Dissolution + MermaidStyleSheet + Bimaps/LookupTables Tables — jam 8-9/9 ✅ (2026-08-25)
 
-**Active Work:** None — checkpoint completed. Deferred work: LC7 doxygen prose + Auditor sweep (post-plan step [11]); HELP.md transform-vocabulary wording amendment; jam table migration to canon shape (separate sprint)
+**Active Work:** Performance/DbC convergence sprint — audit sweep in progress (see carol/SPRINT-LOG.md handoff)
 
 **Active ODE:** None
 
@@ -26,26 +26,28 @@
 
 | File | Purpose | Key Responsibility |
 |------|---------|-------------------|
-| **CastCLI.cpp** | CLI entry point + version | Program dispatch, help/version output |
-| **Driver.h** | Generation driver | Two-phase atomic: parse tables, validate, write-if-different |
-| **Constraints.h** | Predicate library | 8 column-level + table-level validation predicates |
-| **Validation.h** | Manifest + table validation | Hazard detection, constraint application, manifest integrity |
-| **Transforms.h** | String transformations | Case/escape/encoding conversions (9 transforms) |
-| **Template.h** | Fragment substitution | @slot@ interpolation, template validation |
-| **Help.h** | Help/--help rendering | CLI help text generation via StyleManager + markdown |
-| **generated/** | Codegen outputs | Identifiers.h, HashMaps.h, CAST.h (master) — auto-generated, interim hand-written |
+| **main.cpp** | CLI entry point | Program dispatch, help/version output, `debug::Log::Scope` |
+| **Processor.h** | Orchestrator | Owns Model + TemplateDocument + Writer; `generate()` (validate → write), `format()` (canonicalize origin .md files, parallel via Jobs) |
+| **Model.h** | Master document | Manifest parse → parallel per-file table parse → splice into ONE MarkdownDocument; value/table/alias resolution |
+| **Validator.h** | Manifest + table gates | Structure, source-count, address, format, index, hazard fatals — the only gate |
+| **Writer.h** | Output rendering | One job per output-file group; write-if-different; failure collection |
+| **Shapes.h** | Shape replacements | `:::list:::` expansion, bindings, depth indent, row merge law |
+| **Items.h** | Item rendering | Source discovery (cells/@address/column/binding), padding law, column-aligned rendering |
+| **TemplateDocument.h** | template.cast access | Shape code-block lookup |
+| **Transforms.h** | String transforms | Case/escape/comment framing per extension (`map::commentSyntax`) |
+| **Jobs.h** | Thread pool | `Jobs::run (count, perIndex)` parallel dispatch |
+| **Help.h** | --help rendering | Help text via StyleManager + markdown (HELP.md + style.css via BinaryData) |
+| **generated/** | Codegen outputs | Bimaps.h, Files.h, Generated.h, HashMaps.h, Identifiers.h, Text.h — cast's own fixpoint outputs |
+| **resources/** | cast-output.md | Banner artwork source (markdown fenced code) |
 
-### `cast/` — Metadata & Templates
+### `cast/` — Metadata, Data Tables & Templates
 
 | File | Purpose |
 |------|---------|
-| **tables/cast.md** | Identifier table (30+ entries): chars, strings, IDs |
-| **tables/banner.md** | Banner lookups (8 rows × 2 columns) |
-| **CAST.md** | Generation manifest: 3 outputs, 6 dispatch rows, constraint: word unique |
-| **template/{Identifiers,HashMaps}.h** | Root templates (namespace, separators, END marker) |
-| **template/{Identifier,HashMap}.h** | Fragment templates (substitution targets) |
-| **template/CAST.h** | Master include template (no namespace) |
-| **cast_output.md** | Banner artwork source (markdown fenced code) |
+| **CAST.md** | Generation manifest: outputs, wiring rows (`list | separator | structure | file`) |
+| **template.cast** | Shape templates (`:::token:::` substitution targets) |
+| **lexicon.md** | Identifier table → generated/Identifiers.h |
+| **tokens.md, text.md, comments.md, files.md, banner.md** | Data tables (one table per generated concern) |
 
 ### Doxygen
 
@@ -60,11 +62,10 @@
 
 | Document | Scope | Status |
 |----------|-------|--------|
-| **Source/HELP.md** | Feature spec + help text (markdown + ASCII) — *renamed from SPEC.md, moved per git* | ✅ Current (Sprint 5) |
-| **ARCHITECTURE.md** | *Not present* — topology documented inline in SPRINT-LOG.md handoffs | — |
-| **PLAN-cast.md** | Active long-term plan (extracted from SPRINT-LOG context) | 🔄 Active |
-| **PLAN-cast-local-fix.md** | 7-step plan: banner injection, template rename, manifest update, fixpoint | 🔄 In Progress (Step 7 pending) |
-| **carol/SPRINT-LOG.md** | Cross-session memory: 5 sprints + active handoff | ✅ Current |
+| **SPEC.md** | Normative feature spec (project root) — SPEC is normative; HELP.md is derived and carries no authority | ✅ Current |
+| **Source/HELP.md** | Help text rendered by --help, derived from SPEC | ✅ Current |
+| **carol/SPRINT-LOG.md** | Cross-session memory: sprint history + active handoff | ✅ Current |
+| **DEBT.md** | Inter-sprint ledger | Empty |
 
 ---
 
@@ -76,15 +77,13 @@
 - `juce_core` — JUCE framework core
 - `jam_core` (sole includer of jam_Generated.h) → `jam_style`, `jam_terminal`, `jam_markdown` (transitive)
 
-**Bootstrap State:**
-- Hand-written interim `Source/generated/{Identifiers,HashMaps,CAST}.h` checked in for chicken-and-egg bootstrap
-- Removed on first successful `./cast cast/CAST.md` fixpoint run
+**Runtime:**
+- `./cast <manifest>` generates; `--format` runs by default, re-canonicalizing all origin .md files
 - `cast_BinaryData` embeds `Source/HELP.md` + `Source/style.css`
 
 **Doxygen:**
 - Read doxygen XML before any C++ file search (use doxygen-protocol skill)
-- docs/xml/ contains generated indices (45 files); see docs/tagfile.xml for cross-reference
-- Regeneration: check JAM build process (Doxyfile not at cast root)
+- Zero-warning policy; docs regenerated via JAM build process
 
 **LSP:** Ignore false positives from JUCE module system
 
@@ -98,20 +97,20 @@
 - CODING.md (global) — fail-fast, assert on preconditions, no manual flags, debug::Log only
 - NAMES.md (global) — semantic names, verb-noun functions, no type encoding
 
-**Project-Specific Principles (per Sprint 5 & active handoff):**
+**Project-Specific Principles:**
 1. **SSOT:** tables declare each identifier once; all engine outputs reference via Id:: (no magic strings)
-2. **Engine Contract:** Constraint scope = column set; one enumeration pass per (constraint, root, table) tuple; no duplicate application
-3. **Master State:** Parse all files in parallel → splice into ONE MarkdownDocument (castDocument) → validate the master → write-if-different (fixpoint-safe, diff-minimal)
-4. **Vocabulary:** No precomputed name-lists — manifest rows are the addresses; validation entry points are `isValid` predicates returning juce::Result; no ad-hoc string parsing outside jam::MarkdownDocument::parse(); no "scan"/"target" query vocabulary — names state what things are (optimistic semantics)
-5. **Fragment Naming:** Singular (Identifier.h, HashMap.h, Char.h, Bimap.h) — no "Row" suffix
-6. **Engine Reading:** jam::MarkdownDocument::parse() only; no manual line parsing or XML construction; documents are immutable after construction — provenance (Id::path/Id::line) is stamped at parse, never after
+2. **Engine Contract:** Constraint scope = column set; one enumeration pass per gate; no duplicate application
+3. **Master State:** Parse all files in parallel → splice into ONE MarkdownDocument → validate the master → write-if-different (fixpoint-safe, diff-minimal)
+4. **Vocabulary:** No precomputed name-lists — manifest rows are the addresses; validation entry points are `isValid` predicates returning juce::Result; no ad-hoc string parsing outside jam::MarkdownDocument::parse(); optimistic semantics in names
+5. **Fragment Naming:** Singular shape names — no "Row" suffix
+6. **Engine Reading:** jam::MarkdownDocument::parse() only; no manual line parsing; documents are immutable after construction — provenance (Id::path/Id::line) is stamped at parse, never after
+7. **Invariant Ownership:** Validator establishes every invariant once, before Writer runs; downstream rendering trusts unconditionally — no re-checks (MANIFESTO D)
 
 ---
 
 ## Activation Notes
 
-- Read Source/HELP.md before changes (determinism contract is non-negotiable)
-- PLAN-cast-local-fix.md is the active plan; Step 7 + two ARCHITECT decisions are open
-- Interim generated files (Identifiers.h, HashMaps.h, CAST.h) exist for bootstrap; do not commit regenerated versions
+- Read SPEC.md before changes (determinism contract is non-negotiable; SPEC is normative, HELP.md derived)
+- Generated files in Source/generated/ are cast's own fixpoint outputs — regenerate via `./cast cast/CAST.md`, never hand-edit
 - Doxygen prose is written last (after implementation + audit completes; never during planning or code review)
 - Use doxygen-protocol skill before any C++ file/symbol search

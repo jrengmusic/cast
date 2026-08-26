@@ -3,7 +3,7 @@ namespace :::name:::
 {
 /*_____________________________________________________________________________*/
 
-:::line:::
+:::list:::
 
 /**______________________________END OF NAMESPACE______________________________*/
 }// namespace :::name:::
@@ -12,7 +12,7 @@ namespace :::name:::
 ```struct
 struct :::name:::
 {
-:::line:::
+:::list:::
 };
 ```
 
@@ -27,7 +27,7 @@ inline const :::type::: :::name::: { juce::String::fromUTF8 (":::value:::") };
 ```hashMap
 inline const jam::HashMap<:::keyType:::, :::valueType:::> :::name:::
 {
-:::line:::
+:::list:::
 };
 ```
 
@@ -44,19 +44,19 @@ inline const jam::HashMap<:::keyType:::, :::valueType:::> :::name:::
 ```
 
 ```bimap
-/** :::comment::: */
+:::comment:::
 struct :::name::: : public jam::Bimap<:::type:::>
 {
     :::name:::()
     {
         map = {
-:::line:::
+:::list:::
         };
     }
 
     enum value : :::type:::
     {
-:::line:::
+:::list:::
     };
 
     const juce::String& getDefault() const noexcept
@@ -100,13 +100,13 @@ jam::SharedInstance<:::type:::> :::name::: { std::in_place };
 
 ```generated
 #include <generated/jam_Generated.h>
-:::line:::
+:::list:::
 
 struct Generated
 {
     jam::Generated jam;
 
-:::line:::
+:::list:::
 };
 ```
 

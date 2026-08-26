@@ -1,6 +1,6 @@
 # CAST Specification
 
-**Version 0.3**
+**Version 0.4**
 
 ---
 
@@ -16,8 +16,10 @@ The engine hardcodes these and nothing else:
 
 - the markers `:::token:::`, `@`, `` ` ``, `template:<id>`, `- key: value`, `> `
 - the manifest column names
+- the reserved source word `cells`
+- the reserved token names `list` (expansion, §6.5) and `comment` (documentation, §5.4)
 - the index table name and its columns
-- the column name `format`
+- the reserved column names `format` and `comment`
 - the operation keywords
 
 Every other name in every file is data.
@@ -215,25 +217,54 @@ Cells holding a reserved mechanism are exempt, because a mechanism repeats by de
 
 - an operation name in a `format` cell (§8)
 - an alias (§4)
+- a `comment` cell (§5.4) — documentation repeats freely
+
+### 5.4 Documentation
+
+`comment` is a reserved column name, like `format` (§5.2): documentation, never data.
+Its entries are exempt from §5.3 uniqueness, and the `cells` source (§6.5) never emits
+it.
+
+Two documentation channels, both data:
+
+- **row** — the `comment` column
+- **table** — the text between a table's `## heading` and the table itself, a
+  paragraph or a fenced block, stamped onto the table at parse (§11.1)
+
+`:::comment:::` is the comment marker — the only place documentation reaches an
+output, and the only text the engine formats: the marker's replacement is rendered in
+the **output language's** comment syntax, selected by the output file's extension
+through the comment-syntax table. Comment syntax never appears in a template.
+
+Marker position selects the form, exactly as marker position selects the expansion
+axis (§7):
+
+- alone on its line — block form: block open, brief marker, the text, block close
+  (`/** @brief text */` for a C++ target)
+- inline, after content — single-line form: the language's comment marker and the
+  text (`///< text`)
+
+The marker resolves by scope: in an item shape it reads the source row's `comment`
+column; at shape level it reads the documentation of the first table the shape's
+expansions address. A missing comment is not an error and not a special case: the
+replacement is empty, and the line trims or collapses exactly like any other emptied
+placeholder line — plain replacement, no elision machinery.
 
 ---
 
 ## 6. Manifest
 
-Four reserved column names:
+Four reserved column names, in canonical authored order:
 
 ```
-| placeholder | structure | separator | file |
+| list | separator | structure | file |
 ```
-
-`separator` is optional. Blank means newline.
 
 ### 6.1 Bindings
 
-A binding is a bullet, `- <token>: <source>`.
-
-The bullet's name is the template token it feeds. The source is an address, a column
-name, or another binding's name.
+A binding is a bullet, `- <name>: <value>`, whose name is anything but `list`. It feeds
+the template token of that name, paired **by name**. The value is an address, plain
+text, or `template:<id>`, resolved the same way everywhere a bullet value is read.
 
 ### 6.2 Blank Binding
 
@@ -256,59 +287,82 @@ between a type name and an instance name. A blank binding at the first position 
 depth has no predecessor and its value is empty.
 
 A blank binding is also a **selector**: a row that declares it is a row that
-participates wherever that binding's name is used as a source (§6.1).
+participates wherever that binding's name is used as a source (§6.5).
 
 ### 6.3 Structure
 
-A head line is `template:<id>` — the shape at its depth. A bullet binds one token of
-that depth's shape.
+A head line is `template:<id>` — a shape. The depth-0 head is the row's own shape; a
+nested head is a source for the shape that owns it (§6.5).
+
+A named bullet binds one token of its depth's shape (§6.1). A `- list:` bullet declares
+an expansion: its value names the shape each item renders through, and its partner in
+the list column names what iterates (§6.5).
 
 ### 6.4 Depth
 
-`> ` count is both identity and indent:
+`> ` count is indentation, and nothing else:
 
-```
-template:something          depth 0    no indent
-> - this: nested            depth 1    one tab
-> > template:something      depth 2    two tabs
-```
+- a `- list:` line's `>` count is the **absolute** indent of the lines it fills — one
+  tab (four spaces) per `>`, measured from column 0 of the output file
+- a nested head contributes no indent of its own: its shape's lines land where the
+  block authored them, and only its expansions indent, each by its own line's count
+- depth also expresses nesting between expansions: a `- list:` line one deeper than a
+  row expansion runs once per item of that enclosing expansion — the `cells` source
+  (§6.5) reads the enclosing expansion's current row
 
-One tab is four spaces. The same token name at two depths is two tokens; the deeper is
-the inner scope and wins within it.
+Depth never selects which token a line feeds. Pairing is positional (§6.5).
 
-### 6.5 Pairing
+### 6.5 Expansion and Pairing
 
-A token name resolves once per depth. Where a shape names that token once, every
-occurrence of it carries the same value — `namespace :::name:::` and
-`}// namespace :::name:::` are one binding, not two.
+`:::list:::` is the only expansion token (§7). Every other token is a named token and
+takes its value from, in order:
 
-Where a shape names the same token more than once, the occurrences cascade: the Nth
-occurrence, counting from the top of the block, takes the Nth depth, counting from the
-shallowest. A shape that names `:::line:::` twice, wired by `> - line:` and
-`> > - line:`, fills the first from depth 1 and the second from depth 2, each indented
-by its own depth (§6.4).
+1. the binding of that name (§6.1) — for an item shape, the source row's own binding
+2. the column of that name — on the manifest row, or, for an item shape, on the source
+   row
+3. the table documentation (§5.4), for the name `comment` at shape level
+4. the empty string
 
-A depth belongs to exactly one shape. When a bullet names a shape and the depth below it
-carries bullets whose names are that shape's own tokens, that depth configures the named
-shape and is not read again by the shape that referenced it.
+Expansion pairs by position:
 
-A fragment token takes its value from, in order:
+- The list column's `- list:` lines pair with the structure column's `- list:` lines
+  by depth and ordinal within that depth. The list column names **what iterates**; the
+  structure line names **the shape** each item renders through.
+- Each shape **owns** the `- list:` structure lines and nested `template:<id>` heads
+  beneath its own head, down to the next head. The shape's `:::list:::` occurrences,
+  in block order, consume those sources in authored order.
+- A separator line pairs with the `- list:` line at its own depth and ordinal (§6.6).
 
-1. the binding of that name at that depth
-2. the column of that name on the row
-3. the empty string
+A `- list:` source is one of:
 
-The fragment's **distinct** token names that no binding claims pair with that depth's
-remaining sources, in authored order. A nested head is a source.
+- an **address** — `@file:table:column` iterates that table's rows
+- a **column name** — iterates the distinct values of that column across output rows
+- a **binding name** — iterates the rows that declare that blank binding (§6.2)
+- **`cells`** — iterates the enclosing expansion's current row's data cells, in column
+  order; `format` columns apply to their bound column (§5.2) and never emit
 
-More than one unclaimed token is ordinary — authored order settles it. Neither the count
-of unclaimed tokens nor the count of remaining sources is a diagnostic.
+A list-column line with no structure partner renders its items **verbatim** — the
+datum itself, unshaped. That is the ordinary form for `cells`, whose items are the
+row's own values. A structure `- list:` line or a separator line with no list-column
+partner at its depth and ordinal is fatal (§10.1).
+
+A shape-level `:::comment:::` (§5.4) falls back to the documentation of the first
+table addressed by the shape's owned expansions, in authored order.
+
+Matching the template, the tables and the expression is the author's responsibility.
+The engine reads the expression and generates; its one check is the count: a shape
+whose `:::list:::` occurrences do not match its source count is fatal (§10.1).
 
 ### 6.6 Separator
 
-Optional. Named per token, keyed as the wiring is. Blank joins by newline; any other
-value joins by that value. There is no second axis — a horizontal shape is one item
-authored on one line.
+The separator column carries `- list:` lines mirroring the list column's depths. The
+line at depth D, ordinal K is the join text for the expansion wired at depth D, ordinal
+K. No line, or a blank value, joins by newline. A value resolves like any bullet value
+(§6.1) — `template:<id>` names a block whose text is the join.
+
+The **depth-0** separator line is the row join: it joins the file group's diverging
+values (§6.7). Its partner is the row group itself — it is exempt from the list-column
+partner requirement (§6.5). There is no other separator mechanism.
 
 ### 6.7 File Merge
 
@@ -316,8 +370,8 @@ Rows declaring the same `file` render as one merged shape — the wrap is emitte
 per file. Their depth-0 structure is byte-identical by authorship. Merging is
 per-token, per-occurrence: a value byte-identical across the group's rows resolves
 once; values that differ join in authored row order by the group's join text — the
-first row's `separator` column resolved as §6.6, a non-blank separator framed by one
-blank line on each side. A group of one row merges to itself.
+first row's depth-0 separator line resolved as §6.6, a non-blank separator framed by
+one blank line on each side. A group of one row merges to itself.
 
 Same-file rows are authored contiguously. A row declaring a file already closed by an
 intervening row of another file is fatal (§10.1) — two groups never write one file.
@@ -332,19 +386,25 @@ block's id. A shape is named `template:<id>`.
 A block is literal output text and nothing else. Structure only — no conditionals, no
 logic, no formatting.
 
-`:::token:::` is replaced by the value of the column or binding of that name (§6.5).
-Any symbol delimited by `:::` is a valid placeholder, and the interior is its name
-**verbatim** — the interior is never split, and `:::name:operation:::` is not a form.
-A template never names an operation; operations are declared in the table (§5.2).
+`:::list:::` is the expansion token. Each occurrence is filled by one expansion — its
+items joined by that expansion's separator (§6.6):
 
-A token may occur more than once in a block. Occurrences consume the token's resolved
-values in order; when occurrences outnumber values, the last value serves every
-remaining occurrence.
+- a marker at **column 0** fills vertically: every line of the join is prefixed by the
+  wiring line's indent (§6.4)
+- a marker **inside a line** fills horizontally, in place, unindented
 
-Jack markers sit at column 0. Indent comes from the wiring depth, never from the block.
+Marker position is the only axis. There is no axis vocabulary and no second mechanism.
+
+Any other `:::token:::` is a named token, replaced by the binding or column of that
+name (§6.5). Any symbol delimited by `:::` is a valid placeholder, and the interior is
+its name **verbatim** — the interior is never split, and `:::name:operation:::` is not
+a form. A template never names an operation; operations are declared in the table
+(§5.2). A named token may occur more than once in a block; every occurrence carries the
+same value.
 
 Delimiters, wraps, braces and punctuation are structure and are authored in the block —
-except the quotes around a literal, which `toLiteral` supplies (§9).
+except the quotes around a literal, which `toLiteral` supplies (§9). Comment frames are
+structure too (§5.4).
 
 ### 7.1 File Tokens
 
@@ -377,7 +437,8 @@ datum's own characters:
 - **case** — `toUpper`, `toTitle`, `toPascal`, `toCamel`, `toKebab`, `toSnake`, `toScreamingSnake`
 - **encoding** — `toLiteral`, `toUTF8`, `fromUTF8`, `toHex`, `toCodepoint`, `fromCodepoint`
 - **text** — `join`, `toFileName`
-- **comment** — `toComment`, `toCommentBlock`, `brief`, for the banner CAST stamps
+- **comment** — `toComment`, `toCommentBlock`, `brief`, for the banner CAST stamps and
+  the `:::comment:::` marker (§5.4)
 
 In every case operation, an all-uppercase word is an abbreviation and passes through
 unchanged in every position. `WindowFX` camel-cases to `windowFX`; `CSI` and `C4Type`
@@ -463,6 +524,10 @@ These, and nothing else:
 | index `symbol` cell empty | §4.1 |
 | output row declares no structure | §6.3 |
 | same-file output rows not contiguous | §6.7 |
+| a shape's `:::list:::` occurrences do not match its source count | §6.5 |
+| a structure or separator `- list:` line without its list-column partner, the depth-0 separator line excepted | §6.5, §6.6 |
+| duplicate binding name within one structure scope | §6.4 |
+| unterminated `:::` marker in a shape block | §7 |
 
 Any check the engine performs that is not in this table is a defect in the engine.
 
@@ -484,8 +549,9 @@ answer a question it can already answer. A second copy of a truth the AST owns i
 defect.
 
 Where a value must be computed rather than read — a cell's form (§5.1), a blank
-binding's value (§6.2) — it is stamped once onto its own Element at parse, beside the
-provenance the parser already stamps, and read back thereafter.
+binding's value (§6.2), a table's documentation (§5.4) — it is stamped once onto its
+own Element at parse, beside the provenance the parser already stamps, and read back
+thereafter.
 
 ### 11.2 One Owner Per Invariant
 

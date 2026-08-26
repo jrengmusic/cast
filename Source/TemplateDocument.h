@@ -94,31 +94,4 @@ struct TemplateDocument : jam::MarkdownDocument
 
         return value;
     }
-
-    /**
-     * @brief Resolves @p token's authored separator, if any, within
-     *        @p separatorScope, through getBinding().
-     *
-     * @param model           The model whose row the separator is resolved
-     *                        against.
-     * @param row             The row the separator binding is resolved
-     *                        against.
-     * @param separatorScope  The blockquote scope carrying separator
-     *                        bindings, or @c nullptr when the row declares
-     *                        none.
-     * @param token           The token whose separator is looked up.
-     * @returns The resolved separator, or an empty string when @p token has
-     *          no authored separator.
-     */
-    juce::String getSeparator (const Model& model,
-                               Element& row,
-                               Element* separatorScope,
-                               const juce::Identifier& token) const
-    {
-        if (separatorScope != nullptr)
-            if (auto* list { model.getList (*separatorScope) })
-                if (auto* item { model.getListItem (*list, token) })
-                    return getBinding (model, row, *item->get<juce::String> (Id::value));
-        return {};
-    }
 };

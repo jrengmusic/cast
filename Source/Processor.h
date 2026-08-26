@@ -9,7 +9,7 @@ struct Processor
 {
     explicit Processor (const juce::File& manifestFile)
         : model (Model::parse (manifestFile))
-        , templateDocument (jam::MarkdownDocument::parse (model->getFile().loadFileAsString()))
+        , templateDocument (jam::MarkdownDocument::parse (model->getTemplateFile().loadFileAsString()))
         , writer (*model, templateDocument)
     {
         jam::Stamp::getInstance()->addIfNotAlreadyThere (jam::Stamp::Entry {});
@@ -17,11 +17,10 @@ struct Processor
 
     juce::Result generate (const juce::String& output = {})
     {
-        if (const auto validation { Validator::isValid (*model, templateDocument) };
-            not validation.wasOk())
+        if (const auto validation { Validator::isValid (*model, templateDocument) }; not validation.wasOk())
             return validation;
 
-        return writer.toFile (model->getOutput (output));
+        return writer.toFile (model->getFile (output));
     }
 
     juce::Result format()
@@ -40,17 +39,33 @@ struct Processor
             origins.addIfNotAlreadyThere (origin);
         }
 
-        for (const auto& origin : origins)
-        {
-            const auto file { model->getOutput (origin) };
-            const auto current { file.loadFileAsString() };
+        jam::Array<juce::String> formatFailures;
+        formatFailures.resize (origins.size());
 
-            if (const auto canonical { formatter.getText (*model, origin) }; canonical != current)
-                file.replaceWithText (canonical,
-                    false,
-                    false,
-                    juce::String::charToString (Chars::newline).toRawUTF8());
-        }
+        Jobs::run (origins.size(),
+            [this, &origins, &formatFailures] (int index)
+            {
+                const auto& origin { origins.at (index) };
+                const auto file { model->getFile (origin) };
+                const auto current { file.loadFileAsString() };
+
+                if (const auto canonical { formatter.getText (*model, origin) }; canonical != current)
+                    if (not file.replaceWithText (canonical,
+                        false,
+                        false,
+                        juce::String::charToString (Chars::newline).toRawUTF8()))
+                        formatFailures.at (index) = file.getFullPathName();
+            });
+
+        jam::Strings failures;
+
+        for (const auto& failedFile : formatFailures)
+            if (failedFile.isNotEmpty())
+                failures.add (failedFile + Id::diagnosticSeparator + text::Diagnostics::failOutputWrite);
+
+        if (failures.size() > 0)
+            return juce::Result::fail (
+                failures.joinIntoString (juce::String::charToString (Chars::newline), 0, -1));
 
         return juce::Result::ok();
     }

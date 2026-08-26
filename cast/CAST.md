@@ -24,120 +24,121 @@
 
 ## output
 
-+-------------------------------------------+----------------------------------+--------------------+--------------+
-| placeholder                               | structure                        | separator          | file         |
-+===========================================+==================================+====================+==============+
-| - line: @lexicon:lexicon                  | template:namespace               |                    | @Identifiers |
-|                                           | - name: Id                       |                    |              |
-|                                           | > - line: template:identifier    |                    |              |
-+-------------------------------------------+----------------------------------+--------------------+--------------+
-| > - line: @text:diagnostics               | template:namespace               |                    | @Text        |
-|                                           | - name: text                     |                    |              |
-|                                           | > template:struct                |                    |              |
-|                                           | > - name: Diagnostics            |                    |              |
-|                                           | > > - line: template:char        |                    |              |
-+-------------------------------------------+----------------------------------+--------------------+--------------+
-| - line: @binaryFiles:files                | template:namespace               |                    | @Files       |
-|                                           | - name: files                    |                    |              |
-|                                           | > - line: template:identifier    |                    |              |
-|                                           | > - type: @string                |                    |              |
-+-------------------------------------------+----------------------------------+--------------------+--------------+
-| > - line: @banner:banner                  | template:namespace               | template:separator | @HashMaps    |
-|                                           | - name: map                      |                    |              |
-|                                           | > template:hashMap               |                    |              |
-|                                           | > - name: banner                 |                    |              |
-|                                           | > - keyType: @string             |                    |              |
-|                                           | > - valueType: @string           |                    |              |
-|                                           | > > - line: template:stringPair  |                    |              |
-+-------------------------------------------+----------------------------------+--------------------+--------------+
-| > - line: @comments:clang comment         | template:namespace               | template:separator | @HashMaps    |
-|                                           | - name: map                      |                    |              |
-|                                           | > template:hashMap               |                    |              |
-|                                           | > - name: clangComment           |                    |              |
-|                                           | > - keyType: @id                 |                    |              |
-|                                           | > - valueType: @string           |                    |              |
-|                                           | > > - line: template:mapEntry    |                    |              |
-+-------------------------------------------+----------------------------------+--------------------+--------------+
-| > - line: @comments:css comment           | template:namespace               | template:separator | @HashMaps    |
-|                                           | - name: map                      |                    |              |
-|                                           | > template:hashMap               |                    |              |
-|                                           | > - name: cssComment             |                    |              |
-|                                           | > - keyType: @id                 |                    |              |
-|                                           | > - valueType: @string           |                    |              |
-|                                           | > > - line: template:mapEntry    |                    |              |
-+-------------------------------------------+----------------------------------+--------------------+--------------+
-| > - line: @comments:html comment          | template:namespace               | template:separator | @HashMaps    |
-|                                           | - name: map                      |                    |              |
-|                                           | > template:hashMap               |                    |              |
-|                                           | > - name: htmlComment            |                    |              |
-|                                           | > - keyType: @id                 |                    |              |
-|                                           | > - valueType: @string           |                    |              |
-|                                           | > > - line: template:mapEntry    |                    |              |
-+-------------------------------------------+----------------------------------+--------------------+--------------+
-| > - line: @comments:lua comment           | template:namespace               | template:separator | @HashMaps    |
-|                                           | - name: map                      |                    |              |
-|                                           | > template:hashMap               |                    |              |
-|                                           | > - name: luaComment             |                    |              |
-|                                           | > - keyType: @id                 |                    |              |
-|                                           | > - valueType: @string           |                    |              |
-|                                           | > > - line: template:mapEntry    |                    |              |
-+-------------------------------------------+----------------------------------+--------------------+--------------+
-| > - line: @comments:mermaid comment       | template:namespace               | template:separator | @HashMaps    |
-|                                           | - name: map                      |                    |              |
-|                                           | > template:hashMap               |                    |              |
-|                                           | > - name: mermaidComment         |                    |              |
-|                                           | > - keyType: @id                 |                    |              |
-|                                           | > - valueType: @string           |                    |              |
-|                                           | > > - line: template:mapEntry    |                    |              |
-+-------------------------------------------+----------------------------------+--------------------+--------------+
-| > - line: @comments:python comment        | template:namespace               | template:separator | @HashMaps    |
-|                                           | - name: map                      |                    |              |
-|                                           | > template:hashMap               |                    |              |
-|                                           | > - name: pythonComment          |                    |              |
-|                                           | > - keyType: @id                 |                    |              |
-|                                           | > - valueType: @string           |                    |              |
-|                                           | > > - line: template:mapEntry    |                    |              |
-+-------------------------------------------+----------------------------------+--------------------+--------------+
-| > - line: @comments:ruby comment          | template:namespace               | template:separator | @HashMaps    |
-|                                           | - name: map                      |                    |              |
-|                                           | > template:hashMap               |                    |              |
-|                                           | > - name: rubyComment            |                    |              |
-|                                           | > - keyType: @id                 |                    |              |
-|                                           | > - valueType: @string           |                    |              |
-|                                           | > > - line: template:mapEntry    |                    |              |
-+-------------------------------------------+----------------------------------+--------------------+--------------+
-| > - line: @comments:shell comment         | template:namespace               | template:separator | @HashMaps    |
-|                                           | - name: map                      |                    |              |
-|                                           | > template:hashMap               |                    |              |
-|                                           | > - name: shellComment           |                    |              |
-|                                           | > - keyType: @id                 |                    |              |
-|                                           | > - valueType: @string           |                    |              |
-|                                           | > > - line: template:mapEntry    |                    |              |
-+-------------------------------------------+----------------------------------+--------------------+--------------+
-| > - line: @comments:comment syntax        | template:namespace               |                    | @HashMaps    |
-|                                           | - name: map                      |                    |              |
-|                                           | > template:hashMap               |                    |              |
-|                                           | > - name: commentSyntax          |                    |              |
-|                                           | > - keyType: @string             |                    |              |
-|                                           | > - valueType: @commentMap       |                    |              |
-|                                           | > > - line: template:stringEntry |                    |              |
-+-------------------------------------------+----------------------------------+--------------------+--------------+
-| > > > - line: @tokens:template token type | template:namespace               |                    | @Bimaps      |
-| > > - line: @tokens:template token type   | - name: map                      |                    |              |
-|                                           | > template:bimap                 |                    |              |
-|                                           | > - name: TemplateTokenType      |                    |              |
-|                                           | > - type: int                    |                    |              |
-|                                           | > - instance:                    |                    |              |
-|                                           | > > > - line: template:mapEntry  |                    |              |
-|                                           | > > - line: template:enum        |                    |              |
-+-------------------------------------------+----------------------------------+--------------------+--------------+
++-------------------------------------------+----------------------------+---------------------------------+--------------+
+| list                                      | separator                  | structure                       | file         |
++===========================================+============================+=================================+==============+
+| - list: @lexicon:lexicon                  |                            | template:namespace              | @Identifiers |
+|                                           |                            | - name: Id                      |              |
+|                                           |                            | - list: template:identifier     |              |
++-------------------------------------------+----------------------------+---------------------------------+--------------+
+| > - list: @text:diagnostics               |                            | template:namespace              | @Text        |
+|                                           |                            | - name: text                    |              |
+|                                           |                            | > template:struct               |              |
+|                                           |                            | > - name: Diagnostics           |              |
+|                                           |                            | > - list: template:char         |              |
++-------------------------------------------+----------------------------+---------------------------------+--------------+
+| - list: @binaryFiles:files                |                            | template:namespace              | @Files       |
+|                                           |                            | - name: files                   |              |
+|                                           |                            | - list: template:identifier     |              |
+|                                           |                            | > - type: @string               |              |
++-------------------------------------------+----------------------------+---------------------------------+--------------+
+| > - list: @banner:banner                  | - list: template:separator | template:namespace              | @HashMaps    |
+|                                           |                            | - name: map                     |              |
+|                                           |                            | > template:hashMap              |              |
+|                                           |                            | > - name: banner                |              |
+|                                           |                            | > - keyType: @string            |              |
+|                                           |                            | > - valueType: @string          |              |
+|                                           |                            | > - list: template:stringPair   |              |
++-------------------------------------------+----------------------------+---------------------------------+--------------+
+| > - list: @comments:clang comment         | - list: template:separator | template:namespace              | @HashMaps    |
+|                                           |                            | - name: map                     |              |
+|                                           |                            | > template:hashMap              |              |
+|                                           |                            | > - name: clangComment          |              |
+|                                           |                            | > - keyType: @id                |              |
+|                                           |                            | > - valueType: @string          |              |
+|                                           |                            | > - list: template:mapEntry     |              |
++-------------------------------------------+----------------------------+---------------------------------+--------------+
+| > - list: @comments:css comment           | - list: template:separator | template:namespace              | @HashMaps    |
+|                                           |                            | - name: map                     |              |
+|                                           |                            | > template:hashMap              |              |
+|                                           |                            | > - name: cssComment            |              |
+|                                           |                            | > - keyType: @id                |              |
+|                                           |                            | > - valueType: @string          |              |
+|                                           |                            | > - list: template:mapEntry     |              |
++-------------------------------------------+----------------------------+---------------------------------+--------------+
+| > - list: @comments:html comment          | - list: template:separator | template:namespace              | @HashMaps    |
+|                                           |                            | - name: map                     |              |
+|                                           |                            | > template:hashMap              |              |
+|                                           |                            | > - name: htmlComment           |              |
+|                                           |                            | > - keyType: @id                |              |
+|                                           |                            | > - valueType: @string          |              |
+|                                           |                            | > - list: template:mapEntry     |              |
++-------------------------------------------+----------------------------+---------------------------------+--------------+
+| > - list: @comments:lua comment           | - list: template:separator | template:namespace              | @HashMaps    |
+|                                           |                            | - name: map                     |              |
+|                                           |                            | > template:hashMap              |              |
+|                                           |                            | > - name: luaComment            |              |
+|                                           |                            | > - keyType: @id                |              |
+|                                           |                            | > - valueType: @string          |              |
+|                                           |                            | > - list: template:mapEntry     |              |
++-------------------------------------------+----------------------------+---------------------------------+--------------+
+| > - list: @comments:mermaid comment       | - list: template:separator | template:namespace              | @HashMaps    |
+|                                           |                            | - name: map                     |              |
+|                                           |                            | > template:hashMap              |              |
+|                                           |                            | > - name: mermaidComment        |              |
+|                                           |                            | > - keyType: @id                |              |
+|                                           |                            | > - valueType: @string          |              |
+|                                           |                            | > - list: template:mapEntry     |              |
++-------------------------------------------+----------------------------+---------------------------------+--------------+
+| > - list: @comments:python comment        | - list: template:separator | template:namespace              | @HashMaps    |
+|                                           |                            | - name: map                     |              |
+|                                           |                            | > template:hashMap              |              |
+|                                           |                            | > - name: pythonComment         |              |
+|                                           |                            | > - keyType: @id                |              |
+|                                           |                            | > - valueType: @string          |              |
+|                                           |                            | > - list: template:mapEntry     |              |
++-------------------------------------------+----------------------------+---------------------------------+--------------+
+| > - list: @comments:ruby comment          | - list: template:separator | template:namespace              | @HashMaps    |
+|                                           |                            | - name: map                     |              |
+|                                           |                            | > template:hashMap              |              |
+|                                           |                            | > - name: rubyComment           |              |
+|                                           |                            | > - keyType: @id                |              |
+|                                           |                            | > - valueType: @string          |              |
+|                                           |                            | > - list: template:mapEntry     |              |
++-------------------------------------------+----------------------------+---------------------------------+--------------+
+| > - list: @comments:shell comment         | - list: template:separator | template:namespace              | @HashMaps    |
+|                                           |                            | - name: map                     |              |
+|                                           |                            | > template:hashMap              |              |
+|                                           |                            | > - name: shellComment          |              |
+|                                           |                            | > - keyType: @id                |              |
+|                                           |                            | > - valueType: @string          |              |
+|                                           |                            | > - list: template:mapEntry     |              |
++-------------------------------------------+----------------------------+---------------------------------+--------------+
+| > - list: @comments:comment syntax        |                            | template:namespace              | @HashMaps    |
+|                                           |                            | - name: map                     |              |
+|                                           |                            | > template:hashMap              |              |
+|                                           |                            | > - name: commentSyntax         |              |
+|                                           |                            | > - keyType: @string            |              |
+|                                           |                            | > - valueType: @commentMap      |              |
+|                                           |                            | > - list: template:stringEntry  |              |
++-------------------------------------------+----------------------------+---------------------------------+--------------+
+| > > > - list: @tokens:template token type |                            | template:namespace              | @Bimaps      |
+| > > - list: @tokens:template token type   |                            | - name: map                     |              |
+|                                           |                            | > template:bimap                |              |
+|                                           |                            | > - name: TemplateTokenType     |              |
+|                                           |                            | > - type: int                   |              |
+|                                           |                            | > - instance:                   |              |
+|                                           |                            | > - value: text                 |              |
+|                                           |                            | > > > - list: template:mapEntry |              |
+|                                           |                            | > > - list: template:enum       |              |
++-------------------------------------------+----------------------------+---------------------------------+--------------+
 
 ## output index
 
-+--------------------+-----------------------------------+-----------+------------+
-| placeholder        | structure                         | separator | file       |
-+====================+===================================+===========+============+
-| - files: file      | template:generated                |           | @Generated |
-| > - line: instance | - files: template:include         |           |            |
-|                    | > - line: template:sharedInstance |           |            |
-+--------------------+-----------------------------------+-----------+------------+
++--------------------+-----------+-----------------------------------+------------+
+| list               | separator | structure                         | file       |
++====================+===========+===================================+============+
+| - list: file       |           | template:generated                | @Generated |
+| > - list: instance |           | - list: template:include          |            |
+|                    |           | > - list: template:sharedInstance |            |
++--------------------+-----------+-----------------------------------+------------+
