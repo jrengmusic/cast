@@ -4,3 +4,5 @@
 - Convergence means byte-identical output; the oracle baseline must be accurate and nothing may be ignored. Confidence: 0.85
 - Reuse existing templates and patterns before introducing new ones. Confidence: 0.8
 - Before trusting a generated-artifact diff, confirm the generator binary is current against source edits (timestamps); a stale build yields misleading diffs. Confidence: 0.7
+- Establish a single consistent pattern across all artifacts (generated oracle, call site, data table, manifest expression) before building dependent or parallel work. Confidence: 0.8
+- When the generator pipeline is unfinished, the user's stated sprint goal overrides doc-derived "never hand-edit" rules: hand-author generated/target-oracle files directly, with the data tables to be aligned to generate them later. Confidence: 0.85

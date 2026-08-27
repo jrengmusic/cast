@@ -1,3 +1,5 @@
 - Read the codebase and API thoroughly before asking; asking a question answerable from the code is a protocol violation. Confidence: 0.9
 - Do not second-guess or re-negotiate already-decided plans; do not re-ask settled questions. Confidence: 0.9
 - Repeatedly asking the wrong question signals the implementation is wrong, not the naming — fix the design, not the names. Confidence: 0.8
+- Verify claims by reading the actual code before asserting them — do not assume; the user demands reading and comprehension over assumption. Confidence: 0.85
+- Wants to be told exactly when they are wrong; asks for precise correction rather than agreement. Confidence: 0.8

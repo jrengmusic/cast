@@ -111,6 +111,47 @@
 
 ## SPRINT HISTORY
 
+## Sprint: Generated-Header Doxygen — Hand-Authored Target Oracle ✅
+
+**Date:** 2026-08-27
+**Duration:** —
+
+### Agents Participated
+- COUNSELOR — scope mapping, doxygen-pattern recovery from jam_Bimap.h / jam_LookupTable.h, six cast headers and five jam headers authored directly, dry-run/backup/verify discipline on the bulk Bimap insertion, zero-warning verification on both trees
+- Engineer (2 waves) — jam_Identifiers.h (1300+ data constants: @file + namespace brief only) and jam_HashMaps.h (5 map briefs) inserted mechanically
+
+### Files Modified (14 total)
+- `Source/generated/Text.h` — `@file` + `Diagnostics` struct brief + per-fatal `///<`; `template:\<id\>` escaped (doxygen otherwise parses `<id>` as an XML tag)
+- `Source/generated/Files.h` — `@file` + `files` namespace brief + per-name `///<`
+- `Source/generated/Bimaps.h` — `@file` + `TemplateTokenType` brief + per-enum `///<`
+- `Source/generated/Generated.h` — `@file` + `Generated` aggregate brief + per-member `///<`
+- `Source/generated/Identifiers.h` — `@file` + `Id` namespace brief + per-constant `///<`
+- `Source/generated/HashMaps.h` — `@file` + banner/comment-syntax map briefs
+- `jam/generated/jam_Chars.h` — `@file` + `Chars` brief + per-codepoint/per-token `///<` + escape-map and `isNumeric` blocks
+- `jam/generated/jam_Files.h` — `@file` + `Extensions`/`files` briefs + per-entry `///<`
+- `jam/generated/jam_Generated.h` — `@file` + `Generated` aggregate brief + per-member `///<` (preserves the `Mermaid::`-qualified instance names)
+- `jam/generated/jam_Identifiers.h` — `@file` + `Id` namespace brief only (data constants; per-line comments would repeat the name)
+- `jam/generated/jam_LookupTables.h` — `@file` + per-table brief (terminal colour space + 9 byte-class tables)
+- `jam/generated/jam_HashMaps.h` — `@file` + 5 map briefs (languageFamily, romanNumerals, entities, diacritics, xmlEscapes)
+- `jam/generated/jam_Text.h` — `@file` + `English` struct brief + per-string `///<`
+- `jam/generated/jam_Bimaps.h` — `@file` + brief for all 69 structs (48 added, 21 pre-existing kept) + existing per-enum `///<` from the comment column
+
+### Alignment Check
+- [x] BLESSED principles followed — documentation only, no implementation touched
+- [x] NAMES.md adhered — no new identifiers; `///<` single-liner convention followed (not the invalid `//<<`)
+- [x] MANIFESTO.md principles applied — no invented descriptions where the source table declares none (data-only tables get struct brief, no per-row noise)
+
+### Problems Solved
+- The generated headers carry a "DO NOT EDIT" banner but are the CAST fixpoint outputs — ARCHITECT overrode this: hand-author the doxygen now as the target oracle, the data tables follow later (out of this sprint's scope).
+- Byte-identity proof: all 7 jam headers are byte-identical to `diff/` originals after stripping comments — no accidental code churn from the mechanical edits.
+- Zero-warning proof: doxygen runs clean on both `jam/generated/` and `cast/Source/generated/` after escaping the one `<id>` tag and confirming the 4 pre-existing `<!-- … -->`-style comment-column texts are not flagged.
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None (ledger empty; the jam ledger's two DEBT entries — `DEBT-20260816T000000`, `DEBT-20260816T000001` — are mermaid-optimization items unrelated to this sprint)
+
 ## Sprint: Declarative Engine — the Authored Line Is the Declaration ⚠️ (code-complete, unbuilt)
 
 **Date:** 2026-08-27

@@ -7,3 +7,5 @@
 - Prefer the implicit `if (auto* x = getFoo())` pointer-init form over explicit `!= nullptr` comparison. Confidence: 0.85
 - Prefers consolidating related generated types/identifiers under a single enclosing struct or namespace (e.g., all C4 items under `Mermaid::C4`) rather than scattering them flat. Confidence: 0.7
 - Flags redundant name flattening in generated code: a nested type's derived instance/member name should not re-stutter the enclosing scope's qualifier (e.g., `Mermaid::C4::Type` should not surface as `C4Type`). Confidence: 0.6
+- Rejects hacks, quick fixes, workarounds, and preserving the status quo; requires structural adherence to design by contract even when a simpler patch exists. Confidence: 0.9
+- No domain is exempt from the shared architectural contract; domain complexity is not a justification for special-casing (e.g., a document type must follow the same Document/Vocabulary/Token/Rules contract as the others). Confidence: 0.8
