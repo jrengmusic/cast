@@ -398,7 +398,46 @@ struct Validator : jam::MarkdownValidator
             const auto& sourceValue { *sourceItem->get<juce::String> (Id::value) };
 
             if (auto* sourceTable { model.getTable (row, sourceValue) })
+            {
                 headers = model.getTableHeaders (*sourceTable);
+            }
+            else if (sourceValue != Id::cells.toString())
+            {
+                const auto sourceName { juce::Identifier (sourceValue) };
+                const auto tables { model.getTables() };
+                const auto hasColumnSource { std::any_of (
+                    tables.begin(),
+                    tables.end(),
+                    [&model, &sourceName] (Element* table)
+                    {
+                        auto* headerRow { Model::getTableHeaderRow (*table) };
+                        return model.isOutputTable (*table)
+                               and model.getTableCell (*headerRow, sourceName) != nullptr;
+                    }) };
+
+                if (hasColumnSource)
+                {
+                    headers.add (sourceValue);
+                }
+                else
+                {
+                    for (auto* sourceRow : Items::getBindingSourceRows (model, tables, sourceName))
+                    {
+                        for (auto* cell : *sourceRow)
+                            headers.add (cell->id.toString());
+
+                        if (auto* scope { model.getTableCell (*sourceRow, Id::structure) })
+                            scope->applyFunctionRecursively (
+                                [&headers] (const Element& item) -> bool
+                                {
+                                    if (item.parent != nullptr and item.parent->isTag (Id::ul))
+                                        headers.add (item.id.toString());
+
+                                    return true;
+                                });
+                    }
+                }
+            }
         }
 
         for (const auto& name : tokens)

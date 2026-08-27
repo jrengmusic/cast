@@ -345,8 +345,9 @@ A `- list:` source is one of:
 - an **address** — `@file:table:column` iterates that table's rows
 - a **column name** — iterates the distinct values of that column across output rows
 - a **binding name** — iterates the rows that declare that blank binding (§6.2)
-- **`cells`** — iterates the enclosing expansion's current row's data cells, in column
-  order; `format` columns apply to their bound column (§5.2) and never emit
+- **`cells`** — iterates the enclosing expansion's current row's data cells that no
+  named token of the shape consumes, in column order; `format` columns apply to their
+  bound column (§5.2) and never emit
 
 A list-column line with no structure partner renders its items **verbatim** — the
 datum itself, unshaped — and fills the occupied occurrence of the shape it follows.

@@ -1,0 +1,6 @@
+- Discuss first before implementing. Confidence: 0.85
+- Build incrementally, smallest wins first. Confidence: 0.8
+- Finish the plan completely before building; never ask to ship a half-finished implementation to chase a known bug. Confidence: 0.9
+- Convergence means byte-identical output; the oracle baseline must be accurate and nothing may be ignored. Confidence: 0.85
+- Reuse existing templates and patterns before introducing new ones. Confidence: 0.8
+- Before trusting a generated-artifact diff, confirm the generator binary is current against source edits (timestamps); a stale build yields misleading diffs. Confidence: 0.7

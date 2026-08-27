@@ -78,12 +78,16 @@ struct Items
                 {
                     auto matches { false };
 
-                    for (auto* scope { model.getTableCell (*candidate, Id::structure) };
-                         scope != nullptr and not matches;
-                         scope = model.getBlockquote (*scope))
-                        if (auto* list { model.getList (*scope) })
-                            if (model.getListItem (*list, source) != nullptr)
-                                matches = true;
+                    if (auto* scope { model.getTableCell (*candidate, Id::structure) })
+                        scope->applyFunctionRecursively (
+                            [&matches, &source] (const Element& item) -> bool
+                            {
+                                if (item.parent != nullptr and item.parent->isTag (Id::ul)
+                                    and item.id == source)
+                                    matches = true;
+
+                                return not matches;
+                            });
 
                     if (matches)
                         sourceRows.add (candidate);
@@ -108,12 +112,16 @@ struct Items
     {
         juce::String deepestValue;
 
-        for (auto* scope { model.getTableCell (sourceRow, Id::structure) };
-             scope != nullptr;
-             scope = model.getBlockquote (*scope))
-            if (auto* list { model.getList (*scope) })
-                if (auto* item { model.getListItem (*list, name) })
-                    deepestValue = *item->get<juce::String> (Id::value);
+        if (auto* scope { model.getTableCell (sourceRow, Id::structure) })
+            scope->applyFunctionRecursively (
+                [&deepestValue, &name] (const Element& item) -> bool
+                {
+                    if (item.parent != nullptr and item.parent->isTag (Id::ul) and item.id == name
+                        and item.id != Id::list)
+                        deepestValue = *item.get<juce::String> (Id::value);
+
+                    return true;
+                });
 
         if (deepestValue.isNotEmpty())
             return deepestValue;
@@ -157,10 +165,11 @@ struct Items
 
     static juce::String getChildValue (Element* sourceRow,
                                        const juce::String& childSource,
-                                       const juce::String& childJoin)
+                                       const juce::String& childJoin,
+                                       const jam::Document::Identifiers& tokens)
     {
         if (sourceRow != nullptr and childSource == Id::cells.toString())
-            return getCells (*sourceRow).joinIntoString (childJoin, 0, -1);
+            return getCells (*sourceRow, tokens).joinIntoString (childJoin, 0, -1);
 
         return {};
     }
@@ -208,7 +217,7 @@ struct Items
             if (jam::Format::hasPlaceholder (itemText, name.toString()))
             {
                 auto value { name == Id::list
-                                 ? getChildValue (sourceRow, childSource, childJoin)
+                                 ? getChildValue (sourceRow, childSource, childJoin, tokens)
                                  : getColumnValue (model, sourceRow, sourceValue, sourceKey, name) };
 
                 if (name == Id::comment and value.isNotEmpty())
@@ -558,12 +567,12 @@ struct Items
             shapeId, childSource, childJoin, extension);
     }
 
-    static jam::Strings getCells (Element& row)
+    static jam::Strings getCells (Element& row, const jam::Document::Identifiers& tokens)
     {
         jam::Strings cells;
 
         for (auto* cell : row)
-            if (cell->id != Id::format and cell->id != Id::comment)
+            if (cell->id != Id::format and cell->id != Id::comment and not tokens.contains (cell->id))
                 cells.add (*cell->get<juce::String> (Id::value));
 
         return cells;
@@ -585,7 +594,9 @@ struct Items
 
         if (source == Id::cells.toString())
         {
-            sourceValues = getCells (row);
+            const auto& tokens { *templateDocument.getCodeBlock (shapeId)
+                                       ->get<jam::Document::Identifiers> (Id::placeholder) };
+            sourceValues = getCells (row, tokens);
         }
         else if (auto* sourceTable { model.getTable (row, source) }; sourceTable != nullptr)
         {

@@ -1,0 +1,9 @@
+- Design by Contract: zero copy, zero allocation, zero mutation, zero temporary containers, zero shadow state. Confidence: 0.95
+- Prefer the framework API as the building block over hand-rolled code; jam framework first, then juce. Confidence: 0.9
+- No hand-rolled string operations or manual arithmetic. Confidence: 0.9
+- During iteration, prioritize jam::Strings, jam::Format, and std::string/string_view; juce::String only for input and final output when necessary. Confidence: 0.85
+- No defensive or pessimistic fallbacks; construct the complete AST eagerly and deterministically. Confidence: 0.9
+- Prefer generic mechanisms over hardcoded special-case context. Confidence: 0.75
+- Prefer the implicit `if (auto* x = getFoo())` pointer-init form over explicit `!= nullptr` comparison. Confidence: 0.85
+- Prefers consolidating related generated types/identifiers under a single enclosing struct or namespace (e.g., all C4 items under `Mermaid::C4`) rather than scattering them flat. Confidence: 0.7
+- Flags redundant name flattening in generated code: a nested type's derived instance/member name should not re-stutter the enclosing scope's qualifier (e.g., `Mermaid::C4::Type` should not surface as `C4Type`). Confidence: 0.6
