@@ -651,7 +651,9 @@ private:
 
         const auto* literal { getLiteral (cell) };
         const auto isCommentColumn { headerCell.id == Id::comment };
-        const auto isCommentProse { isCommentColumn and literal == nullptr };
+        const auto isCommentProse { isCommentColumn
+                                    and (literal == nullptr
+                                         or cell.getAllSubText() != literal->getAllSubText()) };
         juce::String authored;
 
         if (literal != nullptr and not isCommentProse)

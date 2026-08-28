@@ -7,7 +7,7 @@
 | @string | juce::String     | fromLiteral |
 +---------+------------------+-------------+
 
-## lexicon
+## identitifers
 
 +---------------------+--------------------+---------+
 | name                | value              | type    |

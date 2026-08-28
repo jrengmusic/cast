@@ -111,6 +111,34 @@
 
 ## SPRINT HISTORY
 
+## Sprint: Comment Prose Law — Code Span Inside Prose Stays Prose ✅
+
+**Date:** 2026-08-29
+**Duration:** 00:20
+
+### Agents Participated
+- COUNSELOR — diagnosis + one-line fix (trivial-fix rule, ARCHITECT-confirmed "fix it /go")
+
+### Files Modified (1 total)
+- `Source/Model.h:654` — `isCommentProse` classifies a comment cell as literal only when its code span is the cell's entire content (`cell.getAllSubText() == literal->getAllSubText()`); prose carrying a span is prose, emitted from `Id::rawText` verbatim with backticks preserved. Bare-span cells keep the literal branch and format.
+
+### Alignment Check
+- [x] BLESSED principles followed — E (authored data lands whole, no silent prose drop), D (fix at the one classification site)
+- [x] NAMES.md adhered — no new names
+- [x] MANIFESTO.md principles applied
+- [ ] Runtime verification pending: ARCHITECT rebuilds + `./cast jam/cast/CAST.md`; every span-carrying comment cell's output changes — that delta is the fix
+
+### Problems Solved
+- Seven doxygen warnings on jam/generated/jam_Identifiers.h (unescaped `#error`, `\x`, `</pre>`, `</script>`, `</style>`, `</textarea>`): root cause was `getLiteral` matching a mid-sentence code span, routing prose+span comment cells to the literal branch — only the span content was emitted, surrounding prose silently discarded (identifiers.md:433/555/596/869/975/1070/1112 and every other span-carrying cell)
+- First diagnosis ("stale file, regenerate") was wrong and corrected with citation — the generated file was current; the engine's classification was the defect. ARCHITECT ruled: data correct, engine fixed
+- Why not caught earlier: codegen "clean" = byte-fixpoint vs the hand-authored oracle, which itself carried the terse unescaped forms; doxygen first scanned the newly annotated header this session
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- `DEBT-20260828T205932` (carried, unchanged): CAST project conformance — Source/generated/ + own manifest/tables, diff==generated under current SPEC; includes fixpoint verification of the Id::key bootstrap stamp
+
 ## Sprint: 9/9 Convergence + Audit Clean Sweep — Identity-Column Law ✅
 
 **Date:** 2026-08-29
