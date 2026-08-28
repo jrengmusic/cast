@@ -1,84 +1,50 @@
 ## index
 
-+---------+------------------+-------------+
-| alias   | symbol           | format      |
-+=========+==================+=============+
-| @id     | juce::Identifier | fromLiteral |
-| @string | juce::String     | fromLiteral |
-+---------+------------------+-------------+
++---------+------------------+
+| alias   | symbol           |
++=========+==================+
+| @id     | juce::Identifier |
+| @string | juce::String     |
++---------+------------------+
 
-## identitifers
+## identifiers
 
-+---------------------+--------------------+---------+
-| name                | value              | type    |
-+=====================+====================+=========+
-| available label     | ` available here:` | @string |
-| banner              | banner             | @id     |
-| banner close        | bannerClose        | @id     |
-| banner open         | bannerOpen         | @id     |
-| block close         | blockClose         | @id     |
-| block line          | blockLine          | @id     |
-| block open          | blockOpen          | @id     |
-| brief               | brief              | @id     |
-| capacity            | capacity           | @id     |
-| cell                | cell               | @string |
-| chars               | chars              | @id     |
-| column              | column             | @id     |
-| comment             | comment            | @id     |
-| constraints         | constraints        | @id     |
-| dispatch            | dispatch           | @id     |
-| dispatch row label  | ` dispatch row:`   | @string |
-| extensions          | extensions         | @id     |
-| file exists         | file exists        | @string |
-| files               | files              | @id     |
-| from codepoint      | from codepoint     | @string |
-| from id             | from id            | @string |
-| from identifier     | from identifier    | @string |
-| from literal        | from literal       | @string |
-| from map            | from map           | @string |
-| from UTF8           | from UTF8          | @string |
-| generated           | generated          | @id     |
-| hazard chars        | `<>`               | @string |
-| headers             | headers            | @id     |
-| index comment       | index comment      | @id     |
-| join                | join               | @string |
-| key                 | key                | @id     |
-| lexicon             | lexicon            | @id     |
-| list                | list               | @id     |
-| no format           | no-format          | @id     |
-| output row label    | ` output row:`     | @string |
-| patch               | patch              | @id     |
-| placeholder         | placeholder        | @id     |
-| pragma              | pragma             | @id     |
-| predicate           | predicate          | @id     |
-| quoted              | quoted             | @string |
-| row region begin    | row:begin          | @string |
-| row region end      | row:end            | @string |
-| row region index    | row:index          | @string |
-| rules               | rules              | @id     |
-| separator           | separator          | @id     |
-| special             | special            | @id     |
-| symbol              | symbol             | @id     |
-| tables              | tables             | @id     |
-| template path       | template           | @id     |
-| template token type | templateTokenType  | @id     |
-| to camel            | to camel           | @string |
-| to codepoint        | to codepoint       | @string |
-| to comment          | to comment         | @string |
-| to comment block    | to comment block   | @string |
-| to file name        | to file name       | @string |
-| to hex              | to hex             | @string |
-| to kebab            | to kebab           | @string |
-| to literal          | to literal         | @string |
-| to pascal           | to pascal          | @string |
-| to screaming snake  | to screaming snake | @string |
-| to snake            | to snake           | @string |
-| to symbol           | to symbol          | @string |
-| to title            | to title           | @string |
-| to unicode          | toUnicode          | @id     |
-| to upper            | to upper           | @string |
-| to UTF8             | to UTF8            | @string |
-| token               | token              | @id     |
-| transform           | transform          | @id     |
-| transforms          | transforms         | @id     |
-+---------------------+--------------------+---------+
+```
+@brief Identifier and transform-name constants CAST stamps and reads.
+
+juce::Identifier entries are the provenance and state keys the engine
+stamps at parse and reads by name (§11.1). juce::String entries name the
+transform operations a format cell may declare (§8).
+```
+
++---------+------------------+----------------------+-----------+----------------------------------------+
+| type    | name             | value                | format    | comment                                |
++=========+==================+======================+===========+========================================+
+| @id     | banner           |                      | toLiteral | Banner artwork key.                    |
+| @id     | blockLine        |                      | toLiteral |                                        |
+| @id     | brief            |                      | toLiteral | Brief documentation key.               |
+| @string | fromCodepoint    | `from codepoint`     |           | Codepoint decode operation.            |
+| @string | fromUTF8         | `from UTF8`          |           | UTF-8 decode operation.                |
+| @id     | indexComment     | `index comment`      |           |                                        |
+| @string | join             |                      | toLiteral | Join text operation.                   |
+| @id     | key              |                      | toLiteral |                                        |
+| @id     | list             |                      | toLiteral | Reserved expansion token name.         |
+| @id     | noFormat         | `no-format`          |           | Formatless-column marker.              |
+| @id     | placeholder      |                      | toLiteral | Placeholder token name.                |
+| @id     | separator        |                      | toLiteral | Separator column key.                  |
+| @id     | structure        |                      | toLiteral | Structure column key.                  |
+| @id     | symbol           |                      | toLiteral | Index symbol column key.               |
+| @id     | templatePath     | `template`           |           | Template block id stamp.               |
+| @string | toCamel          | `to camel`           |           | camelCase operation.                   |
+| @string | toCodepoint      | `to codepoint`       |           | Codepoint encode operation.            |
+| @string | toFileName       | `to file name`       |           | File-name transform operation.         |
+| @string | toHex            | `to hex`             |           | Hex encode operation.                  |
+| @string | toKebab          | `to kebab`           |           | kebab-case operation.                  |
+| @string | toLiteral        | `to literal`         |           | Literal delimiting/escaping operation. |
+| @string | toPascal         | `to pascal`          |           | PascalCase operation.                  |
+| @string | toScreamingSnake | `to screaming snake` |           | SCREAMING_SNAKE_CASE operation.        |
+| @string | toSnake          | `to snake`           |           | snake_case operation.                  |
+| @string | toTitle          | `to title`           |           | Title Case operation.                  |
+| @string | toUpper          | `to upper`           |           | UPPERCASE operation.                   |
+| @string | toUTF8           | `to UTF8`            |           | UTF-8 encode operation.                |
++---------+------------------+----------------------+-----------+----------------------------------------+

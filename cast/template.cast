@@ -3,6 +3,8 @@ namespace :::name:::
 {
 /*_____________________________________________________________________________*/
 
+:::comment:::
+
 :::list:::
 
 /**______________________________END OF NAMESPACE______________________________*/
@@ -10,6 +12,7 @@ namespace :::name:::
 ```
 
 ```struct
+:::comment:::
 struct :::name:::
 {
 :::list:::
@@ -17,14 +20,15 @@ struct :::name:::
 ```
 
 ```char
-static constexpr const char* const :::name::: { :::value::: };
+static constexpr const char* const :::name::: { :::value::: };:::comment:::
 ```
 
 ```identifier
-inline const :::type::: :::name::: { juce::String::fromUTF8 (":::value:::") };
+inline const :::type::: :::name::: { juce::String::fromUTF8 (:::value:::) };:::comment:::
 ```
 
 ```hashMap
+:::comment:::
 inline const jam::HashMap<:::keyType:::, :::valueType:::> :::name:::
 {
 :::list:::
@@ -32,62 +36,48 @@ inline const jam::HashMap<:::keyType:::, :::valueType:::> :::name:::
 ```
 
 ```stringPair
-{ juce::String::fromUTF8 (":::key:::"), juce::String::fromUTF8 (":::value:::") },
+{ juce::String::fromUTF8 (:::key:::), juce::String::fromUTF8 (:::value:::) },
 ```
 
 ```mapEntry
-{ :::key:::, juce::String::fromUTF8 (":::value:::") },
+{ :::key:::, juce::String::fromUTF8 (:::value:::) },
 ```
 
 ```stringEntry
-{ juce::String::fromUTF8 (":::key:::"), :::value::: },
+{ juce::String::fromUTF8 (:::key:::), :::value::: },
 ```
 
 ```bimap
 :::comment:::
-struct :::name::: : public jam::Bimap<:::type:::>
+struct :::name::: : public :::base:::
 {
-    :::name:::()
-    {
-        map = {
+    :::name:::() : :::base::: { {
 :::list:::
-        };
-    }
+    } } {}
 
-    enum value : :::type:::
+    enum value : :::keyType:::
     {
 :::list:::
     };
 
-    const juce::String& getDefault() const noexcept
-    {
-        return map.at (:::value:::);
-    }
-
+    /**
+     * @brief Returns the shared instance for this registry.
+     *
+     * @returns The singleton :::name::: the engine reads through.
+     */
     static :::name:::* getInstance() noexcept
     {
         return jam::SharedInstance<:::name:::>::getInstance();
     }
-
-    static const auto& get() noexcept
-    {
-        return getInstance()->map;
-    }
-
-    static :::type::: get (const juce::String& value) noexcept
-    {
-        return jam::Map::getKey (get()).at (value);
-    }
-
-    static juce::String get (:::type::: key) noexcept
-    {
-        return get().at (key);
-    }
 };
 ```
 
-```enum
-:::key::: = :::value:::,
+```nameEntry
+{ :::name:::, juce::String::fromUTF8 (":::name:::") },
+```
+
+```enumEntry
+:::name::: = :::key:::,:::comment:::
 ```
 
 ```include
@@ -95,23 +85,23 @@ struct :::name::: : public jam::Bimap<:::type:::>
 ```
 
 ```sharedInstance
-jam::SharedInstance<:::type:::> :::name::: { std::in_place };
+jam::SharedInstance<:::type:::> :::instance::: { std::in_place };:::comment:::
 ```
 
 ```generated
 #include <generated/jam_Generated.h>
+
 :::list:::
 
+:::comment:::
 struct Generated
 {
-    jam::Generated jam;
+    map::Generated jam;///< jam framework's own generated registries.
 
 :::list:::
 };
 ```
 
-```separator
-
+```linebreak
 //==============================================================================
-
 ```
