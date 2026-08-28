@@ -232,17 +232,20 @@ Two documentation channels, both data:
   paragraph or a fenced block, stamped onto the table at parse (§11.1)
 
 `:::comment:::` is the comment marker — the only place documentation reaches an
-output, and the only text the engine formats: the marker's replacement is rendered in
-the **output language's** comment syntax, selected by the output file's extension
-through the comment-syntax table. Comment syntax never appears in a template.
+output. The author writes prose; documentation tags (`@file`, `@brief`) are authored
+text, comment syntax is not. The marker's replacement is rendered in the **output
+language's** comment syntax, selected by the file the row writes to, through the
+comment-syntax table. Comment syntax never appears in a template, a cell, or a fence.
 
 Marker position selects the form, exactly as marker position selects the expansion
 axis (§7):
 
-- alone on its line — block form: block open, brief marker, the text, block close
-  (`/** @brief text */` for a C++ target)
-- inline, after content — single-line form: the language's comment marker and the
-  text (`///< text`)
+- alone on its line — block form. Multi-line prose renders one prose line per output
+  line: the block-open glyph, each prose line behind the block-line glyph (the glyph
+  alone on a blank prose line), then the block-close glyph behind one space when the
+  language declares a block-line glyph. Single-line prose renders on one line: block
+  open, the text, block close.
+- inline, after content — single-line form: the language's comment glyph and the text
 
 The marker resolves by scope: in an item shape it reads the source row's `comment`
 column; at shape level it reads the documentation of the first table the shape's
@@ -259,6 +262,10 @@ Four reserved column names, in canonical authored order:
 ```
 | list | separator | structure | file |
 ```
+
+A manifest table may also carry a `comment` column (§5.4): documentation for the row's
+items, read by an item shape's `:::comment:::` exactly as a data table's comment column
+is read.
 
 ### 6.1 Bindings
 
@@ -327,6 +334,10 @@ takes its value from, in order:
    row
 3. the table documentation (§5.4), for the name `comment` at shape level
 
+`comment` at shape level skips rung 2: a manifest row's comment column documents the
+row's items (§6), never the row's own shape — shape documentation is the table channel
+(§5.4).
+
 A supplier that carries no text renders empty, and a line left empty by its own
 placeholder is elided (§7). A named token that no binding, column, or documentation
 names at all is fatal (§10.1).
@@ -356,7 +367,8 @@ structure `- list:` line, or a separator line past the row join, with no list-co
 line of its ordinal is fatal (§10.1).
 
 A shape-level `:::comment:::` (§5.4) falls back to the documentation of the first
-table addressed by the shape's own sources, in authored order.
+table addressed by the shape's own sources, in authored order; when no source
+addresses a table, it falls back to the documentation of the row's own table.
 
 Matching the template, the tables and the expression is the author's responsibility.
 The engine reads the expression and generates; its one check is the count: a shape
@@ -389,6 +401,30 @@ declares and never crosses it. One row declaring a file merges to itself.
 Same-file rows are authored contiguously. A row declaring a file already closed by an
 intervening row of another file is fatal (§10.1) — one file is written once.
 
+### 6.8 File Documentation
+
+`## index comment` is a reserved manifest table, and it is optional — like
+`## output index`. Not every language has a file-documentation form; a manifest that
+declares no such table writes no file documentation. Declaring it is the author's
+responsibility.
+
+```
+| alias | comment |
+```
+
+Each row names an output file by its index alias (§4.1). The comment cell is fenced —
+the multi-line documentation form (§3.2): each fence line is one line of the file's
+documentation prose, rendered in the file's own comment syntax exactly as a
+shape-level `:::comment:::` renders (§5.4). The comment column is documentation, never
+data (§5.4) — its fence is not a literal, `toLiteral` never applies, and the `@` sigil
+law (§4) does not apply inside it: documentation is never a reference, so a prose line
+beginning with `@file` or `@brief` is text.
+
+When the table is declared, each output file whose alias has a row is written with the
+provided text between the banner and the pragma stamp, framed by one blank line on each
+side. A file without a row writes nothing — plain replacement, no special case (§5.4).
+An alias absent from the index is fatal (§4.4).
+
 ---
 
 ## 7. Templates
@@ -417,8 +453,8 @@ a form. A template never names an operation; operations are declared in the tabl
 same value.
 
 Delimiters, wraps, braces and punctuation are structure and are authored in the block —
-except the quotes around a literal, which `toLiteral` supplies (§9). Comment frames are
-structure too (§5.4).
+except the quotes around a literal, which `toLiteral` supplies (§9). Comment frames
+are rendered by the engine from the comment-syntax table (§5.4).
 
 ### 7.1 File Tokens
 

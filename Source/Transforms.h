@@ -40,9 +40,25 @@ struct Transforms
     {
         const auto syntax { map::commentSyntax.get (extension) };
 
-        return (syntax.get (Id::blockOpen) + juce::String::charToString (Chars::space) + input
-               + juce::String::charToString (Chars::space) + syntax.get (Id::blockClose))
-            .trim();
+        if (not input.containsChar (Chars::newline))
+            return (syntax.get (Id::blockOpen) + juce::String::charToString (Chars::space) + input
+                   + juce::String::charToString (Chars::space) + syntax.get (Id::blockClose))
+                .trim();
+
+        const auto blockLine { syntax.get (Id::blockLine) };
+        jam::Strings blockLines;
+        blockLines.add (syntax.get (Id::blockOpen));
+
+        for (const auto& proseLine : jam::Strings::fromLines (input))
+            blockLines.add (proseLine.isNotEmpty()
+                                 ? blockLine + juce::String::charToString (Chars::space) + proseLine
+                                 : blockLine);
+
+        blockLines.add (blockLine.isNotEmpty()
+                             ? juce::String::charToString (Chars::space) + syntax.get (Id::blockClose)
+                             : syntax.get (Id::blockClose));
+
+        return blockLines.joinIntoString (juce::String::charToString (Chars::newline), 0, -1);
     }
 
     /**

@@ -120,15 +120,35 @@ private:
             outputFile.getParentDirectory().createDirectory();
         }
 
+        const auto indexCommentTables { model.getTables (Id::indexComment) };
+        auto* indexCommentTable { indexCommentTables.isEmpty() ? nullptr : indexCommentTables.at (0) };
+
         Jobs::run (groupStarts.size(),
-            [this, &outputPath, &rows, &groupStarts, &tables, &tableFailures] (int index)
+            [this, &outputPath, &rows, &groupStarts, &tables, &tableFailures, indexCommentTable] (int index)
             {
                 const auto start { groupStarts.at (index) };
                 const auto& file { model.getValue (*rows.at (start), Id::file) };
+                const auto extension { jam::Format::onlyExtensionFromFilename (file) };
+
+                juce::String comment;
+
+                if (indexCommentTable != nullptr)
+                {
+                    const auto& aliasText { *model.getTableCell (*rows.at (start), Id::file)
+                                                  ->get<juce::String> (Id::rawText) };
+
+                    if (auto* commentCell { model.getTableCell (
+                            *indexCommentTable, Id::comment, juce::Identifier (aliasText)) })
+                        if (commentCell->contains (Id::value))
+                            comment = *commentCell->get<juce::String> (Id::value);
+                }
+
+                if (comment.isNotEmpty())
+                    comment = Transforms::toCommentBlock (comment, extension);
 
                 TemplateDocument output;
                 output.addChild (*output.root, Id::text)
-                    ->add<juce::String> (Id::text, getBanner (file));
+                    ->add<juce::String> (Id::text, getBanner (file, comment));
 
                 const auto groupEnd { index + 1 < groupStarts.size()
                                           ? groupStarts.at (index + 1)
@@ -197,7 +217,7 @@ private:
             ->add<juce::String> (Id::text, juce::String::charToString (Chars::newline));
     }
 
-    juce::String getBanner (const juce::String& file) const
+    juce::String getBanner (const juce::String& file, const juce::String& comment) const
     {
         static const auto document { jam::MarkdownDocument::parse (
             BinaryData::getString (files::castOutput)) };
@@ -207,10 +227,16 @@ private:
         juce::String banner;
 
         if (auto* bannerBlock { document.getCodeBlock (Id::banner) })
+        {
             banner << syntax.get (Id::bannerOpen) << Chars::newline
                    << bannerBlock->getAllSubText() << Chars::newline
-                   << syntax.get (Id::bannerClose) << Chars::newline << Chars::newline
-                   << syntax.get (Id::pragma) << Chars::newline << Chars::newline;
+                   << syntax.get (Id::bannerClose) << Chars::newline << Chars::newline;
+
+            if (comment.isNotEmpty())
+                banner << comment << Chars::newline << Chars::newline;
+
+            banner << syntax.get (Id::pragma) << Chars::newline << Chars::newline;
+        }
 
         return banner;
     }

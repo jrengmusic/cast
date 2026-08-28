@@ -492,16 +492,24 @@ private:
                 transform = formatCell->getAllSubText();
 
         const auto* literal { getLiteral (cell) };
+        const auto isCommentColumn { headerCell.id == Id::comment };
+        const auto isCommentProse { isCommentColumn
+                                    and (literal == nullptr
+                                         or not isBlockType (*literal, map::BlockType::codeBlock)) };
         juce::String authored;
 
-        if (literal != nullptr)
+        if (literal != nullptr and not isCommentProse)
         {
             juce::String text { literal->getAllSubText() };
 
             if (Transforms::contains (transform))
                 text = Transforms::getTransformed (transform, text, {});
 
-            authored = jam::Format::toLiteral (text);
+            authored = isCommentColumn ? text : jam::Format::toLiteral (text);
+        }
+        else if (isCommentProse)
+        {
+            authored = *cell.get<juce::String> (Id::rawText);
         }
         else
         {
@@ -510,9 +518,10 @@ private:
 
         const auto isFormatColumn { headerCell.id == Id::format };
         const auto isManifestRow { isOutputTable (*row.parent) };
-        auto value { authored.isNotEmpty() or isManifestRow ? authored : precedingAuthored };
+        auto value { authored.isNotEmpty() or isManifestRow or isCommentColumn ? authored
+                                                                               : precedingAuthored };
 
-        if (value.startsWithChar (Chars::at))
+        if (not isCommentColumn and value.startsWithChar (Chars::at))
             value = getValue (row, value);
 
         if (literal == nullptr and Transforms::contains (transform))

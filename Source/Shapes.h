@@ -62,17 +62,23 @@ struct Shapes
     }
 
     static Element* getCommentTable (const Model& model, const TemplateDocument& templateDocument,
-        Element& row, Element& line)
+        Element& row, Element& line, int listOccurrence)
     {
         if (not line.isTag (Id::p))
             return model.getTable (row,
                 *model.getSource (row, *line.get<int> (Id::level), *line.get<int> (Id::line))
                      ->get<juce::String> (Id::value));
 
-        for (int occurrence { 0 }; occurrence < getArity (templateDocument, line); ++occurrence)
-            if (auto* candidate { getCommentTable (
-                    model, templateDocument, row, *getSourceLine (model, templateDocument, line, occurrence)) })
-                return candidate;
+        if (listOccurrence < getArity (templateDocument, line))
+        {
+            auto* sourceLine { getSourceLine (model, templateDocument, line, listOccurrence) };
+
+            if (not sourceLine->isTag (Id::p))
+                return getCommentTable (model, templateDocument, row, *sourceLine, 0);
+        }
+
+        if (row.parent->contains (Id::comment) and row.parent->get<juce::String> (Id::comment)->isNotEmpty())
+            return row.parent;
 
         return nullptr;
     }
@@ -83,11 +89,12 @@ struct Shapes
         if (auto* binding { model.getBinding (row, Id::structure, line, name) })
             return templateDocument.getBinding (model, row, *binding->get<juce::String> (Id::value));
 
+        if (name == Id::comment)
+            return commentTable != nullptr ? *commentTable->get<juce::String> (Id::comment)
+                                           : juce::String();
+
         if (auto* cell { model.getTableCell (row, name) })
             return *cell->get<juce::String> (Id::value);
-
-        if (name == Id::comment and commentTable != nullptr)
-            return *commentTable->get<juce::String> (Id::comment);
 
         return {};
     }
@@ -107,16 +114,21 @@ struct Shapes
             {
                 lineHasPlaceholder = true;
                 const auto isAtColumnZero { templateLine.indexOf (Items::getMarker (name)) == 0 };
+                const auto listOccurrence { occurrence[Id::list] };
                 auto& tokenOccurrence { occurrence[name] };
+                auto* markerCommentTable { name == Id::comment
+                                               ? getCommentTable (model, templateDocument, *rows.first(),
+                                                     *lines.first(), listOccurrence)
+                                               : commentTable };
                 auto value { name == Id::list
                                  ? getFill (model, templateDocument, tables, rows, lines,
                                        tokenOccurrence, joinText, parentIndent, isAtColumnZero, extension)
                                  : getTokenValue (model, templateDocument, *rows.first(), *lines.first(),
-                                       commentTable, name) };
+                                       markerCommentTable, name) };
 
                 if (name == Id::comment and value.isNotEmpty())
                     value = templateLine.trim() == Items::getMarker (name)
-                                ? Transforms::toBrief (value, extension)
+                                ? Transforms::toCommentBlock (value, extension)
                                 : Transforms::toComment (value, extension);
 
                 lineText = jam::Format::replaceholder (lineText, name.toString(), value);
@@ -244,7 +256,7 @@ struct Shapes
         {
             auto& row { *rows.at (index) };
             auto& line { *lines.at (index) };
-            auto* commentTable { getCommentTable (model, templateDocument, row, line) };
+            auto* commentTable { getCommentTable (model, templateDocument, row, line, 0) };
             const auto shapeId { juce::Identifier (*line.get<juce::String> (Id::templatePath)) };
             const auto& tokens { *templateDocument.getCodeBlock (shapeId)
                                        ->get<jam::Document::Identifiers> (Id::placeholder) };
@@ -277,7 +289,7 @@ struct Shapes
                     }
 
                 auto* commentTable {
-                    getCommentTable (model, templateDocument, *groupRows.first(), *groupLines.first())
+                    getCommentTable (model, templateDocument, *groupRows.first(), *groupLines.first(), 0)
                 };
                 const auto shapeId {
                     juce::Identifier (*groupLines.first()->get<juce::String> (Id::templatePath))

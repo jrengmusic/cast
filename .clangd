@@ -2,7 +2,7 @@ CompileFlags:
   CompilationDatabase: /Users/jreng/Documents/Poems/dev/cast
   Remove: [--target=*]
   Add:
-    - -DCAST_COMMIT=\"a87197e\"
+    - -DCAST_COMMIT=\"1984187\"
     - -DDEBUG=1
     - -DDONT_SET_USING_JUCE_NAMESPACE=1
     - -DJUCE_APPLICATION_NAME_STRING=\"cast\"
@@ -20,7 +20,6 @@ CompileFlags:
     - -DJUCE_MODULE_AVAILABLE_jam_fuzzy=1
     - -DJUCE_MODULE_AVAILABLE_jam_graphics=1
     - -DJUCE_MODULE_AVAILABLE_jam_gui=1
-    - -DJUCE_MODULE_AVAILABLE_jam_lua=1
     - -DJUCE_MODULE_AVAILABLE_jam_markdown=1
     - -DJUCE_MODULE_AVAILABLE_jam_mermaid_diagram=1
     - -DJUCE_MODULE_AVAILABLE_jam_style=1

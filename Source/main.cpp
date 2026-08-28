@@ -24,8 +24,8 @@ static void paintBanner (jam::terminal::GraphicsContext& context)
 
     for (const auto& [name, text] : map::banner)
     {
-        const juce::Colour rowColour { map::ColourNames::get (name) };
-        const juce::Colour priorColour { map::ColourNames::get (priorName) };
+        const juce::Colour rowColour { map::ColourNames::getInstance()->get (name) };
+        const juce::Colour priorColour { map::ColourNames::getInstance()->get (priorName) };
 
         auto* stamp { jam::Stamp::getInstance() };
 
@@ -95,29 +95,36 @@ static constexpr int postFlagArgIndex { 2 };
 
 int main (int argc, char* argv[])
 {
+#ifdef _WIN32
+    std::system ("cls");
+#else
+    std::system ("clear");
+#endif
+
 #if JUCE_DEBUG
     const jam::debug::Log::Scope logScope { jam::File::getDebugLog() };
 #endif
 
     const auto formatFlag { Id::doubleDash + Id::format.toString() };
     const auto noFormatFlag { Id::doubleDash + Id::noFormat.toString() };
-    const auto isFormatOnly { (argc >= 2 and juce::String::fromUTF8 (argv[flagArgIndex]) == formatFlag)
-                              or (argc >= 3
-                                  and juce::String::fromUTF8 (argv[postFlagArgIndex]) == formatFlag) };
-    const auto isSkipFormat { (argc >= 2
-                               and juce::String::fromUTF8 (argv[flagArgIndex]) == noFormatFlag)
-                              or (argc >= 3
-                                  and juce::String::fromUTF8 (argv[postFlagArgIndex]) == noFormatFlag) };
+    const auto isFormatOnly {
+        (argc >= 2 and juce::String::fromUTF8 (argv[flagArgIndex]) == formatFlag)
+        or (argc >= 3 and juce::String::fromUTF8 (argv[postFlagArgIndex]) == formatFlag)
+    };
+    const auto isSkipFormat {
+        (argc >= 2 and juce::String::fromUTF8 (argv[flagArgIndex]) == noFormatFlag)
+        or (argc >= 3 and juce::String::fromUTF8 (argv[postFlagArgIndex]) == noFormatFlag)
+    };
     const auto manifestIndex { (argc >= 2
                                 and (juce::String::fromUTF8 (argv[flagArgIndex]) == formatFlag
                                      or juce::String::fromUTF8 (argv[flagArgIndex]) == noFormatFlag))
-                                    ? postFlagArgIndex
-                                    : flagArgIndex };
+                                   ? postFlagArgIndex
+                                   : flagArgIndex };
 
     const juce::File documentFile {
         (argc > manifestIndex) ? juce::File::getCurrentWorkingDirectory().getChildFile (
-                          juce::String::fromUTF8 (argv[manifestIndex]))
-                    : juce::File::getCurrentWorkingDirectory().getChildFile (files::cast)
+                                     juce::String::fromUTF8 (argv[manifestIndex]))
+                               : juce::File::getCurrentWorkingDirectory().getChildFile (files::cast)
     };
 
     if (argc == 2

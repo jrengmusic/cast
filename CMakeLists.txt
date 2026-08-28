@@ -38,7 +38,6 @@ configure_app(
                  jam_fuzzy
                  jam_graphics
                  jam_gui
-                 jam_lua
                  jam_subprocess
                  jam_vulkan
                  jam_web

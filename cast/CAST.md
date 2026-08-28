@@ -3,7 +3,7 @@
 +--------------+------------------------------------------------+-------------+
 | alias        | symbol                                         | format      |
 +==============+================================================+=============+
-| @lexicon     | lexicon.md                                     |             |
+| @identifiers | identifiers.md                                 |             |
 | @text        | text.md                                        |             |
 | @binaryFiles | files.md                                       |             |
 | @banner      | banner.md                                      |             |
@@ -11,12 +11,12 @@
 | @tokens      | tokens.md                                      |             |
 | @template    | template.cast                                  |             |
 | @CAST        | CAST.md                                        |             |
-| @Identifiers | ../Source/generated/Identifiers.h              |             |
-| @Text        | ../Source/generated/Text.h                     |             |
-| @Files       | ../Source/generated/Files.h                    |             |
-| @HashMaps    | ../Source/generated/HashMaps.h                 |             |
-| @Bimaps      | ../Source/generated/Bimaps.h                   |             |
-| @Generated   | ../Source/generated/Generated.h                |             |
+| @Identifiers | ../Source/diff/Identifiers.h                   |             |
+| @Text        | ../Source/diff/Text.h                          |             |
+| @Files       | ../Source/diff/Files.h                         |             |
+| @HashMaps    | ../Source/diff/HashMaps.h                      |             |
+| @Bimaps      | ../Source/diff/Bimaps.h                        |             |
+| @Generated   | ../Source/diff/Generated.h                     |             |
 | @id          | juce::Identifier                               | fromLiteral |
 | @string      | juce::String                                   | fromLiteral |
 | @commentMap  | `jam::HashMap<juce::Identifier, juce::String>` |             |
@@ -27,7 +27,7 @@
 +-------------------------------------------+----------------------------+---------------------------------+--------------+
 | list                                      | separator                  | structure                       | file         |
 +===========================================+============================+=================================+==============+
-| - list: @lexicon:lexicon                  |                            | template:namespace              | @Identifiers |
+| - list: @identifiers:identifiers          |                            | template:namespace              | @Identifiers |
 |                                           |                            | - name: Id                      |              |
 |                                           |                            | - list: template:identifier     |              |
 +-------------------------------------------+----------------------------+---------------------------------+--------------+
@@ -150,7 +150,7 @@
 +--------------------+-----------+-----------------------------------+------------+
 | list               | separator | structure                         | file       |
 +====================+===========+===================================+============+
-| - list: file       |           | template:generated                | @Generated |
+| - list: file       |           | template:diff                     | @Generated |
 | > - list: instance |           | - list: template:include          |            |
 |                    |           | > - list: template:sharedInstance |            |
 +--------------------+-----------+-----------------------------------+------------+

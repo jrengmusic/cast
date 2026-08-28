@@ -17,6 +17,7 @@
 | banner close        | bannerClose        | @id     |
 | banner open         | bannerOpen         | @id     |
 | block close         | blockClose         | @id     |
+| block line          | blockLine          | @id     |
 | block open          | blockOpen          | @id     |
 | brief               | brief              | @id     |
 | capacity            | capacity           | @id     |
@@ -40,6 +41,7 @@
 | generated           | generated          | @id     |
 | hazard chars        | `<>`               | @string |
 | headers             | headers            | @id     |
+| index comment       | index comment      | @id     |
 | join                | join               | @string |
 | lexicon             | lexicon            | @id     |
 | list                | list               | @id     |
