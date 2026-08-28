@@ -163,15 +163,50 @@ struct Items
         return name == sourceKey ? sourceValue : juce::String();
     }
 
-    static juce::String getChildValue (Element* sourceRow,
-                                       const juce::String& childSource,
-                                       const juce::String& childJoin,
-                                       const jam::Document::Identifiers& tokens)
+    /**
+     * @brief Resolves the @c list token's value for one item -- every
+     *        column-address child line authored directly beneath
+     *        @p sourceOrdinal, read from @p sourceRow's own column, joined
+     *        by @p childJoin.
+     *
+     * @param model         The model @p row and @p sourceRow belong to.
+     * @param row           The structure row @p sourceOrdinal's child
+     *                      column addresses are read from.
+     * @param indent        The depth @p sourceOrdinal's child column
+     *                      addresses are read from.
+     * @param sourceOrdinal The structure position after which child column
+     *                      addresses are read.
+     * @param sourceRow     The item's source row, or @c nullptr when the
+     *                      item is a bare column value -- no child value
+     *                      resolves.
+     * @param childJoin     The child values' join text.
+     * @returns Every resolved child column value, in authored order,
+     *          joined by @p childJoin.
+     */
+    static juce::String getChildValue (const Model& model, Element& row, int indent,
+                                       int sourceOrdinal, Element* sourceRow,
+                                       const juce::String& childJoin)
     {
-        if (sourceRow != nullptr and childSource == Id::cells.toString())
-            return getCells (*sourceRow, tokens).joinIntoString (childJoin, 0, -1);
+        jam::Strings childValues;
 
-        return {};
+        if (sourceRow != nullptr)
+            for (int childOrdinal { sourceOrdinal + 1 };; ++childOrdinal)
+            {
+                auto* childSourceLine { model.getSource (row, indent, childOrdinal) };
+
+                if (childSourceLine == nullptr)
+                    break;
+
+                const auto& value { *childSourceLine->get<juce::String> (Id::value) };
+
+                if (not Model::isColumnAddress (value))
+                    break;
+
+                if (auto* cell { model.getTableCell (*sourceRow, Model::getColumn (value)) })
+                    childValues.add (*cell->get<juce::String> (Id::value));
+            }
+
+        return childValues.joinIntoString (childJoin, 0, -1);
     }
 
     /**
@@ -191,9 +226,12 @@ struct Items
      * @param sourceKey        The token name @p sourceValue is substituted
      *                         into when @p sourceRow is @c nullptr.
      * @param shapeId          The shape to render.
-     * @param childSource      The shape's own nested @c - list: source
-     *                         word, or an empty string when it owns no
-     *                         child expansion.
+     * @param row              The structure row @p sourceOrdinal's child
+     *                         column addresses are read from.
+     * @param indent           The depth @p sourceOrdinal's child column
+     *                         addresses are read from.
+     * @param sourceOrdinal    The structure position after which @p row's
+     *                         child column addresses are read.
      * @param childJoin        The child expansion's join text.
      * @param extension        The target file extension the @c Id::comment
      *                         token's value is commented for.
@@ -205,7 +243,9 @@ struct Items
                                  const juce::String& sourceValue,
                                  const juce::Identifier& sourceKey,
                                  const juce::Identifier& shapeId,
-                                 const juce::String& childSource,
+                                 Element& row,
+                                 int indent,
+                                 int sourceOrdinal,
                                  const juce::String& childJoin,
                                  const juce::String& extension)
     {
@@ -217,7 +257,7 @@ struct Items
             if (jam::Format::hasPlaceholder (itemText, name.toString()))
             {
                 auto value { name == Id::list
-                                 ? getChildValue (sourceRow, childSource, childJoin, tokens)
+                                 ? getChildValue (model, row, indent, sourceOrdinal, sourceRow, childJoin)
                                  : getColumnValue (model, sourceRow, sourceValue, sourceKey, name) };
 
                 if (name == Id::comment and value.isNotEmpty())
@@ -312,35 +352,6 @@ struct Items
     }
 
     /**
-     * @brief Widens @p literal's first run of spaces by @p fillWidth
-     *        spaces, or, when @p literal carries no space run, appends
-     *        @p fillWidth spaces to its end.
-     *
-     * @param literal   The literal text between two consecutive
-     *                  placeholders.
-     * @param fillWidth The number of spaces to insert.
-     * @returns @p literal, widened by @p fillWidth spaces.
-     */
-    static juce::String getFilledLiteral (const juce::String& literal, size_t fillWidth)
-    {
-        const auto fill { juce::String::repeatedString (juce::String::charToString (Chars::space),
-                                                         static_cast<int> (fillWidth)) };
-
-        for (int index { 0 }; index < literal.length(); ++index)
-            if (literal[index] == Chars::space)
-            {
-                int runEnd { index };
-
-                while (runEnd < literal.length() and literal[runEnd] == Chars::space)
-                    ++runEnd;
-
-                return literal.substring (0, runEnd) + fill + literal.substring (runEnd);
-            }
-
-        return literal + fill;
-    }
-
-    /**
      * @brief Returns @p name's authored @c :::token::: placeholder marker.
      *
      * @param name The token name to wrap.
@@ -372,50 +383,48 @@ struct Items
     {
         const auto& itemText { *templateDocument.getCodeBlock (shapeId)->get<juce::String> (Id::value) };
 
-        std::string paddedText;
-        paddedText.reserve (static_cast<size_t> (itemText.getNumBytesAsUTF8()));
-
-        int cursor { 0 };
+        juce::String paddedText;
+        juce::String remainingText { itemText };
         auto isFirstToken { true };
         juce::Identifier previousName;
         juce::String previousValue;
 
-        for (auto markerStart { itemText.indexOf (cursor, Id::tripleColon) };
-             markerStart >= 0;
-             markerStart = itemText.indexOf (cursor, Id::tripleColon))
+        while (remainingText.contains (Id::tripleColon))
         {
-            const auto nameStart { markerStart + Id::tripleColon.length() };
-            const auto nameEnd { itemText.indexOf (nameStart, Id::tripleColon) };
-            const auto name { juce::Identifier (itemText.substring (nameStart, nameEnd)) };
-            const auto literal { itemText.substring (cursor, markerStart) };
+            const auto literal { jam::Format::upTo (remainingText, Id::tripleColon, false) };
+            const auto afterMarker { jam::Format::from (remainingText, Id::tripleColon, false) };
+            const auto name { juce::Identifier (jam::Format::upTo (afterMarker, Id::tripleColon, false)) };
             const auto columnValue { replacements.at (name) };
 
+            remainingText = jam::Format::from (afterMarker, Id::tripleColon, false);
+
             if (isFirstToken)
-                paddedText.append (literal.toRawUTF8(),
-                                   static_cast<size_t> (literal.getNumBytesAsUTF8()));
+                paddedText += literal;
             else
             {
-                const auto filledLiteral { getFilledLiteral (literal,
-                    columnWidths.at (previousName)
-                        - static_cast<size_t> (previousValue.getNumBytesAsUTF8())) };
-                paddedText.append (filledLiteral.toRawUTF8(),
-                                   static_cast<size_t> (filledLiteral.getNumBytesAsUTF8()));
+                const auto head { jam::Format::upTo (
+                    literal, juce::String::charToString (Chars::space), true) };
+                const auto tail { jam::Format::from (
+                    literal, juce::String::charToString (Chars::space), false) };
+                const auto fillWidth { columnWidths.at (previousName)
+                    - static_cast<size_t> (previousValue.getNumBytesAsUTF8()) };
+
+                paddedText += head;
+                paddedText += juce::String::repeatedString (
+                    juce::String::charToString (Chars::space), static_cast<int> (fillWidth));
+                paddedText += tail;
             }
 
-            paddedText.append (columnValue.toRawUTF8(),
-                               static_cast<size_t> (columnValue.getNumBytesAsUTF8()));
+            paddedText += columnValue;
 
             previousName = name;
             previousValue = columnValue;
-            cursor = nameEnd + Id::tripleColon.length();
             isFirstToken = false;
         }
 
-        const auto trailingText { itemText.substring (cursor) };
-        paddedText.append (trailingText.toRawUTF8(),
-                           static_cast<size_t> (trailingText.getNumBytesAsUTF8()));
+        paddedText += remainingText;
 
-        return juce::String::fromUTF8 (paddedText.data(), static_cast<int> (paddedText.size()));
+        return paddedText;
     }
 
     /**
@@ -479,9 +488,12 @@ struct Items
      * @param sourceKey        The token name each of @p sourceValues is
      *                         substituted into.
      * @param shapeId          The shape to render.
-     * @param childSource      The shape's own nested @c - list: source
-     *                         word, or an empty string when it owns no
-     *                         child expansion.
+     * @param row              The structure row @p sourceOrdinal's child
+     *                         column addresses are read from.
+     * @param indent           The depth @p sourceOrdinal's child column
+     *                         addresses are read from.
+     * @param sourceOrdinal    The structure position after which @p row's
+     *                         child column addresses are read.
      * @param childJoin        The child expansion's join text.
      * @param extension        The target file extension the @c Id::comment
      *                         token's value is commented for.
@@ -494,18 +506,20 @@ struct Items
                                            const jam::Strings& sourceValues,
                                            const juce::Identifier& sourceKey,
                                            const juce::Identifier& shapeId,
-                                           const juce::String& childSource,
+                                           Element& row,
+                                           int indent,
+                                           int sourceOrdinal,
                                            const juce::String& childJoin,
                                            const juce::String& extension)
     {
         jam::Strings texts;
 
-        const auto renderItem = [&model, &templateDocument, &sourceKey, &shapeId, &childSource,
-                                 &childJoin, &extension, &texts] (
+        const auto renderItem = [&model, &templateDocument, &sourceKey, &shapeId, &row, indent,
+                                 sourceOrdinal, &childJoin, &extension, &texts] (
             Element* sourceRow, const juce::String& sourceValue)
         {
             const auto itemText { getItem (model, templateDocument, sourceRow, sourceValue,
-                sourceKey, shapeId, childSource, childJoin, extension) };
+                sourceKey, shapeId, row, indent, sourceOrdinal, childJoin, extension) };
 
             if (itemText.isNotEmpty())
                 texts.add (itemText);
@@ -535,9 +549,12 @@ struct Items
      * @param sourceKey        The token name each of @p sourceValues is
      *                         substituted into.
      * @param shapeId          The shape to render.
-     * @param childSource      The shape's own nested @c - list: source
-     *                         word, or an empty string when it owns no
-     *                         child expansion.
+     * @param row              The structure row @p sourceOrdinal's child
+     *                         column addresses are read from.
+     * @param indent           The depth @p sourceOrdinal's child column
+     *                         addresses are read from.
+     * @param sourceOrdinal    The structure position after which @p row's
+     *                         child column addresses are read.
      * @param childJoin        The child expansion's join text.
      * @param extension        The target file extension the @c Id::comment
      *                         token's value is commented for.
@@ -550,7 +567,9 @@ struct Items
                                       const jam::Strings& sourceValues,
                                       const juce::Identifier& sourceKey,
                                       const juce::Identifier& shapeId,
-                                      const juce::String& childSource,
+                                      Element& row,
+                                      int indent,
+                                      int sourceOrdinal,
                                       const juce::String& childJoin,
                                       const juce::String& extension)
     {
@@ -564,27 +583,42 @@ struct Items
                 model, templateDocument, sourceRows, sourceValues, sourceKey, shapeId, extension);
 
         return getPlainItemTexts (model, templateDocument, sourceRows, sourceValues, sourceKey,
-            shapeId, childSource, childJoin, extension);
+            shapeId, row, indent, sourceOrdinal, childJoin, extension);
     }
 
-    static jam::Strings getCells (Element& row, const jam::Document::Identifiers& tokens)
-    {
-        jam::Strings cells;
-
-        for (auto* cell : row)
-            if (cell->id != Id::format and cell->id != Id::comment and not tokens.contains (cell->id))
-                cells.add (*cell->get<juce::String> (Id::value));
-
-        return cells;
-    }
-
+    /**
+     * @brief Resolves @p source's items -- an output table's own rows, a
+     *        column's distinct values across @p tables, or the rows that
+     *        bind @p source by name -- then renders them through
+     *        getItemTexts().
+     *
+     * @param model            The model @p row and @p tables belong to.
+     * @param templateDocument The template document @p shapeId is read
+     *                         from.
+     * @param tables           The tables @p source is resolved against.
+     * @param row              The structure row @p sourceOrdinal's child
+     *                         column addresses are read from.
+     * @param source           The address naming @p source's items --
+     *                         a table, a column, or a binding name.
+     * @param shapeId          The shape to render.
+     * @param indent           The depth @p sourceOrdinal's child column
+     *                         addresses are read from.
+     * @param sourceOrdinal    The structure position after which @p row's
+     *                         child column addresses are read.
+     * @param childJoin        The child expansion's join text.
+     * @param extension        The target file extension the @c Id::comment
+     *                         token's value is commented for.
+     * @returns Every non-empty rendered item, in the order @p source's
+     *          rows then column values were authored.
+     */
     static jam::Strings getItems (const Model& model,
                                   const TemplateDocument& templateDocument,
                                   const jam::Array<Element*>& tables,
                                   Element& row,
                                   const juce::String& source,
                                   const juce::Identifier& shapeId,
-                                  const juce::String& childSource,
+                                  int indent,
+                                  int sourceOrdinal,
                                   const juce::String& childJoin,
                                   const juce::String& extension)
     {
@@ -592,13 +626,7 @@ struct Items
         jam::Strings sourceValues;
         juce::Identifier sourceKey { Id::list };
 
-        if (source == Id::cells.toString())
-        {
-            const auto& tokens { *templateDocument.getCodeBlock (shapeId)
-                                       ->get<jam::Document::Identifiers> (Id::placeholder) };
-            sourceValues = getCells (row, tokens);
-        }
-        else if (auto* sourceTable { model.getTable (row, source) }; sourceTable != nullptr)
+        if (auto* sourceTable { model.getTable (row, source) }; sourceTable != nullptr)
         {
             sourceRows = model.getTableRows (*sourceTable);
         }
@@ -625,9 +653,32 @@ struct Items
         }
 
         return getItemTexts (model, templateDocument, sourceRows, sourceValues, sourceKey, shapeId,
-            childSource, childJoin, extension);
+            row, indent, sourceOrdinal, childJoin, extension);
     }
 
+    /**
+     * @brief Renders @p source's items through getItems(), joined by
+     *        @p separator.
+     *
+     * @param model            The model @p row and @p tables belong to.
+     * @param templateDocument The template document @p shapeId is read
+     *                         from.
+     * @param tables           The tables @p source is resolved against.
+     * @param row              The structure row @p sourceOrdinal's child
+     *                         column addresses are read from.
+     * @param source           The address naming @p source's items --
+     *                         a table, a column, or a binding name.
+     * @param shapeId          The shape to render.
+     * @param separator        The joined items' separator text.
+     * @param indent           The depth @p sourceOrdinal's child column
+     *                         addresses are read from.
+     * @param sourceOrdinal    The structure position after which @p row's
+     *                         child column addresses are read.
+     * @param childJoin        The child expansion's join text.
+     * @param extension        The target file extension the @c Id::comment
+     *                         token's value is commented for.
+     * @returns @p source's rendered items, joined by @p separator.
+     */
     static juce::String getJoinedItems (const Model& model,
                                         const TemplateDocument& templateDocument,
                                         const jam::Array<Element*>& tables,
@@ -635,12 +686,13 @@ struct Items
                                         const juce::String& source,
                                         const juce::Identifier& shapeId,
                                         const juce::String& separator,
-                                        const juce::String& childSource,
+                                        int indent,
+                                        int sourceOrdinal,
                                         const juce::String& childJoin,
                                         const juce::String& extension)
     {
         const auto texts { getItems (
-            model, templateDocument, tables, row, source, shapeId, childSource, childJoin, extension) };
+            model, templateDocument, tables, row, source, shapeId, indent, sourceOrdinal, childJoin, extension) };
 
         return texts.joinIntoString (separator, 0, -1);
     }

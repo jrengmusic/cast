@@ -46,7 +46,7 @@
 |------|---------|
 | **CAST.md** | Generation manifest: outputs, wiring rows (`list | separator | structure | file`) |
 | **template.cast** | Shape templates (`:::token:::` substitution targets) |
-| **lexicon.md** | Identifier table → generated/Identifiers.h |
+| **identifiers.md** | Identifier table → generated/Identifiers.h |
 | **tokens.md, text.md, comments.md, files.md, banner.md** | Data tables (one table per generated concern) |
 
 ### Doxygen

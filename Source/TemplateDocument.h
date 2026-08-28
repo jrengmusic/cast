@@ -12,7 +12,7 @@
  *
  * A TemplateDocument is a jam::MarkdownDocument in which every code block --
  * one shape, keyed by the fence's info string -- has been scanned for
- * @c :::token::: placeholders, so a shape's distinct token names are read
+ * @c :::token::: placeholders, so a shape's token names are read
  * back rather than re-scanned by every caller. TemplateDocument additionally
  * resolves a binding's authored value and a token's authored separator
  * against a Model row, on behalf of callers that walk a manifest's wiring.

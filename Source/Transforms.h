@@ -18,9 +18,9 @@ struct Transforms
      *                  applied.
      * @returns @p input, prefixed with @p extension's comment marker.
      */
-    static juce::String toComment (const juce::String& input, const juce::String& extension) noexcept
+    static juce::String toComment (const juce::String& input, const juce::String& extension)
     {
-        const auto syntax { map::commentSyntax.get (extension) };
+        const auto syntax { map::commentSyntax.at (extension) };
 
         return (syntax.get (Id::comment) + juce::String::charToString (Chars::space) + input)
             .trim();
@@ -36,9 +36,9 @@ struct Transforms
      *          close markers.
      */
     static juce::String
-    toCommentBlock (const juce::String& input, const juce::String& extension) noexcept
+    toCommentBlock (const juce::String& input, const juce::String& extension)
     {
-        const auto syntax { map::commentSyntax.get (extension) };
+        const auto syntax { map::commentSyntax.at (extension) };
 
         if (not input.containsChar (Chars::newline))
             return (syntax.get (Id::blockOpen) + juce::String::charToString (Chars::space) + input
@@ -71,9 +71,9 @@ struct Transforms
      * @returns @p input, wrapped in @p extension's block-comment open and
      *          close markers with the brief marker inserted.
      */
-    static juce::String toBrief (const juce::String& input, const juce::String& extension) noexcept
+    static juce::String toBrief (const juce::String& input, const juce::String& extension)
     {
-        const auto syntax { map::commentSyntax.get (extension) };
+        const auto syntax { map::commentSyntax.at (extension) };
 
         return (syntax.get (Id::blockOpen) + juce::String::charToString (Chars::space)
                + syntax.get (Id::brief) + juce::String::charToString (Chars::space) + input
@@ -124,7 +124,7 @@ private:
             jam::Format::toCamelCase (Id::toUpper),
             [] (const juce::String& input, const juce::String&)
             {
-                return jam::Format::toUpperCase (input);
+                return input.toUpperCase();
             });
         map.add<const juce::String&, const juce::String&> (
             jam::Format::toCamelCase (Id::toTitle),

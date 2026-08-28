@@ -83,8 +83,22 @@ static void printBanner()
     }
 }
 
+/**
+ * @brief Initializes the terminal graphics stack, then prints the banner
+ *        and help text to stdout.
+ *
+ * The library and rendering singletons are scoped to this call -- each
+ * is constructed fresh for the one banner-and-help print and released
+ * once it returns.
+ */
 static void printBannerAndHelp()
 {
+    juce::ScopedJuceInitialiser_GUI libraryInitialiser;
+    jam::Stamp stamp;
+    jam::Hyperlink hyperlink;
+    jam::Grapheme grapheme;
+    Generated generated;
+
     printBanner();
     printf ("%s", juce::String::charToString (Chars::newline).toRawUTF8());
     printHelp (BinaryData::getString (files::castHelp));
@@ -101,9 +115,9 @@ int main (int argc, char* argv[])
     std::system ("clear");
 #endif
 
-#if JUCE_DEBUG
-    const jam::debug::Log::Scope logScope { jam::File::getDebugLog() };
-#endif
+// #if JUCE_DEBUG
+//     const jam::debug::Log::Scope logScope { jam::File::getDebugLog() };
+// #endif
 
     const auto formatFlag { Id::doubleDash + Id::format.toString() };
     const auto noFormatFlag { Id::doubleDash + Id::noFormat.toString() };

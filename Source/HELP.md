@@ -67,7 +67,7 @@ Row order is authored order. CAST never sorts.
 
 Column names are yours. Name a column for what it produces, because a template addresses it by that name — a column called `value` fills `:::value:::`.
 
-Two column names are reserved: `format`, and inside the manifest, `list`, `separator`, `structure`, `file`.
+Two column names are reserved everywhere: `format` and `comment`. Inside the manifest, four more are reserved: `list`, `separator`, `structure`, `file`.
 
 ### Cells
 
@@ -142,16 +142,24 @@ Formatting is declared in the table. A template never formats anything.
 
 ### Documentation
 
-Two doc channels, both data:
+Three doc channels, all data:
 
-- **per row** — a column named `comment`. An entry shape's `:::comment:::` takes it like any column.
-- **per table** — write a paragraph or a fenced block between the `## table name` heading and the table. A shape-level `:::comment:::` resolves to it; no text means empty.
+- **row** — a column named `comment`. An item shape's `:::comment:::` takes it like any other column.
+- **table** — write a paragraph or a fenced block between the `## table name` heading and the table. A shape-level `:::comment:::` falls back to it when no reference names something else.
+- **fence** — a fenced block carrying an info string, anywhere in a data file, not bound to a table. The info string is its name; the fence text is its prose. Address it — or a table — by name with a `- comment: @file:<name>` bullet in the manifest's list column, at the shape line's own `>` count. A wrapper shape declared across several rows carries the same reference on every declaring row, exactly like a binding.
 
-The comment frame (`/** @brief ... */`, `///< ...`) is authored in the template — it is structure, like braces.
+At shape level, with no comment reference authored, `:::comment:::` falls back to the documentation of the first table the shape's own sources address, in authored order; with no source addressing a table, to the documentation of the row's own table.
+
+You never author the comment frame (`/** @brief ... */`, `///< ...`) yourself — you write prose only. CAST renders the frame from the comment-syntax table, chosen by the language of the file the row writes to:
+
+- the marker alone on its line — block form. Multi-line prose renders one prose line per output line; single-line prose renders open, text, close on one line.
+- the marker inline, after content — single-line form: the language's comment glyph, then the text.
+
+A missing comment is not an error — the marker renders empty, and an emptied line trims or collapses like any other placeholder line.
 
 ### Uniqueness
 
-Within one table, every column's entries must be unique, compared byte for byte. `circleCross` and `CircleCross` are two different entries. Cells holding an alias or an operation name are exempt, because those repeat by design.
+Within one table, every identity column's entries — `name`, `key`, `alias` — must be unique, compared byte for byte. `circleCross` and `CircleCross` are two different entries. Every other column is payload — `value`, `type`, `format`, `comment` — and payload repeats by design: many rows may map to the same payload.
 
 ---
 
@@ -206,7 +214,7 @@ inline const :::type::: :::name::: { juce::String::fromUTF8 (:::value:::) };
 ```
 ````
 
-A block is the literal text of the output. Braces, keywords, punctuation, comment frames — all authored, all verbatim. There are no conditionals, no loops, and no formatting.
+A block is the literal text of the output. Braces, keywords, punctuation — all authored, all verbatim. There are no conditionals, no loops, and no formatting. Comment frames are the one exception: CAST renders them itself, from the comment-syntax table (see Documentation) — never author one in a template.
 
 **`:::list:::` is the one expansion token.** A block's occurrence count is its arity: each occurrence takes one source, its items joined by that source's separator. Where the marker sits decides the axis:
 
@@ -245,9 +253,9 @@ Joining more than one item from a single-line shape aligns their token columns: 
 `- list: <source>` lines. Each one is an expansion; the source says what feeds it:
 
 - an address — `- list: @xml:XmlTokenType:key` iterates that table's rows
+- a column address — `- list: @colours:colours:key` names one column of the enclosing expansion's table; it feeds an **inline** `:::list:::`, never a column-0 one
 - a column name — `- list: file` iterates the unique values of that column
 - a binding name — `- list: instance` selects the rows that declare that binding
-- `cells` — iterates the enclosing expansion's current row's cells, in column order
 
 ### structure — what shape
 
@@ -267,11 +275,11 @@ A shape's arity is how many times its block names `:::list:::`. It consumes that
 > > > - list: ...      renders at three tabs
 ```
 
-One tab is four spaces, **absolute** — measured from column 0 of the output file, not from the enclosing shape. The list and separator columns mirror the count for readability; it is never read there.
+One tab is four spaces, **absolute** — measured from column 0 of the output file, not from the enclosing shape. The list and separator columns carry the same count as the structure line they pair with, and it is read: a line pairs with the line carrying the same `>` count at the same ordinal within that count. One symbol, one meaning, in all three columns.
 
 ### Pairing — always by order
 
-The list column's `- list:` lines pair with the structure column's `- list:` lines one for one, in authored order. A shape's `:::list:::` occurrences, top to bottom, take the sources that follow it in the same order.
+The list column's `- list:` lines pair with the structure column's `- list:` lines by `>` count and by ordinal within that count. A shape's `:::list:::` occurrences, top to bottom, take the sources that follow it in the same order.
 
 ```
 +-------------------------------------+---------------------------------+
@@ -327,7 +335,7 @@ A `format` cell names one operation, never two. The one composition CAST perform
 
 **Comment** — `toComment`, `toCommentBlock`, `brief`
 
-The comment family exists for the banner CAST stamps, formatted for the output file's language.
+The comment family exists for the banner CAST stamps and for the `:::comment:::` marker, both formatted for the output file's language.
 
 ---
 
@@ -361,7 +369,7 @@ inline const juce::Identifier cdataOpen { juce::String::fromUTF8 ("<![CDATA[") }
 
 Row one's `value` is empty, so it takes `name` and its `format` quotes it. Rows two and three are backticked, which already means `toLiteral` — so their `format` cell stays empty.
 
-### Any-arity entries with cells
+### Any-arity entries with explicit column addresses
 
 ```markdown
 ## colours
@@ -381,12 +389,13 @@ Row one's `value` is empty, so it takes `name` and its `format` quotes it. Rows 
 ````
 
 ```
-+----------------------+-------------------+-------------------------------+
-| list                 | separator         | structure                     |
-+======================+===================+===============================+
-| > > - list: @colours |                   | ...                           |
-| > > > - list: cells  | > > > - list: `, `| > > - list: template:entry    |
-+----------------------+-------------------+-------------------------------+
++---------------------------------------+-------------------+-------------------------------+
+| list                                   | separator         | structure                     |
++=========================================+===================+===============================+
+| > > - list: @colours                   | > > - list: `, `  | ...                           |
+| > > - list: @colours:colours:key       |                    | > > - list: template:entry    |
+| > > - list: @colours:colours:value     |                    |                                |
++---------------------------------------+-------------------+-------------------------------+
 ```
 
 ```cpp
@@ -394,7 +403,7 @@ Row one's `value` is empty, so it takes `name` and its `format` quotes it. Rows 
         { 1, 0xffcd0000 },
 ```
 
-Rows stack vertically at two tabs; each row's cells join horizontally by `, ` into the inline `:::list:::`. Three columns tomorrow — same template.
+Rows stack vertically at two tabs; `@colours` is the entry's own source. The two column-address lines that follow it, at the same two tabs, name `key` then `value` explicitly — one line per column — and join horizontally into the inline `:::list:::` by the separator authored at the source line's own ordinal, `, `. A third column tomorrow is one more address line, same template.
 
 ### Wrapping a shape in another
 

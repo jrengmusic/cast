@@ -5,8 +5,26 @@
 #include "Validator.h"
 #include "Writer.h"
 
+/**
+ * @struct Processor
+ * @brief Owns the parsed Model, TemplateDocument, and Writer for one
+ *        manifest, and drives generation and origin-file
+ *        canonicalization through them.
+ *
+ * Processor parses the manifest and its declared template once at
+ * construction. generate() then validates the manifest and writes its
+ * declared outputs; format() re-canonicalizes every origin file the
+ * manifest declares, in parallel, write-if-different.
+ */
 struct Processor
 {
+    /**
+     * @brief Parses @p manifestFile into a Model and its declared
+     *        template file into a TemplateDocument, and constructs the
+     *        Writer that renders through them.
+     *
+     * @param manifestFile The manifest file to parse.
+     */
     explicit Processor (const juce::File& manifestFile)
         : model (Model::parse (manifestFile))
         , templateDocument (jam::MarkdownDocument::parse (model->getTemplateFile().loadFileAsString()))
@@ -15,6 +33,18 @@ struct Processor
         jam::Stamp::getInstance()->addIfNotAlreadyThere (jam::Stamp::Entry {});
     }
 
+    /**
+     * @brief Validates the parsed manifest through Validator::isValid(),
+     *        then writes its declared outputs through the Writer.
+     *
+     * @param output A path resolved against the manifest's own directory,
+     *               giving the directory every declared output file is
+     *               written under; empty resolves to the manifest's own
+     *               directory.
+     * @returns juce::Result::ok() when validation succeeds and every
+     *          output file writes successfully, or the first failure
+     *          encountered.
+     */
     juce::Result generate (const juce::String& output = {})
     {
         if (const auto validation { Validator::isValid (*model, templateDocument) }; not validation.wasOk())
@@ -23,6 +53,15 @@ struct Processor
         return writer.toFile (model->getFile (output));
     }
 
+    /**
+     * @brief Re-canonicalizes every origin file the manifest declares,
+     *        rewriting each one, in parallel, whose canonical text
+     *        differs from what is currently on disk.
+     *
+     * @returns juce::Result::ok() when the manifest's own markdown
+     *          validates and every changed file writes successfully, or a
+     *          failure naming every file that failed to write.
+     */
     juce::Result format()
     {
         static const jam::MarkdownWriter formatter;

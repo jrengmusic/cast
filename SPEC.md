@@ -1,6 +1,6 @@
 # CAST Specification
 
-**Version 0.4**
+**Version 0.5**
 
 ---
 
@@ -16,7 +16,7 @@ The engine hardcodes these and nothing else:
 
 - the markers `:::token:::`, `@`, `` ` ``, `template:<id>`, `- key: value`, `> `
 - the manifest column names
-- the reserved source word `cells`
+- the reserved bullet names `list` (source, §6.5) and `comment` (documentation reference, §5.4)
 - the reserved token names `list` (expansion, §6.5) and `comment` (documentation, §5.4)
 - the index table name and its columns
 - the reserved column names `format` and `comment`
@@ -209,27 +209,30 @@ Formatting is declared in the table. A template never formats.
 
 ### 5.3 Uniqueness
 
-Within one table, the entries of every column are unique, compared byte-exactly.
+Within one table, the entries of every identity column — `name`, `key`, `alias` — are
+unique, compared byte-exactly.
 
 Byte-exact means `circleCross` and `CircleCross` are two entries.
 
-Cells holding a reserved mechanism are exempt, because a mechanism repeats by design:
+Every other column is payload — `value`, `type`, `format`, `comment` — and payload
+repeats by design: many rows may map to the same payload.
 
-- an operation name in a `format` cell (§8)
-- an alias (§4)
-- a `comment` cell (§5.4) — documentation repeats freely
+The manifest's own tables are exempt as a whole: wiring repeats templates, separators
+and files by design (§6).
 
 ### 5.4 Documentation
 
 `comment` is a reserved column name, like `format` (§5.2): documentation, never data.
-Its entries are exempt from §5.3 uniqueness, and the `cells` source (§6.5) never emits
-it.
+Its entries are exempt from §5.3 uniqueness, and no expansion (§6.5) ever emits it.
 
-Two documentation channels, both data:
+Three documentation channels, all data:
 
 - **row** — the `comment` column
 - **table** — the text between a table's `## heading` and the table itself, a
   paragraph or a fenced block, stamped onto the table at parse (§11.1)
+- **fence** — a fenced block carrying an info string, anywhere in a data file not
+  bound to a table; the info string is its name, the fence text is its prose,
+  stamped at parse (§11.1) and addressed by a comment reference
 
 `:::comment:::` is the comment marker — the only place documentation reaches an
 output. The author writes prose; documentation tags (`@file`, `@brief`) are authored
@@ -248,8 +251,19 @@ axis (§7):
 - inline, after content — single-line form: the language's comment glyph and the text
 
 The marker resolves by scope: in an item shape it reads the source row's `comment`
-column; at shape level it reads the documentation of the first table the shape's
-expansions address. A missing comment is not an error and not a special case: the
+column; at shape level it reads, in order:
+
+1. the row's **comment reference** — a `- comment: @file:<name>` bullet in the list
+   column at the shape line's own `>` count, pairing with that line exactly as a
+   `- list:` line pairs (§6.5). The address names a table (its table documentation)
+   or a fence (§5.4). A wrapper shape declared across several rows carries the same
+   reference on every declaring row — the reference is part of the shape's per-row
+   declaration, like a binding.
+2. positionally — the documentation of the first table the shape's expansions
+   address; when no source addresses a table, the documentation of the row's own
+   table.
+
+A missing comment is not an error and not a special case: the
 replacement is empty, and the line trims or collapses exactly like any other emptied
 placeholder line — plain replacement, no elision machinery.
 
@@ -353,16 +367,22 @@ Expansion pairs by order:
 
 A `- list:` source is one of:
 
-- an **address** — `@file:table:column` iterates that table's rows
+- an **address** — `@file:table` iterates that table's rows
+- a **column address** — `@file:table:column` names one column of the enclosing
+  expansion's table; it feeds an **inline** `:::list:::` (§7), never a column-0 one
 - a **column name** — iterates the distinct values of that column across output rows
 - a **binding name** — iterates the rows that declare that blank binding (§6.2)
-- **`cells`** — iterates the enclosing expansion's current row's data cells that no
-  named token of the shape consumes, in column order; `format` columns apply to their
-  bound column (§5.2) and never emit
+
+An inline `:::list:::`'s sources are the column-address lines that follow the item
+shape's own source line, at the **same** `>` count, consecutive ordinals, in authored
+order — one line per column, each naming the column explicitly. The current row's
+value of each addressed column fills the marker, joined by the within-line join
+(§6.6). There is no implicit column set: every consumed column is named.
 
 A list-column line with no structure partner renders its items **verbatim** — the
 datum itself, unshaped — and fills the occupied occurrence of the shape it follows.
-That is the ordinary form for `cells`, whose items are the row's own values. A
+The address form is the discriminator: a column address feeds the inline marker (§7);
+any other partnerless source renders verbatim. A
 structure `- list:` line, or a separator line past the row join, with no list-column
 line of its ordinal is fatal (§10.1).
 
@@ -380,6 +400,11 @@ The separator column carries `- list:` lines mirroring the list column's. The li
 ordinal K is the join text for the expansion wired at ordinal K. No line, or a blank
 value, joins by newline. A value resolves like any bullet value (§6.1) —
 `template:<id>` names a block whose text is the join.
+
+For an item shape whose `:::list:::` is inline (§6.5), the separator line at the item
+source line's own ordinal is the **within-line join** — the text between the addressed
+column values. The join between the items themselves is the newline default; an inline
+marker declares no other item join.
 
 The column's leading `>`-less line is the row join: it joins the diverging values of the
 rows declaring the same `file` (§6.7). Its partner is those rows themselves — it is
@@ -568,7 +593,7 @@ These, and nothing else:
 | address names a table or column that does not exist | §4.4 |
 | `\| format \| format \|` adjacency | §5.2 |
 | `format` cell names an operation that is not in §8 | §8 |
-| duplicate entry within one column of one table | §5.3 |
+| duplicate entry within one identity column of one table | §5.3 |
 | `template:<id>` names a block that does not exist | §7 |
 | malformed table, during formatting only | §3.3 |
 | index `symbol` cell empty | §4.1 |
@@ -578,6 +603,7 @@ These, and nothing else:
 | a structure or separator `- list:` line without its list-column line of the same ordinal, the row join excepted | §6.5, §6.6 |
 | duplicate binding name among one shape's bindings | §6.1 |
 | a named token no binding, column, or documentation names | §6.5 |
+| a comment reference naming neither a table nor a fence | §5.4 |
 | unterminated `:::` marker in a shape block | §7 |
 
 Any check the engine performs that is not in this table is a defect in the engine.
@@ -629,11 +655,9 @@ string that travels downstream and emits blank output.
 
 The engine implements superseded rules. Each is debt against this document:
 
-- placeholder names truncated at the first colon rather than taken verbatim (§7)
-- a named token with no supplier yielding an empty string rather than failing (§6.5, §10.1)
-- an occurrence index clamped to the last value supplied rather than trusting the arity
-  gate (§6.4, §11.2)
 - merging resolved per token occurrence across every row declaring the file, rather than
   per line (§6.7)
-- each line's template id, indentation and paired source recomputed at every read rather
-  than stamped once at parse (§11.1)
+- each line's paired source walked at every read rather than stamped once at parse
+  (§11.1) — template id, indentation and line are stamped
+- the renderers still answer a missing supplier with an empty string behind the §10.1
+  gate — dead defense once the gate holds (§6.5, §11.3)

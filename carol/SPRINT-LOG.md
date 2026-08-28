@@ -111,6 +111,52 @@
 
 ## SPRINT HISTORY
 
+## Sprint: 9/9 Convergence + Audit Clean Sweep — Identity-Column Law ✅
+
+**Date:** 2026-08-29
+**Duration:** — (multi-day session, compacted)
+
+### Agents Participated
+- COUNSELOR — convergence orchestration, guarded rebases, audit-finding resolution plan, SPEC/HELP/CLAUDE.md edits, adjudications, three post-audit regressions diagnosed and fixed (alias value/rawText, isSupplied arm fall-through, Id::key bootstrap)
+- Engineer (seven waves) — Validator/Model bug fixes, main/Writer/Transforms/jam fixes, Shapes/Items semantics, structural SSOT wave (isSupplied/isBound, transit fix), addComments channel laws + Bimap noexcept, isUniqueAlias, doxygen pass
+- Auditor — single sprint-end sweep, 38 findings, all resolved or adjudicated
+- Pathfinder — discovery/diff evidence throughout convergence
+
+### Convergence (pre-audit)
+- All 9 jam/generated headers byte-identical; fixpoint verified; jam manifest now generates directly to generated/ (no more jam/diff)
+- `cells` deleted — explicit `@file:table:column` column-address lines everywhere
+- Comment references (`- comment: @file:<name>`), named fences, depth law (inline `:::list:::` = no nesting), marker-position-only detection, framework-API padding
+- jam framework: `Format::toPadded`, `Format::toUpperCase`, `getFilenameWithoutExtension`, `onlyExtensionFromFilename`, `toFileNameAlt` deleted; `insertArray`/`insertMultiple` asserts deleted; `Bimap::get` noexcept-that-throws stripped
+
+### Audit Clean Sweep (38 findings)
+- **Bugs fixed:** uniqueness gate mis-scoped by broken manifestOrigin (now `Model::manifestOrigin` member, manifest-only exemption); `--help` crash (stack ownership in main.cpp mirrors Processor members); format fatals now cover data tables; silent HashMap `.get` → throwing `.at` (Transforms/Writer); comment fallback walks sources in authored order to first table then row's own table; single-occurrence marker replacement; byte-based padding; comment-column @-sigil exemption; code-span comment format branch; extension derived once in Writer
+- **Structural:** `Model::isColumnAddress`/`getColumn` hoisted (SSOT); `getChildSources` temp container deleted — `getChildValue` walks the AST live; `isShapeSupplied` 81→31 lines via `isSupplied` (4 result-return arms mirroring SPEC §6.5 taxonomy) + `isBound`; headers container deleted; `isUniqueAlias` replaces jam's `unique` (one diagnostic vocabulary)
+- **Renames (NAMES sweep):** `isColumnPartnered`→`isPaired` overload, `isKnownTemplate`→`hasTemplate`, `isAddress`→`hasTable` — foreign synonyms and epistemic qualifiers out, SPEC vocabulary in
+- **Channel laws:** table-bound fence is table documentation only (not also a named fence); same-file provenance required across the splice boundary
+- **Docs:** SPEC §5.3 (identity-column law), §5.4 (cells residue), §6.5 (discriminator), §10.1, §12 refreshed; HELP.md §6.4/§6.5/uniqueness synced; CLAUDE.md lexicon.md→identifiers.md; full doxygen pass (Shapes.h, Processor.h + all new/changed functions)
+- **Adjudicated, no change (cited):** comment pairing matches SPEC rung 1; twice-duplicated block within MANIFESTO S threshold; width-measurement cache required by §7.2; comment transforms all live; 300-line files pass MANIFESTO L's responsibility clause
+
+### Identity-Column Law (post-audit ruling)
+- Correct gate scope exposed a latent SPEC defect: "every column unique" fataled on legal LUT payloads (duplicate values by design). ARCHITECT ruled: uniqueness protects identity columns — `name`, `key`, `alias`; payload (`value`, `type`, `format`, `comment`) repeats freely. Engine (Identifier-typed end-to-end, no string comparisons), SPEC §5.3/§10.1, HELP synced; `key` added to cast lexicon
+- `Id::key` bootstrap: hand-stamped into Source/generated/Identifiers.h (with `cells` drained) — verified by next conformance-sprint fixpoint
+
+### Post-Audit Regressions (owned, fixed)
+- `isUniqueAlias` compared resolved values, not authored `@name`s — `Id::rawText` fix
+- `isSupplied` made the old accumulate-arms exclusive: binding-name source equal to token name never reached `getBindingSourceRows` — column arm now short-circuits on success only
+- Root cause: post-audit code carries no audit coverage and meets runtime only on ARCHITECT's machine
+
+### Alignment Check
+- [x] BLESSED principles followed
+- [x] NAMES.md adhered — new names ratified (`isSupplied`, `isBound`, `isUniqueAlias`, `Model::isColumnAddress`, `Model::getColumn`, `Id::key`) or family-sibling (Rule 5)
+- [x] MANIFESTO.md principles applied
+- [x] Verified: full round trip clean — build → `./cast jam/cast/CAST.md` → build
+
+### Debts Paid
+- None (ledger carried no due entries this sprint)
+
+### Debts Deferred
+- `DEBT-20260828T205932` (ARCHITECT-commanded, next sprint): CAST project conformance — Source/generated/ + own manifest/tables, diff==generated under current SPEC; includes fixpoint verification of the Id::key bootstrap stamp
+
 ## Sprint: Generated-Header Doxygen — Hand-Authored Target Oracle ✅
 
 **Date:** 2026-08-27

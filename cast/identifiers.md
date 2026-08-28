@@ -22,7 +22,6 @@
 | brief               | brief              | @id     |
 | capacity            | capacity           | @id     |
 | cell                | cell               | @string |
-| cells               | cells              | @id     |
 | chars               | chars              | @id     |
 | column              | column             | @id     |
 | comment             | comment            | @id     |
@@ -43,6 +42,7 @@
 | headers             | headers            | @id     |
 | index comment       | index comment      | @id     |
 | join                | join               | @string |
+| key                 | key                | @id     |
 | lexicon             | lexicon            | @id     |
 | list                | list               | @id     |
 | no format           | no-format          | @id     |

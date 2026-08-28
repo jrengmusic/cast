@@ -123,6 +123,21 @@ public:
         return {};
     }
 
+    /**
+     * @brief Returns @p row's list bullet at blockquote depth @p indent --
+     *        the number of authored @c > markers -- and position
+     *        @p ordinal among that depth's own list bullets, counted in
+     *        authored order.
+     *
+     * @param row     The row whose @c list column is searched.
+     * @param indent  The blockquote nesting depth to search, one per
+     *                authored @c >.
+     * @param ordinal The bullet's position among @p indent's own list
+     *                bullets, counted separately from shape paragraphs
+     *                and comment bullets at the same depth.
+     * @returns The addressed list bullet, or @c nullptr when none exists
+     *          at (@p indent, @p ordinal).
+     */
     Element* getSource (Element& row, int indent, int ordinal) const
     {
         Element* item { nullptr };
@@ -141,6 +156,20 @@ public:
         return item;
     }
 
+    /**
+     * @brief Returns @p row's separator bullet at blockquote depth
+     *        @p indent and position @p ordinal -- the same (depth,
+     *        ordinal) coordinate addressing getSource(), read from the
+     *        @c separator column instead of the @c list column.
+     *
+     * @param row     The row whose @c separator column is searched.
+     * @param indent  The blockquote nesting depth to search, one per
+     *                authored @c >.
+     * @param ordinal The bullet's position among @p indent's own list
+     *                bullets, matching getSource()'s addressing.
+     * @returns The addressed separator bullet, or @c nullptr when none
+     *          exists at (@p indent, @p ordinal).
+     */
     Element* getSeparator (Element& row, int indent, int ordinal) const
     {
         Element* item { nullptr };
@@ -159,6 +188,52 @@ public:
         return item;
     }
 
+    /**
+     * @brief Returns @p row's comment bullet paired with the shape
+     *        paragraph at blockquote depth @p indent and shape ordinal
+     *        @p ordinal -- the comment counted at position @p ordinal
+     *        among @p indent's own comment bullets, its own running count
+     *        kept independently of, but authored in lockstep with, that
+     *        depth's shape paragraphs.
+     *
+     * @param row     The row whose @c list column is searched.
+     * @param indent  The blockquote nesting depth to search, one per
+     *                authored @c >.
+     * @param ordinal The paired shape paragraph's own ordinal at
+     *                @p indent, answered by the comment bullet counted at
+     *                the same position among @p indent's own comment
+     *                bullets.
+     * @returns The paired comment bullet, or @c nullptr when @p indent
+     *          carries no comment at that position.
+     */
+    Element* getComment (Element& row, int indent, int ordinal) const
+    {
+        Element* item { nullptr };
+
+        getTableCell (row, Id::list)->applyFunctionRecursively (
+            [&item, indent, ordinal] (const Element& candidate) -> bool
+            {
+                if (item == nullptr and candidate.parent->isTag (Id::ul) and candidate.id == Id::comment
+                    and *candidate.get<int> (Id::level) == indent
+                    and *candidate.get<int> (Id::line) == ordinal)
+                    item = const_cast<Element*> (&candidate);
+
+                return item == nullptr;
+            });
+
+        return item;
+    }
+
+    /**
+     * @brief Walks forward from @p line, depth-first through children
+     *        then siblings, unwinding to each ancestor's next sibling
+     *        until leaving the enclosing table cell, to the next
+     *        paragraph or list item carrying a @c shape ordinal.
+     *
+     * @param line The structure line to advance from.
+     * @returns The next structure line in document order, or @c nullptr
+     *          when @p line is the cell's last one.
+     */
     Element* getNextLine (Element& line) const
     {
         auto* walk { &line };
@@ -185,6 +260,20 @@ public:
         return candidate;
     }
 
+    /**
+     * @brief Returns @p row's @p name-named binding item declared under
+     *        the shape line whose own @c shape ordinal matches @p line's
+     *        -- the document-order position shared by a shape paragraph
+     *        or list source and the bindings authored beneath it.
+     *
+     * @param row    The row whose @p column cell is searched.
+     * @param column The column @p line's own binding is read from.
+     * @param line   The structure line whose paired bindings are searched
+     *               for @p name.
+     * @param name   The binding name to find.
+     * @returns The addressed binding item, or @c nullptr when @p line
+     *          declares no binding named @p name.
+     */
     Element* getBinding (Element& row, const juce::Identifier& column, Element& line,
                          const juce::Identifier& name) const
     {
@@ -276,6 +365,48 @@ public:
         return declaredPath.isNotEmpty() ? getTable (declaredPath, tableName) : nullptr;
     }
 
+    /**
+     * @brief Answers whether @p value is an @-sigiled address naming a
+     *        column -- @c \@alias:table:column, three or more
+     *        colon-separated parts.
+     *
+     * @param value The authored value to test.
+     * @returns @c true when @p value is an @-sigiled address with a
+     *          column part.
+     */
+    static bool isColumnAddress (const juce::String& value)
+    {
+        const auto parts { jam::Strings::fromTokens (
+            value, juce::String::charToString (Chars::colon), {}) };
+
+        return value.startsWithChar (Chars::at) and parts.size() > 2;
+    }
+
+    /**
+     * @brief Returns @p value's column part -- an isColumnAddress()
+     *        address's last colon-separated segment, converted to a
+     *        valid identifier.
+     *
+     * @pre isColumnAddress (value)
+     *
+     * @param value The @-sigiled column address to read.
+     * @returns @p value's column name.
+     */
+    static juce::Identifier getColumn (const juce::String& value)
+    {
+        const auto parts { jam::Strings::fromTokens (
+            value, juce::String::charToString (Chars::colon), {}) };
+
+        return juce::Identifier (jam::Format::toValidID (parts.at (parts.size() - 1).trim()));
+    }
+
+    /**
+     * The manifest file's own relative path, stamped at parse() -- the
+     * origin every table declared in the manifest's own file compares
+     * against for the manifest-origin exemption.
+     */
+    juce::String manifestOrigin;
+
 private:
     /**
      * @brief Answers whether @p element's own @c type equals @p blockType.
@@ -296,6 +427,7 @@ private:
         const auto manifestOrigin { documentFile.getRelativePathFrom (parent) };
 
         document.directory = parent;
+        document.manifestOrigin = manifestOrigin;
 
         document.appendChildren (jam::MarkdownDocument::parse (
             documentFile.loadFileAsString(), manifestOrigin));
@@ -329,8 +461,10 @@ private:
                         juce::String precedingBinding;
                         addBindings (*cell, precedingBinding);
                         jam::Array<int> ordinals;
+                        jam::Array<int> shapeOrdinals;
+                        jam::Array<int> commentOrdinals;
                         int lineIndex { 0 };
-                        addLines (*cell, 0, ordinals, lineIndex);
+                        addLines (*cell, 0, ordinals, shapeOrdinals, commentOrdinals, lineIndex);
                     }
             }
         }
@@ -339,6 +473,7 @@ private:
     static void addComments (Model& document)
     {
         Element* precedingBlock { nullptr };
+        bool precedingBoundToTable { false };
 
         for (auto* child : document)
         {
@@ -346,19 +481,28 @@ private:
             {
                 juce::String comment;
 
-                if (precedingBlock != nullptr and precedingBlock->contains (Id::type))
-                {
-                    const auto precedingType { *precedingBlock->get<int> (Id::type) };
-
-                    if (precedingType == map::BlockType::paragraph
-                        or precedingType == map::BlockType::codeBlock)
-                        comment = precedingBlock->getAllSubText();
-                }
+                if (precedingBoundToTable)
+                    comment = precedingBlock->getAllSubText();
 
                 child->add<juce::String> (Id::comment, comment);
             }
 
+            const auto isNamedFence { isBlockType (*child, map::BlockType::codeBlock)
+                                      and child->contains (Id::info)
+                                      and child->get<juce::String> (Id::info)->isNotEmpty() };
+
+            const auto boundToNextTable { child->nextSibling != nullptr
+                                          and isBlockType (*child->nextSibling, map::BlockType::table)
+                                          and (isBlockType (*child, map::BlockType::paragraph)
+                                               or isBlockType (*child, map::BlockType::codeBlock))
+                                          and *child->get<juce::String> (Id::path)
+                                                  == *child->nextSibling->get<juce::String> (Id::path) };
+
+            if (isNamedFence and not boundToNextTable)
+                child->add<juce::String> (Id::comment, child->getAllSubText());
+
             precedingBlock = child;
+            precedingBoundToTable = boundToNextTable;
         }
     }
 
@@ -413,10 +557,17 @@ private:
         }
     }
 
-    static void addLines (Element& cell, int indent, jam::Array<int>& ordinals, int& lineIndex)
+    static void addLines (Element& cell, int indent, jam::Array<int>& ordinals,
+        jam::Array<int>& shapeOrdinals, jam::Array<int>& commentOrdinals, int& lineIndex)
     {
         if (indent == ordinals.size())
             ordinals.resize (indent + 1);
+
+        if (indent == shapeOrdinals.size())
+            shapeOrdinals.resize (indent + 1);
+
+        if (indent == commentOrdinals.size())
+            commentOrdinals.resize (indent + 1);
 
         for (auto* block : cell)
         {
@@ -427,6 +578,7 @@ private:
                 if (jam::Format::getPreColon (blockText).trim() == Id::templatePath.toString())
                 {
                     block->add<int> (Id::level, indent);
+                    block->add<int> (Id::line, shapeOrdinals.at (indent)++);
                     block->add<juce::String> (Id::templatePath, jam::Format::getPostColon (blockText).trim());
                     block->add<int> (Id::shape, lineIndex);
                     ++lineIndex;
@@ -443,6 +595,12 @@ private:
                         item->add<int> (Id::shape, lineIndex);
                         ++lineIndex;
                     }
+                    else if (item->id == Id::comment)
+                    {
+                        item->add<int> (Id::level, indent);
+                        item->add<int> (Id::line, commentOrdinals.at (indent)++);
+                        item->add<int> (Id::shape, lineIndex - 1);
+                    }
                     else
                     {
                         item->add<int> (Id::shape, lineIndex - 1);
@@ -455,7 +613,7 @@ private:
                 }
 
             if (block->isTag (Id::blockquote))
-                addLines (*block, indent + 1, ordinals, lineIndex);
+                addLines (*block, indent + 1, ordinals, shapeOrdinals, commentOrdinals, lineIndex);
         }
     }
 
@@ -493,9 +651,7 @@ private:
 
         const auto* literal { getLiteral (cell) };
         const auto isCommentColumn { headerCell.id == Id::comment };
-        const auto isCommentProse { isCommentColumn
-                                    and (literal == nullptr
-                                         or not isBlockType (*literal, map::BlockType::codeBlock)) };
+        const auto isCommentProse { isCommentColumn and literal == nullptr };
         juce::String authored;
 
         if (literal != nullptr and not isCommentProse)

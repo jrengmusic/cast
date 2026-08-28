@@ -128,7 +128,9 @@ private:
             {
                 const auto start { groupStarts.at (index) };
                 const auto& file { model.getValue (*rows.at (start), Id::file) };
-                const auto extension { jam::Format::onlyExtensionFromFilename (file) };
+                const auto extension {
+                    juce::File::createFileWithoutCheckingPath (file).getFileExtension()
+                };
 
                 juce::String comment;
 
@@ -148,13 +150,13 @@ private:
 
                 TemplateDocument output;
                 output.addChild (*output.root, Id::text)
-                    ->add<juce::String> (Id::text, getBanner (file, comment));
+                    ->add<juce::String> (Id::text, getBanner (extension, comment));
 
                 const auto groupEnd { index + 1 < groupStarts.size()
                                           ? groupStarts.at (index + 1)
                                           : rows.size() };
 
-                apply (output, tables, rows, start, groupEnd);
+                apply (output, tables, rows, start, groupEnd, extension);
 
                 const auto outputFile { jam::File::getOrCreate (outputPath, file) };
                 const auto current { outputFile.loadFileAsString() };
@@ -184,7 +186,8 @@ private:
     }
 
     void apply (TemplateDocument& output, const jam::Array<Model::Element*>& tables,
-               const jam::Array<Model::Element*>& rows, int index, int groupEnd) const
+               const jam::Array<Model::Element*>& rows, int index, int groupEnd,
+               const juce::String& extension) const
     {
         auto* firstRow { rows.at (index) };
         const auto rowJoinValue { getRowJoin (*firstRow) };
@@ -205,9 +208,6 @@ private:
             groupLines.add (Shapes::getFirstLine (model, *row));
         }
 
-        const auto extension { jam::Format::onlyExtensionFromFilename (
-            jam::Format::toFileName (model.getValue (*firstRow, Id::file))) };
-
         output.addChild (*output.root, Id::text)
             ->add<juce::String> (Id::text,
                 Shapes::getShape (model, templateDocument, tables, groupRows, groupLines, joinText,
@@ -217,13 +217,12 @@ private:
             ->add<juce::String> (Id::text, juce::String::charToString (Chars::newline));
     }
 
-    juce::String getBanner (const juce::String& file, const juce::String& comment) const
+    juce::String getBanner (const juce::String& extension, const juce::String& comment) const
     {
         static const auto document { jam::MarkdownDocument::parse (
             BinaryData::getString (files::castOutput)) };
 
-        const auto extension { jam::Format::onlyExtensionFromFilename (file) };
-        const auto& syntax { map::commentSyntax.get (extension) };
+        const auto& syntax { map::commentSyntax.at (extension) };
         juce::String banner;
 
         if (auto* bannerBlock { document.getCodeBlock (Id::banner) })

@@ -8,6 +8,14 @@
 
 ---
 
+## DEBT-20260828T205932
+
+**Observation:** Source/generated/ and cast own manifest/tables have not been swept for convergence under current SPEC.
+**Divergence:** Current SPEC requires diff == generated (fixpoint), same law applied in the jam sweep; CAST project has not received the equivalent pass.
+**Expectation:** Source/generated/ and cast manifest/tables converge under current SPEC: diff == generated, same law as the jam sweep.
+
+---
+
 
 
 
