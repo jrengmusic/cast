@@ -111,6 +111,39 @@
 
 ## SPRINT HISTORY
 
+## Sprint: Toolchain Manifest Table + Help Plain-Print + Notarized Release ✅
+
+**Date:** 2026-08-31
+**Duration:** single session (shared with the END/jam bootstrap sprint)
+
+### Agents Participated
+- COUNSELOR — SPEC §6.9 authored; per-step disk validation; pragma-in-.cpp discovery adjudicated (data row comments.md:25, Writer.h:237 unconditional read, HashMap::get empty-on-missing — superseded by the ProjectInfo.h header redesign)
+- Engineer (four waves) — help strip, toolchain vocabulary + engine, Release build + sign + notarize, module slim (in flight)
+
+### Files Modified (8 total)
+- `SPEC.md` — §1 hardcode list + new §6.9 Toolchain: reserved optional manifest table `command | flag`; rows run after every output writes, authored order, one child process per row; caller's environment (PATH/cwd) is the caller's responsibility; failure fails the run, never the write
+- `Source/Processor.h` — generate() executes toolchain rows via juce::ChildProcess after the write result; failToolchain diagnostic on spawn failure or nonzero exit
+- `Source/Help.h` — printHelp reduced to a plain printf of HELP.md; MarkdownComponent/StyleManager/terminal-render stack deleted
+- `Source/main.cpp` — printBannerAndHelp keeps only Stamp + Generated; Hyperlink/Grapheme/GUI-initialiser deleted with per-line evidence they served only the dead help path
+- `cast/identifiers.md` — command / flag / toolchain rows; `cast/text.md` — failToolchain
+- `Source/generated/Identifiers.h`, `Source/generated/Text.h` — regen, double-run fixpoint
+
+### Alignment Check
+- [x] BLESSED principles followed — engine hardcodes nothing new beyond the reserved names; failure loud, write untouched
+- [x] NAMES.md adhered — command/flag/toolchain/failToolchain ARCHITECT-ratified
+- [x] MANIFESTO.md principles applied
+- [ ] Auditor sweep not run — sprint logged on ARCHITECT command; CMakeLists module slim (18 → 4 + build-forced closure) in flight at log time
+
+### Problems Solved
+- Release arm64 built from the new engine surface (compiles the toolchain + help changes), codesign valid, notarization Accepted (submission d0f4beaf)
+- Residual relayed verbatim: jam SignMac.cmake auto-pkg notarization Invalid — productsign skipped, installer_identity empty — pre-existing jam pipeline gap, ARCHITECT disposition pending
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None
+
 ## Sprint: CAST Self-Hosting — Own Manifest Conformance, generated == diff ✅
 
 **Date:** 2026-08-29

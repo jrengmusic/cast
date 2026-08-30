@@ -41,16 +41,41 @@ struct Processor
      *               giving the directory every declared output file is
      *               written under; empty resolves to the manifest's own
      *               directory.
-     * @returns juce::Result::ok() when validation succeeds and every
-     *          output file writes successfully, or the first failure
-     *          encountered.
+     * @returns juce::Result::ok() when validation succeeds, every output
+     *          file writes successfully, and every declared toolchain row
+     *          starts and exits zero, or the first failure encountered.
      */
     juce::Result generate (const juce::String& output = {})
     {
         if (const auto validation { Validator::isValid (*model, templateDocument) }; not validation.wasOk())
             return validation;
 
-        return writer.toFile (model->getFile (output));
+        if (const auto written { writer.toFile (model->getFile (output)) }; not written.wasOk())
+            return written;
+
+        for (auto* table : model->getTables (Id::toolchain))
+        {
+            for (auto* row : model->getTableRows (*table))
+            {
+                const auto& command { model->getValue (*row, Id::command) };
+                const auto& flag { model->getValue (*row, Id::flag) };
+                const auto line { flag.isNotEmpty()
+                                      ? command + juce::String::charToString (Chars::space) + flag
+                                      : command };
+
+                juce::ChildProcess process;
+
+                if (not process.start (line))
+                    return juce::Result::fail (line + Id::diagnosticSeparator + text::Diagnostics::failToolchain);
+
+                process.waitForProcessToFinish (-1);
+
+                if (process.getExitCode() != 0)
+                    return juce::Result::fail (line + Id::diagnosticSeparator + text::Diagnostics::failToolchain);
+            }
+        }
+
+        return juce::Result::ok();
     }
 
     /**

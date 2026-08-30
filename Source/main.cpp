@@ -93,10 +93,7 @@ static void printBanner()
  */
 static void printBannerAndHelp()
 {
-    juce::ScopedJuceInitialiser_GUI libraryInitialiser;
     jam::Stamp stamp;
-    jam::Hyperlink hyperlink;
-    jam::Grapheme grapheme;
     Generated generated;
 
     printBanner();

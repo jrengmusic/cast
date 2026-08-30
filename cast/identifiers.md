@@ -23,6 +23,8 @@ transform operations a format cell may declare (§8).
 | @id     | banner           |                      | toLiteral | Banner artwork key.                    |
 | @id     | blockLine        |                      | toLiteral |                                        |
 | @id     | brief            |                      | toLiteral | Brief documentation key.               |
+| @id     | command          |                      | toLiteral | Toolchain table command column.        |
+| @id     | flag             |                      | toLiteral | Toolchain table flag column.           |
 | @string | fromCodepoint    | `from codepoint`     |           | Codepoint decode operation.            |
 | @string | fromUTF8         | `from UTF8`          |           | UTF-8 decode operation.                |
 | @id     | indexComment     | `index comment`      |           |                                        |
@@ -41,6 +43,7 @@ transform operations a format cell may declare (§8).
 | @string | toHex            | `to hex`             |           | Hex encode operation.                  |
 | @string | toKebab          | `to kebab`           |           | kebab-case operation.                  |
 | @string | toLiteral        | `to literal`         |           | Literal delimiting/escaping operation. |
+| @id     | toolchain        |                      | toLiteral | Reserved toolchain manifest table.     |
 | @string | toPascal         | `to pascal`          |           | PascalCase operation.                  |
 | @string | toScreamingSnake | `to screaming snake` |           | SCREAMING_SNAKE_CASE operation.        |
 | @string | toSnake          | `to snake`           |           | snake_case operation.                  |

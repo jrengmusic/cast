@@ -20,6 +20,7 @@ The engine hardcodes these and nothing else:
 - the reserved token names `list` (expansion, §6.5) and `comment` (documentation, §5.4)
 - the index table name and its columns
 - the reserved column names `format` and `comment`
+- the toolchain table name and its columns
 - the operation keywords
 
 Every other name in every file is data.
@@ -449,6 +450,28 @@ When the table is declared, each output file whose alias has a row is written wi
 provided text between the banner and the pragma stamp, framed by one blank line on each
 side. A file without a row writes nothing — plain replacement, no special case (§5.4).
 An alias absent from the index is fatal (§4.4).
+
+### 6.9 Toolchain
+
+`## toolchain` is a reserved manifest table, and it is optional — like `## index
+comment`.
+
+```
+| command | flag |
+```
+
+When the table is declared, its rows run after every declared output has written, in
+authored row order — one child process per row, the command cell and the flag cell
+joined by one space. A blank flag cell runs the command alone.
+
+The command resolves through the caller's environment. PATH, working directory, and
+everything else the process inherits are the caller's responsibility — the engine adds
+no resolution, no shell, and no quoting of its own.
+
+A row whose process cannot start, or exits nonzero, fails the run with the row's own
+command text in the diagnostic; the rows after it do not run. The declared outputs are
+already on disk when the toolchain runs — a toolchain failure fails the run, never the
+write.
 
 ---
 
