@@ -101,12 +101,32 @@
 |                                      |                            | - valueType: @string         |              |         |
 |                                      |                            | > - list: template:mapEntry  |              |         |
 +--------------------------------------+----------------------------+------------------------------+--------------+---------+
+| > - list: @comments:cmake comment    | - list: template:linebreak | template:namespace           | @HashMaps    |         |
+|                                      |                            | - macro: #pragma once        |              |         |
+|                                      |                            | - name: map                  |              |         |
+|                                      |                            |                              |              |         |
+|                                      |                            | template:hashMap             |              |         |
+|                                      |                            | - name: cmakeComment         |              |         |
+|                                      |                            | - keyType: @id               |              |         |
+|                                      |                            | - valueType: @string         |              |         |
+|                                      |                            | > - list: template:mapEntry  |              |         |
++--------------------------------------+----------------------------+------------------------------+--------------+---------+
 | > - list: @comments:css comment      | - list: template:linebreak | template:namespace           | @HashMaps    |         |
 |                                      |                            | - macro: #pragma once        |              |         |
 |                                      |                            | - name: map                  |              |         |
 |                                      |                            |                              |              |         |
 |                                      |                            | template:hashMap             |              |         |
 |                                      |                            | - name: cssComment           |              |         |
+|                                      |                            | - keyType: @id               |              |         |
+|                                      |                            | - valueType: @string         |              |         |
+|                                      |                            | > - list: template:mapEntry  |              |         |
++--------------------------------------+----------------------------+------------------------------+--------------+---------+
+| > - list: @comments:gomod comment    | - list: template:linebreak | template:namespace           | @HashMaps    |         |
+|                                      |                            | - macro: #pragma once        |              |         |
+|                                      |                            | - name: map                  |              |         |
+|                                      |                            |                              |              |         |
+|                                      |                            | template:hashMap             |              |         |
+|                                      |                            | - name: gomodComment         |              |         |
 |                                      |                            | - keyType: @id               |              |         |
 |                                      |                            | - valueType: @string         |              |         |
 |                                      |                            | > - list: template:mapEntry  |              |         |
@@ -179,6 +199,16 @@
 |                                      |                            | - name: commentSyntax        |              |         |
 |                                      |                            | - keyType: @string           |              |         |
 |                                      |                            | - valueType: @commentMap     |              |         |
+|                                      |                            | > - list: template:mapEntry  |              |         |
++--------------------------------------+----------------------------+------------------------------+--------------+---------+
+| > - list: @comments:manifest syntax  | - list: template:linebreak | template:namespace           | @HashMaps    |         |
+|                                      |                            | - macro: #pragma once        |              |         |
+|                                      |                            | - name: map                  |              |         |
+|                                      |                            |                              |              |         |
+|                                      |                            | template:hashMap             |              |         |
+|                                      |                            | - name: manifestSyntax       |              |         |
+|                                      |                            | - keyType: @string           |              |         |
+|                                      |                            | - valueType: @string         |              |         |
 |                                      |                            | > - list: template:mapEntry  |              |         |
 +--------------------------------------+----------------------------+------------------------------+--------------+---------+
 | > - list: @project-info:project info |                            | template:namespace           | @ProjectInfo |         |

@@ -241,6 +241,12 @@ text, comment syntax is not. The marker's replacement is rendered in the **outpu
 language's** comment syntax, selected by the file the row writes to, through the
 comment-syntax table. Comment syntax never appears in a template, a cell, or a fence.
 
+The comment-syntax key is the output file's extension — except when the output file's
+exact name has a row in the manifest-syntax table. Build manifests carry deterministic
+names whose extensions do not name their language (`CMakeLists.txt` is CMake, not
+text); a manifest-syntax hit replaces the extension as the comment-syntax key, and
+every other output falls through to its extension.
+
 Marker position selects the form, exactly as marker position selects the expansion
 axis (§7):
 

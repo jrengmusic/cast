@@ -8,6 +8,22 @@
 
 ---
 
+## DEBT-20260831T021428
+
+**Observation:** KANJUT conformance wholesale owed
+**Divergence:** ALL modules conform from jam to ___lib___
+**Expectation:** Validation: JFS built with KANJUT
+
+---
+
+## DEBT-20260831T021425
+
+**Observation:** plugin_bootstrap conformance owed
+**Divergence:** JFS must build with JAM
+**Expectation:** GUI only (including settings); ProcessorChain may stay stubs
+
+---
+
 
 
 

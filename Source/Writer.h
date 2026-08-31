@@ -128,9 +128,10 @@ private:
             {
                 const auto start { groupStarts.at (index) };
                 const auto& file { model.getValue (*rows.at (start), Id::file) };
-                const auto extension {
-                    juce::File::createFileWithoutCheckingPath (file).getFileExtension()
-                };
+                const auto fileName { juce::File::createFileWithoutCheckingPath (file).getFileName() };
+                const auto extension { map::manifestSyntax.contains (fileName)
+                                           ? map::manifestSyntax.at (fileName)
+                                           : juce::File::createFileWithoutCheckingPath (file).getFileExtension() };
 
                 juce::String comment;
 

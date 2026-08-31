@@ -1,15 +1,29 @@
 CompileFlags:
-  CompilationDatabase: /Users/jreng/Documents/Poems/dev/cast
-  Remove: [--target=*]
+  CompilationDatabase: /Users/jreng/Documents/Poems/dev/cast/Builds/Ninja/Debug/
+  Remove:
+    - -arch
+    - -mmacosx-version-min*
   Add:
-    - -DCAST_COMMIT=\"394e290\"
+    - --target=arm64-apple-darwin
+    - -I/Users/jreng/Documents/Poems/dev/../Vulkan/macOS/include
+    - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Ninja/Debug/cast_App_artefacts/JuceLibraryCode
+    - -I/Users/jreng/Documents/Poems/dev/cast/Source
+    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules/juce_graphics/fonts/harfbuzz
+    - -I/Users/jreng/Documents/Poems/dev/cast/../jam
+    - -I/Users/jreng/Documents/Poems/dev/cast/Source/generated
+    - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Ninja/Debug/juce_binarydata_cast_App_BinaryData/JuceLibraryCode
+    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules
+    - -DCAST_COMMIT=
     - -DDEBUG=1
     - -DDONT_SET_USING_JUCE_NAMESPACE=1
-    - -DJUCE_APPLICATION_NAME_STRING=\"cast\"
-    - -DJUCE_APPLICATION_VERSION_STRING=\"0.1.0\"
+    - -DJUCE_APPLICATION_NAME_STRING=
+    - -DJUCE_APPLICATION_VERSION_STRING=
     - -DJUCE_DONT_DECLARE_PROJECTINFO=1
     - -DJUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1
     - -DJUCE_IN_APP_PURCHASES=0
+    - -DJUCE_IOS=0
+    - -DJUCE_LINUX=0
+    - -DJUCE_MAC=1
     - -DJUCE_MODULE_AVAILABLE_jam_core=1
     - -DJUCE_MODULE_AVAILABLE_jam_markdown=1
     - -DJUCE_MODULE_AVAILABLE_juce_core=1
@@ -19,26 +33,21 @@ CompileFlags:
     - -DJUCE_MODULE_AVAILABLE_juce_gui_basics=1
     - -DJUCE_STANDALONE_APPLICATION=1
     - -DJUCE_TARGET_HAS_BINARY_DATA=1
+    - -DJUCE_WINDOWS=0
+    - -DTARGET_OS_IPHONE=0
     - -D_DEBUG=1
-    - -I/Users/jreng/Documents/Poems/dev/../Vulkan/macOS/include
-    - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Ninja/Debug/cast_App_artefacts/JuceLibraryCode
-    - -I/Users/jreng/Documents/Poems/dev/cast/Source
-    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules/juce_graphics/fonts/harfbuzz
-    - -I/Users/jreng/Documents/Poems/dev/cast/../jam
-    - -I/Users/jreng/Documents/Poems/dev/cast/Source/generated
-    - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Ninja/Debug/juce_binarydata_cast_App_BinaryData/JuceLibraryCode
-    - -I/var/folders/k6/ms2vt1_n6dq7_rf7jlmhc6_00000gn/T/juce-patched/modules
-    - -g
-    - -std=c++17
-    - -arch
-    - arm64
-    - -mmacosx-version-min=11.0
-    - -Wno-float-equal
-    - -Wno-sign-conversion
-    - -Wno-implicit-float-conversion
-    - -Wno-switch-enum
-    - -Wno-shadow
+    - -D__APPLE__=1
+    - -Wno-deprecated-declarations
     - -Wno-unused-parameter
+
+Index:
+  Background: Build
+
 Diagnostics:
-  MissingIncludes: None
   UnusedIncludes: None
+  MissingIncludes: None
+
+InlayHints:
+  Enabled: Yes
+  ParameterNames: Yes
+  DeducedTypes: Yes

@@ -111,6 +111,76 @@
 
 ## SPRINT HISTORY
 
+## Sprint: CAST Sole Toolchain — EVE CMakeLists.txt Generated, Byte-Identical, Configures ✅
+
+**Date:** 2026-08-31
+**Duration:** single session (oracle-first; no-gate completion on ARCHITECT command)
+
+### Agents Participated
+- COUNSELOR — plan, oracle CMakeLists.txt, project-info.md monolith schema, cmake template blocks, wiring, crash root-cause, audit triage
+- Librarian ×2 — Projucer field surface (jucer_PresetIDs.h:40-418, 400+ fields); JUCE CMake API (juce_add_plugin 74+18 args, ExactVersion policy)
+- Pathfinder ×2 — end/eve survey; build-datum inventory (~150 datums across eve/end/cake/tit/whatdbg + jam/cmake)
+- Engineer ×8 — Writer.h manifest-name lookup; cast regen/rebuild; generation/diff/configure runs; lldb attempt (TCC-blocked)
+- Auditor — one sweep, 26 findings; 7 resolved in-sprint, rest reported to ARCHITECT verbatim
+
+### Files Modified
+**cast repo**
+- `cast/comments.md` — new tables: `## cmake comment` (`#`, `#[[`/`]]` bracket frame incl. banner), `## gomod comment` (`//`), `## manifest syntax` (CMakeLists.txt→.cmake, bunfig.toml/Cargo.toml→.toml, go.mod→.mod); extension rows `.cmake→cmakeComment`, `.mod→gomodComment`, `.toml→shellComment`; `.txt` never claimed
+- `cast/CAST.md` — three hashMap output rows: cmakeComment, gomodComment, manifestSyntax (@string→@string)
+- `Source/Writer.h:131-134` — comment-syntax key: exact output file name via map::manifestSyntax first, extension fallback (sole new identifier `fileName`)
+- `Source/generated/HashMaps.h` — regenerated; three new maps
+- `SPEC.md` §5.4 — manifest-syntax lookup clause added (rule was ARCHITECT-ruled this session)
+- `DEBT.md` — two ARCHITECT-commanded entries captured (see Debts Deferred)
+
+**jam repo**
+- `jam/cast/template.cast` — cmake block family: root `cmake` skeleton (15 column-zero `:::list:::` slots, `${PROJECT_NAME}` + fixed `CAST_` vars, zero scalar values) + item blocks cmakeToolchain/cmakeProject/cmakePath/cmakeJuce/cmakePatch/cmakeModule/cmakePlugin/cmakeFormat/cmakeEntry
+
+**eve repo**
+- `CMakeLists.txt` — generated build manifest (oracle-first): CAST banner in `#[[ ]]`, @file block, sectioned TOOLCHAIN→PROJECT→WARNINGS→PATHS→JUCE(patch pipeline + get_directory_property exact-version gate 8.0.14)→MODULES→TARGET→DEFINES→INCLUDES→LINK→SOURCE FLAGS→SHADERS→RESOURCES→FORMATS→REPORT; CAST: message narration; FATAL gates (JUCE version, glslc, patch --check); warning flags chosen once post-project() into CAST_WARNING_FLAGS
+- `project-info.md` — Projucer-equivalent monolith: baseline, clang/msvc flags, project, paths, juce, patches, modules, plugin (15-column juce_add_plugin row), sources, defines, includes, libraries, layout globs + existing project info; projectName corrected END→EVE
+- `cast/CAST.md` — index (@CMakeLists→../CMakeLists.txt), index comment, 15-slot wiring with engine `>`-depth indentation (d0/d1/d2)
+- `Source/generated/ProjectInfo.h` — regenerated, projectName "EVE"
+- `Builds/Ninja/Verify/` — scratch configure dir (ARCHITECT may delete)
+
+### Alignment Check
+- [x] BLESSED principles followed (SSOT residuals below are ARCHITECT's to dispose)
+- [x] NAMES.md adhered (singular block names; family-shape tables)
+- [x] MANIFESTO.md applied (no engine churn beyond the two ruled lookups; indentation via engine `>` mechanism, invented indent blocks removed after audit)
+- [ ] Auditor residuals open — listed below, ARCHITECT disposes
+
+### Problems Solved
+- SIGSEGV on eve manifest: `## toolchain` is reserved engine vocabulary (Processor.h:56-76 executes toolchain command tables; Model.h:106 null-deref on missing `command` column) — table renamed `## baseline`
+- ThreadPool:393 crash signature decoded: unmapped output extension throws inside writer job (probe's own `.txt` output)
+- toLiteral C++-escapes `©` (`\xc2\xa9`) — invalid cmake; copyright cell authored plain with quotes
+- `JUCE_VERSION` scope bug: subdirectory `project()` never reaches parent — gate reads `get_directory_property(... DEFINITION JUCE_VERSION)`
+- MSVC-before-project() bug (Auditor #1): WARNINGS section moved after project(); flag choice made once (`CAST_WARNING_FLAGS`), applied at 3 sites
+- Byte-identical fixpoint: generated == oracle, stable across repeated runs, write-if-different leaves mtime untouched; fresh `cmake -G Ninja` configure passes end-to-end
+
+### Auditor Residuals (verbatim dispositions pending ARCHITECT)
+- #2b presetExtension `endp` in eve (END legacy — intended?)
+- #3 name/version/company/website stated in both `## project info` (C++) and cmake tables — cross-output SSOT unification is a schema decision
+- #4/#5 fonts and spv embedded into two binary-data targets — preserved from original eve CMakeLists; behavior change is ARCHITECT's call
+- #6 unmapped comment-syntax key terminates inside a thread-pool job; Auditor judges a Validator gate is the SPEC-correct shape (SPEC.md:604-607, :662-664)
+- #7/#8/#21 Auditor proposes collapsing manifestSyntax into commentSyntax keyed by exact name — ARCHITECT ruled a separate LUT; reported, not applied
+- #10 `extension` parameter now sometimes carries a mapped key (still an extension string)
+- #11 stray leading space on `#[[` block-comment prose lines (empty blockLine glyph vs SPEC §11.3)
+- #12 gomod/toml comment tables lack banner frames (dormant until such outputs exist)
+- #13 root `cmake` template block carries EVE-specific machinery (Vulkan/MoltenVK/freetype/shaders) — single-project scope this sprint; generalization pending
+- #15 modules(14) vs libraries(15-link, jam_terminal unlinked) — preserved from original eve
+- #17 copyright quotes hand-authored (engine lacks a cmake-literal transform)
+- #18 cmake_minimum_required 4.2.0 floor
+- #19/#20 Writer.h nits (double createFileWithoutCheckingPath; contains+at double hash)
+- #23/#24 gomodComment named for a file; `.toml→shellComment` naming
+- #26 Writer.h:145 guard with no named threat (pre-existing)
+- Protocol disclosure: one Engineer subagent ran `git status --short` against the git ban (read-only, output unused, self-flagged)
+
+### Debts Paid
+- None
+
+### Debts Deferred (ARCHITECT-commanded, next-sprint scope per JRENG law)
+- `DEBT-20260831T021425` — plugin_bootstrap conformance: JFS builds with JAM, GUI only, ProcessorChain stubs
+- `DEBT-20260831T021428` — KANJUT conformance wholesale: all modules jam → ___lib___, validated by JFS on KANJUT
+
 ## Sprint: Generated Aggregate Construction + Trailing-Slot Elision — cast & jam Roundtrip Clean ✅
 
 **Date:** 2026-08-31

@@ -23,6 +23,26 @@ authored documentation in the output language's own syntax.
 | Id::bannerClose | `********************************************************************************/` |
 +-----------------+-------------------------------------------------------------------------------------+
 
+## cmake comment
+
+```
+@brief CMake comment syntax.
+
+Carries the single-line marker (`Id::comment`, `#`) and the bracket-comment
+block frame (`#[[` / `]]`), which also serves as the banner frame for
+CMakeLists.txt and `.cmake` outputs.
+```
+
++-----------------+------------------------------------------------------------------------------------+
+| key             | value                                                                              |
++=================+====================================================================================+
+| Id::comment     | `#`                                                                                |
+| Id::blockOpen   | `#[[`                                                                              |
+| Id::blockClose  | `]]`                                                                               |
+| Id::bannerOpen  | `#[[*****************************************************************************` |
+| Id::bannerClose | `******************************************************************************]]` |
++-----------------+------------------------------------------------------------------------------------+
+
 ## css comment
 
 ```
@@ -42,6 +62,21 @@ as a block.
 | Id::bannerOpen  | `/*******************************************************************************`  |
 | Id::bannerClose | `********************************************************************************/` |
 +-----------------+-------------------------------------------------------------------------------------+
+
+## gomod comment
+
+```
+@brief go.mod comment syntax.
+
+Carries only the single-line marker (`Id::comment`, `//`); go.mod has no
+block comment, so documentation renders inline only.
+```
+
++-------------+-------+
+| key         | value |
++=============+=======+
+| Id::comment | `//`  |
++-------------+-------+
 
 ## html comment
 
@@ -160,9 +195,9 @@ block comment, so documentation renders inline only.
 Maps an output file's extension to the comment frame the `:::comment:::`
 marker renders in. Transforms.h reads one row per output file to wrap
 authored documentation, and Writer.h reads it to frame the banner. Each
-extension keys the `clangComment`, `cssComment`, `htmlComment`,
-`luaComment`, `mermaidComment`, `pythonComment`, `rubyComment`, or
-`shellComment` map above.
+extension keys the `clangComment`, `cmakeComment`, `cssComment`,
+`gomodComment`, `htmlComment`, `luaComment`, `mermaidComment`,
+`pythonComment`, `rubyComment`, or `shellComment` map above.
 ```
 
 +-----------+---------------+
@@ -179,7 +214,9 @@ extension keys the `clangComment`, `cssComment`, `htmlComment`,
 | `.go`     | clangComment  |
 | `.rs`     | clangComment  |
 | `.rust`   | clangComment  |
+| `.cmake`  | cmakeComment  |
 | `.css`    | cssComment    |
+| `.mod`    | gomodComment  |
 | `.html`   | htmlComment   |
 | `.xml`    | htmlComment   |
 | `.lua`    | luaComment    |
@@ -190,8 +227,28 @@ extension keys the `clangComment`, `cssComment`, `htmlComment`,
 | `.sh`     | shellComment  |
 | `.bash`   | shellComment  |
 | `.shell`  | shellComment  |
-| `.cmake`  | shellComment  |
+| `.toml`   | shellComment  |
 | `.sql`    | shellComment  |
 | `.yaml`   | shellComment  |
 | `.yml`    | shellComment  |
 +-----------+---------------+
+
+## manifest syntax
+
+```
+@brief Manifest file name to comment-syntax key table.
+
+Build-manifest files carry deterministic names whose extensions do not name
+their language — `CMakeLists.txt` is CMake, not text. Writer.h reads this
+table first, by exact output file name; a hit replaces the extension as the
+`commentSyntax` key. Every other output falls through to its extension.
+```
+
++------------------+----------+
+| key              | value    |
++==================+==========+
+| `CMakeLists.txt` | `.cmake` |
+| `bunfig.toml`    | `.toml`  |
+| `Cargo.toml`     | `.toml`  |
+| `go.mod`         | `.mod`   |
++------------------+----------+
