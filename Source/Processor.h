@@ -136,10 +136,8 @@ struct Processor
 
 private:
     juce::ScopedJuceInitialiser_GUI libraryInitialiser;
-    jam::Stamp stamp;
-    jam::Hyperlink hyperlink;
-    jam::Grapheme grapheme;
     Generated generated;
+    jam::Stamp stamp;
 
     //==============================================================================
     std::unique_ptr<Model> model;

@@ -1,8 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
 
-static constexpr int widthCap { 80 };
-
 /**
  * @brief Prints the HELP.md text to stdout.
  *

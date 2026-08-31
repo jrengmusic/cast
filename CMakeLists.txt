@@ -23,28 +23,21 @@ configure_app(
     VERSION      "${PROJECT_VERSION}"
     MODULES      juce_core
     JAM_MODULES  jam_core
-                 jam_style
-                 jam_terminal
                  jam_markdown
+    BINARY_FILES Source/HELP.md
+                 Source/style.css
+                 Source/resources/cast-output.md
 )
 
 target_include_directories(cast_App PRIVATE
     "${JAM_ROOT}"
-    "${JUCE_PATH}/modules/juce_graphics/fonts/harfbuzz"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/generated"
 )
 
 target_compile_definitions(cast_App PRIVATE
     CAST_COMMIT="${CAST_COMMIT_HASH}"
+    JUCE_DONT_DECLARE_PROJECTINFO=1
 )
-
-juce_add_binary_data(
-    cast_BinaryData
-    SOURCES Source/HELP.md
-            Source/style.css
-            Source/resources/cast-output.md
-)
-
-target_link_libraries(cast_App PRIVATE cast_BinaryData)
 
 message(STATUS "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 message(STATUS "Configuration complete!")

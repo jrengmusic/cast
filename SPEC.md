@@ -1,6 +1,6 @@
 # CAST Specification
 
-**Version 0.5**
+**Version 0.6**
 
 ---
 
@@ -355,7 +355,9 @@ row's items (§6), never the row's own shape — shape documentation is the tabl
 
 A supplier that carries no text renders empty, and a line left empty by its own
 placeholder is elided (§7). A named token that no binding, column, or documentation
-names at all is fatal (§10.1).
+names renders empty the same way — an unsupplied token is empty text, never an
+error. The template declares every slot a file could carry; the data declares, per
+row, which slots carry text.
 
 Expansion pairs by order:
 
@@ -447,8 +449,8 @@ law (§4) does not apply inside it: documentation is never a reference, so a pro
 beginning with `@file` or `@brief` is text.
 
 When the table is declared, each output file whose alias has a row is written with the
-provided text between the banner and the pragma stamp, framed by one blank line on each
-side. A file without a row writes nothing — plain replacement, no special case (§5.4).
+provided text between the banner and the rows' own rendered shape, framed by one blank
+line on each side. A file without a row writes nothing — plain replacement, no special case (§5.4).
 An alias absent from the index is fatal (§4.4).
 
 ### 6.9 Toolchain
@@ -625,7 +627,6 @@ These, and nothing else:
 | a shape's arity does not match the sources supplied | §6.4 |
 | a structure or separator `- list:` line without its list-column line of the same ordinal, the row join excepted | §6.5, §6.6 |
 | duplicate binding name among one shape's bindings | §6.1 |
-| a named token no binding, column, or documentation names | §6.5 |
 | a comment reference naming neither a table nor a fence | §5.4 |
 | unterminated `:::` marker in a shape block | §7 |
 
@@ -682,5 +683,3 @@ The engine implements superseded rules. Each is debt against this document:
   per line (§6.7)
 - each line's paired source walked at every read rather than stamped once at parse
   (§11.1) — template id, indentation and line are stamped
-- the renderers still answer a missing supplier with an empty string behind the §10.1
-  gate — dead defense once the gate holds (§6.5, §11.3)

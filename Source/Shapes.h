@@ -63,7 +63,8 @@ struct Shapes
         auto* cursor { model.getNextLine (line) };
 
         if (line.isTag (Id::p))
-            for (int occurrence { 0 }; occurrence < getArity (templateDocument, line); ++occurrence)
+            for (int occurrence { 0 };
+                 cursor != nullptr and occurrence < getArity (templateDocument, line); ++occurrence)
                 cursor = getLineAfter (model, templateDocument, *cursor);
 
         return cursor;
@@ -89,7 +90,7 @@ struct Shapes
     {
         auto* cursor { model.getNextLine (line) };
 
-        for (int index { 0 }; index < occurrence; ++index)
+        for (int index { 0 }; cursor != nullptr and index < occurrence; ++index)
             cursor = getLineAfter (model, templateDocument, *cursor);
 
         return cursor;
@@ -168,7 +169,7 @@ struct Shapes
             {
                 auto* sourceLine { getSourceLine (model, templateDocument, line, occurrence) };
 
-                if (not sourceLine->isTag (Id::p))
+                if (sourceLine != nullptr and not sourceLine->isTag (Id::p))
                     table = model.getTable (row,
                         *model.getSource (row, *sourceLine->get<int> (Id::level),
                              *sourceLine->get<int> (Id::line))
@@ -529,11 +530,13 @@ struct Shapes
     }
 
     /**
-     * @brief Fills one @c list token occurrence -- resolves
-     *        @p occurrence's source line for every entry in @p lines,
-     *        renders the paragraph sources through getShapeText() and the
-     *        list-item sources through getItemText(), and joins the two
-     *        groups with @p joinText.
+     * @brief Fills one @c list token occurrence -- resolves @p occurrence's
+     *        source line for every entry in @p lines whose authored
+     *        sources reach that far, aligning under-supplied sources to
+     *        the shape's trailing slots and eliding each leading unfilled
+     *        slot, renders the paragraph sources through getShapeText()
+     *        and the list-item sources through getItemText(), and joins
+     *        the two groups with @p joinText.
      *
      * @param model            The model @p tables and @p rows belong to.
      * @param templateDocument The template document each source's shape is
@@ -562,27 +565,41 @@ struct Shapes
         const jam::Array<Element*>& lines, int occurrence, const juce::String& joinText,
         int parentIndent, bool isAtColumnZero, const juce::String& extension)
     {
-        jam::Array<Element*> sourceLines;
-
-        for (auto* structureLine : lines)
-            sourceLines.add (getSourceLine (model, templateDocument, *structureLine, occurrence));
-
         jam::Array<Element*> shapeRows;
         jam::Array<Element*> shapeSourceLines;
         jam::Array<Element*> itemRows;
         jam::Array<Element*> itemSourceLines;
 
         for (int index { 0 }; index < rows.size(); ++index)
-            if (sourceLines.at (index)->isTag (Id::p))
+        {
+            auto* structureLine { lines.at (index) };
+            const auto arity { getArity (templateDocument, *structureLine) };
+            auto availableCount { 0 };
+
+            while (availableCount < arity
+                   and getSourceLine (model, templateDocument, *structureLine, availableCount)
+                           != nullptr)
+                ++availableCount;
+
+            const auto skippedCount { arity - availableCount };
+
+            if (occurrence >= skippedCount)
             {
-                shapeRows.add (rows.at (index));
-                shapeSourceLines.add (sourceLines.at (index));
+                auto* sourceLine { getSourceLine (
+                    model, templateDocument, *structureLine, occurrence - skippedCount) };
+
+                if (sourceLine->isTag (Id::p))
+                {
+                    shapeRows.add (rows.at (index));
+                    shapeSourceLines.add (sourceLine);
+                }
+                else
+                {
+                    itemRows.add (rows.at (index));
+                    itemSourceLines.add (sourceLine);
+                }
             }
-            else
-            {
-                itemRows.add (rows.at (index));
-                itemSourceLines.add (sourceLines.at (index));
-            }
+        }
 
         jam::Strings texts;
 

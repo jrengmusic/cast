@@ -111,6 +111,42 @@
 
 ## SPRINT HISTORY
 
+## Sprint: Generated Aggregate Construction + Trailing-Slot Elision — cast & jam Roundtrip Clean ✅
+
+**Date:** 2026-08-31
+**Duration:** single session (post-rewind; oracle-first diff cycle throughout)
+
+### Agents Participated
+- COUNSELOR — root-caused the startup abort; authored the Generated.h oracle by hand; wired template + manifest; validated every Engineer edit against spec with own reads
+- Engineer (one wave) — Shapes.h/Validator.h trailing-slot elision, spec-exact
+- Pathfinder — two read-only diff sweeps (cast Source/generated vs Source/diff; jam/generated vs jam/diff)
+
+### Files Modified (6 total)
+- `Source/generated/Generated.h` — regains the construction point: bare `struct Generated { jam::SharedInstance<map::Generated> generated { std::in_place }; }` after the five includes (no namespace — jam owns `map::Generated`, jam_Generated.h:41); hand-authored as oracle, then engine-converged from the manifest
+- `Source/Processor.h:139` — `Generated generated;` member before `model`, so every jam bimap is live before `Model::parse` runs
+- `Source/Shapes.h` — null-tolerant walks (getLineAfter:66-68, getSourceLine:93, getCommentTable:172); getFill trailing-slot alignment (:576-601): `availableCount` capped at arity, `skippedCount = arity - availableCount`, leading unfilled slots render empty and elide via the existing blank-collapse
+- `Source/Validator.h:520` — source-count gate relaxed to over-supply only (`supplied - 1 > demanded`); under-supply is legal
+- `../jam/cast/template.cast` — `struct` block gains a leading `:::list:::` slot (macro, list, comment, struct body) — two-slot, jam-generated-block layout
+- `cast/CAST.md` — output-index @Generated row: `template:struct` + `- name: Generated` + `- type: map::Generated` / `- instance: generated`; `- list: file` → include, `> - list: instance` → sharedInstance (self-hosting binding discovery, jam's pattern)
+
+### Alignment Check
+- [x] BLESSED principles followed — construction point declared once, in the data; engine change is one law (positional slots, undefined = empty string, elision for free), no special cases
+- [x] NAMES.md adhered — `Generated`/`generated` from the established family; Engineer introduced only the three ratified locals (`availableCount`, `skippedCount`, `sourceLine`)
+- [x] Verified: cast roundtrip clean, jam roundtrip clean (ARCHITECT-run; jam/diff vs jam/generated identical); under-supplied struct rows unchanged everywhere (Text.h, Mermaid, chars all render as before)
+- [ ] Auditor sweep not run — logged on ARCHITECT command
+
+### Problems Solved
+- Startup abort `jam_SharedInstance.h:69` — `MarkdownDocument::parse` → `map::BlockTag::getInstance()` (jam_MarkdownDocument.cpp:349) with no live holder: cast's regenerated umbrella had lost its aggregate; nothing constructed `map::Generated`. Fixed from the data, oracle-first
+- Slot-pairing law ratified (ARCHITECT): two lists always count as two — first is first, second is second; an undefined slot is an empty string, elided for free; authored lines fill the trailing slots. `template:struct` + only `> - list:` is legal — first slot elides
+- `template:generated` rejected for cast (emits `namespace map { struct Generated }` — collides with jam's aggregate); cast's struct is global-scope by ruling
+- "generated"→"diff" prose in both manifests identified as alias-redirect collateral (paths and prose replaced together); restored at flip-back, engine never keyed on the word
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None
+
 ## Sprint: Toolchain Manifest Table + Help Plain-Print + Notarized Release ✅
 
 **Date:** 2026-08-31

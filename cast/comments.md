@@ -6,10 +6,9 @@
 Carries every frame the `:::comment:::` marker renders into for a C-like
 file: the single-line trailing marker (`Id::comment`, `///<`), the block
 brief marker (`Id::brief`, `@brief`), the block delimiters (`Id::blockOpen`
-/ `Id::blockClose`), the banner frame (`Id::bannerOpen` /
-`Id::bannerClose`), and the include guard (`Id::pragma`). Transforms.h and
-Writer.h read these keys to wrap authored documentation in the output
-language's own syntax.
+/ `Id::blockClose`), and the banner frame (`Id::bannerOpen` /
+`Id::bannerClose`). Transforms.h and Writer.h read these keys to wrap
+authored documentation in the output language's own syntax.
 ```
 
 +-----------------+-------------------------------------------------------------------------------------+
@@ -22,7 +21,6 @@ language's own syntax.
 | Id::blockClose  | `*/`                                                                                |
 | Id::bannerOpen  | `/*******************************************************************************`  |
 | Id::bannerClose | `********************************************************************************/` |
-| Id::pragma      | `#pragma once`                                                                      |
 +-----------------+-------------------------------------------------------------------------------------+
 
 ## css comment

@@ -381,90 +381,9 @@ struct Validator : jam::MarkdownValidator
         return juce::Result::ok();
     }
 
-    /**
-     * @brief Answers whether @p name resolves for @p sourceRow -- either a
-     *        column cell named @p name, or a structure-wiring binding of
-     *        that name at any depth.
-     *
-     * @param model     The model @p sourceRow belongs to.
-     * @param sourceRow The row @p name is checked against.
-     * @param name      The token or column name to check.
-     * @returns @c true when @p sourceRow supplies @p name.
-     */
-    static bool isBound (const Model& model, Element& sourceRow, const juce::Identifier& name)
-    {
-        if (model.getTableCell (sourceRow, name) != nullptr)
-            return true;
-
-        auto matches { false };
-
-        if (auto* scope { model.getTableCell (sourceRow, Id::structure) })
-            scope->applyFunctionRecursively (
-                [&matches, &name] (const Element& item) -> bool
-                {
-                    if (item.parent != nullptr and item.parent->isTag (Id::ul) and item.id == name)
-                        matches = true;
-
-                    return not matches;
-                });
-
-        return matches;
-    }
-
-    /**
-     * @brief Answers whether @p name resolves for @p sourceValue's own
-     *        source -- a column address's column, a referenced table's
-     *        header column, any output table's header column when
-     *        @p sourceValue matches @p name as a bare column source, or a
-     *        binding-selected row's own supply through isBound().
-     *
-     * @param model       The model @p row belongs to.
-     * @param row         The row @p sourceValue's alias is resolved
-     *                    against.
-     * @param sourceValue The structure line's own authored source address
-     *                    or name.
-     * @param name        The token or column name to check.
-     * @returns @c false when @p sourceValue is empty, or whether @p name
-     *          resolves for @p sourceValue's source.
-     */
-    static bool isSupplied (const Model& model, Element& row, const juce::String& sourceValue,
-        const juce::Identifier& name)
-    {
-        if (sourceValue.isEmpty())
-            return false;
-
-        if (Model::isColumnAddress (sourceValue))
-            return Model::getColumn (sourceValue) == name;
-
-        if (auto* sourceTable { model.getTable (row, sourceValue) })
-            return model.getTableCell (*Model::getTableHeaderRow (*sourceTable), name) != nullptr;
-
-        const auto sourceName { juce::Identifier (sourceValue) };
-        const auto tables { model.getTables() };
-
-        if (sourceName == name
-            and std::any_of (tables.begin(), tables.end(),
-                [&model, &name] (Element* table)
-                {
-                    return model.isOutputTable (*table)
-                           and model.getTableCell (*Model::getTableHeaderRow (*table), name) != nullptr;
-                }))
-            return true;
-
-        for (auto* sourceRow : Items::getBindingSourceRows (model, tables, sourceName))
-            if (isBound (model, *sourceRow, name))
-                return true;
-
-        return false;
-    }
-
     static juce::Result isShapeSupplied (const Model& model, const TemplateDocument& templateDocument,
-        Element& table, Element& row, const juce::Identifier& column, Element& precedingShape,
-        const jam::HashSet<juce::Identifier>& seen)
+        Element& table, Element& row, const juce::Identifier& column, Element& precedingShape)
     {
-        const auto shapeId { juce::Identifier (*precedingShape.get<juce::String> (Id::templatePath)) };
-        const auto& tokens { *templateDocument.getCodeBlock (shapeId)
-                                  ->get<jam::Document::Identifiers> (Id::placeholder) };
         juce::String sourceValue;
 
         if (not precedingShape.isTag (Id::p))
@@ -480,20 +399,12 @@ struct Validator : jam::MarkdownValidator
                     return result;
         }
 
-        for (const auto& name : tokens)
-            if (name != Id::list and name != Id::comment and not seen.contains (name)
-                and model.getTableCell (row, name) == nullptr
-                and not isSupplied (model, row, sourceValue, name))
-                return juce::Result::fail (getLocation (table, row, column.toString())
-                                           + Id::diagnosticSeparator + text::Diagnostics::failNotFound
-                                           + Id::diagnosticSeparator + name.toString());
-
         return juce::Result::ok();
     }
 
     static juce::Result isPlaceholderScope (const Model& model, const TemplateDocument& templateDocument,
         Element& table, Element& row, const juce::Identifier& column, Element& scope,
-        Element*& precedingShape, jam::HashSet<juce::Identifier>& seen)
+        Element*& precedingShape)
     {
         for (auto* block : scope)
         {
@@ -501,12 +412,11 @@ struct Validator : jam::MarkdownValidator
             {
                 if (precedingShape != nullptr)
                     if (const auto result { isShapeSupplied (
-                            model, templateDocument, table, row, column, *precedingShape, seen) };
+                            model, templateDocument, table, row, column, *precedingShape) };
                         not result.wasOk())
                         return result;
 
                 precedingShape = block;
-                seen.clear();
             }
 
             if (block->isTag (Id::ul))
@@ -522,20 +432,17 @@ struct Validator : jam::MarkdownValidator
                     {
                         if (precedingShape != nullptr)
                             if (const auto result { isShapeSupplied (
-                                    model, templateDocument, table, row, column, *precedingShape, seen) };
+                                    model, templateDocument, table, row, column, *precedingShape) };
                                 not result.wasOk())
                                 return result;
 
                         precedingShape = item;
-                        seen.clear();
                     }
-                    else if (item->id != Id::list)
-                        seen.insert (item->id);
                 }
 
             if (block->isTag (Id::blockquote))
                 if (const auto result { isPlaceholderScope (model, templateDocument, table, row, column,
-                        *block, precedingShape, seen) };
+                        *block, precedingShape) };
                     not result.wasOk())
                     return result;
         }
@@ -553,16 +460,15 @@ struct Validator : jam::MarkdownValidator
                         if (auto* scope { model.getTableCell (*row, column) })
                         {
                             Element* precedingShape { nullptr };
-                            jam::HashSet<juce::Identifier> seen;
 
                             if (const auto result { isPlaceholderScope (model, templateDocument, *table,
-                                    *row, column, *scope, precedingShape, seen) };
+                                    *row, column, *scope, precedingShape) };
                                 not result.wasOk())
                                 return result;
 
                             if (precedingShape != nullptr and column == Id::structure)
                                 if (const auto result { isShapeSupplied (model, templateDocument, *table,
-                                        *row, column, *precedingShape, seen) };
+                                        *row, column, *precedingShape) };
                                     not result.wasOk())
                                     return result;
                         }
@@ -611,7 +517,7 @@ struct Validator : jam::MarkdownValidator
                                 ++supplied;
                         });
 
-                    if (demanded != supplied - 1)
+                    if (supplied - 1 > demanded)
                         return juce::Result::fail (getLocation (*table, *row, Id::structure.toString())
                                                    + Id::diagnosticSeparator
                                                    + text::Diagnostics::failAmbiguous);

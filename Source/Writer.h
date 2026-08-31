@@ -233,8 +233,6 @@ private:
 
             if (comment.isNotEmpty())
                 banner << comment << Chars::newline << Chars::newline;
-
-            banner << syntax.get (Id::pragma) << Chars::newline << Chars::newline;
         }
 
         return banner;

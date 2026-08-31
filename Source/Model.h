@@ -447,6 +447,9 @@ private:
         parse (document, parent, tableOrigins);
         addComments (document);
 
+        const auto templateDocument { jam::MarkdownDocument::parse (
+            document.getTemplateFile().loadFileAsString()) };
+
         for (auto* table : document.getTables())
         {
             auto* headerRow { getTableHeaderRow (*table) };
@@ -464,7 +467,8 @@ private:
                         jam::Array<int> shapeOrdinals;
                         jam::Array<int> commentOrdinals;
                         int lineIndex { 0 };
-                        addLines (*cell, 0, ordinals, shapeOrdinals, commentOrdinals, lineIndex);
+                        addLines (*cell, 0, ordinals, shapeOrdinals, commentOrdinals, lineIndex,
+                            templateDocument);
                     }
             }
         }
@@ -558,7 +562,8 @@ private:
     }
 
     static void addLines (Element& cell, int indent, jam::Array<int>& ordinals,
-        jam::Array<int>& shapeOrdinals, jam::Array<int>& commentOrdinals, int& lineIndex)
+        jam::Array<int>& shapeOrdinals, jam::Array<int>& commentOrdinals, int& lineIndex,
+        const jam::MarkdownDocument& templateDocument)
     {
         if (indent == ordinals.size())
             ordinals.resize (indent + 1);
@@ -577,9 +582,11 @@ private:
 
                 if (jam::Format::getPreColon (blockText).trim() == Id::templatePath.toString())
                 {
+                    const auto shapeName { jam::Format::getPostColon (blockText).trim() };
+
                     block->add<int> (Id::level, indent);
                     block->add<int> (Id::line, shapeOrdinals.at (indent)++);
-                    block->add<juce::String> (Id::templatePath, jam::Format::getPostColon (blockText).trim());
+                    block->add<juce::String> (Id::templatePath, shapeName);
                     block->add<int> (Id::shape, lineIndex);
                     ++lineIndex;
                 }
@@ -613,7 +620,8 @@ private:
                 }
 
             if (block->isTag (Id::blockquote))
-                addLines (*block, indent + 1, ordinals, shapeOrdinals, commentOrdinals, lineIndex);
+                addLines (*block, indent + 1, ordinals, shapeOrdinals, commentOrdinals, lineIndex,
+                    templateDocument);
         }
     }
 
