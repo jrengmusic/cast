@@ -239,9 +239,10 @@ extension keys the `clangComment`, `cmakeComment`, `cssComment`,
 @brief Manifest file name to comment-syntax key table.
 
 Build-manifest files carry deterministic names whose extensions do not name
-their language — `CMakeLists.txt` is CMake, not text. Writer.h reads this
-table first, by exact output file name; a hit replaces the extension as the
-`commentSyntax` key. Every other output falls through to its extension.
+their language — `CMakeLists.txt` is CMake, not text. The comment-syntax key
+reads this table first, by exact output file name; a hit replaces the
+extension as the `commentSyntax` key. Every other output falls through to
+its extension.
 ```
 
 +------------------+----------+

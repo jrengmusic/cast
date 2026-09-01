@@ -111,6 +111,157 @@
 
 ## SPRINT HISTORY
 
+## Sprint: Macro-Guard Wrapper Law — Shape-Valued Bindings, Free-Text Tokens, SPEC 0.8, Audit Clean Sweep ✅
+
+**Date:** 2026-09-01
+**Duration:** single session
+
+### Agents Participated
+- COUNSELOR — whole-pipeline read, run-decided experiments (variant A/B, arity-3, self-index), SPEC v0.8 + HELP authored, law adjudications from data evidence (blank-only selector refuted by 28 authored rows; comment-fallback refuted by §5.4), audit triage of all 55 findings, two own errors corrected with citation
+- Engineer ×6 — experiments, §6.1 wrapper implementation, verbatim-marker fix (own regression caught and root-caused), three conformance completions + data, audit waves A–H with per-group byte-identical checkpoints, fence rename sweep, doxygen reconciliation
+- Auditor — one sweep, 55 findings, all dispositioned
+- Pathfinder ×2 — tree survey, discovery evidence
+
+### Files Modified
+- `Source/Model.h` — wrapper stamps (§6.1: shape-valued binding = shape line; dual ownership), getNextLine cell bound, blank-`- list:` inheritance exclusion, reserved-table inheritance scope, `Id::wiring` parse stamp, `getPairedItem` unification of four walkers, `getManifestOrigin`
+- `Source/Items.h` — `getMarkers` (free-text verbatim markers, §7), `getPrivateShapes` full-arity chain (wrapper selector privacy), `getArity` relocated in, §7.1 `toFileName` at all rungs, `getItemReplacements`, dead guards removed
+- `Source/Shapes.h` — rung-1 wrapper render, `jam::Format::replaceholder` adoption (framework-API violation killed), per-marker inline law, `getShapeText` single-pair overload
+- `Source/Validator.h` — wrapper arity arm (demand, never supply), item-shape arity counted, wiring-only uniqueness, `failStructureMissing`
+- `cast/CAST.md` — `@headers` self-index + `## headers` membership table; `- list: file` include sweep retired (CMakeLists.txt include defect dead)
+- `cast/identifiers.md` (+`wiring`), `cast/text.md` (+`failStructureMissing`), `cast/cmake.cast` (`glob-pattern`)
+- `SPEC.md` v0.8 — wrapper law, selector-by-declaration, free-text tokens, wiring-table classification, manifest self-index, over-supply-only fatal, ordering rules, §12 ledger refreshed
+- `Source/HELP.md` — fully synced; Wrappers section + two Cookbook entries (guarded member, declared membership)
+- `Source/generated/*` — regenerated; double-run fixpoint
+
+### Alignment Check
+- [x] BLESSED principles followed — every law fix cited on SPEC §1.1/§4.3/§6.x/§11; no new engine vocabulary beyond ratified names
+- [x] NAMES.md adhered — ratified: `@headers`/`## headers` (ARCHITECT), `getMarkers`, `getPairedItem`, `getItemReplacements`, `Id::wiring`, `failStructureMissing`, `getManifestOrigin` (family/SPEC-vocabulary joins)
+- [x] MANIFESTO.md applied — all validation by byte-identical regeneration of cast/jam/eve + fixpoint at every checkpoint; two notarized builds
+- [x] Verified: run-decided at every disputed point; no claim without a diagnostic or an md5
+
+### Problems Solved
+- Named-token wrapper (`:::macro-guard:::`) implemented as §6.1 already licensed: binding-valued shapes render, consume, own their chain — decoupled from `:::list:::`
+- Free-text token law: markers matched verbatim, keyed by toValidID at both ends — kebab/spaced token names legal everywhere
+- `instance` selector duplicate killed by wrapper privacy — cast's self-selection and jam's 27 declared members all preserved
+- Output-table misclassification (`file`-column heuristic) replaced by manifest+`structure` rule; `## headers` legal as authored
+- Generated.h include membership declared as data; bootstrap hand-edits ended
+- Audit: 55 findings — fixed in-session, refuted with citation (comment fallback §5.4; const_cast framework idiom), or §12-ledgered
+
+### Residuals (open, reported verbatim)
+- `TemplateDocument.h` marker scan not converged (layering); `addRow` split candidate needs a ratified name; wrapper dual-role ownership retained as position tiebreak (§12 ledger); HANDOFF-MACHINIST Phase-2 items untouched (jam_core.h declared deps, dead-strip, build/install scripts)
+
+### Debts Paid
+- None
+
+### Debts Deferred (carried, ARCHITECT-commanded, unchanged)
+- `DEBT-20260831T021425` — plugin_bootstrap conformance
+- `DEBT-20260831T021428` — KANJUT conformance wholesale
+
+## Handoff (CONSUMED 2026-09-01 — superseded by the sprint above): Headless jam_core — Value Split, Guarded map::ColourId
+
+**From:** COUNSELOR
+**Date:** 2026-09-01
+**Status:** Blocked — manifest wiring for the guarded `Generated` member is unsolved
+
+### Context
+`cast` is the first headless-only JAM consumer (`juce_core, jam_core, jam_markdown`). That exposed two couplings in `jam_core`: the `juce::Value`↔`juce::Component` binding code in `jam_Value.h`, and `map::ColourIdMap`, which reaches every consumer via `jam_core.h` → `jam_Generated.h` and binds `juce::Slider::`/`juce::TextEditor::` ids. Plan file: `PLAN-address-shapes-map-rung.md` is the previous sprint's; this sprint's plan is `~/.claude/plans/playful-wobbling-meerkat.md` (11 steps).
+
+### Completed
+- **Step 1** — binding half of `jam_core/value/jam_Value.h` deleted and absorbed into `jam::Model` as `Object`, `ValueComponent<Derived>`, `Attachment`, `ParameterAttachment`, `ValueAttachment`, `isNonVoid (juce::Component*)`, `getFrom`. `jam_Value.h` retains `isNonVoid (const juce::Value&)` and the arithmetic surface (268 call sites, 80 files) and is grep-clean of GUI types. Call sites rewritten.
+- **Step 2** — `jam_core.h` gui_basics/gui_extra guard block removed; `juce_events` include added (was arriving transitively via `juce_graphics.h`). Declared dependencies now accurate.
+- **Step 3** — `jam_markdown/widget/jam_MarkdownComponent.h` created (39 lines, zero includes) carrying the 18 markdown colour ids under `enum ColourIds`; included from `jam_markdown.h` behind `#if JUCE_MODULE_AVAILABLE_juce_gui_basics`.
+- **Step 4** — `jam/cast/bimaps.md`: `## ColourIdMap` → `## ColourId`; 18 hex rows rewritten to `jam::MarkdownComponent::<member>`; the 2 `textEditorComponent*` rows deleted (ARCHITECT ruling — no declaring class exists). 92 data rows, one key form.
+- **Steps 5–6 (partial)** — `macro-guard` fence added to `jam/cast/code.cast`; `@guiBasics` index alias added at `CAST.md:142` and referenced by both `- condition:` lines (SSOT — the literal was authored twice). The ColourId output row's guard **works**: `jam_Bimaps.h:7917/8126` wraps `struct ColourId` correctly.
+- **Step 7 (partial)** — `jam_StyleManager.cpp:13` renamed to `map::ColourId::getInstance()`. Generator runs exit 0, double-run fixpoint holds.
+
+### Remaining
+- The `## output index` row (`CAST.md:~2412`) — see Open Questions. Nothing else in Step 7 can be verified until it generates correctly.
+- **Step 7 rest** — regenerate `cast/cast/CAST.md`, build jam, build cast headless.
+- **Step 8** — SPEC.md: five absent rules + version 0.8.
+- **Step 9** — HELP.md sync + Cookbook entry.
+- **Step 10** — `HANDOFF-MACHINIST.md` dead_strip recommendation.
+- **Step 11** — @Auditor sweep.
+
+### Key Decisions
+- Generated output stays centralized — ARCHITECT rejected moving it to a jam_style-owned header ("breaks consistency… GARBAGE").
+- `Generated` retains construction ownership of every registry; the guard moves *where* it constructs, never *whether* it is owned.
+- `jam_data_structures`, not `jam_gui`, is the destination for the binding code (`jam_gui.h:68` already depends on it; `jam_ModelUtils.cpp:223` is a consumer).
+- No engine change. The guard is expressible as template/manifest data only.
+- `ValueComponent` and `@guiBasics` are ARCHITECT-ratified names.
+
+### Files Modified
+- `jam_core/value/jam_Value.h` — binding half deleted
+- `jam_core/jam_core.h` — GUI guard removed, `juce_events` added
+- `jam_data_structures/model/jam_Model.h` — binding half absorbed
+- `jam_markdown/widget/jam_MarkdownComponent.h` — new
+- `jam_markdown/jam_markdown.h` — guarded include added
+- `jam_style/style_manager/jam_StyleManager.cpp` — `ColourIdMap` → `ColourId`
+- `jam/cast/bimaps.md` — table renamed, de-orphaned, 2 rows deleted
+- `jam/cast/code.cast` — `macro-guard` fence added; **`generated` fence body currently `:::list:::` / `:::list:::` — must revert to `:::list:::` / `:::macro-guard:::`**
+- `jam/cast/CAST.md` — `@guiBasics` alias, guarded ColourId row, `- colourId:` blank binding, output-index row (broken)
+- `jam/generated/*` — regenerated at the last exit-0 state
+
+### Open Questions
+**The only blocker.** ARCHITECT's stated design: `generated` has **two** `:::list:::` (includes, members) plus `:::macro-guard:::`, a named-token *replacement* filled by a wrapper shape that carries its own list — the same relationship as `namespace` wrapping `struct` in the ColourId row. COUNSELOR could not author a manifest row expressing it. Every attempt failed one of two ways:
+- Wrapper as a **binding** (`- macro-guard: @code:macro-guard`) with its content as a source line → `CAST.md:2411 (structure): nested shape has more than one candidate`. Bindings appear not to contribute arity to `demanded`, so the wrapper's own source overflows `generated`'s count.
+- Wrapper as a **bare shape line** with `generated` at arity 3 → generates, but that is not the design ARCHITECT specified.
+
+Secondary, exposed by the arity-3 form: `- list: instance` selects rows by binding *presence*. Any row declaring a binding named `instance` — including the output-index row itself — enters the plain member list, producing a duplicate `colourId` member. Giving the ColourId row `- colourId:` instead of `- instance:` removes the duplicate but leaves the member unnamed, because `@code:sharedInstance` reads `:::instance:::`.
+
+Also open: `jam_markdown.h:19` `#include <hb.h>` is guarded on `JUCE_MODULE_AVAILABLE_juce_graphics`, which is true for `cast`, but juce_graphics does not export HarfBuzz headers to consumers. Blocks the headless cast build. Pre-existing.
+
+### Next Steps
+- Revert `code.cast:268` to `:::macro-guard:::` first — the current `:::list:::` is COUNSELOR's, not ARCHITECT's design.
+- Before authoring anything, read SPEC §6.1–§6.5 and HELP.md "The Manifest" in full, and find a working precedent for a named token bound to a shape address across **all three** manifests (`jam/cast/CAST.md`, `cast/cast/CAST.md`, `eve/cast/CAST.md`) — COUNSELOR only searched the first and found none.
+- Do not read engine source to answer manifest questions and do not propose engine changes. ARCHITECT's standing correction: the engine is correct; SPEC and HELP are the authority; CAST already generates its own CMakeLists and framework source, so the working pattern exists.
+
+## Sprint: Address-Form Shapes + Positional Map Rung — CAST as Straight String Replacement ✅
+
+**Date:** 2026-08-31
+**Duration:** single session (no-gate execution on ARCHITECT command; /go with contract: 0 copy/alloc/temp/mutation/shadow/handroll/new-pattern/foreign-semantics)
+
+### Agents Participated
+- COUNSELOR — whole-pipeline read, SPEC v0.7 + HELP rewrite, PLAN, map-law design (corrected twice from manifest evidence), all data-file fixes, audit triage: every finding resolved, refuted with citation, or ARCHITECT-deferral cited
+- Engineer ×7 — engine waves (template pool, map rung, lean restructure, audit resolution, doxygen pass), manifest rewrite (Destructive-Edit Discipline), eve authoring; all builds/runs/diffs/cmake self-run
+- Librarian ×2 — flag/define/patch meanings with citations (comment cells); JUCE macro definition sites
+- Pathfinder ×3 — template-address inventory, manifest excess-line scan (0 across 180 rows), EVE diff + configure evidence
+- Auditor — one sweep, 93 findings
+
+### The Two Rulings (ARCHITECT)
+1. **`template` is not a reserved word.** A shape is an address `@<alias>:<fence>`; any `.cast` the index declares is a template. jam `template.cast` → `code.cast`; cmake blocks live at `eve/cast/cmake.cast` (templates always at the project).
+2. **A vertical table is a 1:1 map.** jam keys every data row by its first column → `getTableCell (table, Id::value, token)` O(1). Map lines = list-column `- list:` lines in excess of the structure column's at a `>` count (column addresses excluded), grouped to paragraphs by blank bullets under the existing slot law, trailing-aligned. Horizontal record rows stay the single-liner expansion axis — same primitive, two orientations.
+
+### Files Modified
+**cast engine** — TemplateDocument.h (pool of parsed `.cast` files keyed by index symbol; getCodeBlock by line stamp `Id::templatePath` + `Id::info`; getValue), Model.h (isShape; getValue reads the symbol cell's `Id::value` stamp — index format column now effective; alias cells declare, never refer; addRow/addColumn/addListCount/addItem/addLines/addMaps; getMap/getParagraph/getRowJoin; getTemplateFile deleted), Shapes.h (getTokenValue: binding → comment → maps → column; blank separator = newline; one separator lookup), Items.h (getPaddedItem trimEnd — SPEC §7.2 no trailing whitespace), Validator.h (isMap, isCommentSyntax, hasTemplate on lines, isReference via isShape, forEachEntry skips wiring cells only, isPaired skips unstamped bullets, getOccurrenceCount deleted, isShapeSupplied unused param dropped), Writer.h (getCommentSyntaxKey; getRowJoin; guard dropped), Transforms.h (getCommentSyntaxKey; toCommentBlock glyphless-language fix — `#[[` prose leading space gone; `const auto&` on syntax lookups), Processor.h, main.cpp (dead comment out)
+**cast data** — cast/CAST.md (`@code`, symbol unbackticked), text.md (failMapOrphan; 2 dead diagnostics deleted; 4 comments corrected), identifiers.md (templatePath comment), comments.md (manifest-syntax prose), generated/* regenerated
+**jam** — cast/template.cast → cast/code.cast (cmake family removed), cast/CAST.md (679 lines `template:` → `@code:`, byte-count-preserving); generated/jam_Bimaps.h + jam_Mermaid.h changed by trailing-whitespace removal ONLY (SPEC §7.2 conformance — stripped-diff identical)
+**eve** — cast/cmake.cast (one `cmake` block = the whole CMakeLists.txt, 25 inline tokens, 12 `:::list:::` slots, 5 single-liners), project-info.md (the toolchain manifest: `## index` join datums `@space`/`@semicolon`, `## project info` name-first + companyCopyright/companyEmail, `## cmake` key|value|comment, 11 list tables name|value|comment with cited comments), cast/CAST.md (maps + expansions + separators), CMakeLists.txt regenerated — fixpoint, `cmake -G Ninja` configures end-to-end
+**docs** — SPEC.md v0.7 (§1 hardcode list, §2, §4.2 `@file:fence`, §6.1/6.3, §6.5 Maps law, §6.6, §7, §10.1 +5/−0 rows corrected, §5.1/5.2 blank-cell law), HELP.md fully synced (incl. §6.8/§6.9 sections it never had), CLAUDE.md, PLAN-address-shapes-map-rung.md
+
+### Verified (all self-run)
+- jam + cast: regenerate byte-identical (modulo the SPEC-mandated whitespace strip in 2 jam headers), double-run fixpoint
+- eve: fixpoint (mtime untouched on rerun), zero unreplaced tokens, zero trailing whitespace, `cmake -S eve -G Ninja` exit 0
+- doxygen: full post-audit pass over every changed function, zero warnings (Doxyfile reconstructed from ~/.config/nvim/doxygen template — no in-repo doxygen target exists)
+
+### Audit (93 findings — all dispositioned)
+- **Fixed in-sprint (23):** trailing whitespace (§7.2), comment-skips-maps rung order, index-counts-as-table, toValidID on token names, isMap null table, fence-without-doc reference, unguarded optional-column derefs, file-column alias check restored, HashMap copies, arity SSOT, map predicate SSOT (stamp absence), blank-format inheritance, dead diagnostics/code, stale diagnostic texts, entry-block separator space, naming (getBinding→getValue, discard split), unused param, duplicate separator lookup, plus full HELP/SPEC corrections and the doxygen backlog
+- **Refuted with citation (5):** blockLine absence is authored data (SPEC §5.4 "when the language declares a block-line glyph"); addItem's blockText copy is the dangling-reference fix (properties array reallocation); eve name columns are ARCHITECT's toolchain-manifest ruling; root-column repetition likewise; parity marker scan owns the unterminated-marker invariant (the stamped list cannot see one)
+- **Pre-existing, ARCHITECT-deferred previously (cited: Performance sprint deferral list):** Lean set (getItemText 62, getShape 55, getFill 53, Writer::toFile 67, main 84, addValue 49, getPaddedItem 50, isManifest gate chain, file-level splits), stamp-copy/getTables-materialisation sweeps, comment-transform-as-format ambiguity (§8 wording), inline-marker last-line detection, fill-after-first-space vs whitespace-run
+- **Residual for ARCHITECT (2):** `addRow`/`addLines`/`addItem` sit at 27-35 lines with independent optional-column guards — further split is relocation, not decomposition (MANIFESTO L clause); jam_Bimaps.h/jam_Mermaid.h whitespace-only delta vs the committed tree is intentional SPEC conformance — commit alongside
+
+### Problems Solved
+- Root cause named and killed: the engine's only token supplier was a column header (Shapes.h getTableCell (row, name)) and SPEC had codified the limitation ("one .cast per directory", "the column of that name") — descriptive prose promoted to law. Both corrected at the source
+- Map law converged through two manifest-evidence corrections: column-address lines are inline sources, never maps (jam CAST.md:1261); the row join is the separator column's own unstamped first bullet (§6.6), which also un-collided row join from first-expansion join
+- `Element::get: absent key value` crash: alias cells were resolved as references against their own not-yet-stamped row — alias column declares (§4.1)
+- Dangling-reference latent bug in addLines (property-array reallocation) found by the map path and fixed by value copy
+
+### Debts Paid
+- None
+
+### Debts Deferred (carried, ARCHITECT-commanded, unchanged)
+- `DEBT-20260831T021425` — plugin_bootstrap conformance
+- `DEBT-20260831T021428` — KANJUT conformance wholesale
+
 ## Sprint: CAST Sole Toolchain — EVE CMakeLists.txt Generated, Byte-Identical, Configures ✅
 
 **Date:** 2026-08-31

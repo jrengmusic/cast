@@ -1,27 +1,31 @@
 ## index
 
-+---------------+------------------------------------------------+
-| alias         | symbol                                         |
-+===============+================================================+
-| @identifiers  | identifiers.md                                 |
-| @text         | text.md                                        |
-| @binaryFiles  | files.md                                       |
-| @banner       | banner.md                                      |
-| @comments     | comments.md                                    |
-| @template     | ../../jam/cast/template.cast                   |
-| @CAST         | CAST.md                                        |
-| @project-info | ../project-info.md                             |
-| @Identifiers  | ../Source/generated/Identifiers.h              |
-| @Text         | ../Source/generated/Text.h                     |
-| @Files        | ../Source/generated/Files.h                    |
-| @HashMaps     | ../Source/generated/HashMaps.h                 |
-| @Generated    | ../Source/generated/Generated.h                |
-| @ProjectInfo  | ../Source/generated/ProjectInfo.h              |
-| @id           | juce::Identifier                               |
-| @string       | juce::String                                   |
-| @bimap        | jam::Bimap<int>                                |
-| @commentMap   | `jam::HashMap<juce::Identifier, juce::String>` |
-+---------------+------------------------------------------------+
++---------------+----------------------------------------------+
+| alias         | symbol                                       |
++===============+==============================================+
+| @identifiers  | identifiers.md                               |
+| @text         | text.md                                      |
+| @binaryFiles  | files.md                                     |
+| @banner       | banner.md                                    |
+| @comments     | comments.md                                  |
+| @code         | ../../jam/cast/code.cast                     |
+| @CAST         | CAST.md                                      |
+| @headers      | CAST.md                                      |
+| @project-info | ../project-info.md                           |
+| @Identifiers  | ../Source/generated/Identifiers.h            |
+| @Text         | ../Source/generated/Text.h                   |
+| @Files        | ../Source/generated/Files.h                  |
+| @HashMaps     | ../Source/generated/HashMaps.h               |
+| @Generated    | ../Source/generated/Generated.h              |
+| @ProjectInfo  | ../Source/generated/ProjectInfo.h            |
+| @id           | juce::Identifier                             |
+| @string       | juce::String                                 |
+| @bimap        | jam::Bimap<int>                              |
+| @commentMap   | jam::HashMap<juce::Identifier, juce::String> |
+| @cmake        | cmake.cast                                   |
+| @CMakeLists   | ../CMakeLists.txt                            |
+| @semicolon    | ;                                            |
++---------------+----------------------------------------------+
 
 ## index comment
 
@@ -60,173 +64,199 @@
 
 ## output
 
-+--------------------------------------+----------------------------+------------------------------+--------------+---------+
-| list                                 | separator                  | structure                    | file         | comment |
-+======================================+============================+==============================+==============+=========+
-| - list: @identifiers:identifiers     |                            | template:namespace           | @Identifiers |         |
-|                                      |                            | - macro: #pragma once        |              |         |
-|                                      |                            | - name: Id                   |              |         |
-|                                      |                            | - list: template:identifier  |              |         |
-+--------------------------------------+----------------------------+------------------------------+--------------+---------+
-| > - list: @text:diagnostics          |                            | template:namespace           | @Text        |         |
-|                                      |                            | - macro: #pragma once        |              |         |
-|                                      |                            | - name: text                 |              |         |
-|                                      |                            |                              |              |         |
-|                                      |                            | template:struct              |              |         |
-|                                      |                            | - name: Diagnostics          |              |         |
-|                                      |                            | > - list: template:char      |              |         |
-+--------------------------------------+----------------------------+------------------------------+--------------+---------+
-| - list: @binaryFiles:files           |                            | template:namespace           | @Files       |         |
-|                                      |                            | - macro: #pragma once        |              |         |
-|                                      |                            | - name: files                |              |         |
-|                                      |                            | - list: template:identifier  |              |         |
-+--------------------------------------+----------------------------+------------------------------+--------------+---------+
-| > - list: @banner:banner             | - list: template:linebreak | template:namespace           | @HashMaps    |         |
-|                                      |                            | - macro: #pragma once        |              |         |
-|                                      |                            | - name: map                  |              |         |
-|                                      |                            |                              |              |         |
-|                                      |                            | template:hashMap             |              |         |
-|                                      |                            | - name: banner               |              |         |
-|                                      |                            | - keyType: @string           |              |         |
-|                                      |                            | - valueType: @string         |              |         |
-|                                      |                            | > - list: template:utf8Entry |              |         |
-+--------------------------------------+----------------------------+------------------------------+--------------+---------+
-| > - list: @comments:clang comment    | - list: template:linebreak | template:namespace           | @HashMaps    |         |
-|                                      |                            | - macro: #pragma once        |              |         |
-|                                      |                            | - name: map                  |              |         |
-|                                      |                            |                              |              |         |
-|                                      |                            | template:hashMap             |              |         |
-|                                      |                            | - name: clangComment         |              |         |
-|                                      |                            | - keyType: @id               |              |         |
-|                                      |                            | - valueType: @string         |              |         |
-|                                      |                            | > - list: template:mapEntry  |              |         |
-+--------------------------------------+----------------------------+------------------------------+--------------+---------+
-| > - list: @comments:cmake comment    | - list: template:linebreak | template:namespace           | @HashMaps    |         |
-|                                      |                            | - macro: #pragma once        |              |         |
-|                                      |                            | - name: map                  |              |         |
-|                                      |                            |                              |              |         |
-|                                      |                            | template:hashMap             |              |         |
-|                                      |                            | - name: cmakeComment         |              |         |
-|                                      |                            | - keyType: @id               |              |         |
-|                                      |                            | - valueType: @string         |              |         |
-|                                      |                            | > - list: template:mapEntry  |              |         |
-+--------------------------------------+----------------------------+------------------------------+--------------+---------+
-| > - list: @comments:css comment      | - list: template:linebreak | template:namespace           | @HashMaps    |         |
-|                                      |                            | - macro: #pragma once        |              |         |
-|                                      |                            | - name: map                  |              |         |
-|                                      |                            |                              |              |         |
-|                                      |                            | template:hashMap             |              |         |
-|                                      |                            | - name: cssComment           |              |         |
-|                                      |                            | - keyType: @id               |              |         |
-|                                      |                            | - valueType: @string         |              |         |
-|                                      |                            | > - list: template:mapEntry  |              |         |
-+--------------------------------------+----------------------------+------------------------------+--------------+---------+
-| > - list: @comments:gomod comment    | - list: template:linebreak | template:namespace           | @HashMaps    |         |
-|                                      |                            | - macro: #pragma once        |              |         |
-|                                      |                            | - name: map                  |              |         |
-|                                      |                            |                              |              |         |
-|                                      |                            | template:hashMap             |              |         |
-|                                      |                            | - name: gomodComment         |              |         |
-|                                      |                            | - keyType: @id               |              |         |
-|                                      |                            | - valueType: @string         |              |         |
-|                                      |                            | > - list: template:mapEntry  |              |         |
-+--------------------------------------+----------------------------+------------------------------+--------------+---------+
-| > - list: @comments:html comment     | - list: template:linebreak | template:namespace           | @HashMaps    |         |
-|                                      |                            | - macro: #pragma once        |              |         |
-|                                      |                            | - name: map                  |              |         |
-|                                      |                            |                              |              |         |
-|                                      |                            | template:hashMap             |              |         |
-|                                      |                            | - name: htmlComment          |              |         |
-|                                      |                            | - keyType: @id               |              |         |
-|                                      |                            | - valueType: @string         |              |         |
-|                                      |                            | > - list: template:mapEntry  |              |         |
-+--------------------------------------+----------------------------+------------------------------+--------------+---------+
-| > - list: @comments:lua comment      | - list: template:linebreak | template:namespace           | @HashMaps    |         |
-|                                      |                            | - macro: #pragma once        |              |         |
-|                                      |                            | - name: map                  |              |         |
-|                                      |                            |                              |              |         |
-|                                      |                            | template:hashMap             |              |         |
-|                                      |                            | - name: luaComment           |              |         |
-|                                      |                            | - keyType: @id               |              |         |
-|                                      |                            | - valueType: @string         |              |         |
-|                                      |                            | > - list: template:mapEntry  |              |         |
-+--------------------------------------+----------------------------+------------------------------+--------------+---------+
-| > - list: @comments:mermaid comment  | - list: template:linebreak | template:namespace           | @HashMaps    |         |
-|                                      |                            | - macro: #pragma once        |              |         |
-|                                      |                            | - name: map                  |              |         |
-|                                      |                            |                              |              |         |
-|                                      |                            | template:hashMap             |              |         |
-|                                      |                            | - name: mermaidComment       |              |         |
-|                                      |                            | - keyType: @id               |              |         |
-|                                      |                            | - valueType: @string         |              |         |
-|                                      |                            | > - list: template:mapEntry  |              |         |
-+--------------------------------------+----------------------------+------------------------------+--------------+---------+
-| > - list: @comments:python comment   | - list: template:linebreak | template:namespace           | @HashMaps    |         |
-|                                      |                            | - macro: #pragma once        |              |         |
-|                                      |                            | - name: map                  |              |         |
-|                                      |                            |                              |              |         |
-|                                      |                            | template:hashMap             |              |         |
-|                                      |                            | - name: pythonComment        |              |         |
-|                                      |                            | - keyType: @id               |              |         |
-|                                      |                            | - valueType: @string         |              |         |
-|                                      |                            | > - list: template:mapEntry  |              |         |
-+--------------------------------------+----------------------------+------------------------------+--------------+---------+
-| > - list: @comments:ruby comment     | - list: template:linebreak | template:namespace           | @HashMaps    |         |
-|                                      |                            | - macro: #pragma once        |              |         |
-|                                      |                            | - name: map                  |              |         |
-|                                      |                            |                              |              |         |
-|                                      |                            | template:hashMap             |              |         |
-|                                      |                            | - name: rubyComment          |              |         |
-|                                      |                            | - keyType: @id               |              |         |
-|                                      |                            | - valueType: @string         |              |         |
-|                                      |                            | > - list: template:mapEntry  |              |         |
-+--------------------------------------+----------------------------+------------------------------+--------------+---------+
-| > - list: @comments:shell comment    | - list: template:linebreak | template:namespace           | @HashMaps    |         |
-|                                      |                            | - macro: #pragma once        |              |         |
-|                                      |                            | - name: map                  |              |         |
-|                                      |                            |                              |              |         |
-|                                      |                            | template:hashMap             |              |         |
-|                                      |                            | - name: shellComment         |              |         |
-|                                      |                            | - keyType: @id               |              |         |
-|                                      |                            | - valueType: @string         |              |         |
-|                                      |                            | > - list: template:mapEntry  |              |         |
-+--------------------------------------+----------------------------+------------------------------+--------------+---------+
-| > - list: @comments:comment syntax   | - list: template:linebreak | template:namespace           | @HashMaps    |         |
-|                                      |                            | - macro: #pragma once        |              |         |
-|                                      |                            | - name: map                  |              |         |
-|                                      |                            |                              |              |         |
-|                                      |                            | template:hashMap             |              |         |
-|                                      |                            | - name: commentSyntax        |              |         |
-|                                      |                            | - keyType: @string           |              |         |
-|                                      |                            | - valueType: @commentMap     |              |         |
-|                                      |                            | > - list: template:mapEntry  |              |         |
-+--------------------------------------+----------------------------+------------------------------+--------------+---------+
-| > - list: @comments:manifest syntax  | - list: template:linebreak | template:namespace           | @HashMaps    |         |
-|                                      |                            | - macro: #pragma once        |              |         |
-|                                      |                            | - name: map                  |              |         |
-|                                      |                            |                              |              |         |
-|                                      |                            | template:hashMap             |              |         |
-|                                      |                            | - name: manifestSyntax       |              |         |
-|                                      |                            | - keyType: @string           |              |         |
-|                                      |                            | - valueType: @string         |              |         |
-|                                      |                            | > - list: template:mapEntry  |              |         |
-+--------------------------------------+----------------------------+------------------------------+--------------+---------+
-| > - list: @project-info:project info |                            | template:namespace           | @ProjectInfo |         |
-|                                      |                            | - macro: #pragma once        |              |         |
-|                                      |                            | - name: ProjectInfo          |              |         |
-|                                      |                            | > - list: template:constant  |              |         |
-+--------------------------------------+----------------------------+------------------------------+--------------+---------+
++--------------------------------------+-------------------------+-----------------------------+--------------+---------+
+| list                                 | separator               | structure                   | file         | comment |
++======================================+=========================+=============================+==============+=========+
+| - list: @project-info:cmake          | - list: @semicolon      | @cmake:cmake                | @CMakeLists  |         |
+| - list: @project-info:project info   |                         |                             |              |         |
+| - list: @project-info:signing        |                         |                             |              |         |
+| - list: @project-info:architecture   | - list: @semicolon      | - list: @cmake:value        |              |         |
+| - list: @project-info:clang flag     |                         | - list: @cmake:value        |              |         |
+| - list: @project-info:msvc flag      |                         | - list: @cmake:value        |              |         |
+| - list: @project-info:user module    |                         | - list: @cmake:module       |              |         |
+| - list: @project-info:source glob    |                         | - list: @cmake:glob-pattern |              |         |
+| - list: @project-info:define         |                         | - list: @cmake:value        |              |         |
+| - list: @project-info:include        |                         | - list: @cmake:value        |              |         |
+| - list: @project-info:juce module    |                         | - list: @cmake:value        |              |         |
+| - list: @project-info:user module    |                         | - list: @cmake:link         |              |         |
+| - list: @project-info:binary         |                         | - list: @cmake:value        |              |         |
++--------------------------------------+-------------------------+-----------------------------+--------------+---------+
+| > - list: @project-info:project info |                         | @code:namespace             | @ProjectInfo |         |
+|                                      |                         | - macro: #pragma once       |              |         |
+|                                      |                         | - name: ProjectInfo         |              |         |
+|                                      |                         | > - list: @code:constant    |              |         |
++--------------------------------------+-------------------------+-----------------------------+--------------+---------+
+| - list: @identifiers:identifiers     |                         | @code:namespace             | @Identifiers |         |
+|                                      |                         | - macro: #pragma once       |              |         |
+|                                      |                         | - name: Id                  |              |         |
+|                                      |                         | - list: @code:identifier    |              |         |
++--------------------------------------+-------------------------+-----------------------------+--------------+---------+
+| > - list: @text:diagnostics          |                         | @code:namespace             | @Text        |         |
+|                                      |                         | - macro: #pragma once       |              |         |
+|                                      |                         | - name: text                |              |         |
+|                                      |                         |                             |              |         |
+|                                      |                         | @code:struct                |              |         |
+|                                      |                         | - name: Diagnostics         |              |         |
+|                                      |                         | > - list: @code:char        |              |         |
++--------------------------------------+-------------------------+-----------------------------+--------------+---------+
+| - list: @binaryFiles:files           |                         | @code:namespace             | @Files       |         |
+|                                      |                         | - macro: #pragma once       |              |         |
+|                                      |                         | - name: files               |              |         |
+|                                      |                         | - list: @code:identifier    |              |         |
++--------------------------------------+-------------------------+-----------------------------+--------------+---------+
+| > - list: @banner:banner             | - list: @code:linebreak | @code:namespace             | @HashMaps    |         |
+|                                      |                         | - macro: #pragma once       |              |         |
+|                                      |                         | - name: map                 |              |         |
+|                                      |                         |                             |              |         |
+|                                      |                         | @code:hash-map              |              |         |
+|                                      |                         | - name: banner              |              |         |
+|                                      |                         | - keyType: @string          |              |         |
+|                                      |                         | - valueType: @string        |              |         |
+|                                      |                         | > - list: @code:utf8-entry  |              |         |
++--------------------------------------+-------------------------+-----------------------------+--------------+---------+
+| > - list: @comments:clang comment    | - list: @code:linebreak | @code:namespace             | @HashMaps    |         |
+|                                      |                         | - macro: #pragma once       |              |         |
+|                                      |                         | - name: map                 |              |         |
+|                                      |                         |                             |              |         |
+|                                      |                         | @code:hash-map              |              |         |
+|                                      |                         | - name: clangComment        |              |         |
+|                                      |                         | - keyType: @id              |              |         |
+|                                      |                         | - valueType: @string        |              |         |
+|                                      |                         | > - list: @code:map-entry   |              |         |
++--------------------------------------+-------------------------+-----------------------------+--------------+---------+
+| > - list: @comments:cmake comment    | - list: @code:linebreak | @code:namespace             | @HashMaps    |         |
+|                                      |                         | - macro: #pragma once       |              |         |
+|                                      |                         | - name: map                 |              |         |
+|                                      |                         |                             |              |         |
+|                                      |                         | @code:hash-map              |              |         |
+|                                      |                         | - name: cmakeComment        |              |         |
+|                                      |                         | - keyType: @id              |              |         |
+|                                      |                         | - valueType: @string        |              |         |
+|                                      |                         | > - list: @code:map-entry   |              |         |
++--------------------------------------+-------------------------+-----------------------------+--------------+---------+
+| > - list: @comments:css comment      | - list: @code:linebreak | @code:namespace             | @HashMaps    |         |
+|                                      |                         | - macro: #pragma once       |              |         |
+|                                      |                         | - name: map                 |              |         |
+|                                      |                         |                             |              |         |
+|                                      |                         | @code:hash-map              |              |         |
+|                                      |                         | - name: cssComment          |              |         |
+|                                      |                         | - keyType: @id              |              |         |
+|                                      |                         | - valueType: @string        |              |         |
+|                                      |                         | > - list: @code:map-entry   |              |         |
++--------------------------------------+-------------------------+-----------------------------+--------------+---------+
+| > - list: @comments:gomod comment    | - list: @code:linebreak | @code:namespace             | @HashMaps    |         |
+|                                      |                         | - macro: #pragma once       |              |         |
+|                                      |                         | - name: map                 |              |         |
+|                                      |                         |                             |              |         |
+|                                      |                         | @code:hash-map              |              |         |
+|                                      |                         | - name: gomodComment        |              |         |
+|                                      |                         | - keyType: @id              |              |         |
+|                                      |                         | - valueType: @string        |              |         |
+|                                      |                         | > - list: @code:map-entry   |              |         |
++--------------------------------------+-------------------------+-----------------------------+--------------+---------+
+| > - list: @comments:html comment     | - list: @code:linebreak | @code:namespace             | @HashMaps    |         |
+|                                      |                         | - macro: #pragma once       |              |         |
+|                                      |                         | - name: map                 |              |         |
+|                                      |                         |                             |              |         |
+|                                      |                         | @code:hash-map              |              |         |
+|                                      |                         | - name: htmlComment         |              |         |
+|                                      |                         | - keyType: @id              |              |         |
+|                                      |                         | - valueType: @string        |              |         |
+|                                      |                         | > - list: @code:map-entry   |              |         |
++--------------------------------------+-------------------------+-----------------------------+--------------+---------+
+| > - list: @comments:lua comment      | - list: @code:linebreak | @code:namespace             | @HashMaps    |         |
+|                                      |                         | - macro: #pragma once       |              |         |
+|                                      |                         | - name: map                 |              |         |
+|                                      |                         |                             |              |         |
+|                                      |                         | @code:hash-map              |              |         |
+|                                      |                         | - name: luaComment          |              |         |
+|                                      |                         | - keyType: @id              |              |         |
+|                                      |                         | - valueType: @string        |              |         |
+|                                      |                         | > - list: @code:map-entry   |              |         |
++--------------------------------------+-------------------------+-----------------------------+--------------+---------+
+| > - list: @comments:mermaid comment  | - list: @code:linebreak | @code:namespace             | @HashMaps    |         |
+|                                      |                         | - macro: #pragma once       |              |         |
+|                                      |                         | - name: map                 |              |         |
+|                                      |                         |                             |              |         |
+|                                      |                         | @code:hash-map              |              |         |
+|                                      |                         | - name: mermaidComment      |              |         |
+|                                      |                         | - keyType: @id              |              |         |
+|                                      |                         | - valueType: @string        |              |         |
+|                                      |                         | > - list: @code:map-entry   |              |         |
++--------------------------------------+-------------------------+-----------------------------+--------------+---------+
+| > - list: @comments:python comment   | - list: @code:linebreak | @code:namespace             | @HashMaps    |         |
+|                                      |                         | - macro: #pragma once       |              |         |
+|                                      |                         | - name: map                 |              |         |
+|                                      |                         |                             |              |         |
+|                                      |                         | @code:hash-map              |              |         |
+|                                      |                         | - name: pythonComment       |              |         |
+|                                      |                         | - keyType: @id              |              |         |
+|                                      |                         | - valueType: @string        |              |         |
+|                                      |                         | > - list: @code:map-entry   |              |         |
++--------------------------------------+-------------------------+-----------------------------+--------------+---------+
+| > - list: @comments:ruby comment     | - list: @code:linebreak | @code:namespace             | @HashMaps    |         |
+|                                      |                         | - macro: #pragma once       |              |         |
+|                                      |                         | - name: map                 |              |         |
+|                                      |                         |                             |              |         |
+|                                      |                         | @code:hash-map              |              |         |
+|                                      |                         | - name: rubyComment         |              |         |
+|                                      |                         | - keyType: @id              |              |         |
+|                                      |                         | - valueType: @string        |              |         |
+|                                      |                         | > - list: @code:map-entry   |              |         |
++--------------------------------------+-------------------------+-----------------------------+--------------+---------+
+| > - list: @comments:shell comment    | - list: @code:linebreak | @code:namespace             | @HashMaps    |         |
+|                                      |                         | - macro: #pragma once       |              |         |
+|                                      |                         | - name: map                 |              |         |
+|                                      |                         |                             |              |         |
+|                                      |                         | @code:hash-map              |              |         |
+|                                      |                         | - name: shellComment        |              |         |
+|                                      |                         | - keyType: @id              |              |         |
+|                                      |                         | - valueType: @string        |              |         |
+|                                      |                         | > - list: @code:map-entry   |              |         |
++--------------------------------------+-------------------------+-----------------------------+--------------+---------+
+| > - list: @comments:comment syntax   | - list: @code:linebreak | @code:namespace             | @HashMaps    |         |
+|                                      |                         | - macro: #pragma once       |              |         |
+|                                      |                         | - name: map                 |              |         |
+|                                      |                         |                             |              |         |
+|                                      |                         | @code:hash-map              |              |         |
+|                                      |                         | - name: commentSyntax       |              |         |
+|                                      |                         | - keyType: @string          |              |         |
+|                                      |                         | - valueType: @commentMap    |              |         |
+|                                      |                         | > - list: @code:map-entry   |              |         |
++--------------------------------------+-------------------------+-----------------------------+--------------+---------+
+| > - list: @comments:manifest syntax  | - list: @code:linebreak | @code:namespace             | @HashMaps    |         |
+|                                      |                         | - macro: #pragma once       |              |         |
+|                                      |                         | - name: map                 |              |         |
+|                                      |                         |                             |              |         |
+|                                      |                         | @code:hash-map              |              |         |
+|                                      |                         | - name: manifestSyntax      |              |         |
+|                                      |                         | - keyType: @string          |              |         |
+|                                      |                         | - valueType: @string        |              |         |
+|                                      |                         | > - list: @code:map-entry   |              |         |
++--------------------------------------+-------------------------+-----------------------------+--------------+---------+
 
 ## output index
 
-+--------------------+-----------+-----------------------------------+------------+
-| list               | separator | structure                         | file       |
-+====================+===========+===================================+============+
-| - list: file       |           | template:struct                   | @Generated |
-|                    |           | - macro: #pragma once             |            |
-| > - list: instance |           | - name: Generated                 |            |
-|                    |           | - type: map::Generated            |            |
-|                    |           | - instance: generated             |            |
-|                    |           | - list: template:include          |            |
-|                    |           | > - list: template:sharedInstance |            |
-+--------------------+-----------+-----------------------------------+------------+
++--------------------------+-----------+---------------------------------+------------+
+| list                     | separator | structure                       | file       |
++==========================+===========+=================================+============+
+| - list: @headers:headers |           | @code:struct                    | @Generated |
+|                          |           | - macro: #pragma once           |            |
+| > - list: instance       |           | - name: Generated               |            |
+|                          |           | - type: map::Generated          |            |
+|                          |           | - instance: generated           |            |
+|                          |           | - list: @code:include           |            |
+|                          |           | > - list: @code:shared-instance |            |
++--------------------------+-----------+---------------------------------+------------+
+
+## headers
+
++---------------+
+| file          |
++===============+
+| ProjectInfo.h |
+| Identifiers.h |
+| Text.h        |
+| Files.h       |
+| HashMaps.h    |
++---------------+

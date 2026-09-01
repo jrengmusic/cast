@@ -16,7 +16,7 @@ Arguments select what to run. They never carry generation rules.
 
 - `cast` — find `CAST.md` here, format every declared markdown file, then regenerate every declared output
 - `cast <path>/CAST.md` — the same, using a specific manifest
-- `cast CAST.md <output>` — regenerate one declared output only
+- `cast CAST.md <directory>` — write every declared output under that directory instead
 - `cast CAST.md --format` — format only, no generation
 - `cast CAST.md --no-format` — generate only, no formatting
 - `cast --version` — version and source commit, the same stamp embedded in generated banners
@@ -34,7 +34,7 @@ Everything lives flat in one data directory.
 |---|---|
 | `CAST.md` | the manifest — what gets generated, from what, into what |
 | `*.md` | data tables |
-| `*.cast` | one file holding every code shape |
+| `*.cast` | template files — any number, each holding code shapes |
 
 Every input file is declared once in the manifest's index. CAST parses exactly what you declare — it never scans a directory. Generated outputs are build artifacts; do not edit them.
 
@@ -67,7 +67,7 @@ Row order is authored order. CAST never sorts.
 
 Column names are yours. Name a column for what it produces, because a template addresses it by that name — a column called `value` fills `:::value:::`.
 
-Two column names are reserved everywhere: `format` and `comment`. Inside the manifest, four more are reserved: `list`, `separator`, `structure`, `file`.
+Two column names are reserved everywhere: `format` and `comment`. Inside the manifest's wiring tables, four more are reserved: `list`, `separator`, `structure`, `file`. A data table — wherever it lives, the manifest included — may use any of those four words as an ordinary column.
 
 ### Cells
 
@@ -150,7 +150,7 @@ Three doc channels, all data:
 
 At shape level, with no comment reference authored, `:::comment:::` falls back to the documentation of the first table the shape's own sources address, in authored order; with no source addressing a table, to the documentation of the row's own table.
 
-You never author the comment frame (`/** @brief ... */`, `///< ...`) yourself — you write prose only. CAST renders the frame from the comment-syntax table, chosen by the language of the file the row writes to:
+You never author the comment frame (`/** @brief ... */`, `///< ...`) yourself — you write prose only. CAST renders the frame from the comment-syntax table, keyed by the output file's extension — except when the file's exact name has a row in the manifest-syntax table (`CMakeLists.txt` is CMake, not text; that row's value replaces the extension as the key):
 
 - the marker alone on its line — block form. Multi-line prose renders one prose line per output line; single-line prose renders open, text, close on one line.
 - the marker inline, after content — single-line form: the language's comment glyph, then the text.
@@ -169,7 +169,7 @@ The `@` sigil is part of the name. A cell starting with `@` is a reference; anyt
 
 ### The index
 
-Any file may declare `## index`. It is file-local — a `@` cell resolves against the index of the file it is written in, never another file's. It declares aliases and nothing else.
+Any file may declare `## index`. It is file-local — a `@` cell resolves against the index of the file it is written in, never another file's. It may carry a `format` column like any other table — an index datum is formatted like any cell (`@space` declares `U+0020` with `fromUTF8`).
 
 ```
 ## index
@@ -194,7 +194,7 @@ The manifest's own index is where input files are declared:
 @file : table : column
 ```
 
-Write the table part only when you need it. It is omissible when the table is named after its file, or when the file holds exactly one table. A file that declares `## index` must also declare a table named after itself — the index never counts as the only table.
+Write the table part only when you need it. It is omissible when the table is named after its file, or when the file holds exactly one table — the index never counts for that purpose.
 
 CAST stops with an error if an alias is undeclared, declared twice, points at a missing file, or names a table or column that does not exist.
 
@@ -202,7 +202,7 @@ CAST stops with an error if an alias is undeclared, declared twice, points at a 
 
 ## Templates
 
-Every code shape lives in one `.cast` file. It is markdown: fenced code blocks, and the fence's info string is the block's name.
+Code shapes live in `.cast` files — as many as you declare in the index. Each is markdown: fenced code blocks, and the fence's info string is the block's name. A shape is addressed like any other reference: `@code:namespace` is the `namespace` block of the file the `@code` alias names. Two files may both have an `entry` block; `@code:entry` and `@cmake:entry` are different shapes.
 
 ````markdown
 ```identifier
@@ -214,7 +214,9 @@ inline const :::type::: :::name::: { juce::String::fromUTF8 (:::value:::) };
 ```
 ````
 
-A block is the literal text of the output. Braces, keywords, punctuation — all authored, all verbatim. There are no conditionals, no loops, and no formatting. Comment frames are the one exception: CAST renders them itself, from the comment-syntax table (see Documentation) — never author one in a template.
+A block is the literal text of the output. Braces, keywords, punctuation — all authored, all verbatim. There are no conditionals, no loops, and no formatting. Target-language directives (`#if`, `#endif`) are literal text like everything else — CAST never reads them, and slots inside such an arm take sources by the ordinary arity law. Comment frames are the one exception: CAST renders them itself, from the comment-syntax table (see Documentation) — never author one in a template.
+
+Token names are yours — free text, matched exactly as you wrote them. `:::macro-guard:::` pairs with `- macro-guard:`, `:::keyType:::` with a `keyType` column; you never reshape a name to please the engine. Two fences may use the same token name; each shape's own suppliers feed its own occurrences, so an outer shape's binding never leaks into a wrapper's token of the same name.
 
 **`:::list:::` is the one expansion token.** A block's occurrence count is its arity: each occurrence takes one source, its items joined by that source's separator. Where the marker sits decides the axis:
 
@@ -230,7 +232,7 @@ struct :::name:::          vertical — items stack, indent from the wiring
 { :::list::: },            horizontal — items join in place, e.g. by ", "
 ```
 
-Every other `:::token:::` is a named token, replaced by the binding or column of that name. A token carries no operation — `:::token:op:::` is not a form. Do not author the quotes around a literal. `toLiteral` supplies them, and doubling up produces `""value""`.
+Every other `:::token:::` is a named token, replaced by the binding, map row, or column of that name (see Maps under The Manifest). A token carries no operation — `:::token:op:::` is not a form. Do not author the quotes around a literal. `toLiteral` supplies them, and doubling up produces `""value""`.
 
 Joining more than one item from a single-line shape aligns their token columns: fill spaces land in the literal between two tokens, right after that literal's first run of whitespace, sized to the widest replacement any item in the join gives that token. Fill never lands inside a token's own replacement, so a quoted include path still emits verbatim. Nothing pads before the first token or after the last, and no emitted line carries trailing whitespace. A single item, or a multi-line shape, renders unpadded — there is no column limit and no wrapping.
 
@@ -248,22 +250,30 @@ Joining more than one item from a single-line shape aligns their token columns: 
 
 `separator` is optional. Blank means newline.
 
+A wiring table is any manifest table with a `structure` column — `## output` and `## output index` in every project here. Nothing else is wiring: your index, `## index comment`, `## toolchain`, and any plain data table you keep in the manifest are data, and a column named `file` in them is just a column. The manifest may declare itself in its own index, so a data table can live right beside the wiring that reads it — declare `| @headers | CAST.md |` and `@headers:headers` addresses a `## headers` table in the manifest.
+
 ### list — what iterates
 
-`- list: <source>` lines. Each one is an expansion; the source says what feeds it:
+`- list: <source>` lines. Each one paired with a structure `- list:` line is an expansion; the source says what feeds it:
 
 - an address — `- list: @xml:XmlTokenType:key` iterates that table's rows
 - a column address — `- list: @colours:colours:key` names one column of the enclosing expansion's table; it feeds an **inline** `:::list:::`, never a column-0 one
-- a column name — `- list: file` iterates the unique values of that column
-- a binding name — `- list: instance` selects the rows that declare that binding
+- a column name — `- list: file` iterates the unique values of that column, in first-appearance order
+- a binding name — `- list: instance` selects the rows that declare a binding of that name, blank or valued, walking the wiring tables in manifest order and rows in authored order
+
+Declaring the binding is what selects the row — a blank cell only changes where its value comes from. Bindings inside a wrapper's chain (see Wrappers) are the wrapper's private render data and are never selected. A bare source name is tried as a column first, so never give a selector the same name as a wiring-table column. A row may declare several selector bindings; each name selects its own rows, and two selectors on one row feed two slots by ordinal like any two sources.
+
+A `- list:` line with no structure partner at its `>` count is a **map** for that count's shape paragraph — see Maps.
 
 ### structure — what shape
 
-Two lines name a shape. `template:namespace` renders it once; `- list: template:<id>` renders it once per item of the line's source. Both are sources: each fills one `:::list:::` of the shape above it. A named bullet binds one token of the nearest shape line above it: `- name: jam` fills its `:::name:::`.
+Two lines name a shape. `@code:namespace` renders it once; `- list: @code:<id>` renders it once per item of the line's source. Both are sources: each fills one `:::list:::` of the shape above it. A named bullet binds one token of the nearest shape line above it: `- name: jam` fills its `:::name:::`.
+
+A named bullet whose value is a shape address is a **wrapper** — a third way a shape enters, through a named token instead of a `:::list:::` slot. See Wrappers below.
 
 ### Arity — how deep
 
-A shape's arity is how many times its block names `:::list:::`. It consumes that many of the source lines that follow, in order, and each of those consumes its own arity first. Nesting comes from the template; you never author it.
+A shape's arity is how many times its block names `:::list:::`. It consumes that many of the source lines that follow, in order, and each of those consumes its own arity first. Nesting comes from the template; you never author it. A wrapper counts like a shape line, not a source: it consumes its own arity's worth of lines and fills a named token — it never occupies a `:::list:::` slot.
 
 ### Indent — where
 
@@ -285,29 +295,101 @@ The list column's `- list:` lines pair with the structure column's `- list:` lin
 +-------------------------------------+---------------------------------+
 | list                                | structure                       |
 +=====================================+=================================+
-| > > > - list: @tokens:token type    | template:namespace              |
+| > > > - list: @tokens:token type    | @code:namespace                 |
 | > > - list: @tokens:token type      | - name: map                     |
-|                                     | template:bimap                  |
+|                                     | @code:bimap                     |
 |                                     | - name: TemplateTokenType       |
 |                                     | - type: int                     |
-|                                     | > > > - list: template:mapEntry |
-|                                     | > > - list: template:enum       |
+|                                     | > > > - list: @code:map-entry   |
+|                                     | > > - list: @code:enum          |
 +-------------------------------------+---------------------------------+
 ```
 
-The namespace names `:::list:::` once, so it takes the next source — the bimap, rendered once at column 0. The bimap names it twice — map region first, enum region second — so it takes the next two: mapEntry at three tabs, then enum at two. Matching template, tables and expression is yours; CAST reads the expression and generates. Its one check is the count — a mismatch stops the run and names the block and the row.
+The namespace names `:::list:::` once, so it takes the next source — the bimap, rendered once at column 0. The bimap names it twice — map region first, enum region second — so it takes the next two: map-entry at three tabs, then enum at two. Matching template, tables and expression is yours; CAST reads the expression and generates. Its one check is the count — a mismatch stops the run and names the block and the row.
+
+### Wrappers — a shape in a named token
+
+Sometimes a slot needs a name. A fence whose slots are three anonymous `:::list:::` says nothing about which one is the guard; give the slot its own token and fill it with a **wrapper** — a binding whose value is a shape address:
+
+````markdown
+```generated
+struct Generated
+{
+:::list:::
+:::macro-guard:::
+};
+```
+
+```macro-guard
+#if :::macro:::
+:::list:::
+#endif // :::macro:::
+```
+````
+
+```
++--------------------+----------------------------------+----------------+
+| list               | structure                        | file           |
++====================+==================================+================+
+| - list: file       | @code:generated                  | @jam_Generated |
+| > - list: instance | - macro: #pragma once            |                |
+|                    | - list: @code:include            |                |
+|                    | > - list: @code:shared-instance  |                |
+|                    |                                  |                |
+|                    | - macro-guard: @code:macro-guard |                |
+|                    | - macro: @guiBasics              |                |
+|                    |                                  |                |
+|                    | > @code:shared-instance          |                |
+|                    | > - type: ColourId               |                |
+|                    | > - instance: colourId           |                |
++--------------------+----------------------------------+----------------+
+```
+
+`- macro-guard: @code:macro-guard` fills `:::macro-guard:::` with the guard shape's rendering. From that line on, the wrapper reads like any shape line: the bullets after it bind **its** tokens (`- macro: @guiBasics` fills the guard's `:::macro:::`, not generated's — each shape reads its own), and it consumes the next source lines up to its own arity — here the bare `shared-instance`, indented one tab, named by its own bindings. Same arity, same scope, same indent law as every other wrapper; the guard's one `:::list:::` collapses a whole group when you feed it an expansion instead of a bare line.
+
+Everything the wrapper consumes is its private render data. Its bindings select nothing — `- instance: colourId` above names the guarded member without ever entering the `- list: instance` member list.
+
+### Maps — straight replacement
+
+A block full of named tokens and no rows to iterate — a build manifest, a config file — reads its values from a table one row per token:
+
+```
++---------------------------------+-----------------+--------------+
+| list                            | structure       | file         |
++=================================+=================+==============+
+| - list: @project-info:cmake     | @cmake:cmake    | @CMakeLists  |
+| > - list: @project-info:module  | > - list: @cmake:module |      |
++---------------------------------+-----------------+--------------+
+
+## cmake
+| key            | value  |
+| minimumVersion | 4.2.0  |
+| cxxStandard    | 17     |
+```
+
+`:::minimumVersion:::` in the `cmake` block takes the `value` of the row whose first column is `minimumVersion`. The first column is the key — `key | value`, or `name | type | value | comment`, any table whose first column is an identity. The same table under a `- list:` expansion is rows; under a shape paragraph it is a map. The reader decides, never the table.
+
+Map lines are the list column's `- list:` lines at a `>` count beyond the structure column's `- list:` lines at that count, first in order — column-address lines (`@file:table:column`, the inline sources) are never counted; the address form tells them apart. They belong to that count's shape paragraphs in order; a blank `- list:` closes one paragraph's group and starts the next, and fewer groups than paragraphs fill the last paragraphs — the same slot law as expansions. A different `>` count is a different scope. A map line with no paragraph at its count stops the run; so does a map table with no `value` column.
 
 ### separator — how items join
 
-`- list:` lines mirroring the list column's. The line at a given ordinal joins that expansion's items. Blank or absent joins by newline; anything else joins by that text — `template:<id>` names a block whose text is the join.
+`- list:` lines mirroring the list column's. The line at a given ordinal joins that expansion's items. Blank or absent joins by newline; anything else joins by that text — `@code:<id>` names a block whose text is the join, `@space` an index datum (`U+0020` with `fromUTF8`) for a join of one space.
 
 The leading `>`-less separator line is the row join: rows merged into one file join their diverging values by it.
 
 ### file — merging rows into one file
 
-Rows that declare the same `file` render as one merged shape; the wrap is emitted once per file. Merging is per token, per occurrence: a value that is byte-identical across the group's rows resolves once, and values that differ join in authored row order by the first row's row-join line, framed by one blank line on each side. A group of one row merges to itself.
+Rows that declare the same `file` render as one merged shape; the wrap is emitted once per file. Merging is per line: at each structure line, rows that carry the same value emit it once, and rows whose values differ emit each value in authored row order, joined by the first row's row-join line, framed by one blank line on each side. A group of one row merges to itself.
 
 Same-file rows must be authored contiguously — a row for a file already closed by an intervening row of another file is a fatal error.
+
+### index comment — file documentation
+
+`## index comment` is an optional manifest table, `| alias | comment |`. Each row names an output file by its index alias; the fenced comment cell renders between the banner and the file's own text, in the file's comment syntax. A file without a row writes nothing extra.
+
+### toolchain — commands after the write
+
+`## toolchain` is an optional manifest table, `| command | flag |`. Its rows run after every output has written, in authored order, one child process per row. A failing row fails the run — never the writes already on disk.
 
 ---
 
@@ -393,7 +475,7 @@ Row one's `value` is empty, so it takes `name` and its `format` quotes it. Rows 
 | list                                   | separator         | structure                     |
 +=========================================+===================+===============================+
 | > > - list: @colours                   | > > - list: `, `  | ...                           |
-| > > - list: @colours:colours:key       |                    | > > - list: template:entry    |
+| > > - list: @colours:colours:key       |                    | > > - list: @code:entry       |
 | > > - list: @colours:colours:value     |                    |                                |
 +---------------------------------------+-------------------+-------------------------------+
 ```
@@ -413,15 +495,48 @@ Rows stack vertically at two tabs; `@colours` is the entry's own source. The two
 +--------------------------+--------------------------------+----------+
 | list                     | structure                      | file     |
 +==========================+================================+==========+
-| > - list: @xml:token:key | template:namespace             | @jam_Xml |
+| > - list: @xml:token:key | @code:namespace                | @jam_Xml |
 |                          | - name: jam                    |          |
-|                          | template:bimap                 |          |
+|                          | @code:bimap                    |          |
 |                          | - name: XmlTokenType           |          |
-|                          | > - list: template:pair        |          |
+|                          | > - list: @code:pair           |          |
 +--------------------------+--------------------------------+----------+
 ```
 
-The namespace names `:::list:::` once, so it takes the next source — the bimap, rendered once at column 0. The bimap names it once, so it takes the wiring line: rows of `@xml:token:key`, each through `template:pair`, at one tab.
+The namespace names `:::list:::` once, so it takes the next source — the bimap, rendered once at column 0. The bimap names it once, so it takes the wiring line: rows of `@xml:token:key`, each through `@code:pair`, at one tab.
+
+### Guarding one member of an expansion
+
+The Wrappers section's example, end to end, is the pattern for "everything in this list, plus one that only exists behind a macro": the plain members come through the `- list: instance` selector, the guarded one comes through the `:::macro-guard:::` wrapper with its own bindings, and the output is
+
+```cpp
+struct Generated
+{
+    jam::SharedInstance<Screen> screen { std::in_place };
+    ...
+#if JUCE_MODULE_AVAILABLE_juce_gui_basics
+    jam::SharedInstance<ColourId> colourId { std::in_place };
+#endif // JUCE_MODULE_AVAILABLE_juce_gui_basics
+};
+```
+
+One guard, one member — and because the wrapper's slot is an ordinary slot, feeding it `> - list: <selector>` instead of a bare line collapses any number of same-macro members into the one region.
+
+### Declared membership instead of a derived sweep
+
+When a derived source starts sweeping in rows you never meant — `- list: file` collecting a build manifest into an include list — declare the membership as data, in the manifest itself:
+
+```markdown
+| @headers | CAST.md |          in ## index — the manifest indexes itself
+
+## headers
+
+| file          |
+| ProjectInfo.h |
+| Identifiers.h |
+```
+
+and wire `- list: @headers:headers`. The list is now exactly what the table says, and the next member is one row.
 
 ---
 
@@ -446,9 +561,9 @@ Write-if-different: a second run produces an empty diff.
 There are no warnings. Every failure is fatal, exits non-zero, and writes no output file. Diagnostics name the true physical line in the file, not the row's ordinal position:
 
 ```
-identifiers.md:412 (name): duplicate entry "circleCross"
+identifiers.md:412 (name): duplicate "circleCross"
 CAST.md:133 (structure): template not found: namespace
-template.cast (bimap): 2 occurrences of :::list:::, 1 source
+CAST.md:36 (structure): nested shape has more than one candidate
 ```
 
 Because CAST runs during the configure phase, a failure stops your build before compilation starts.

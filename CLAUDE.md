@@ -10,9 +10,9 @@
 
 ## Current State
 
-**Last Sprint:** MermaidTables Dissolution + MermaidStyleSheet + Bimaps/LookupTables Tables — jam 8-9/9 ✅ (2026-08-25)
+**Last Sprint:** Address-Form Shapes + Positional Map Rung — CAST as straight string replacement ✅ (2026-08-31)
 
-**Active Work:** Performance/DbC convergence sprint — audit sweep in progress (see carol/SPRINT-LOG.md handoff)
+**Active Work:** None — jam/cast byte-identical fixpoint; EVE CMakeLists.txt generated + configures
 
 **Active ODE:** None
 
@@ -33,7 +33,7 @@
 | **Writer.h** | Output rendering | One job per output-file group; write-if-different; failure collection |
 | **Shapes.h** | Shape replacements | `:::list:::` expansion, bindings, depth indent, row merge law |
 | **Items.h** | Item rendering | Source discovery (cells/@address/column/binding), padding law, column-aligned rendering |
-| **TemplateDocument.h** | template.cast access | Shape code-block lookup |
+| **TemplateDocument.h** | Template pool | One parsed document per `.cast` index row; shape lookup by `@alias:fence` address |
 | **Transforms.h** | String transforms | Case/escape/comment framing per extension (`map::commentSyntax`) |
 | **Jobs.h** | Thread pool | `Jobs::run (count, perIndex)` parallel dispatch |
 | **Help.h** | --help rendering | Help text via StyleManager + markdown (HELP.md + style.css via BinaryData) |
@@ -44,8 +44,7 @@
 
 | File | Purpose |
 |------|---------|
-| **CAST.md** | Generation manifest: outputs, wiring rows (`list | separator | structure | file`) |
-| **template.cast** | Shape templates (`:::token:::` substitution targets) |
+| **CAST.md** | Generation manifest: outputs, wiring rows (`list | separator | structure | file`); shapes addressed `@code:<fence>` into `../../jam/cast/code.cast` |
 | **identifiers.md** | Identifier table → generated/Identifiers.h |
 | **tokens.md, text.md, comments.md, files.md, banner.md** | Data tables (one table per generated concern) |
 

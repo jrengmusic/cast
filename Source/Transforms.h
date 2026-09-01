@@ -10,35 +10,38 @@
 struct Transforms
 {
     /**
-     * @brief Prefixes @p input with @p extension's single-line comment
-     *        syntax.
+     * @brief Wraps @p input in @p extension's single-line comment glyph.
      *
-     * @param input     The text to comment.
      * @param extension The target file extension whose comment syntax is
-     *                  applied.
-     * @returns @p input, prefixed with @p extension's comment marker.
+     *                  used.
+     * @param input     The text to comment.
+     * @returns @p input, prefixed by @p extension's own comment glyph.
      */
     static juce::String toComment (const juce::String& input, const juce::String& extension)
     {
-        const auto syntax { map::commentSyntax.at (extension) };
+        const auto& syntax { map::commentSyntax.at (extension) };
 
         return (syntax.get (Id::comment) + juce::String::charToString (Chars::space) + input)
             .trim();
     }
 
     /**
-     * @brief Wraps @p input in @p extension's block-comment delimiters.
+     * @brief Wraps @p input in @p extension's block-comment syntax --
+     *        one line when @p input carries no newline, otherwise each
+     *        prose line behind @p extension's own block-line glyph, the
+     *        glyph alone on a blank prose line, closed behind one space
+     *        when @p extension declares a block-line glyph.
      *
-     * @param input     The text to wrap.
-     * @param extension The target file extension whose block-comment
-     *                  syntax is applied.
-     * @returns @p input, wrapped in @p extension's block-comment open and
-     *          close markers.
+     * @param extension The target file extension whose comment syntax is
+     *                  used.
+     * @param input     The text to comment.
+     * @returns @p input, wrapped in @p extension's own block-comment
+     *          open and close glyphs.
      */
     static juce::String
     toCommentBlock (const juce::String& input, const juce::String& extension)
     {
-        const auto syntax { map::commentSyntax.at (extension) };
+        const auto& syntax { map::commentSyntax.at (extension) };
 
         if (not input.containsChar (Chars::newline))
             return (syntax.get (Id::blockOpen) + juce::String::charToString (Chars::space) + input
@@ -49,10 +52,12 @@ struct Transforms
         jam::Strings blockLines;
         blockLines.add (syntax.get (Id::blockOpen));
 
+        const auto prefix { blockLine.isNotEmpty()
+                                ? blockLine + juce::String::charToString (Chars::space)
+                                : juce::String() };
+
         for (const auto& proseLine : jam::Strings::fromLines (input))
-            blockLines.add (proseLine.isNotEmpty()
-                                 ? blockLine + juce::String::charToString (Chars::space) + proseLine
-                                 : blockLine);
+            blockLines.add (proseLine.isNotEmpty() ? prefix + proseLine : blockLine);
 
         blockLines.add (blockLine.isNotEmpty()
                              ? juce::String::charToString (Chars::space) + syntax.get (Id::blockClose)
@@ -62,23 +67,47 @@ struct Transforms
     }
 
     /**
-     * @brief Wraps @p input in @p extension's block-comment delimiters,
-     *        prefixed by its brief marker.
+     * @brief Wraps @p input in @p extension's block-comment glyphs,
+     *        prefixed by @p extension's own @c \@brief tag.
      *
-     * @param input     The text to wrap.
-     * @param extension The target file extension whose block-comment and
-     *                  brief syntax is applied.
-     * @returns @p input, wrapped in @p extension's block-comment open and
-     *          close markers with the brief marker inserted.
+     * @param extension The target file extension whose comment syntax is
+     *                  used.
+     * @param input     The text to comment.
+     * @returns @p input, wrapped in @p extension's own block-comment open
+     *          and close glyphs and @c \@brief tag.
      */
     static juce::String toBrief (const juce::String& input, const juce::String& extension)
     {
-        const auto syntax { map::commentSyntax.at (extension) };
+        const auto& syntax { map::commentSyntax.at (extension) };
 
         return (syntax.get (Id::blockOpen) + juce::String::charToString (Chars::space)
                + syntax.get (Id::brief) + juce::String::charToString (Chars::space) + input
                + juce::String::charToString (Chars::space) + syntax.get (Id::blockClose))
             .trim();
+    }
+
+    /**
+     * @brief Resolves @p file's own comment-syntax key -- the
+     *        manifest-syntax table's own extension for @p file's exact
+     *        name, when it carries a row, or @p file's own file
+     *        extension otherwise.
+     *
+     * @param file The output file whose comment-syntax key is resolved.
+     * @returns @p file's resolved comment-syntax key.
+     */
+    static juce::String getCommentSyntaxKey (const juce::String& file)
+    {
+        const auto outputFile { juce::File::createFileWithoutCheckingPath (file) };
+
+        if (auto syntaxEntry { map::manifestSyntax.find (outputFile.getFileName()) };
+            syntaxEntry != map::manifestSyntax.end())
+        {
+            const auto& [syntaxKey, extension] { *syntaxEntry };
+
+            return extension;
+        }
+
+        return outputFile.getFileExtension();
     }
 
     /**

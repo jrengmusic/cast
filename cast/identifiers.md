@@ -36,7 +36,7 @@ transform operations a format cell may declare (§8).
 | @id     | separator        |                      | toLiteral | Separator column key.                  |
 | @id     | structure        |                      | toLiteral | Structure column key.                  |
 | @id     | symbol           |                      | toLiteral | Index symbol column key.               |
-| @id     | templatePath     | `template`           |           | Template block id stamp.               |
+| @id     | templatePath     | `template`           |           | Template file path stamp.              |
 | @string | toCamel          | `to camel`           |           | camelCase operation.                   |
 | @string | toCodepoint      | `to codepoint`       |           | Codepoint encode operation.            |
 | @string | toFileName       | `to file name`       |           | File-name transform operation.         |
@@ -50,4 +50,5 @@ transform operations a format cell may declare (§8).
 | @string | toTitle          | `to title`           |           | Title Case operation.                  |
 | @string | toUpper          | `to upper`           |           | UPPERCASE operation.                   |
 | @string | toUTF8           | `to UTF8`            |           | UTF-8 encode operation.                |
+| @id     | wiring           |                      | toLiteral | Manifest wiring-table classification.  |
 +---------+------------------+----------------------+-----------+----------------------------------------+

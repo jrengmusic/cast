@@ -128,10 +128,7 @@ private:
             {
                 const auto start { groupStarts.at (index) };
                 const auto& file { model.getValue (*rows.at (start), Id::file) };
-                const auto fileName { juce::File::createFileWithoutCheckingPath (file).getFileName() };
-                const auto extension { map::manifestSyntax.contains (fileName)
-                                           ? map::manifestSyntax.at (fileName)
-                                           : juce::File::createFileWithoutCheckingPath (file).getFileExtension() };
+                const auto extension { Transforms::getCommentSyntaxKey (file) };
 
                 juce::String comment;
 
@@ -142,14 +139,13 @@ private:
 
                     if (auto* commentCell { model.getTableCell (
                             *indexCommentTable, Id::comment, juce::Identifier (aliasText)) })
-                        if (commentCell->contains (Id::value))
-                            comment = *commentCell->get<juce::String> (Id::value);
+                        comment = *commentCell->get<juce::String> (Id::value);
                 }
 
                 if (comment.isNotEmpty())
                     comment = Transforms::toCommentBlock (comment, extension);
 
-                TemplateDocument output;
+                jam::MarkdownDocument output;
                 output.addChild (*output.root, Id::text)
                     ->add<juce::String> (Id::text, getBanner (extension, comment));
 
@@ -175,18 +171,27 @@ private:
         return failures;
     }
 
+    /**
+     * @brief Resolves @p firstRow's separator column's row join, when it
+     *        declares one.
+     *
+     * @param firstRow The output-file group's own first row, whose
+     *                 separator column's row join is resolved.
+     * @returns The resolved row-join text, or an empty string when
+     *          @p firstRow's separator column declares no row join.
+     */
     juce::String getRowJoin (Model::Element& firstRow) const
     {
-        auto* rowJoinLine { model.getSeparator (firstRow, 0, 0) };
+        auto* rowJoinLine { model.getRowJoin (firstRow) };
 
         if (rowJoinLine != nullptr)
-            return templateDocument.getBinding (
+            return templateDocument.getValue (
                 model, firstRow, *rowJoinLine->get<juce::String> (Id::value));
 
         return {};
     }
 
-    void apply (TemplateDocument& output, const jam::Array<Model::Element*>& tables,
+    void apply (jam::MarkdownDocument& output, const jam::Array<Model::Element*>& tables,
                const jam::Array<Model::Element*>& rows, int index, int groupEnd,
                const juce::String& extension) const
     {

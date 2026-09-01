@@ -40,10 +40,6 @@ int main (int argc, char* argv[])
     std::system ("clear");
 #endif
 
-// #if JUCE_DEBUG
-//     const jam::debug::Log::Scope logScope { jam::File::getDebugLog() };
-// #endif
-
     const auto formatFlag { Id::doubleDash + Id::format.toString() };
     const auto noFormatFlag { Id::doubleDash + Id::noFormat.toString() };
     const auto isFormatOnly {

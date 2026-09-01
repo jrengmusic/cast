@@ -7,11 +7,11 @@
 
 /**
  * @struct Processor
- * @brief Owns the parsed Model, TemplateDocument, and Writer for one
- *        manifest, and drives generation and origin-file
- *        canonicalization through them.
+ * @brief Owns the parsed Model, the pool of parsed template files in its
+ *        TemplateDocument, and the Writer for one manifest, and drives
+ *        generation and origin-file canonicalization through them.
  *
- * Processor parses the manifest and its declared template once at
+ * Processor parses the manifest and its declared template files once at
  * construction. generate() then validates the manifest and writes its
  * declared outputs; format() re-canonicalizes every origin file the
  * manifest declares, in parallel, write-if-different.
@@ -19,15 +19,15 @@
 struct Processor
 {
     /**
-     * @brief Parses @p manifestFile into a Model and its declared
-     *        template file into a TemplateDocument, and constructs the
-     *        Writer that renders through them.
+     * @brief Parses @p manifestFile into a Model and every @c .cast file
+     *        its index declares into a TemplateDocument, and constructs
+     *        the Writer that renders through them.
      *
      * @param manifestFile The manifest file to parse.
      */
     explicit Processor (const juce::File& manifestFile)
         : model (Model::parse (manifestFile))
-        , templateDocument (jam::MarkdownDocument::parse (model->getTemplateFile().loadFileAsString()))
+        , templateDocument (*model)
         , writer (*model, templateDocument)
     {
         jam::Stamp::getInstance()->addIfNotAlreadyThere (jam::Stamp::Entry {});
