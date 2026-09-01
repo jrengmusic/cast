@@ -113,34 +113,24 @@ private:
         jam::Array<juce::String> tableFailures;
         tableFailures.resize (groupStarts.size());
 
-        for (auto start : groupStarts)
+        jam::Array<juce::File> outputFiles;
+        outputFiles.resize (groupStarts.size());
+
+        for (int index { 0 }; index < groupStarts.size(); ++index)
         {
-            const auto& file { model.getValue (*rows.at (start), Id::file) };
-            const auto outputFile { jam::File::getOrCreate (outputPath, file) };
-            outputFile.getParentDirectory().createDirectory();
+            const auto& file { model.getValue (*rows.at (groupStarts.at (index)), Id::file) };
+            outputFiles.at (index) = jam::File::getOrCreate (outputPath, file);
+            outputFiles.at (index).getParentDirectory().createDirectory();
         }
 
-        const auto indexCommentTables { model.getTables (Id::indexComment) };
-        auto* indexCommentTable { indexCommentTables.isEmpty() ? nullptr : indexCommentTables.at (0) };
-
         Jobs::run (groupStarts.size(),
-            [this, &outputPath, &rows, &groupStarts, &tables, &tableFailures, indexCommentTable] (int index)
+            [this, &rows, &groupStarts, &tables, &tableFailures, &outputFiles] (int index)
             {
                 const auto start { groupStarts.at (index) };
-                const auto& file { model.getValue (*rows.at (start), Id::file) };
-                const auto extension { Transforms::getCommentSyntaxKey (file) };
+                const auto& outputFile { outputFiles.at (index) };
+                const auto extension { Transforms::getCommentSyntaxKey (outputFile.getFileName()) };
 
-                juce::String comment;
-
-                if (indexCommentTable != nullptr)
-                {
-                    const auto& aliasText { *model.getTableCell (*rows.at (start), Id::file)
-                                                  ->get<juce::String> (Id::rawText) };
-
-                    if (auto* commentCell { model.getTableCell (
-                            *indexCommentTable, Id::comment, juce::Identifier (aliasText)) })
-                        comment = *commentCell->get<juce::String> (Id::value);
-                }
+                auto comment { getFileComment (*rows.at (start), outputFile.getFileName()) };
 
                 if (comment.isNotEmpty())
                     comment = Transforms::toCommentBlock (comment, extension);
@@ -155,7 +145,6 @@ private:
 
                 apply (output, tables, rows, start, groupEnd, extension);
 
-                const auto outputFile { jam::File::getOrCreate (outputPath, file) };
                 const auto current { outputFile.loadFileAsString() };
                 const auto canonical { getText (output) };
 
@@ -191,6 +180,69 @@ private:
         return {};
     }
 
+    /**
+     * @brief Resolves @p firstRow's own file-header comment -- @p firstRow's
+     *        @c comment cell, read as a wired table address when it is
+     *        @-sigiled, or as plain text otherwise.
+     *
+     * @pre When @p firstRow's @c comment cell is @-sigiled, it resolves to
+     *      a table -- established once by Validator::isReference() before
+     *      the writer ever runs.
+     *
+     * @param firstRow The output-file group's own first row, whose
+     *                 @c comment cell is resolved.
+     * @param file     The group's own output file, matched against the
+     *                 addressed table's @c file column when @p firstRow's
+     *                 @c comment cell is a table address.
+     * @returns The resolved comment text, or an empty string when
+     *          @p firstRow declares no @c comment cell, the cell is blank,
+     *          or the addressed table carries no row for @p file.
+     */
+    juce::String getFileComment (Model::Element& firstRow, const juce::String& file) const
+    {
+        auto* commentCell { model.getTableCell (firstRow, Id::comment) };
+
+        if (commentCell == nullptr)
+            return {};
+
+        const auto& commentValue { *commentCell->get<juce::String> (Id::value) };
+
+        if (not Model::isAddress (commentValue))
+            return commentValue;
+
+        auto* headerTable { model.getTable (firstRow, commentValue) };
+        jassert (headerTable != nullptr);
+
+        const auto fileName { jam::Format::toFileName (file) };
+
+        for (auto* headerRow : model.getTableRows (*headerTable))
+        {
+            auto* fileCell { model.getTableCell (*headerRow, Id::file) };
+
+            if (fileCell != nullptr
+                and jam::Format::toFileName (*fileCell->get<juce::String> (Id::value)) == fileName)
+                if (auto* headerCommentCell { model.getTableCell (*headerRow, Id::comment) })
+                    return *headerCommentCell->get<juce::String> (Id::value);
+        }
+
+        return {};
+    }
+
+    /**
+     * @brief Renders @p rows' own [@p index, @p groupEnd) slice through
+     *        Shapes::getShape(), then appends the rendered text and a
+     *        trailing newline as text children of @p output's root.
+     *
+     * @param output    The document the rendered text is appended to.
+     * @param tables    The tables searched when a nested @c list token
+     *                  expands.
+     * @param rows      The output-file group's own rows.
+     * @param index     The group's own first index into @p rows.
+     * @param groupEnd  The index one past the group's own last row in
+     *                  @p rows.
+     * @param extension The target file extension a comment value is
+     *                  commented for.
+     */
     void apply (jam::MarkdownDocument& output, const jam::Array<Model::Element*>& tables,
                const jam::Array<Model::Element*>& rows, int index, int groupEnd,
                const juce::String& extension) const
@@ -223,6 +275,18 @@ private:
             ->add<juce::String> (Id::text, juce::String::charToString (Chars::newline));
     }
 
+    /**
+     * @brief Renders the cast-output banner for @p extension, framed by
+     *        @p extension's own comment syntax, followed by @p comment
+     *        when it is not empty.
+     *
+     * @param extension The target file extension the banner is framed
+     *                  for.
+     * @param comment   The file's own header comment, appended after the
+     *                  banner when not empty.
+     * @returns The rendered banner, or an empty string when the parsed
+     *          banner document declares no @c banner code block.
+     */
     juce::String getBanner (const juce::String& extension, const juce::String& comment) const
     {
         static const auto document { jam::MarkdownDocument::parse (

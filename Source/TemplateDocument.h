@@ -44,18 +44,10 @@ struct TemplateDocument
                         const auto blockText { block->getAllSubText() };
                         block->add<juce::String> (Id::value, blockText);
                         jam::Document::Identifiers names;
-                        auto remaining { blockText };
 
-                        while (remaining.contains (Id::tripleColon))
-                        {
-                            remaining = jam::Format::from (remaining, Id::tripleColon, false);
-
-                            if (not remaining.contains (Id::tripleColon))
-                                break;
-                            const auto interior { jam::Format::upTo (remaining, Id::tripleColon, false) };
+                        for (const auto& interior : getMarkers (blockText))
                             names.add (juce::Identifier (jam::Format::toValidID (interior)));
-                            remaining = jam::Format::from (remaining, Id::tripleColon, false);
-                        }
+
                         block->add<jam::Document::Identifiers> (Id::placeholder, std::move (names));
                     }
             }
@@ -126,10 +118,37 @@ struct TemplateDocument
         if (model.isShape (row, value))
             return getBlockValue (model, row, value);
 
-        if (value.startsWithChar (Chars::at))
+        if (Model::isAddress (value))
             return model.getValue (row, value);
 
         return value;
+    }
+
+    /**
+     * @brief Returns every @c :::interior::: marker's own interior text
+     *        authored in @p text, verbatim, in authored order -- the one
+     *        scan every marker-reading member reads through.
+     *
+     * @param text The text scanned for its own markers.
+     * @returns @p text's own marker interiors, in authored order.
+     */
+    static jam::Strings getMarkers (const juce::String& text)
+    {
+        jam::Strings interiors;
+        auto remaining { text };
+
+        while (remaining.contains (Id::tripleColon))
+        {
+            remaining = jam::Format::from (remaining, Id::tripleColon, false);
+
+            if (not remaining.contains (Id::tripleColon))
+                break;
+
+            interiors.add (jam::Format::upTo (remaining, Id::tripleColon, false));
+            remaining = jam::Format::from (remaining, Id::tripleColon, false);
+        }
+
+        return interiors;
     }
 
 private:

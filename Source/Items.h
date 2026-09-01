@@ -55,6 +55,53 @@ struct Items
     }
 
     /**
+     * @brief Returns @p sourceTable's own rows, excluding a row whose
+     *        @c file column value equals @p row's own file -- a file
+     *        never lists itself -- and, when @p source is a cell-match
+     *        filter address, excluding a row whose @p source's own
+     *        filter column value does not equal its filter value (SPEC
+     *        §6.5).
+     *
+     * @param model       The model @p row and @p sourceTable belong to.
+     * @param row         The row whose own file's value is excluded.
+     * @param sourceTable The table whose rows are collected.
+     * @param source      The item source's own address, read for its
+     *                     optional cell-match filter.
+     * @returns Every row of @p sourceTable whose own @c file column value,
+     *          when present, differs from @p row's own file, and whose
+     *          filter column value, when @p source names one, equals the
+     *          filter value.
+     */
+    static jam::Array<Element*> getTableSourceRows (const Model& model,
+                                                     Element& row,
+                                                     Element& sourceTable,
+                                                     const juce::String& source)
+    {
+        const auto currentFile { jam::Format::toFileName (model.getValue (row, Id::file)) };
+        const auto isFiltered { Model::isFilteredAddress (source) };
+        const auto filterColumn { isFiltered ? Model::getFilterColumn (source) : juce::Identifier{} };
+        const auto filterValue { isFiltered ? Model::getFilterValue (source) : juce::String{} };
+        jam::Array<Element*> sourceRows;
+
+        for (auto* candidate : model.getTableRows (sourceTable))
+        {
+            auto* fileCell { model.getTableCell (*candidate, Id::file) };
+            const auto candidateFile { fileCell != nullptr
+                                           ? jam::Format::toFileName (
+                                                 *fileCell->get<juce::String> (Id::value))
+                                           : juce::String{} };
+            const auto matchesFilter { not isFiltered
+                or *model.getTableCell (*candidate, filterColumn)->get<juce::String> (Id::value)
+                       == filterValue };
+
+            if (candidateFile != currentFile and matchesFilter)
+                sourceRows.add (candidate);
+        }
+
+        return sourceRows;
+    }
+
+    /**
      * @brief Returns @p line's own arity -- its shape's count of
      *        @c :::list::: occurrences.
      *
@@ -90,32 +137,25 @@ struct Items
                                              Element& row)
     {
         jam::Array<int> privateShapes;
-
-        std::function<Element* (Element&, bool)> walkChain =
-            [&model, &templateDocument, &privateShapes, &walkChain] (Element& line,
-                bool alwaysWalk) -> Element*
-        {
-            auto* cursor { model.getNextLine (line) };
-
-            if (alwaysWalk or line.isTag (Id::p))
-                for (int occurrence { 0 };
-                     cursor != nullptr and occurrence < getArity (templateDocument, line);
-                     ++occurrence)
-                {
-                    privateShapes.addIfNotAlreadyThere (*cursor->get<int> (Id::shape));
-                    cursor = walkChain (*cursor, false);
-                }
-
-            return cursor;
-        };
+        const auto arityOf = [&templateDocument] (Element& line) { return getArity (templateDocument, line); };
 
         if (auto* scope { model.getTableCell (row, Id::structure) })
             scope->applyFunctionRecursively (
-                [&walkChain] (const Element& candidate) -> bool
+                [&model, &privateShapes, &arityOf] (const Element& candidate) -> bool
                 {
                     if (candidate.parent->isTag (Id::ul) and candidate.id != Id::list
                         and candidate.contains (Id::templatePath))
-                        walkChain (const_cast<Element&> (candidate), true);
+                    {
+                        auto& line { const_cast<Element&> (candidate) };
+                        auto* cursor { model.getNextLine (line) };
+
+                        for (int occurrence { 0 };
+                             cursor != nullptr and occurrence < arityOf (line); ++occurrence)
+                        {
+                            privateShapes.addIfNotAlreadyThere (*cursor->get<int> (Id::shape));
+                            cursor = model.getNextShapeLine (*cursor, arityOf);
+                        }
+                    }
 
                     return true;
                 });
@@ -176,7 +216,9 @@ struct Items
      * @brief Resolves @p name's value for @p sourceRow -- the deepest
      *        structure-wiring binding of that name outside a shape-valued
      *        binding's own private render data, or, absent one, the
-     *        row's own column value.
+     *        row's own column value. An @-sigiled @c comment column value
+     *        is a reference, not prose (SPEC §4), and resolves empty absent
+     *        a binding.
      *
      * @param model            The model @p sourceRow belongs to.
      * @param templateDocument The template document @p sourceRow's own
@@ -184,7 +226,8 @@ struct Items
      * @param sourceRow        The row @p name is resolved against.
      * @param name             The token or column name to resolve.
      * @returns The resolved value, or an empty string when neither a
-     *          binding nor a column named @p name exists on @p sourceRow.
+     *          binding nor a column named @p name exists on @p sourceRow, or
+     *          @p name is @c comment and the column value is a reference.
      */
     static juce::String getSourceValue (const Model& model, const TemplateDocument& templateDocument,
         Element& sourceRow, const juce::Identifier& name)
@@ -210,6 +253,9 @@ struct Items
 
         if (auto* cell { model.getTableCell (sourceRow, name) })
             columnValue = *cell->get<juce::String> (Id::value);
+
+        if (name == Id::comment and Model::isAddress (columnValue))
+            return {};
 
         return name == Id::file ? jam::Format::toFileName (columnValue) : columnValue;
     }
@@ -244,7 +290,7 @@ struct Items
         if (sourceRow != nullptr)
             return getSourceValue (model, templateDocument, *sourceRow, name);
 
-        return name == sourceKey ? sourceValue : juce::String();
+        return name == sourceKey ? sourceValue : juce::String{};
     }
 
     /**
@@ -293,6 +339,35 @@ struct Items
         return childValues.joinIntoString (childJoin, 0, -1);
     }
 
+    /**
+     * @brief Renders one item's own plain (unpadded) text -- @p line's
+     *        own shape with every placeholder token substituted by its
+     *        resolved value, the @c list token filled by getChildValue()
+     *        and every other token by getColumnValue(), commenting a
+     *        non-empty @c comment value for @p extension.
+     *
+     * @param model            The model @p sourceRow and @p row belong
+     *                         to.
+     * @param templateDocument The template document @p line's shape is
+     *                         read from.
+     * @param sourceRow        The item's source row, or @c nullptr when
+     *                         the item is a bare column value.
+     * @param sourceValue      The column value resolved when @p sourceRow
+     *                         is @c nullptr.
+     * @param sourceKey        The token name @p sourceValue answers for.
+     * @param line             The structure line whose shape is rendered.
+     * @param row              The structure row @p sourceOrdinal's child
+     *                         column addresses are read from.
+     * @param indent           The depth @p sourceOrdinal's child column
+     *                         addresses are read from.
+     * @param sourceOrdinal    The structure position after which child
+     *                         column addresses are read.
+     * @param childJoin        The @c list token's own child values' join
+     *                         text.
+     * @param extension        The target file extension a comment value
+     *                         is commented for.
+     * @returns The rendered item text.
+     */
     static juce::String getItem (const Model& model,
                                  const TemplateDocument& templateDocument,
                                  Element* sourceRow,
@@ -405,41 +480,17 @@ struct Items
     }
 
     /**
-     * @brief Returns @p name's authored @c :::token::: placeholder marker.
-     *
-     * @param name The token name to wrap.
-     * @returns @p name, wrapped in triple-colon markers.
-     */
-    static juce::String getMarker (const juce::Identifier& name)
-    {
-        return Id::tripleColon + name.toString() + Id::tripleColon;
-    }
-
-    /**
      * @brief Returns every @c :::interior::: marker's own interior text
-     *        authored in @p text, verbatim, in authored order -- the one
-     *        scan every marker-reading member reads through.
+     *        authored in @p text, verbatim, in authored order, through
+     *        TemplateDocument::getMarkers() -- the one scan every
+     *        marker-reading member reads through.
      *
      * @param text The text scanned for its own markers.
      * @returns @p text's own marker interiors, in authored order.
      */
     static jam::Strings getMarkers (const juce::String& text)
     {
-        jam::Strings interiors;
-        auto remaining { text };
-
-        while (remaining.contains (Id::tripleColon))
-        {
-            remaining = jam::Format::from (remaining, Id::tripleColon, false);
-
-            if (not remaining.contains (Id::tripleColon))
-                break;
-
-            interiors.add (jam::Format::upTo (remaining, Id::tripleColon, false));
-            remaining = jam::Format::from (remaining, Id::tripleColon, false);
-        }
-
-        return interiors;
+        return TemplateDocument::getMarkers (text);
     }
 
     /**
@@ -504,26 +555,16 @@ struct Items
                 paddedText += literal;
             else
             {
-                auto whitespaceStart { -1 };
-                auto whitespaceEnd { -1 };
+                const auto literalStart { literal.getCharPointer() };
+                const auto whitespaceStart { juce::CharacterFunctions::trimBegin (literalStart,
+                    literalStart.findTerminatingNull(),
+                    [] (const auto& character)
+                    { return not juce::CharacterFunctions::isWhitespace (*character); }) };
+                const auto whitespaceEnd { juce::CharacterFunctions::findEndOfWhitespace (whitespaceStart) };
 
-                for (int index { 0 }; index < literal.length(); ++index)
-                {
-                    if (juce::CharacterFunctions::isWhitespace (literal[index]))
-                    {
-                        if (whitespaceStart < 0)
-                            whitespaceStart = index;
-
-                        whitespaceEnd = index + 1;
-                    }
-                    else if (whitespaceStart >= 0)
-                        break;
-                }
-
-                const auto head { whitespaceStart >= 0 ? literal.substring (0, whitespaceEnd) : literal };
-                const auto tail {
-                    whitespaceStart >= 0 ? literal.substring (whitespaceEnd) : juce::String()
-                };
+                const auto head { literal.substring (
+                    0, static_cast<int> (literalStart.lengthUpTo (whitespaceEnd))) };
+                const auto tail { juce::String (whitespaceEnd) };
                 const auto fillWidth { columnWidths.at (previousName)
                     - static_cast<size_t> (previousValue.getNumBytesAsUTF8()) };
 
@@ -602,6 +643,33 @@ struct Items
         return texts;
     }
 
+    /**
+     * @brief Renders every item's own plain (unpadded) text -- each of
+     *        @p sourceRows then @p sourceValues rendered through
+     *        getItem(), keeping every non-empty rendered item.
+     *
+     * @param model            The model @p sourceRows and @p line belong
+     *                         to.
+     * @param templateDocument The template document @p line's shape is
+     *                         read from.
+     * @param sourceRows       The item source rows to render.
+     * @param sourceValues     The item column values to render.
+     * @param sourceKey        The token name each of @p sourceValues
+     *                         answers for.
+     * @param line             The structure line whose shape is rendered.
+     * @param row              The structure row @p sourceOrdinal's child
+     *                         column addresses are read from.
+     * @param indent           The depth @p sourceOrdinal's child column
+     *                         addresses are read from.
+     * @param sourceOrdinal    The structure position after which child
+     *                         column addresses are read.
+     * @param childJoin        The @c list token's own child values' join
+     *                         text.
+     * @param extension        The target file extension a comment value
+     *                         is commented for.
+     * @returns Every non-empty rendered item text, in @p sourceRows then
+     *          @p sourceValues order.
+     */
     static jam::Strings getPlainItemTexts (const Model& model,
                                            const TemplateDocument& templateDocument,
                                            const jam::Array<Element*>& sourceRows,
@@ -636,6 +704,34 @@ struct Items
         return texts;
     }
 
+    /**
+     * @brief Renders every item's own text -- getPaddedItemTexts() when
+     *        @p line's own shape is single-line, carries more than one
+     *        item across @p sourceRows and @p sourceValues, and declares
+     *        no @c list token, getPlainItemTexts() otherwise.
+     *
+     * @param model            The model @p sourceRows and @p line belong
+     *                         to.
+     * @param templateDocument The template document @p line's shape is
+     *                         read from.
+     * @param sourceRows       The item source rows to render.
+     * @param sourceValues     The item column values to render.
+     * @param sourceKey        The token name each of @p sourceValues
+     *                         answers for.
+     * @param line             The structure line whose shape is rendered.
+     * @param row              The structure row @p sourceOrdinal's child
+     *                         column addresses are read from.
+     * @param indent           The depth @p sourceOrdinal's child column
+     *                         addresses are read from.
+     * @param sourceOrdinal    The structure position after which child
+     *                         column addresses are read.
+     * @param childJoin        The @c list token's own child values' join
+     *                         text.
+     * @param extension        The target file extension a comment value
+     *                         is commented for.
+     * @returns Every non-empty rendered item text, in @p sourceRows then
+     *          @p sourceValues order.
+     */
     static jam::Strings getItemTexts (const Model& model,
                                       const TemplateDocument& templateDocument,
                                       const jam::Array<Element*>& sourceRows,
@@ -661,6 +757,31 @@ struct Items
             line, row, indent, sourceOrdinal, childJoin, extension);
     }
 
+    /**
+     * @brief Resolves @p source against @p row -- a wired table's own
+     *        rows through getTableSourceRows(), a column shared across
+     *        @p tables' own output rows through getColumnSourceValues(),
+     *        or a blank-binding selector's own rows through
+     *        getBindingSourceRows() -- then renders the resolved items
+     *        through getItemTexts().
+     *
+     * @param model            The model @p tables and @p row belong to.
+     * @param templateDocument The template document @p line's shape is
+     *                         read from.
+     * @param tables           The tables searched for @p source.
+     * @param row              The row @p source is resolved against.
+     * @param source           The item source's own name or address.
+     * @param line             The structure line whose shape is rendered.
+     * @param indent           The depth @p sourceOrdinal's child column
+     *                         addresses are read from.
+     * @param sourceOrdinal    The structure position after which child
+     *                         column addresses are read.
+     * @param childJoin        The @c list token's own child values' join
+     *                         text.
+     * @param extension        The target file extension a comment value
+     *                         is commented for.
+     * @returns Every non-empty rendered item text, in discovery order.
+     */
     static jam::Strings getItems (const Model& model,
                                   const TemplateDocument& templateDocument,
                                   const jam::Array<Element*>& tables,
@@ -678,7 +799,7 @@ struct Items
 
         if (auto* sourceTable { model.getTable (row, source) }; sourceTable != nullptr)
         {
-            sourceRows = model.getTableRows (*sourceTable);
+            sourceRows = getTableSourceRows (model, row, *sourceTable, source);
         }
         else
         {
@@ -706,6 +827,28 @@ struct Items
             row, indent, sourceOrdinal, childJoin, extension);
     }
 
+    /**
+     * @brief Renders @p source's own items through getItems(), joined by
+     *        @p separator.
+     *
+     * @param model            The model @p tables and @p row belong to.
+     * @param templateDocument The template document @p line's shape is
+     *                         read from.
+     * @param tables           The tables searched for @p source.
+     * @param row              The row @p source is resolved against.
+     * @param source           The item source's own name or address.
+     * @param line             The structure line whose shape is rendered.
+     * @param separator        The rendered items' own join text.
+     * @param indent           The depth @p sourceOrdinal's child column
+     *                         addresses are read from.
+     * @param sourceOrdinal    The structure position after which child
+     *                         column addresses are read.
+     * @param childJoin        The @c list token's own child values' join
+     *                         text.
+     * @param extension        The target file extension a comment value
+     *                         is commented for.
+     * @returns @p source's own rendered items, joined by @p separator.
+     */
     static juce::String getJoinedItems (const Model& model,
                                         const TemplateDocument& templateDocument,
                                         const jam::Array<Element*>& tables,

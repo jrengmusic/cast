@@ -88,6 +88,22 @@ struct Validator : jam::MarkdownValidator
         return juce::Result::ok();
     }
 
+    /**
+     * @brief Invokes @p function once per bullet found by walking
+     *        @p scope's blockquote lists, depth by depth, through the
+     *        recursive overload.
+     *
+     * @param table    The table @p row belongs to, passed through to
+     *                 @p function.
+     * @param row      The row @p scope belongs to, passed through to
+     *                 @p function.
+     * @param scope    The blockquote scope walked.
+     * @param function Callable invoked as
+     *                 @c function(table,row,bulletId,bulletValue) for each
+     *                 bullet found, returning a juce::Result.
+     * @returns juce::Result::ok() when @p function succeeds for every
+     *          bullet, or the first failing invocation's result.
+     */
     template <typename Function>
     static juce::Result
     forEachBinding (Element& table, Element& row, Element& scope, Function&& function)
@@ -358,6 +374,16 @@ struct Validator : jam::MarkdownValidator
         return juce::Result::ok();
     }
 
+    /**
+     * @brief Checks every output row's structure scope for unterminated
+     *        shape markers, through the recursive overload.
+     *
+     * @param model            The model whose output tables are checked.
+     * @param templateDocument The template document each shape line's
+     *                         code block is read from.
+     * @returns juce::Result::ok() when every row's markers pair, or the
+     *          first failing row's result.
+     */
     static juce::Result
     isMarkerCountValid (const Model& model, const TemplateDocument& templateDocument)
     {
@@ -567,9 +593,11 @@ struct Validator : jam::MarkdownValidator
     /**
      * @brief Checks that every expansion @c list bullet under @p scope
      *        pairs with a structure @c list line at its own (depth,
-     *        ordinal), and that every comment bullet's alias and address
-     *        resolve. Bullets carrying no @c Id::line stamp -- the row
-     *        join and map bullets -- are exempt from the pairing check.
+     *        ordinal), and that every @-sigiled comment bullet's alias and
+     *        address resolve. A comment bullet whose value is not
+     *        @-sigiled is plain prose, never a reference (SPEC §4), and is
+     *        exempt. Bullets carrying no @c Id::line stamp -- the row join
+     *        and map bullets -- are exempt from the pairing check.
      *
      * @param model  The model @p row belongs to.
      * @param table  The table @p row belongs to, named in a failure's
@@ -604,25 +632,29 @@ struct Validator : jam::MarkdownValidator
                     if (item->id == Id::comment)
                     {
                         const auto& value { *item->get<juce::String> (Id::value) };
-                        const auto parts { jam::Strings::fromTokens (
-                            value, juce::String::charToString (Chars::colon), {}) };
-                        const auto aliasName { parts.at (0).trim() };
 
-                        if (model.getValue (row, aliasName).isEmpty())
-                            return juce::Result::fail (getLocation (table, row, column.toString())
-                                                       + Id::diagnosticSeparator
-                                                       + text::Diagnostics::failAliasMissing
-                                                       + Id::diagnosticSeparator + aliasName);
+                        if (Model::isAddress (value))
+                        {
+                            const auto parts { jam::Strings::fromTokens (
+                                value, juce::String::charToString (Chars::colon), {}) };
+                            const auto aliasName { parts.at (0).trim() };
 
-                        auto* referencedCodeBlock { model.getCodeBlock (
-                            juce::Identifier (jam::Format::getPostColon (value).trim())) };
+                            if (model.getValue (row, aliasName).isEmpty())
+                                return juce::Result::fail (getLocation (table, row, column.toString())
+                                                           + Id::diagnosticSeparator
+                                                           + text::Diagnostics::failAliasMissing
+                                                           + Id::diagnosticSeparator + aliasName);
 
-                        if (model.getTable (row, value) == nullptr
-                            and (referencedCodeBlock == nullptr
-                                 or not referencedCodeBlock->contains (Id::comment)))
-                            return juce::Result::fail (getLocation (table, row, column.toString())
-                                                       + Id::diagnosticSeparator
-                                                       + text::Diagnostics::failOrphan);
+                            auto* referencedCodeBlock { model.getCodeBlock (
+                                juce::Identifier (jam::Format::getPostColon (value).trim())) };
+
+                            if (model.getTable (row, value) == nullptr
+                                and (referencedCodeBlock == nullptr
+                                     or not referencedCodeBlock->contains (Id::comment)))
+                                return juce::Result::fail (getLocation (table, row, column.toString())
+                                                           + Id::diagnosticSeparator
+                                                           + text::Diagnostics::failOrphan);
+                        }
                     }
                 }
 
@@ -635,6 +667,14 @@ struct Validator : jam::MarkdownValidator
         return juce::Result::ok();
     }
 
+    /**
+     * @brief Checks every output row's @c structure, @c separator, and
+     *        @c list scopes, through the recursive overload.
+     *
+     * @param model The model whose output tables are checked.
+     * @returns juce::Result::ok() when every row's bullets pair and
+     *          resolve, or the first failing row's result.
+     */
     static juce::Result isPaired (const Model& model)
     {
         for (auto* table : model.getTables())
@@ -662,6 +702,17 @@ struct Validator : jam::MarkdownValidator
         return juce::Result::ok();
     }
 
+    /**
+     * @brief Checks that every @-sigiled binding across @p model's
+     *        @c structure, @c separator, and @c list scopes, and every
+     *        @-sigiled non-wiring cell, resolves through hasTable() --
+     *        a shape address is exempt, resolved instead by
+     *        Validator::isStructure().
+     *
+     * @param model The model whose bindings and cells are checked.
+     * @returns juce::Result::ok() when every @-sigiled entry resolves,
+     *          or the first failing entry's result.
+     */
     static juce::Result isReference (const Model& model)
     {
         for (const auto& column : { Id::structure, Id::separator, Id::list })
@@ -669,7 +720,7 @@ struct Validator : jam::MarkdownValidator
                     [&model, &column] (Element& table, Element& row, const juce::Identifier& entryId,
                         const juce::String& entryValue) -> juce::Result
                     {
-                        if (entryId != Id::comment and entryValue.startsWithChar (Chars::at)
+                        if (entryId != Id::comment and Model::isAddress (entryValue)
                             and not model.isShape (row, entryValue))
                             return hasTable (model, table, row, column, entryValue);
 
@@ -682,7 +733,7 @@ struct Validator : jam::MarkdownValidator
             [&model] (Element& table, Element& row, const juce::Identifier& column,
                 const juce::String& entryValue) -> juce::Result
             {
-                if (column != Id::comment and entryValue.startsWithChar (Chars::at))
+                if (Model::isAddress (entryValue))
                     return hasTable (model, table, row, column, entryValue);
 
                 return juce::Result::ok();
@@ -780,7 +831,9 @@ struct Validator : jam::MarkdownValidator
      * @param column     The column @p entryValue was authored under, named
      *                   in a failure's location.
      * @param entryValue The @-sigiled address:
-     *                   @c \@alias\[:table\[:column\]\].
+     *                   @c \@alias\[:table\[:column\[=value\]\]\]. A
+     *                   filter's @c =value suffix is stripped before the
+     *                   column part is checked.
      * @returns juce::Result::ok() when every declared part resolves, or a
      *          failure naming the missing alias, table, or column.
      */
@@ -811,7 +864,8 @@ struct Validator : jam::MarkdownValidator
 
             if (parts.size() > 2)
             {
-                const auto columnName { parts.at (2).trim() };
+                const auto columnName { parts.at (2).upToFirstOccurrenceOf (
+                    juce::String::charToString (Chars::equals), false, false).trim() };
 
                 if (not model.getTableHeaders (*referencedTable)
                             .contains (jam::Format::toValidID (columnName)))
@@ -926,7 +980,7 @@ struct Validator : jam::MarkdownValidator
             {
                 const auto rawText { *cell->get<juce::String> (Id::rawText) };
 
-                if (not rawText.startsWithChar (Chars::at))
+                if (not Model::isAddress (rawText))
                     if (const auto& value { *cell->get<juce::String> (Id::value) }; value.isNotEmpty())
                     {
                         if (seen.contains (value))
@@ -944,7 +998,7 @@ struct Validator : jam::MarkdownValidator
 
     /**
      * @brief Checks each of @p table's identity columns -- @c name,
-     *        @c key and @c alias -- for uniqueness through
+     *        @c key, @c alias, and @c file -- for uniqueness through
      *        isUniqueColumn().
      *
      * @param model The model @p table belongs to.
@@ -956,7 +1010,7 @@ struct Validator : jam::MarkdownValidator
     {
         const auto rows { model.getTableRows (table) };
 
-        for (const auto& column : { Id::name, Id::key, Id::alias })
+        for (const auto& column : { Id::name, Id::key, Id::alias, Id::file })
             if (const auto result { isUniqueColumn (model, table, rows, column) };
                 not result.wasOk())
                 return result;
@@ -1044,9 +1098,50 @@ struct Validator : jam::MarkdownValidator
         return juce::Result::ok();
     }
 
+    /**
+     * @brief Checks that every declared @c ## toolchain table's header row
+     *        declares both a @c command and a @c flag column (SPEC §6.9) --
+     *        the invariant Processor::generate() trusts unconditionally
+     *        when it reads a row's @c command and @c flag cells.
+     *
+     * @param model The model whose @c ## toolchain tables are checked.
+     * @returns juce::Result::ok() when every declared @c ## toolchain
+     *          table carries both columns, or a failure naming the table
+     *          missing one.
+     */
+    static juce::Result isToolchain (const Model& model)
+    {
+        for (auto* table : model.getTables (Id::toolchain))
+        {
+            auto* headerRow { model.getTableRow (*table, Id::headerRow) };
+
+            if (model.getTableCell (*headerRow, Id::command) == nullptr
+                or model.getTableCell (*headerRow, Id::flag) == nullptr)
+                return juce::Result::fail (getLocation (*table, *headerRow, Id::toolchain.toString())
+                                           + Id::diagnosticSeparator
+                                           + text::Diagnostics::failToolchainColumn);
+        }
+
+        return juce::Result::ok();
+    }
+
+    /**
+     * @brief Runs every manifest-level check against @p model and
+     *        @p templateDocument, in declared order, stopping at the
+     *        first failure -- the one driver isValid() reads through.
+     *
+     * @param model            The parsed manifest and its data tables.
+     * @param templateDocument The parsed template file the manifest wires
+     *                         against.
+     * @returns juce::Result::ok() when every check passes, or the first
+     *          failing check's result.
+     */
     static juce::Result isManifest (const Model& model, const TemplateDocument& templateDocument)
     {
         if (const auto result { isIndex (model) }; not result.wasOk())
+            return result;
+
+        if (const auto result { isToolchain (model) }; not result.wasOk())
             return result;
 
         if (const auto result { isUniqueAlias (model) }; not result.wasOk())

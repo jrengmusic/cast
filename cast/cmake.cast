@@ -19,7 +19,7 @@ project(:::projectName:::
     DESCRIPTION ":::description:::"
 )
 
-message(STATUS "${PROJECT_DESCRIPTION}")
+message(STATUS ":::banner:::")
 
 execute_process(
     COMMAND git rev-parse --short HEAD
@@ -30,24 +30,29 @@ execute_process(
 
 message(STATUS "CAST: configuring ${PROJECT_NAME} ${PROJECT_VERSION}")
 
-set(CAST_CLANG_WARNING_FLAGS
+if(APPLE)
+    set(CAST_RELEASE_COMPILE_FLAGS
 :::list:::
-)
-
-set(CAST_MSVC_WARNING_FLAGS
+    )
+    set(CAST_RELEASE_LINK_FLAGS
 :::list:::
-)
-
-if(MSVC)
-    set(CAST_WARNING_FLAGS ${CAST_MSVC_WARNING_FLAGS})
-else()
-    set(CAST_WARNING_FLAGS ${CAST_CLANG_WARNING_FLAGS})
+    )
+    set(CAST_DEBUG_COMPILE_FLAGS
+:::list:::
+    )
+elseif(WIN32)
+    set(CAST_RELEASE_COMPILE_FLAGS
+:::list:::
+    )
+    set(CAST_RELEASE_LINK_FLAGS
+:::list:::
+    )
+    set(CAST_DEBUG_COMPILE_FLAGS
+:::list:::
+    )
 endif()
 
-add_compile_options(${CAST_WARNING_FLAGS})
-
 set(CAST_JUCE_PATH ":::jucePath:::")
-set(CAST_USER_MODULE_PATH ":::userModulePath:::")
 
 set(CAST_JUCE_VERSION :::juceVersion:::)
 
@@ -80,14 +85,22 @@ message(STATUS "CAST: JUCE ${CAST_FOUND_JUCE_VERSION} found at ${CAST_PATCHED_JU
 
 :::list:::
 
-message(STATUS "CAST: user modules added from ${CAST_USER_MODULE_PATH}")
+message(STATUS "CAST: user modules added from :::userModulePath:::")
 
 :::juceTargetFunction:::(${PROJECT_NAME}
-    PRODUCT_NAME :::projectName:::
+    PRODUCT_NAME ":::productName:::"
     VERSION :::versionString:::
+    BUILD_VERSION ":::buildVersion:::"
+    BUNDLE_ID ":::bundleIdentifier:::"
     COMPANY_NAME :::companyName:::
+    COMPANY_COPYRIGHT ":::companyCopyright:::"
     COMPANY_WEBSITE :::productWebsite:::
     COMPANY_EMAIL :::companyEmail:::
+    DOCUMENT_EXTENSIONS :::documentExtensions:::
+    NEEDS_CURL :::needsCurl:::
+    NEEDS_WEB_BROWSER :::needsWebBrowser:::
+    NEEDS_WEBVIEW2 :::needsWebview2:::
+    NEEDS_STORE_KIT :::needsStoreKit:::
 )
 
 juce_generate_juce_header(${PROJECT_NAME})
@@ -115,14 +128,21 @@ target_link_libraries(${PROJECT_NAME}
         juce::juce_recommended_config_flags
 )
 
-target_compile_options(${PROJECT_NAME} PRIVATE ${CAST_WARNING_FLAGS})
+target_compile_options(${PROJECT_NAME} PRIVATE
+    $<$<CONFIG:Release>:${CAST_RELEASE_COMPILE_FLAGS}>
+    $<$<CONFIG:Debug>:${CAST_DEBUG_COMPILE_FLAGS}>
+)
+
+target_link_options(${PROJECT_NAME} PRIVATE
+    $<$<CONFIG:Release>:${CAST_RELEASE_LINK_FLAGS}>
+)
 
 file(GLOB CAST_BINARY_FILES CONFIGURE_DEPENDS
 :::list:::
 )
 
 juce_add_binary_data(${PROJECT_NAME}_BinaryData
-    NAMESPACE "BinaryData"
+    NAMESPACE ":::binaryDataNamespace:::"
     SOURCES
         ${CAST_BINARY_FILES}
 )
@@ -135,7 +155,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
     check_ipo_supported(RESULT CAST_IPO_SUPPORTED OUTPUT CAST_IPO_ERROR)
 
     if(CAST_IPO_SUPPORTED)
-        set_target_properties(${PROJECT_NAME} PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
+        set_target_properties(${PROJECT_NAME} PROPERTIES INTERPROCEDURAL_OPTIMIZATION :::interproceduralOptimization:::)
         message(STATUS "CAST: LTO enabled")
     else()
         message(WARNING "CAST: LTO not supported — ${CAST_IPO_ERROR}")
@@ -143,11 +163,15 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
 
     if(APPLE OR UNIX)
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-            COMMAND ${CMAKE_STRIP} $<TARGET_FILE:${PROJECT_NAME}>
-            COMMENT "CAST: strip"
+:::strip:::
+:::codesign:::
+:::zip:::
+:::notarize:::
+:::install-directory:::
+:::install-copy:::
+:::install-rename:::
+            COMMENT "CAST: post-build"
         )
-    elseif(MSVC)
-        target_link_options(${PROJECT_NAME} PRIVATE /OPT:REF /OPT:ICF)
     endif()
 endif()
 
@@ -156,31 +180,6 @@ message(STATUS "CAST: ${PROJECT_NAME} configured")
 message(STATUS "Generator: ${CMAKE_GENERATOR}")
 message(STATUS "Build directory: ${CMAKE_BINARY_DIR}")
 message(STATUS "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-
-if(APPLE AND CMAKE_BUILD_TYPE STREQUAL "Release")
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E echo "CAST: signing $<TARGET_FILE_NAME:${PROJECT_NAME}>..."
-        COMMAND xattr -cr $<TARGET_FILE:${PROJECT_NAME}>
-        COMMAND codesign --force --options runtime
-                --entitlements ":::entitlementsPath:::"
-                --sign ":::identity:::"
-                $<TARGET_FILE:${PROJECT_NAME}>
-        COMMAND codesign --verify --verbose $<TARGET_FILE:${PROJECT_NAME}>
-        COMMENT "CAST: codesign"
-        VERBATIM
-    )
-
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E echo "CAST: notarizing $<TARGET_FILE_NAME:${PROJECT_NAME}>..."
-        COMMAND ditto -c -k --keepParent $<TARGET_FILE:${PROJECT_NAME}> $<TARGET_FILE:${PROJECT_NAME}>.notarize.zip
-        COMMAND xcrun notarytool submit $<TARGET_FILE:${PROJECT_NAME}>.notarize.zip
-                --keychain-profile ":::notaryProfile:::"
-                --wait
-        COMMAND ${CMAKE_COMMAND} -E remove $<TARGET_FILE:${PROJECT_NAME}>.notarize.zip
-        COMMENT "CAST: notarize"
-        VERBATIM
-    )
-endif()
 ```
 
 ```entry
@@ -189,6 +188,14 @@ endif()
 
 ```value
 :::value:::
+```
+
+```mac
+:::mac:::
+```
+
+```win
+:::win:::
 ```
 
 ```link
@@ -201,4 +208,32 @@ juce_add_module(":::root:::/:::name:::"):::comment:::
 
 ```glob-pattern
 :::path:::/*.:::extension:::
+```
+
+```strip
+COMMAND ${CMAKE_STRIP} $<TARGET_FILE:${PROJECT_NAME}>
+```
+
+```codesign
+COMMAND codesign --force --options runtime --entitlements "${CMAKE_SOURCE_DIR}/:::entitlementsPath:::" --sign ":::identity:::" $<TARGET_FILE:${PROJECT_NAME}>
+```
+
+```zip
+COMMAND ditto -c -k --keepParent $<TARGET_FILE:${PROJECT_NAME}> $<TARGET_FILE:${PROJECT_NAME}>.zip
+```
+
+```notarize
+COMMAND xcrun notarytool submit $<TARGET_FILE:${PROJECT_NAME}>.zip --keychain-profile ":::notaryProfile:::" --wait
+```
+
+```install-directory
+COMMAND ${CMAKE_COMMAND} -E make_directory ":::installDirectory:::"
+```
+
+```install-copy
+COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PROJECT_NAME}> ":::installDirectory:::/${PROJECT_NAME}.tmp"
+```
+
+```install-rename
+COMMAND ${CMAKE_COMMAND} -E rename ":::installDirectory:::/${PROJECT_NAME}.tmp" ":::installDirectory:::/${PROJECT_NAME}"
 ```

@@ -12,9 +12,9 @@ struct Transforms
     /**
      * @brief Wraps @p input in @p extension's single-line comment glyph.
      *
+     * @param input     The text to comment.
      * @param extension The target file extension whose comment syntax is
      *                  used.
-     * @param input     The text to comment.
      * @returns @p input, prefixed by @p extension's own comment glyph.
      */
     static juce::String toComment (const juce::String& input, const juce::String& extension)
@@ -32,9 +32,9 @@ struct Transforms
      *        glyph alone on a blank prose line, closed behind one space
      *        when @p extension declares a block-line glyph.
      *
+     * @param input     The text to comment.
      * @param extension The target file extension whose comment syntax is
      *                  used.
-     * @param input     The text to comment.
      * @returns @p input, wrapped in @p extension's own block-comment
      *          open and close glyphs.
      */
@@ -54,7 +54,7 @@ struct Transforms
 
         const auto prefix { blockLine.isNotEmpty()
                                 ? blockLine + juce::String::charToString (Chars::space)
-                                : juce::String() };
+                                : juce::String{} };
 
         for (const auto& proseLine : jam::Strings::fromLines (input))
             blockLines.add (proseLine.isNotEmpty() ? prefix + proseLine : blockLine);
@@ -70,9 +70,9 @@ struct Transforms
      * @brief Wraps @p input in @p extension's block-comment glyphs,
      *        prefixed by @p extension's own @c \@brief tag.
      *
+     * @param input     The text to comment.
      * @param extension The target file extension whose comment syntax is
      *                  used.
-     * @param input     The text to comment.
      * @returns @p input, wrapped in @p extension's own block-comment open
      *          and close glyphs and @c \@brief tag.
      */

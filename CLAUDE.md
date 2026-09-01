@@ -10,13 +10,13 @@
 
 ## Current State
 
-**Last Sprint:** Address-Form Shapes + Positional Map Rung — CAST as straight string replacement ✅ (2026-08-31)
+**Last Sprint:** `## index comment` elimination — file documentation wired through `## headers` table addresses, engine-wide clean sweep (isAddress predicate, marker-scan SSOT, toolchain column gate, dead-code removal) ✅ (2026-09-01)
 
-**Active Work:** None — jam/cast byte-identical fixpoint; EVE CMakeLists.txt generated + configures
+**Active Work:** None — cast/jam/eve byte-identical fixpoints; full default flow (configure, build, sign, notarize, install) exit 0
 
 **Active ODE:** None
 
-**Active Debt:** None (DEBT.md is empty)
+**Active Debt:** Two open entries in DEBT.md — DEBT-20260831T021428 (KANJUT conformance wholesale owed), DEBT-20260831T021425 (plugin_bootstrap conformance owed, JFS must build with JAM)
 
 ---
 
@@ -26,8 +26,8 @@
 
 | File | Purpose | Key Responsibility |
 |------|---------|-------------------|
-| **main.cpp** | CLI entry point | Program dispatch, help/version output, `debug::Log::Scope` |
-| **Processor.h** | Orchestrator | Owns Model + TemplateDocument + Writer; `generate()` (validate → write), `format()` (canonicalize origin .md files, parallel via Jobs) |
+| **main.cpp** | CLI entry point | Program dispatch, help/version output |
+| **Processor.h** | Orchestrator | Owns Model + TemplateDocument + Writer; `generate()` (validate → write → run `## toolchain` rows), `format()` (canonicalize origin .md files, parallel via Jobs) |
 | **Model.h** | Master document | Manifest parse → parallel per-file table parse → splice into ONE MarkdownDocument; value/table/alias resolution |
 | **Validator.h** | Manifest + table gates | Structure, source-count, address, format, index, hazard fatals — the only gate |
 | **Writer.h** | Output rendering | One job per output-file group; write-if-different; failure collection |
@@ -37,7 +37,7 @@
 | **Transforms.h** | String transforms | Case/escape/comment framing per extension (`map::commentSyntax`) |
 | **Jobs.h** | Thread pool | `Jobs::run (count, perIndex)` parallel dispatch |
 | **Help.h** | --help rendering | Help text via StyleManager + markdown (HELP.md + style.css via BinaryData) |
-| **generated/** | Codegen outputs | Bimaps.h, Files.h, Generated.h, HashMaps.h, Identifiers.h, Text.h — cast's own fixpoint outputs |
+| **generated/** | Codegen outputs | Files.h, Generated.h, HashMaps.h, Identifiers.h, ProjectInfo.h, Text.h — cast's own fixpoint outputs |
 | **resources/** | cast-output.md | Banner artwork source (markdown fenced code) |
 
 ### `cast/` — Metadata, Data Tables & Templates
@@ -46,7 +46,8 @@
 |------|---------|
 | **CAST.md** | Generation manifest: outputs, wiring rows (`list | separator | structure | file`); shapes addressed `@code:<fence>` into `../../jam/cast/code.cast` |
 | **identifiers.md** | Identifier table → generated/Identifiers.h |
-| **tokens.md, text.md, comments.md, files.md, banner.md** | Data tables (one table per generated concern) |
+| **text.md, comments.md, files.md, banner.md** | Data tables (one table per generated concern) |
+| **cmake.cast** | Shared CMakeLists.txt template, wired by cast/CAST.md and eve's manifest |
 
 ### Doxygen
 
@@ -64,7 +65,7 @@
 | **SPEC.md** | Normative feature spec (project root) — SPEC is normative; HELP.md is derived and carries no authority | ✅ Current |
 | **Source/HELP.md** | Help text rendered by --help, derived from SPEC | ✅ Current |
 | **carol/SPRINT-LOG.md** | Cross-session memory: sprint history + active handoff | ✅ Current |
-| **DEBT.md** | Inter-sprint ledger | Empty |
+| **DEBT.md** | Inter-sprint ledger | Two open entries — KANJUT conformance, plugin_bootstrap conformance |
 
 ---
 

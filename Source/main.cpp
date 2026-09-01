@@ -56,14 +56,27 @@ int main (int argc, char* argv[])
                                    ? postFlagArgIndex
                                    : flagArgIndex };
 
+    const auto versionFlag { Id::doubleDash + Id::version.toString() };
+    const auto helpFlag { Id::doubleDash + Id::help.toString() };
+    const auto postFlagArgument { (argc == 3 and manifestIndex == flagArgIndex and not isSkipFormat)
+                                      ? juce::String::fromUTF8 (argv[postFlagArgIndex])
+                                      : juce::String {} };
+    const auto isToolchainArgument { postFlagArgument.startsWith (Id::doubleDash.toString())
+                                     and postFlagArgument != formatFlag and postFlagArgument != noFormatFlag
+                                     and postFlagArgument != versionFlag and postFlagArgument != helpFlag };
+    const auto toolchainArgument { isToolchainArgument
+                                       ? postFlagArgument.substring (Id::doubleDash.toString().length())
+                                       : juce::String {} };
+    const auto outputDirectory { isToolchainArgument ? juce::String {} : postFlagArgument };
+
     const juce::File documentFile {
         (argc > manifestIndex) ? juce::File::getCurrentWorkingDirectory().getChildFile (
                                      juce::String::fromUTF8 (argv[manifestIndex]))
                                : juce::File::getCurrentWorkingDirectory().getChildFile (files::cast)
     };
 
-    if (argc == 2
-        and juce::String::fromUTF8 (argv[flagArgIndex]) == Id::doubleDash + Id::version.toString())
+    if ((argc == 2 and juce::String::fromUTF8 (argv[flagArgIndex]) == versionFlag)
+        or postFlagArgument == versionFlag)
     {
         const auto versionLine { ProjectInfo::projectName
                                  + juce::String::charToString (Chars::space)
@@ -75,8 +88,8 @@ int main (int argc, char* argv[])
         return 0;
     }
 
-    if (argc == 2
-        and juce::String::fromUTF8 (argv[flagArgIndex]) == Id::doubleDash + Id::help.toString())
+    if ((argc == 2 and juce::String::fromUTF8 (argv[flagArgIndex]) == helpFlag)
+        or postFlagArgument == helpFlag)
     {
         printBannerAndHelp();
         return 0;
@@ -91,10 +104,7 @@ int main (int argc, char* argv[])
             result = processor.format();
 
         if (result.wasOk() and not isFormatOnly)
-            result = processor.generate (
-                (argc == 3 and manifestIndex == flagArgIndex and not isSkipFormat)
-                    ? juce::String::fromUTF8 (argv[postFlagArgIndex])
-                    : juce::String {});
+            result = processor.generate (outputDirectory, toolchainArgument);
 
         if (result.wasOk())
             return 0;

@@ -2,7 +2,7 @@ CompileFlags:
   CompilationDatabase: /Users/jreng/Documents/Poems/dev/cast
   Remove: [--target=*]
   Add:
-    - -DCAST_COMMIT=\"c83735a\"
+    - -DCAST_COMMIT=\"81fdd58\"
     - -DDONT_SET_USING_JUCE_NAMESPACE=1
     - -DJUCE_DONT_DECLARE_PROJECTINFO=1
     - -DJUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1
@@ -31,12 +31,12 @@ CompileFlags:
     - -arch
     - arm64
     - -mmacosx-version-min=11.0
+    - -Wno-shadow
+    - -Wno-unused-parameter
     - -Wno-float-equal
     - -Wno-sign-conversion
     - -Wno-switch-enum
-    - -Wno-unused-parameter
     - -Wno-implicit-float-conversion
-    - -Wno-shadow
 Diagnostics:
   MissingIncludes: None
   UnusedIncludes: None

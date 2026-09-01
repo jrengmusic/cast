@@ -1,6 +1,6 @@
 # CAST: Codegen Annotated Source of Truth
 
-**Version 0.0.1**
+**Version 0.1.0**
 
 You are seeing this because you ran `cast --help`, or because `cast` could not find a `CAST.md` in the current directory.
 
@@ -17,12 +17,14 @@ Arguments select what to run. They never carry generation rules.
 - `cast` — find `CAST.md` here, format every declared markdown file, then regenerate every declared output
 - `cast <path>/CAST.md` — the same, using a specific manifest
 - `cast CAST.md <directory>` — write every declared output under that directory instead
-- `cast CAST.md --format` — format only, no generation
-- `cast CAST.md --no-format` — generate only, no formatting
+- `cast CAST.md --format` or `cast --format CAST.md` — format only, no generation; the flag reads either before or after the manifest
+- `cast CAST.md --no-format` or `cast --no-format CAST.md` — generate only, no formatting
+- `cast CAST.md --<word>` — after format and generate, run only the `## toolchain`
+  rows whose `argument` cell equals `word`, instead of the default-flow rows
 - `cast --version` — version and source commit, the same stamp embedded in generated banners
 - `cast --help` — this guide
 
-Default order is format, then generate.
+Default order is format, then generate. `--format` and `--no-format` are mutually exclusive with each other and with an output directory or a `--<word>` toolchain argument — one manifest, one flag, nothing else on the line.
 
 ---
 
@@ -78,7 +80,9 @@ A cell is one of three things:
 | plain text | that text, verbatim |
 | `` `text` `` | `toLiteral` of those bytes — quoted and escaped, ready to drop into a literal |
 | a fenced block | the same, over a datum that spans lines |
-| empty | the **preceding** column's value, verbatim |
+| empty | nothing — an empty string |
+
+An empty cell is not an error and not a special case — it is string replacement as nothing, in every table, reserved or not. A token it fills renders empty, and a template line left empty by its only placeholder elides for free, exactly like any other emptied placeholder line. An empty `format` cell formats nothing: the value is written verbatim.
 
 Backticks are not decoration and not an escape. A backtick **is** the `toLiteral` operation, so a backticked cell never needs a `format` column beside it.
 
@@ -128,14 +132,14 @@ To put a `|` inside a cell, precede it with a backslash. The scanner eats that b
 There is no chaining. If a datum needs a different shape, author it in that shape:
 
 ```
-+------+-------------+-------+-----------+
-| type | name        | value | format    |
-+======+=============+=======+===========+
-| @id  | circleCross |       | toLiteral |
-+------+-------------+-------+-----------+
++------+-------------+-------------+-----------+
+| type | name        | value       | format    |
++======+=============+=============+===========+
+| @id  | circleCross | circleCross | toLiteral |
++------+-------------+-------------+-----------+
 
 name  ->  circleCross      verbatim
-value ->  "circleCross"    empty, so it takes name, then toLiteral quotes it
+value ->  "circleCross"    circleCross, quoted and escaped by toLiteral
 ```
 
 Formatting is declared in the table. A template never formats anything.
@@ -198,6 +202,25 @@ Write the table part only when you need it. It is omissible when the table is na
 
 CAST stops with an error if an alias is undeclared, declared twice, points at a missing file, or names a table or column that does not exist.
 
+### Filtering rows by a cell
+
+```
+@file : table : column = value
+```
+
+Add `=value` to the column part and the address selects only that table's rows whose `column` cell equals `value`, byte for byte. `value` can be empty, matching a row whose cell is itself blank — nothing (see Cells). This is how one table serves two disjoint row sets — a compiler-stage split, say — without a second table:
+
+```
++----------------------+-----------------------------+---------+--------------------------+
+| name                 | mac                          | win     | stage                    |
++======================+===============================+=========+==========================+
+| optimization         | -O3                           | /O2     |                          |
+| deadCodeStripping    | -dead_strip                   | /OPT:REF | linker                   |
++----------------------+-------------------------------+---------+--------------------------+
+```
+
+`@project-info:release:stage=` selects the compiler rows (`stage` blank); `@project-info:release:stage=linker` selects the linker rows — one table, two wiring lines, no duplication.
+
 ---
 
 ## Templates
@@ -250,15 +273,15 @@ Joining more than one item from a single-line shape aligns their token columns: 
 
 `separator` is optional. Blank means newline.
 
-A wiring table is any manifest table with a `structure` column — `## output` and `## output index` in every project here. Nothing else is wiring: your index, `## index comment`, `## toolchain`, and any plain data table you keep in the manifest are data, and a column named `file` in them is just a column. The manifest may declare itself in its own index, so a data table can live right beside the wiring that reads it — declare `| @headers | CAST.md |` and `@headers:headers` addresses a `## headers` table in the manifest.
+A wiring table is any manifest table with a `structure` column — `## output` and `## output index` in every project here. Nothing else is wiring: your index, `## toolchain`, and any plain data table you keep in the manifest are data, and a column named `file` in them is just a column. The manifest may declare itself in its own index, so a data table can live right beside the wiring that reads it — declare `| @headers | CAST.md |` and `@headers:headers` addresses a `## headers` table in the manifest.
 
 ### list — what iterates
 
 `- list: <source>` lines. Each one paired with a structure `- list:` line is an expansion; the source says what feeds it:
 
-- an address — `- list: @xml:XmlTokenType:key` iterates that table's rows
+- an address — `- list: @xml:XmlTokenType:key` iterates that table's rows; when the addressed table carries a `file` column, the row matching the writing row's own file is excluded — a file never lists itself, same as the column-name form below
 - a column address — `- list: @colours:colours:key` names one column of the enclosing expansion's table; it feeds an **inline** `:::list:::`, never a column-0 one
-- a column name — `- list: file` iterates the unique values of that column, in first-appearance order
+- a column name — `- list: file` iterates the unique values of that column, in first-appearance order, excluding the value belonging to the writing row's own file: a file never lists itself
 - a binding name — `- list: instance` selects the rows that declare a binding of that name, blank or valued, walking the wiring tables in manifest order and rows in authored order
 
 Declaring the binding is what selects the row — a blank cell only changes where its value comes from. Bindings inside a wrapper's chain (see Wrappers) are the wrapper's private render data and are never selected. A bare source name is tried as a column first, so never give a selector the same name as a wiring-table column. A row may declare several selector bindings; each name selects its own rows, and two selectors on one row feed two slots by ordinal like any two sources.
@@ -383,13 +406,57 @@ Rows that declare the same `file` render as one merged shape; the wrap is emitte
 
 Same-file rows must be authored contiguously — a row for a file already closed by an intervening row of another file is a fatal error.
 
-### index comment — file documentation
+### comment — file documentation, wired to a table
 
-`## index comment` is an optional manifest table, `| alias | comment |`. Each row names an output file by its index alias; the fenced comment cell renders between the banner and the file's own text, in the file's comment syntax. A file without a row writes nothing extra.
+The wiring table's own `comment` column doubles as file documentation. Rows sharing one `file` render as one merged output (see File above); CAST reads the `comment` cell of that group's **first** row, by first appearance in authored order — the same rule that decides output-file ordering — and writes the resolved text between the banner and the file's own text, in the file's comment syntax. A blank first-row `comment` writes nothing extra.
+
+That cell is either the fenced prose directly, or a whole-cell table address — `@file:table` — naming a table with `file` and `comment` columns. CAST reads that table's row whose `file` matches the group's own output file, and takes its `comment` cell as the header. This is the pattern for real projects: one small `## headers` table holds every file's header prose in one place, and every output row's `comment` cell just points at it.
+
+```markdown
+## headers
+
+| file    | comment                         |
+| Out.h   | ```                             |
+|         | @file Out.h                     |
+|         | @brief One generated namespace. |
+|         | ```                             |
+
+## output
+
+| list                  | separator | structure              | file    | comment           |
+| - list: @data:rows    |           | @code:namespace        | @Out.h  | @headers:headers  |
+|                       |           | - macro: #pragma once  |         |                    |
+|                       |           | - name: Out             |         |                    |
+|                       |           | - list: @code:entry     |         |                    |
+```
+
+Every output row that needs a header points the same `@headers:headers` address at the one table; the file match, not the row, decides which prose comes back. Declaring `## headers` as a table CAST also lists an output's includes from (`- list: @headers:headers`, per "Declared membership instead of a derived sweep" below) needs no extra care: the self-exclusion law (a file never lists itself) already keeps a file's own row out of its own include sweep, even though the same row supplies that file's header.
+
+The same `comment` cell is still an ordinary column: any item shape sourced from that row reads it for its own `:::comment:::` too — this is unchanged from before the table form existed. The `@` sigil law (a `@`-sigiled cell is a reference, never data) settles what happens when one row does both jobs: an address-valued `comment` cell is a reference, so a reader that renders prose skips it and gets nothing — only the file-documentation reader above resolves the address. A row that is both a merge-group's first row and separately selected elsewhere as an item therefore supplies the file header correctly and contributes no per-item prose from that same cell.
+
+If that row still needs its own per-item prose, give it a `- comment: <text>` binding in the structure column — plain text, no `@`. The item-shape reader finds the binding before it ever reaches the (address-valued, empty) column, so the bound text renders exactly where the plain-column text used to. This binding never reaches the shape's own `:::comment:::` — that marker keeps reading the list-column comment reference or the table's documentation, same as always, regardless of what the row's structure column binds.
 
 ### toolchain — commands after the write
 
-`## toolchain` is an optional manifest table, `| command | flag |`. Its rows run after every output has written, in authored order, one child process per row. A failing row fails the run — never the writes already on disk.
+`## toolchain` is an optional table, `| argument | command | flag |`, reserved by name — not by file. CAST looks it up across every file the manifest's index declares, so a project that keeps its codegen manifest and its toolchain data apart declares `## toolchain` in the data file, not `CAST.md` itself. Its rows run after every output has written, in authored order, one child process per row. A failing row fails the run — never the writes already on disk.
+
+`argument` is optional and, when declared, selects which rows run. A blank `argument` cell marks a default-flow row; `cast CAST.md`, with no trailing flag, runs only those. `cast CAST.md --<word>` runs only the rows whose `argument` cell equals `word` instead — a `word` matching no row is fatal.
+
+```
++----------+--------+---------------------------------------------------------+
+| argument | command | flag                                                    |
++==========+========+===========================================================+
+|          | cmake  | -S . -B Builds/Ninja -G Ninja -DCMAKE_BUILD_TYPE=Release |
++----------+--------+---------------------------------------------------------+
+|          | cmake  | --build Builds/Ninja                                     |
++----------+--------+---------------------------------------------------------+
+| debug    | cmake  | -S . -B Builds/Debug -G Ninja -DCMAKE_BUILD_TYPE=Debug   |
++----------+--------+---------------------------------------------------------+
+| debug    | cmake  | --build Builds/Debug                                     |
++----------+--------+---------------------------------------------------------+
+```
+
+`cast CAST.md` configures and builds `Builds/Ninja` in Release. `cast CAST.md --debug` configures and builds `Builds/Debug` in Debug instead — the two default-flow rows do not run.
 
 ---
 
@@ -431,7 +498,7 @@ The comment family exists for the banner CAST stamps and for the `:::comment:::`
 +------+--------------------+-----------------------+-----------+
 | type | name               | value                 | format    |
 +======+====================+=======================+===========+
-| @id  | circleCross        |                       | toLiteral |
+| @id  | circleCross        | circleCross            | toLiteral |
 | @id  | applicationSupport | `Application Support` |           |
 | @id  | cdataOpen          | `<![CDATA[`           |           |
 +------+--------------------+-----------------------+-----------+
@@ -449,7 +516,7 @@ inline const juce::Identifier applicationSupport { juce::String::fromUTF8 ("Appl
 inline const juce::Identifier cdataOpen { juce::String::fromUTF8 ("<![CDATA[") };
 ```
 
-Row one's `value` is empty, so it takes `name` and its `format` quotes it. Rows two and three are backticked, which already means `toLiteral` — so their `format` cell stays empty.
+Row one's `value` is authored plain text, quoted by its `toLiteral` format. Rows two and three are backticked, which already means `toLiteral` — so their `format` cell stays empty. A blank `value` cell would render an empty string, not `circleCross` — every value a row needs is authored on that row.
 
 ### Any-arity entries with explicit column addresses
 
@@ -537,6 +604,75 @@ When a derived source starts sweeping in rows you never meant — `- list: file`
 ```
 
 and wire `- list: @headers:headers`. The list is now exactly what the table says, and the next member is one row.
+
+### Named commands, wired as wrapper tokens
+
+A generated build step — `codesign`, `notarize`, an install copy — is a command that
+never changes shape; only its parameters (an identity, a path, a profile) come from
+data. Author the command once, as its own named fence, with the parameters as ordinary
+tokens:
+
+````markdown
+```codesign
+COMMAND codesign --force --options runtime --entitlements "${CMAKE_SOURCE_DIR}/:::entitlementsPath:::" --sign ":::identity:::" $<TARGET_FILE:${PROJECT_NAME}>
+```
+````
+
+Wire it as a wrapper — a named binding, not a `:::list:::` slot — so the frame around it
+stays one constant, dumb `add_custom_command`:
+
+```
+| list | separator | structure                    | file        |
+|      |           | - codesign: @cmake:codesign  | @CMakeLists |
+```
+
+`:::identity:::` and `:::entitlementsPath:::` resolve the same way any other token
+does — through the row's own maps (`- list: @project-info:signing` declared earlier in
+the same wiring row). Deleting the wrapper line deletes the step; the command text
+itself is never duplicated, never baked into the frame, and never repeated per
+platform or per build.
+
+### One table, two configurations, two compilers
+
+A per-platform, per-configuration flag set needs neither a table per platform nor a
+table per configuration — one table, split by a cell-match filter (see Filtering rows
+by a cell) on a `stage` column that tells a compile flag from a link flag:
+
+```markdown
+## release
+
++-------------------+--------------+----------+--------+
+| name               | mac          | win      | stage  |
++====================+==============+==========+========+
+| optimization       | -O3          | /O2      |        |
+| deadCodeStripping   | -dead_strip  | /OPT:REF | linker |
++--------------------+--------------+----------+--------+
+
+## debug
+
++---------------+------+------+--------+
+| name          | mac  | win  | stage  |
++===============+======+======+========+
+| optimization  | -O0  | /Od  |        |
+| debugSymbols  | -g   | /Zi  |        |
++---------------+------+------+--------+
+```
+
+```
++---------------------------------------------+---------------------+---------------------+
+| list                                         | separator            | structure            |
++===============================================+=====================+=======================+
+| - list: @project-info:release:stage=         | - list: @semicolon  | - list: @cmake:mac    |
+| - list: @project-info:release:stage=linker   | - list: @semicolon  | - list: @cmake:mac    |
+| - list: @project-info:debug:stage=           | - list: @semicolon  | - list: @cmake:mac    |
++-----------------------------------------------+---------------------+-----------------------+
+```
+
+Each wiring line names the same table twice, split only by what its `stage` filter
+selects — the release compile flags, the release link flags, the debug compile
+flags — mac and win rows the same way, both read through their own column in the
+`@cmake:mac` / `@cmake:win` shape. A row with a blank `mac` or `win` cell contributes
+nothing to that platform's join — nothing is nothing, not an omitted row.
 
 ---
 

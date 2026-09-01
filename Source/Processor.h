@@ -35,17 +35,21 @@ struct Processor
 
     /**
      * @brief Validates the parsed manifest through Validator::isValid(),
-     *        then writes its declared outputs through the Writer.
+     *        writes its declared outputs through the Writer, then runs
+     *        every selected @c ## toolchain row through run().
      *
-     * @param output A path resolved against the manifest's own directory,
-     *               giving the directory every declared output file is
-     *               written under; empty resolves to the manifest's own
-     *               directory.
+     * @param output             A path resolved against the manifest's own
+     *                           directory, giving the directory every
+     *                           declared output file is written under;
+     *                           empty resolves to the manifest's own
+     *                           directory.
+     * @param toolchainArgument  The CLI-selected toolchain group, passed
+     *                           through to run().
      * @returns juce::Result::ok() when validation succeeds, every output
-     *          file writes successfully, and every declared toolchain row
-     *          starts and exits zero, or the first failure encountered.
+     *          file writes successfully, and run() succeeds, or the first
+     *          failure encountered.
      */
-    juce::Result generate (const juce::String& output = {})
+    juce::Result generate (const juce::String& output = {}, const juce::String& toolchainArgument = {})
     {
         if (const auto validation { Validator::isValid (*model, templateDocument) }; not validation.wasOk())
             return validation;
@@ -53,29 +57,7 @@ struct Processor
         if (const auto written { writer.toFile (model->getFile (output)) }; not written.wasOk())
             return written;
 
-        for (auto* table : model->getTables (Id::toolchain))
-        {
-            for (auto* row : model->getTableRows (*table))
-            {
-                const auto& command { model->getValue (*row, Id::command) };
-                const auto& flag { model->getValue (*row, Id::flag) };
-                const auto line { flag.isNotEmpty()
-                                      ? command + juce::String::charToString (Chars::space) + flag
-                                      : command };
-
-                juce::ChildProcess process;
-
-                if (not process.start (line))
-                    return juce::Result::fail (line + Id::diagnosticSeparator + text::Diagnostics::failToolchain);
-
-                process.waitForProcessToFinish (-1);
-
-                if (process.getExitCode() != 0)
-                    return juce::Result::fail (line + Id::diagnosticSeparator + text::Diagnostics::failToolchain);
-            }
-        }
-
-        return juce::Result::ok();
+        return run (toolchainArgument);
     }
 
     /**
@@ -135,6 +117,65 @@ struct Processor
     }
 
 private:
+    /**
+     * @brief Runs every @c ## toolchain row whose @c argument column
+     *        equals @p toolchainArgument, starting each one's own
+     *        @c command, followed by its @c flag when it declares one,
+     *        and waiting for it to exit.
+     *
+     * @param toolchainArgument The CLI-selected toolchain group -- runs
+     *                          only the @c ## toolchain rows whose
+     *                          @c argument column equals this value;
+     *                          empty selects the blank-cell, default rows.
+     * @returns juce::Result::ok() when @p toolchainArgument matches at
+     *          least one row when non-empty and every selected row starts
+     *          and exits zero, or the first failure encountered.
+     */
+    juce::Result run (const juce::String& toolchainArgument)
+    {
+        auto toolchainArgumentMatched { toolchainArgument.isEmpty() };
+
+        for (auto* table : model->getTables (Id::toolchain))
+        {
+            for (auto* row : model->getTableRows (*table))
+            {
+                auto* argumentCell { model->getTableCell (*row, Id::argument) };
+                const auto argument { argumentCell != nullptr
+                                          ? *argumentCell->get<juce::String> (Id::value)
+                                          : juce::String{} };
+
+                if (argument == toolchainArgument)
+                {
+                    toolchainArgumentMatched = true;
+
+                    const auto& command { model->getValue (*row, Id::command) };
+                    const auto& flag { model->getValue (*row, Id::flag) };
+                    const auto line { flag.isNotEmpty()
+                                          ? command + juce::String::charToString (Chars::space) + flag
+                                          : command };
+
+                    juce::ChildProcess process;
+
+                    if (not process.start (line))
+                        return juce::Result::fail (
+                            line + Id::diagnosticSeparator + text::Diagnostics::failToolchain);
+
+                    process.waitForProcessToFinish (-1);
+
+                    if (process.getExitCode() != 0)
+                        return juce::Result::fail (
+                            line + Id::diagnosticSeparator + text::Diagnostics::failToolchain);
+                }
+            }
+        }
+
+        if (not toolchainArgumentMatched)
+            return juce::Result::fail (toolchainArgument + Id::diagnosticSeparator
+                                       + text::Diagnostics::failToolchainArgument);
+
+        return juce::Result::ok();
+    }
+
     juce::ScopedJuceInitialiser_GUI libraryInitialiser;
     Generated generated;
     jam::Stamp stamp;

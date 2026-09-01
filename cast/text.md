@@ -28,4 +28,6 @@ speaks. Prefix/affix-shaped entries pair with the offender's own text.
 | failMarkerUnterminated | `unterminated marker`                      | A ::: marker in a shape block never closed.                                    |
 | failMapOrphan          | `map line has no shape paragraph`          | A list line paired with no structure line and no shape paragraph at its depth. |
 | failToolchain          | `toolchain command failed`                 | A toolchain row's process could not start or exited nonzero.                   |
+| failToolchainArgument  | `toolchain argument not declared`          | A --\<word\> CLI argument matched no toolchain row's argument column.          |
+| failToolchainColumn    | `toolchain column not declared`            | A ## toolchain table's header row declares no command or flag column.          |
 +------------------------+--------------------------------------------+--------------------------------------------------------------------------------+

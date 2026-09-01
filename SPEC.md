@@ -18,7 +18,7 @@ The engine hardcodes these and nothing else:
 - the manifest column names
 - the reserved bullet names `list` (source, §6.5) and `comment` (documentation reference, §5.4)
 - the reserved token names `list` (expansion, §6.5) and `comment` (documentation, §5.4)
-- the index table name and its columns, and the index-comment table name (§6.8)
+- the index table name and its columns
 - the reserved column names `format`, `comment`, and `value` (map payload, §6.5)
 - the identity column names `name`, `key`, `alias` (§5.3)
 - the toolchain table name and its columns
@@ -155,6 +155,18 @@ The two forms are told apart by the symbol's extension and nothing else. `templa
 not a word the engine knows; `@code` and `@cmake` are aliases like any other, declared
 in the writing file's index.
 
+A column part carrying an `=` is a **cell-match filter**, not a bare column name:
+
+```
+@file : table : column = value
+```
+
+It names the rows of `table` whose `column` cell equals `value`, byte-exactly.
+`value` may be empty, matching a row whose `column` cell is itself blank (§5.1) — this
+is how one table serves two disjoint row sets, a compiler-stage split for instance,
+without a second table. A filter is read as a list source (§6.5); it is never a bare
+value address.
+
 ### 4.3 Names Are Free Text
 
 A heading, a table name and a column name are free text. `## clang comment` is a legal
@@ -188,27 +200,29 @@ A data cell is exactly one of:
 | plain | the text, verbatim |
 | backticked | `toLiteral` applied to the span's bytes |
 | fenced | `toLiteral` applied to the fence's content, line breaks included |
-| blank | the preceding column's value, verbatim |
+| blank | nothing — an empty string |
 
 A backtick is not decoration and not an escape — it *is* the `toLiteral` operation. A
 backticked cell needs no `format` column beside it. A fenced cell is the same operation
 over a datum that spans lines (§3.2), and needs one only where a line's own edge space
 must survive the formatter's padding (§9).
 
-A blank cell takes the preceding column's authored value without that column's own
-formatting. Its own `format`, if present, still applies. Blank inheritance is a data
-table rule — it applies to every data table, including one kept in the manifest
-(§6). The manifest's **reserved** tables — wiring, `## index`, `## index comment`,
-`## toolchain` — never inherit: a blank cell there is blank. A blank `comment` cell
-documents nothing (§5.4) and a blank `format` cell formats nothing (§5.2) — neither
-inherits anywhere.
+A blank cell is nothing: it resolves to an empty string, always, in every table —
+a data table, a table kept in the manifest (§6), the manifest's own wiring, `## index`,
+`## toolchain`, all alike. There is no inheritance from a preceding cell anywhere. An
+empty string is not an error and not a special case — it is string replacement as
+nothing: a template token it fills renders empty, and a line left empty by its own
+placeholder elides for free, exactly like any other emptied placeholder line (§7). An
+empty `format` cell formats nothing — the value it binds to is written verbatim (§5.2).
+A blank `comment` cell documents nothing (§5.4). Both are this one law, applied to
+their own column.
 
 The substrate is markdown: an HTML entity in a plain cell decodes at parse — `&amp;`
 reaches the model as `&`. A datum that must carry an entity's own spelling authors it
 double-encoded (`&amp;amp;` yields `&amp;`), which is also the formatter's canonical
 emission. Backticked and fenced spans decode nothing.
 
-Column order carries no meaning beyond these two adjacency rules and §5.2's.
+Column order carries no meaning beyond §5.2's format-column adjacency rule.
 
 ### 5.2 Format
 
@@ -461,11 +475,20 @@ A `- list:` source paired with a structure `- list:` line is one of:
 - an **address** — `@file:table` iterates that table's rows
 - a **column address** — `@file:table:column` names one column of the enclosing
   expansion's table; it feeds an **inline** `:::list:::` (§7), never a column-0 one
+- a **cell-match filter** — `@file:table:column=value` (§4.2) iterates only that
+  table's rows whose `column` cell equals `value`, byte-exactly; an empty `value`
+  matches a blank cell (§5.1) — this is how a filtered address, not a second table,
+  splits one table into disjoint row sets
 - a **column name** — iterates the distinct values of that column across output rows,
   excluding the value belonging to the writing row's own file: a file never lists
   itself
 - a **binding name** — iterates the rows that declare a binding of that name (§6.2),
   blank or valued; a binding inside a wrapper's chain (§6.1) never counts
+
+The same exclusion extends to the **address** form: when an address's table carries a
+`file` column, the row whose `file` value equals the writing row's own file is excluded
+from that table's iterated rows — a file never lists itself, whether the source names a
+column or a table.
 
 A bare source name is tried as a column first: a name matching both a column and a
 binding resolves as the **column**. A selector name therefore must not collide with
@@ -529,40 +552,87 @@ intervening row of another file is fatal (§10.1) — one file is written once.
 
 ### 6.8 File Documentation
 
-`## index comment` is a reserved manifest table, and it is optional. Not every
-language has a file-documentation form; a manifest that
-declares no such table writes no file documentation. Declaring it is the author's
-responsibility.
+A wiring table's `comment` column (§6) carries a file's documentation, not only a row's.
+There is no separate reserved table for it — the engine groups an output table's rows by
+their declared `file` (§6.7) and reads the `comment` cell of each group's **first**
+row, by first appearance in authored order, the same law the engine already applies to
+output-file ordering.
 
-```
-| alias | comment |
-```
+That cell is read as one of two forms:
 
-Each row names an output file by its index alias (§4.1). The comment cell is fenced —
-the multi-line documentation form (§3.2): each fence line is one line of the file's
-documentation prose, rendered in the file's own comment syntax exactly as a
-shape-level `:::comment:::` renders (§5.4). The comment column is documentation, never
-data (§5.4) — its fence is not a literal, `toLiteral` never applies, and the `@` sigil
-law (§4) does not apply inside it: documentation is never a reference, so a prose line
-beginning with `@file` or `@brief` is text.
+- **plain text** — the fenced documentation form (§3.2) directly, unchanged: each fence
+  line is one line of the file's documentation prose.
+- **a table address** — `@file:table` (§4.2), whole-cell. The addressed table carries
+  `file` and `comment` columns; the engine reads the row whose `file` value equals the
+  group's own output file name and takes that row's own `comment` cell, in the same two
+  forms recursively resolved one level (a row's `comment` cell there is always plain
+  text). A file absent from the addressed table, or whose row's `comment` cell is blank,
+  writes no file documentation.
 
-When the table is declared, each output file whose alias has a row is written with the
-provided text between the banner and the rows' own rendered shape, framed by one blank
-line on each side. A file without a row writes nothing — plain replacement, no special case (§5.4).
-An alias absent from the index is fatal (§4.4).
+Either way, the resolved prose is rendered in the file's own comment syntax exactly as a
+shape-level `:::comment:::` renders (§5.4). The comment column, and the addressed
+table's own `comment` column, are documentation, never data (§5.4) — a fence there is
+not a literal, `toLiteral` never applies, and the `@` sigil law (§4) does not apply
+inside a fence's prose: documentation is never a reference, so a prose line beginning
+with `@file` or `@brief` is text. The address form's own cell value is the one
+exception — it is a reference, resolved as any other address is (§4.2).
+
+The resolved text is written between the banner and the group's own rendered shape,
+framed by one blank line on each side. A first row whose `comment` cell is blank, or
+whose addressed row resolves to no text, writes no file documentation — plain
+replacement, no special case (§5.4).
+
+A row's `comment` cell is also, unchanged, an ordinary column: an item shape sourced
+from that row reads it for its own `:::comment:::` marker (§6, "row" channel of §5.4).
+The two readers are independent, but they read one cell. Per §4, a `@`-sigiled cell is a
+reference, never data — so an item-shape reader, which renders prose, never treats a
+reference as its prose: an address-valued `comment` cell resolves empty to every reader
+except the file-documentation reader above, which is the one reader an address is
+addressed to. A row that is both a merge-group's first row and separately selected as an
+item elsewhere therefore carries the address for the file header and, correctly, no
+per-item prose from that same cell.
+
+When such a row still needs per-item prose of its own, a `- comment: <text>` binding on
+the row's structure column supplies it: an item-shape reader finds the binding before it
+would fall to the (now address-valued, and so empty) column, and renders the bound text.
+The binding's own value is never `@`-sigiled — a bound value that starts with `@` is a
+reference and is validated as one (§4.4), the same rule the list-column comment
+reference already follows. The shape-level `:::comment:::` marker never reads this
+binding: it is a structure-column binding, not the list-column reference form §5.4
+names, and the shape-level channel keeps resolving from the row's own comment reference
+or the addressed table's documentation exactly as documented there, untouched by any
+same-named structure-column binding on the row.
 
 ### 6.9 Toolchain
 
-`## toolchain` is a reserved manifest table, and it is optional — like `## index
-comment`.
+`## toolchain` is a reserved table name, and it is optional.
+Reservation is by name, not by file: the engine looks up every `## toolchain` table
+across the whole spliced document (every file the manifest's index declares), so the
+table may be kept in the manifest itself or in any declared data file — a project that
+separates its codegen manifest from its toolchain data keeps `## toolchain` in the
+latter.
 
 ```
-| command | flag |
+| argument | command | flag |
 ```
+
+`argument` is optional; a table declared without it is `| command | flag |`. The
+unknown-word fatal (§10.1) applies regardless: a `--<word>` CLI argument that matches no
+row's `argument` cell is fatal whether the table declares the column or not — a table
+with no `argument` column has no row whose `argument` cell could ever equal a non-empty
+`word`, so any non-empty `--<word>` against it is unconditionally fatal. A blank
+`argument` cell marks the row as a **default-flow** row — a blank cell is nothing,
+as it is everywhere (§5.1).
 
 When the table is declared, its rows run after every declared output has written, in
 authored row order — one child process per row, the command cell and the flag cell
 joined by one space. A blank flag cell runs the command alone.
+
+The CLI selects which rows run. With no `--<word>` argument, only the rows whose
+`argument` cell is blank run — the default flow. With `cast <manifest> --<word>`, only
+the rows whose `argument` cell equals `word`, byte-exactly, run; the default-flow rows
+do not. A `--<word>` matching no row's `argument` cell, across every declared
+`## toolchain` table, is fatal (§10.1), naming `word`.
 
 The command resolves through the caller's environment. PATH, working directory, and
 everything else the process inherits are the caller's responsibility — the engine adds
@@ -732,6 +802,7 @@ These, and nothing else:
 | an output file whose comment-syntax key (§5.4) names no comment-syntax table | §5.4 |
 | an output file that cannot be written | §10 |
 | a toolchain row whose process cannot start or exits nonzero | §6.9 |
+| a `--<word>` CLI argument matching no toolchain row's `argument` cell | §6.9 |
 | malformed table, during formatting only | §3.3 |
 | index `symbol` cell empty | §4.1 |
 | output row declares no structure | §6.3 |

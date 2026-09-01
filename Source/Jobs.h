@@ -12,8 +12,8 @@
  */
 struct Jobs
 {
-    /** Poll interval, in milliseconds, between checks of the thread pool's
-     *  remaining job count while draining. */
+    /** Poll interval, in milliseconds, while waiting for queued jobs to
+     *  drain from the pool. */
     static constexpr int drainPollMs { 1 };
 
     /**

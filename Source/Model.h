@@ -121,10 +121,23 @@ public:
      */
     bool isShape (Element& row, const juce::String& value) const
     {
-        return value.startsWithChar (Chars::at)
+        return isAddress (value)
                and juce::File::createFileWithoutCheckingPath (
                        getValue (row, jam::Format::getPreColon (value).trim()))
                        .hasFileExtension (Extensions::cast);
+    }
+
+    /**
+     * @brief Answers whether @p value is an @-sigiled reference -- the
+     *        sigil law of SPEC §4: a @-sigiled cell is a reference, a bare
+     *        word is data.
+     *
+     * @param value The authored value to test.
+     * @returns @c true when @p value starts with the @ sigil.
+     */
+    static bool isAddress (const juce::String& value) noexcept
+    {
+        return value.startsWithChar (Chars::at);
     }
 
     /**
@@ -152,28 +165,21 @@ public:
      *        @p ordinal among that depth's own list bullets, counted in
      *        authored order.
      *
+     * Bullets carrying no @c Id::line stamp -- map bullets -- are
+     * skipped.
+     *
      * @param row     The row whose @c list column is searched.
      * @param indent  The blockquote nesting depth to search, one per
      *                authored @c >.
      * @param ordinal The bullet's position among @p indent's own list
      *                bullets, counted separately from shape paragraphs
      *                and comment bullets at the same depth.
-     *
-     * Bullets carrying no @c Id::line stamp -- map bullets -- are
-     * skipped.
-     *
      * @returns The addressed list bullet, or @c nullptr when none exists
      *          at (@p indent, @p ordinal).
      */
     Element* getSource (Element& row, int indent, int ordinal) const
     {
-        return getPairedItem (row, Id::list,
-            [indent, ordinal] (const Element& candidate)
-            {
-                return candidate.id == Id::list and candidate.contains (Id::line)
-                       and *candidate.get<int> (Id::level) == indent
-                       and *candidate.get<int> (Id::line) == ordinal;
-            });
+        return getPairedListItem (row, Id::list, indent, ordinal);
     }
 
     /**
@@ -182,27 +188,20 @@ public:
      *        ordinal) coordinate addressing getSource(), read from the
      *        @c separator column instead of the @c list column.
      *
+     * Bullets carrying no @c Id::line stamp -- the row join and map
+     * bullets -- are skipped.
+     *
      * @param row     The row whose @c separator column is searched.
      * @param indent  The blockquote nesting depth to search, one per
      *                authored @c >.
      * @param ordinal The bullet's position among @p indent's own list
      *                bullets, matching getSource()'s addressing.
-     *
-     * Bullets carrying no @c Id::line stamp -- the row join and map
-     * bullets -- are skipped.
-     *
      * @returns The addressed separator bullet, or @c nullptr when none
      *          exists at (@p indent, @p ordinal).
      */
     Element* getSeparator (Element& row, int indent, int ordinal) const
     {
-        return getPairedItem (row, Id::separator,
-            [indent, ordinal] (const Element& candidate)
-            {
-                return candidate.id == Id::list and candidate.contains (Id::line)
-                       and *candidate.get<int> (Id::level) == indent
-                       and *candidate.get<int> (Id::line) == ordinal;
-            });
+        return getPairedListItem (row, Id::separator, indent, ordinal);
     }
 
     /**
@@ -312,6 +311,32 @@ public:
             });
 
         return item != nullptr ? getTable (row, *item->get<juce::String> (Id::value)) : nullptr;
+    }
+
+    /**
+     * @brief Returns @p line's own next structure line, skipping past
+     *        every source @p line's own arity, read through @p arityOf,
+     *        consumes, when @p line is itself a shape line -- the
+     *        arity-bounded walk Shapes::getLineAfter() and
+     *        Items::getPrivateShapes() each read through.
+     *
+     * @tparam ArityOf A callable invoked as @c arityOf(candidate),
+     *                 returning @p candidate's own arity.
+     * @param line    The structure line to advance past.
+     * @param arityOf The callable each visited line's own arity is read
+     *                through.
+     * @returns The next structure line, or @c nullptr when none remains.
+     */
+    template <typename ArityOf>
+    Element* getNextShapeLine (Element& line, ArityOf&& arityOf) const
+    {
+        auto* cursor { getNextLine (line) };
+
+        if (line.isTag (Id::p))
+            for (int occurrence { 0 }; cursor != nullptr and occurrence < arityOf (line); ++occurrence)
+                cursor = getNextShapeLine (*cursor, arityOf);
+
+        return cursor;
     }
 
     /**
@@ -438,8 +463,8 @@ public:
     {
         const auto parts { jam::Strings::fromTokens (
             reference, juce::String::charToString (Chars::colon), {}) };
-        const auto sourceName { parts.size() > 0 ? parts.at (0).trim() : juce::String() };
-        const auto tableName { parts.size() > 1 ? parts.at (1).trim() : juce::String() };
+        const auto sourceName { parts.size() > 0 ? parts.at (0).trim() : juce::String{} };
+        const auto tableName { parts.size() > 1 ? parts.at (1).trim() : juce::String{} };
         const auto declaredPath { getValue (row, sourceName) };
 
         return declaredPath.isNotEmpty() ? getTable (declaredPath, tableName) : nullptr;
@@ -448,7 +473,7 @@ public:
     /**
      * @brief Answers whether @p value is an @-sigiled address naming a
      *        column -- @c \@alias:table:column, three or more
-     *        colon-separated parts.
+     *        colon-separated parts, the third carrying no @c = filter.
      *
      * @param value The authored value to test.
      * @returns @c true when @p value is an @-sigiled address with a
@@ -459,7 +484,7 @@ public:
         const auto parts { jam::Strings::fromTokens (
             value, juce::String::charToString (Chars::colon), {}) };
 
-        return value.startsWithChar (Chars::at) and parts.size() > 2;
+        return isAddress (value) and parts.size() > 2 and not parts.at (2).containsChar (Chars::equals);
     }
 
     /**
@@ -481,15 +506,62 @@ public:
     }
 
     /**
-     * @brief Returns the manifest file's own relative path, stamped at
-     *        parse() -- the origin every table declared in the manifest's
-     *        own file compares against for the manifest-origin exemption.
+     * @brief Answers whether @p value is an @-sigiled address naming a
+     *        cell-match filter -- @c \@alias:table:column=value, three or
+     *        more colon-separated parts, the third carrying an @c = sign.
      *
-     * @returns The manifest file's own relative path.
+     * @param value The authored value to test.
+     * @returns @c true when @p value is an @-sigiled address with a
+     *          filter part.
      */
-    const juce::String& getManifestOrigin() const noexcept
+    static bool isFilteredAddress (const juce::String& value)
     {
-        return manifestOrigin;
+        const auto parts { jam::Strings::fromTokens (
+            value, juce::String::charToString (Chars::colon), {}) };
+
+        return isAddress (value) and parts.size() > 2 and parts.at (2).containsChar (Chars::equals);
+    }
+
+    /**
+     * @brief Returns @p value's filter column -- an isFilteredAddress()
+     *        address's third colon-separated segment, up to its @c =,
+     *        converted to a valid identifier.
+     *
+     * @pre isFilteredAddress (value)
+     *
+     * @param value The @-sigiled filter address to read.
+     * @returns @p value's filter column name.
+     */
+    static juce::Identifier getFilterColumn (const juce::String& value)
+    {
+        const auto parts { jam::Strings::fromTokens (
+            value, juce::String::charToString (Chars::colon), {}) };
+        const auto filterPart { parts.at (2) };
+
+        return juce::Identifier (jam::Format::toValidID (
+            filterPart.upToFirstOccurrenceOf (
+                juce::String::charToString (Chars::equals), false, false).trim()));
+    }
+
+    /**
+     * @brief Returns @p value's filter value -- an isFilteredAddress()
+     *        address's third colon-separated segment, from its @c =
+     *        onward.
+     *
+     * @pre isFilteredAddress (value)
+     *
+     * @param value The @-sigiled filter address to read.
+     * @returns @p value's filter value, empty when the filter matches a
+     *          blank cell.
+     */
+    static juce::String getFilterValue (const juce::String& value)
+    {
+        const auto parts { jam::Strings::fromTokens (
+            value, juce::String::charToString (Chars::colon), {}) };
+        const auto filterPart { parts.at (2) };
+
+        return filterPart.fromFirstOccurrenceOf (
+            juce::String::charToString (Chars::equals), false, false).trim();
     }
 
 private:
@@ -522,6 +594,33 @@ private:
     }
 
     /**
+     * @brief Returns @p column's own list item under @p row at
+     *        blockquote depth @p indent and position @p ordinal -- the
+     *        one predicate getSource() and getSeparator() each read
+     *        through, parameterized by @p column.
+     *
+     * @param row     The row whose @p column cell is searched.
+     * @param column  The column searched.
+     * @param indent  The blockquote nesting depth to search, one per
+     *                authored @c >.
+     * @param ordinal The bullet's position among @p indent's own list
+     *                bullets, counted separately from shape paragraphs
+     *                and comment bullets at the same depth.
+     * @returns The addressed list item, or @c nullptr when none exists
+     *          at (@p indent, @p ordinal).
+     */
+    Element* getPairedListItem (Element& row, const juce::Identifier& column, int indent, int ordinal) const
+    {
+        return getPairedItem (row, column,
+            [indent, ordinal] (const Element& candidate)
+            {
+                return candidate.id == Id::list and candidate.contains (Id::line)
+                       and *candidate.get<int> (Id::level) == indent
+                       and *candidate.get<int> (Id::line) == ordinal;
+            });
+    }
+
+    /**
      * @brief Answers whether @p element's own @c type equals @p blockType.
      *
      * @param element   The element whose block type is tested.
@@ -534,6 +633,15 @@ private:
         return element.contains (Id::type) and *element.get<int> (Id::type) == blockType;
     }
 
+    /**
+     * @brief Parses @p documentFile as @p document's own manifest,
+     *        splices in every data file its index declares, stamps
+     *        every table's own @c wiring, then stamps every row through
+     *        addRow().
+     *
+     * @param document     The model parsed into.
+     * @param documentFile The manifest file to parse.
+     */
     static void parse (Model& document, const juce::File& documentFile)
     {
         const auto parent { documentFile.getParentDirectory() };
@@ -589,16 +697,24 @@ private:
         auto* structureCell { document.getTableCell (row, Id::structure) };
         auto* separatorCell { document.getTableCell (row, Id::separator) };
 
-        if (listCell != nullptr) addBindings (*listCell, document, row);
-        if (structureCell != nullptr) addBindings (*structureCell, document, row);
-        if (separatorCell != nullptr) addBindings (*separatorCell, document, row);
+        if (listCell != nullptr)
+            addBindings (*listCell, document, row);
+
+        if (structureCell != nullptr)
+            addBindings (*structureCell, document, row);
+
+        if (separatorCell != nullptr)
+            addBindings (*separatorCell, document, row);
 
         jam::Array<int> counts;
         jam::Array<int> blanks;
         jam::Array<int> structureCounts;
 
-        if (listCell != nullptr) addListCount (*listCell, 0, counts, blanks);
-        if (structureCell != nullptr) addListCount (*structureCell, 0, structureCounts);
+        if (listCell != nullptr)
+            addListCount (*listCell, 0, counts, blanks);
+
+        if (structureCell != nullptr)
+            addListCount (*structureCell, 0, structureCounts);
 
         counts.resize (juce::jmax (counts.size(), structureCounts.size()));
         structureCounts.resize (counts.size());
@@ -651,6 +767,14 @@ private:
             document, row, paragraphOwner);
     }
 
+    /**
+     * @brief Stamps every table with its own header-adjacent @c comment
+     *        -- a preceding paragraph or named code block bound to that
+     *        table, and every named code block not bound to a following
+     *        table with its own prose as its @c comment.
+     *
+     * @param document The model whose top-level blocks are walked.
+     */
     static void addComments (Model& document)
     {
         Element* precedingBlock { nullptr };
@@ -687,6 +811,17 @@ private:
         }
     }
 
+    /**
+     * @brief Parses every one of @p tableOrigins' own data files, in
+     *        parallel through Jobs::run(), and splices each parsed
+     *        document into @p document.
+     *
+     * @param document     The model each parsed data file is spliced
+     *                     into.
+     * @param parent       The directory @p tableOrigins' own relative
+     *                     paths are resolved against.
+     * @param tableOrigins The data files' own relative paths to parse.
+     */
     static void parse (Model& document, const juce::File& parent,
                        const jam::Array<juce::String>& tableOrigins)
     {
@@ -742,7 +877,7 @@ private:
 
                     item->add<juce::String> (Id::value, value);
 
-                    precedingBinding = document.isShape (row, value) ? juce::String() : value;
+                    precedingBinding = document.isShape (row, value) ? juce::String{} : value;
                 }
 
             if (block->isTag (Id::blockquote))
@@ -1049,30 +1184,19 @@ private:
     /**
      * @brief Stamps @p cell with its resolved value -- the authored
      *        literal or comment prose, transformed by @p cell's own
-     *        @c format cell when present, inherited from
-     *        @p precedingAuthored when @p cell authors nothing and
-     *        inheritance applies, then resolved through getValue() when
-     *        the result is an @-sigiled reference outside the @c alias
-     *        and @c comment columns.
+     *        @c format cell when present, then resolved through
+     *        getValue() when the result is an @-sigiled reference outside
+     *        the @c alias and @c comment columns.
      *
-     * The @c alias column always declares its own value -- it never
-     * inherits @p precedingAuthored. A blank @c format cell inherits no
-     * transform from a preceding row; only the authored text inherits. A
-     * row inside one of the manifest's reserved tables -- @c index,
-     * @c indexComment, @c toolchain, or a wiring table -- never inherits
-     * (SPEC §5.1).
+     * A blank cell resolves to an empty string, always -- it renders
+     * nothing and elides in templates like an absent trailing value
+     * (SPEC §5.1). There is no inheritance from a preceding cell.
      *
-     * @param headerCell        @p cell's own header cell, naming its
-     *                          column.
-     * @param row               The row @p cell belongs to.
-     * @param cell              The cell stamped with its resolved value.
-     * @param precedingAuthored The preceding row's own authored text for
-     *                          this column, read when @p cell authors
-     *                          none and inheritance applies, and replaced
-     *                          with @p cell's own authored text
-     *                          afterward.
+     * @param headerCell @p cell's own header cell, naming its column.
+     * @param row        The row @p cell belongs to.
+     * @param cell       The cell stamped with its resolved value.
      */
-    void addValue (Element& headerCell, Element& row, Element& cell, juce::String& precedingAuthored)
+    void addValue (Element& headerCell, Element& row, Element& cell)
     {
         juce::String transform;
 
@@ -1105,21 +1229,13 @@ private:
             authored = cell.getAllSubText();
         }
 
-        const auto isFormatColumn { headerCell.id == Id::format };
-        const auto isReservedTable { row.parent->isTag (Id::index) or row.parent->isTag (Id::indexComment)
-                                     or row.parent->isTag (Id::toolchain) or isOutputTable (*row.parent) };
-        auto value { authored.isNotEmpty() or isReservedTable or isCommentColumn or isFormatColumn
-                         ? authored
-                         : precedingAuthored };
+        auto value { authored };
 
-        if (not isCommentColumn and headerCell.id != Id::alias and value.startsWithChar (Chars::at))
+        if (not isCommentColumn and headerCell.id != Id::alias and isAddress (value))
             value = getValue (row, value);
 
         if (literal == nullptr and Transforms::contains (transform))
             value = Transforms::getTransformed (transform, value, {});
-
-        if (not isFormatColumn)
-            precedingAuthored = authored;
 
         cell.add<juce::String> (Id::value, value);
     }
@@ -1135,7 +1251,6 @@ private:
      */
     void addValues (Element& headerRow, Element& row)
     {
-        juce::String precedingAuthored;
         auto* headerCell { headerRow.firstChild };
         auto* cell { row.firstChild };
 
@@ -1143,12 +1258,24 @@ private:
         {
             jassert (headerCell != nullptr);
 
-            addValue (*headerCell, row, *cell, precedingAuthored);
+            addValue (*headerCell, row, *cell);
             headerCell = headerCell->nextSibling;
             cell = cell->nextSibling;
         }
     }
 
+    /**
+     * @brief Resolves @p declaredPath's own table -- @p tableName's own
+     *        table when named, or, absent one, @p declaredPath's one
+     *        table, or the table whose id matches its own file's stem
+     *        when @p declaredPath declares more than one.
+     *
+     * @param declaredPath The data file whose table is resolved.
+     * @param tableName    The table name to match, or an empty string to
+     *                     resolve @p declaredPath's own single or
+     *                     stem-matching table.
+     * @returns The resolved table, or @c nullptr when none resolves.
+     */
     Element* getTable (const juce::String& declaredPath, const juce::String& tableName) const
     {
         if (tableName.isNotEmpty())

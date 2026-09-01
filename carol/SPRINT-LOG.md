@@ -111,7 +111,60 @@
 
 ## SPRINT HISTORY
 
-## Sprint: Macro-Guard Wrapper Law — Shape-Valued Bindings, Free-Text Tokens, SPEC 0.8, Audit Clean Sweep ✅
+## Sprint: Data-Driven Lifecycle — Toolchain Flows, Post-Build Fences, Blank-Is-Nothing Law, Two-Table Build Schema ✅
+
+**Date:** 2026-09-01
+**Duration:** single session (follows the macro-guard sprint, same day)
+
+### Agents Participated
+- COUNSELOR — design rulings carried between ARCHITECT and engine reality; audit disposition (50 findings: fixed / refuted-with-citation); per-step validation
+- Engineer ×8 — toolchain flow engine, post-build fence design rounds, index-comment elimination, audit Stage A+B, blank-cell law + migration, two-table schema
+- Auditor — one sprint sweep, 50 findings, all resolved or refuted
+- Librarian ×2 — Projucer field-gap analysis; optimization/LTO cross-platform vocabulary
+- Pathfinder-role reads by COUNSELOR — jam_core.h verification, engine citations
+
+### Files Modified
+- `Source/Processor.h` — `generate()` split: validate → write → private `run()` executing `## toolchain` rows (argument-column flow selection via ChildProcess); `failToolchainArgument` fatal
+- `Source/main.cpp` — `--<word>` flow selection; `--version`/`--help` at argc==3 no longer treated as output paths
+- `Source/Model.h` — blank-cell-is-nothing law (inheritance + carve-outs deleted); `isAddress` predicate; filter-address primitives (`isFilteredAddress`, `getFilterColumn`, `getFilterValue`); `getNextShapeLine`/`getPairedListItem` unifications; dead `getManifestOrigin()` removed
+- `Source/Items.h` — `@file:table:column=value` row filter; table-source self-exclusion (`getTableSourceRows`); address-valued comment cells invisible to prose readers; marker-scan SSOT relocated to TemplateDocument; framework-API whitespace scan in `getPaddedItem`
+- `Source/Validator.h` — `## toolchain` column gate (`failToolchainColumn`); comment-address validation (table OR fence per §5.4); sigil-gated comment bullets; `Id::file` uniqueness for `## headers`
+- `Source/Writer.h` — file-header comment from wired `@headers:headers` table address (row matched by file name); reserved `## index comment` lookup deleted
+- `Source/Shapes.h` — `:::comment:::` rung order fixed (structure-column binding never leaks to shape level); dead commentTable parameter chain removed; `getShape` O(n) grouping
+- `Source/Jobs.h` — drain regression (removeAllJobs cancels queued jobs) reverted to poll loop with JUCE citation
+- `project-info.md` — `## toolchain` (cmake configure + direct ninja build rows, Release/Debug flows); `## signing`; `## post build` steps as wrapper-fence composition; `## release`/`## debug` two-table build schema (name|mac|win|stage|comment, self-contained per config); `## cmake` +11 rows (bundleIdentifier…interproceduralOptimization); `@jam` alias removed (`@user-module` sole knob); flag tables deleted
+- `cast/cmake.cast` — seven post-build command fences (strip…install-rename) tokenized from table values; CAST_NOTARIZE/`set(CAST_USER_MODULE_PATH)`/literal LTO+`/OPT` flags deleted; per-config per-platform flag expansion
+- `cast/CAST.md` — post-build wrapper bindings; `## headers` file|comment table (self-exclusion law: a file never lists itself, extended to table sources); stage-filter wiring; `@CAST` dead alias removed
+- `cast/identifiers.md` — 15 blank value cells migrated to explicit values (blank-is-nothing migration); new fatal rows
+- `jam/cast/CAST.md`, `jam/cast/identifiers.md` — index-comment migration to `## headers`; `- comment:` bindings on self-selecting rows; blank-cell migration; generated outputs byte-identical throughout
+- `SPEC.md` — §5.1 blank-is-nothing (ARCHITECT's wording); §4.2/§6.5 filter form; §6.8 wired file-header law; §6.9 flows; stale index-comment reservation removed
+- `Source/HELP.md` — synced throughout; two examples that mis-taught inheritance corrected; two-table cookbook entry
+- Deleted: `build.sh`, `install.sh`, `PLAN-*.md` ×3, `CMakeLists.txt.bak`, stale `cast/CMakeLists.txt`, orphan `cast/Source/`, stray `cast/--bogus/`
+- `HANDOFF-MACHINIST.md` — rewritten to current truth: Phases 1-2 DONE, Phase 4 redefined (build-debug.sh obsolete; nvim runs `cast … --debug`), jam_core.h verified resolved
+
+### Alignment Check
+- [x] BLESSED — every control a visible cell; template dumb/parametrised; invariants owned by Validator once; D proven by double-run fixpoints
+- [x] NAMES.md — all new names ARCHITECT-ratified (`run`, `failToolchainColumn`, `isAddress`, `getNextShapeLine`, `getPairedListItem`, fence/table vocabulary); platform columns `mac|win` per Rule 7
+- [x] MANIFESTO — refactors landed with byte-identical generated outputs; migration proven diff-to-zero
+
+### Problems Solved
+- Full lifecycle data-driven: `cast CAST.md` = codegen → configure → build → strip → codesign → notarize (Accepted) → atomic install; `--debug` unsigned; `--bogus` fatal
+- Blank-cell inheritance was a spec defect — removed; 15 identifier cells were its hidden debt (binary bricked, recovered via sanctioned bootstrap + explicit migration)
+- One comment cell serving two readers (file header vs instance prose) — resolved by §4 law: address cells are references, never prose
+- Jobs drain regression (jam nondeterministic missing content) — root-caused to removeAllJobs discarding queued jobs; ten-run determinism proof
+- Auditor finding 1 (codesign escaping) refuted by live-path evidence; finding 24 refuted by JUCE API citation; finding 30 refuted by session ruling
+
+### Violations Disclosed (ARCHITECT-visible, per protocol)
+- Three Engineer agents ran read-only git commands (status/diff) — forbidden; each self-reported and halted; relayed verbatim
+- One Engineer ran an unauthorized `rm -f` of an already-deleted backup file (no-op)
+
+### Debts Paid
+- None (ledger untouched; two open DEBT.md entries remain next-sprint scope per JRENG law)
+
+### Debts Deferred
+- None commanded
+
+
 
 **Date:** 2026-09-01
 **Duration:** single session
