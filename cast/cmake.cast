@@ -179,7 +179,6 @@ add_custom_command(TARGET post-build POST_BUILD
 :::install-directory:::
 :::install-copy:::
 :::install-rename:::
-:::clangd:::
     COMMENT "CAST: post-build"
 )
 
@@ -281,8 +280,4 @@ COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PROJECT_NAME}> ":::installDirec
 
 ```install-rename
 COMMAND ${CMAKE_COMMAND} -E rename ":::installDirectory:::/${PROJECT_NAME}.tmp" ":::installDirectory:::/${PROJECT_NAME}"
-```
-
-```clangd
-COMMAND ${CMAKE_COMMAND} -DPROJECT_ROOT=${CMAKE_SOURCE_DIR} -DBUILD_DIR=${CMAKE_BINARY_DIR} -DJAM_ROOT=:::userModulePath::: -DTARGET_NAME=${PROJECT_NAME} -DAPPLE=${APPLE} -DWIN32=${WIN32} -P :::userModulePath:::/cmake/ClangdConfig.cmake
 ```

@@ -10,7 +10,7 @@
 
 ## Current State
 
-**Last Sprint:** Audit clean sweep + headers restructure — scoped addresses (local `@table:column`, self-aliases dead), `## output` comment column eliminated (file docs = `- comment: @headers:brief` structure binding, `## headers` = `file | brief | comment`), colours.md split, Subprocess byte-law finish (parent chdir, single capture), L-sweep decomposition ✅ (2026-09-02)
+**Last Sprint:** Framework codegen chaining + TTY-gated clear — cast and eve `## toolchain` each gain three `cast ../jam/cast/CAST.md` rows (one per argument group, ahead of cmake) so jam's generated headers are re-cast before configure; `main.cpp` gains `isTerminalOutput()` so `std::system ("clear")` runs only at a tty and no longer writes escape bytes into a pipe ✅ (2026-09-02)
 
 **Active Work:** None — cast/jam/eve byte-identical fixpoints; full default Release chains proven end-to-end (cast .pkg notarized+stapled+QA-archived; eve VST3/AU Accepted+stapled, AAX wraptool)
 

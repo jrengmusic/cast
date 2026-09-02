@@ -61,7 +61,6 @@
 |                                            |                         | - staple: @cmake:staple                       |              |
 |                                            |                         | - qa-directory: @cmake:qa-directory           |              |
 |                                            |                         | - qa-copy: @cmake:qa-copy                     |              |
-|                                            |                         | - clangd: @cmake:clangd                       |              |
 +--------------------------------------------+-------------------------+-----------------------------------------------+--------------+
 | > - list: @project-info:project info       |                         | @code:namespace                               | @ProjectInfo |
 |                                            |                         | - macro: #pragma once                         |              |

@@ -111,6 +111,42 @@
 
 ## SPRINT HISTORY
 
+## Sprint: Framework Codegen Chaining + TTY-Gated Clear ✅
+
+**Date:** 2026-09-02
+**Duration:** single session (follows the audit clean sweep sprint, same day)
+
+### Agents Participated
+- COUNSELOR — pipeline read (CAST.md, SPEC, project-info, Processor, Writer), staleness/repair analysis with citations, escape-byte root cause, Pathfinder fabrication caught and discarded
+- Pathfinder ×2 — jam/cast manifest survey (toolchain absence, output set); escape-sequence emitter trace
+- Librarian ×1 — domain-mode prior art: ninja `.ninja_log`/`restat`, CMake `configure_file`/`file(GENERATE)`/CMP0058, Kbuild move-if-changed, Bazel action cache, Cargo `rerun-if-changed`
+- Engineer ×2 — toolchain row insertion (two manifests, destructive-edit protocol); `isTerminalOutput` gate
+
+### Files Modified (cast)
+- `project-info.md` — `## toolchain` gains three `cast ../jam/cast/CAST.md` rows, one at the head of each argument group (blank / `debug` / `no-sign`), so jam's generated headers are re-cast before cmake configures. Nine data rows, existing rows and column widths byte-unchanged
+- `Source/main.cpp` — `isTerminalOutput()` (`isatty (fileno (stdout))` / `_isatty (_fileno (stdout))`) added at file scope; the unconditional `std::system ("clear")`/`("cls")` now runs inside a positive-nested `if`; `<unistd.h>`/`<io.h>` added under the existing `_WIN32` split (permitted platform-header exception)
+
+### Files Modified (eve)
+- `project-info.md` — same three `cast ../jam/cast/CAST.md` toolchain rows, identical table geometry to cast's
+
+### Alignment Check
+- [x] BLESSED — chaining is data (toolchain rows), not engine; no engine change was made or needed
+- [x] NAMES.md — one new identifier, `isTerminalOutput`, ARCHITECT-ratified before delegation (Rule 1 boolean question form)
+- [x] CODING.md — positive nesting, no bail-out guard; platform includes only; no STL re-include
+- [x] Scope — two manifests + one source file, quoted verbatim in every delegation prompt; no subagent reached outside the stated file set
+
+### Problems Solved
+- **Framework staleness closed.** cast and eve compile jam as a user module; jam's ten `generated/*.h` outputs were never re-cast by either project's chain. jam declares no `## toolchain`, so the nested invocation terminates — no recursion, no nested cmake/ninja
+- **Freeze-vs-repair settled without new machinery.** Writer.h:165 (`canonical != current`) and Processor.h:190 already render unconditionally and write only on difference: an untouched output keeps its mtime so ninja rebuilds nothing, and a hand-edited or corrupt output is restored. An input-fingerprint cache (Bazel/Cargo shape) was rejected on evidence — it skips the render, so it forfeits exactly the corruption-repair guarantee ARCHITECT requires
+- **Escape bytes root-caused.** `ESC[3J ESC[H ESC[2J` came from `std::system ("clear")` at the top of `main`, unchanged for its whole life. jam::Subprocess was cleared by citation as a byte-faithful conduit (raw `char` buffer → exact-length `string_view` → `append`/`fwrite`; no transcoding at any hop). `juce::ChildProcess` gives the child a pipe, not a tty, so bytes the terminal used to consume became data. The doubled sequence was introduced by this sprint's own toolchain row and removed by the gate in the same sprint
+- **One subagent claim rejected:** `project(JUCE VERSION 8.0.14)` does not print `JUCE v8.0.14`; verified absent from JUCE's CMake, cast's `Source/`, and jam. ARCHITECT ruled the line is JUCE's own `JUCE_DEBUG` output
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None (DEBT.md's two open entries — KANJUT conformance, plugin_bootstrap conformance — were never in this sprint's scope; they remain on the ledger per JRENG law)
+
 ## Sprint: Audit Clean Sweep + Headers Restructure — Scoped Addresses, colours.md, Subprocess Byte-Law Finish, L-Sweep ✅
 
 **Date:** 2026-09-02

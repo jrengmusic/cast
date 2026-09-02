@@ -7,6 +7,12 @@
 #include "Processor.h"
 #include "Help.h"
 
+#ifdef _WIN32
+#include <io.h>
+#else
+#include <unistd.h>
+#endif
+
 /// @brief Prints the generated banner rows to stdout.
 static void printBanner()
 {
@@ -290,13 +296,25 @@ static int runDocumentNotFound (const juce::File& documentFile)
     return 1;
 }
 
-int main (int argc, char* argv[])
+static bool isTerminalOutput() noexcept
 {
 #ifdef _WIN32
-    std::system ("cls");
+    return _isatty (_fileno (stdout)) != 0;
 #else
-    std::system ("clear");
+    return isatty (fileno (stdout)) != 0;
 #endif
+}
+
+int main (int argc, char* argv[])
+{
+    if (isTerminalOutput())
+    {
+#ifdef _WIN32
+        std::system ("cls");
+#else
+        std::system ("clear");
+#endif
+    }
 
     if (isVersion (argc, argv))
     {

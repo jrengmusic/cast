@@ -1,23 +1,13 @@
 CompileFlags:
-  CompilationDatabase: /Users/jreng/Documents/Poems/dev/cast/Builds/Release/
-  Remove:
-    - -arch
-    - -mmacosx-version-min*
+  CompilationDatabase: /Users/jreng/Documents/Poems/dev/cast
+  Remove: [--target=*]
   Add:
-    - --target=arm64-apple-darwin
-    - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Release/cast_artefacts/JuceLibraryCode
-    - -I/Users/jreng/Documents/Poems/dev/cast/../jam
-    - -I/Users/jreng/Documents/Poems/dev/cast/Source/generated
-    - -I/Users/jreng/Documents/Poems/JUCE/modules
-    - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Release/juce_binarydata_cast_BinaryData/JuceLibraryCode
-    - -DCAST_COMMIT="b9b523f"
+    - -DCAST_COMMIT=\"35a94e0\"
+    - -DDEBUG=1
     - -DDONT_SET_USING_JUCE_NAMESPACE=1
     - -DJUCE_DONT_DECLARE_PROJECTINFO=1
     - -DJUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1
     - -DJUCE_IN_APP_PURCHASES=0
-    - -DJUCE_IOS=0
-    - -DJUCE_LINUX=0
-    - -DJUCE_MAC=1
     - -DJUCE_MODULE_AVAILABLE_jam_core=1
     - -DJUCE_MODULE_AVAILABLE_jam_markdown=1
     - -DJUCE_MODULE_AVAILABLE_jam_subprocess=1
@@ -28,23 +18,26 @@ CompileFlags:
     - -DJUCE_MODULE_AVAILABLE_juce_gui_basics=1
     - -DJUCE_STANDALONE_APPLICATION=1
     - -DJUCE_TARGET_HAS_BINARY_DATA=1
-    - -DJUCE_WINDOWS=0
-    - -DNDEBUG
-    - -DNDEBUG=1
-    - -DTARGET_OS_IPHONE=0
-    - -D_NDEBUG=1
-    - -D__APPLE__=1
-    - -Wno-deprecated-declarations
+    - -D_DEBUG=1
+    - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Debug/cast_artefacts/JuceLibraryCode
+    - -I/Users/jreng/Documents/Poems/dev/cast/../jam
+    - -I/Users/jreng/Documents/Poems/dev/cast/Source/generated
+    - -I/Users/jreng/Documents/Poems/JUCE/modules
+    - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Debug/juce_binarydata_cast_BinaryData/JuceLibraryCode
+    - -g
+    - -std=c++17
+    - -arch
+    - x86_64
+    - -arch
+    - arm64
+    - -mmacosx-version-min=11.0
+    - -Wno-shadow
     - -Wno-unused-parameter
-
-Index:
-  Background: Build
-
+    - -Wno-float-equal
+    - -Wno-sign-conversion
+    - -Wno-switch-enum
+    - -Wno-implicit-float-conversion
+    - -O0
 Diagnostics:
-  UnusedIncludes: None
   MissingIncludes: None
-
-InlayHints:
-  Enabled: Yes
-  ParameterNames: Yes
-  DeducedTypes: Yes
+  UnusedIncludes: None

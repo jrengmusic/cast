@@ -2,3 +2,4 @@ Builds/
 docs/
 Source/generated/
 *.log
+.project
