@@ -19,7 +19,6 @@ speaks. Prefix/affix-shaped entries pair with the offender's own text.
 | failTableMissing       | `table not found`                          | An address named a table that does not exist.                                  |
 | failOutputMissing      | `output not found`                         | An index symbol names a file that does not exist.                              |
 | failColumnUnknown      | `column not in the matched table`          | A named token matched no column of the addressed table.                        |
-| failAliasMissing       | `alias not declared in index`              | An alias is absent from the writing file's index.                              |
 | failDuplicate          | `duplicate "`                              | Prefix — a column entry repeated byte-exactly.                                 |
 | failFormatAdjacent     | `format column has no column to format`    | \| format \| format \| adjacency.                                              |
 | failAmbiguous          | `nested shape has more than one candidate` | A shape's arity does not match the sources supplied.                           |

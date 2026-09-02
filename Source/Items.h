@@ -78,9 +78,9 @@ struct Items
                                                      const juce::String& source)
     {
         const auto currentFile { jam::Format::toFileName (model.getValue (row, Id::file)) };
-        const auto isFiltered { Model::isFilteredAddress (source) };
-        const auto filterColumn { isFiltered ? Model::getFilterColumn (source) : juce::Identifier{} };
-        const auto filterValue { isFiltered ? Model::getFilterValue (source) : juce::String{} };
+        const auto isFiltered { model.isFilteredAddress (row, source) };
+        const auto filterColumn { isFiltered ? model.getFilterColumn (row, source) : juce::Identifier{} };
+        const auto filterValue { isFiltered ? model.getFilterValue (row, source) : juce::String{} };
         jam::Array<Element*> sourceRows;
 
         for (auto* candidate : model.getTableRows (sourceTable))
@@ -216,9 +216,9 @@ struct Items
      * @brief Resolves @p name's value for @p sourceRow -- the deepest
      *        structure-wiring binding of that name outside a shape-valued
      *        binding's own private render data, or, absent one, the
-     *        row's own column value. An @-sigiled @c comment column value
-     *        is a reference, not prose (SPEC §4), and resolves empty absent
-     *        a binding.
+     *        row's own column value. An @-sigiled @c comment binding or
+     *        column value is a reference, not prose (SPEC §4), and
+     *        resolves empty.
      *
      * @param model            The model @p sourceRow belongs to.
      * @param templateDocument The template document @p sourceRow's own
@@ -227,7 +227,8 @@ struct Items
      * @param name             The token or column name to resolve.
      * @returns The resolved value, or an empty string when neither a
      *          binding nor a column named @p name exists on @p sourceRow, or
-     *          @p name is @c comment and the column value is a reference.
+     *          @p name is @c comment and the binding or column value is a
+     *          reference.
      */
     static juce::String getSourceValue (const Model& model, const TemplateDocument& templateDocument,
         Element& sourceRow, const juce::Identifier& name)
@@ -245,6 +246,9 @@ struct Items
 
                     return true;
                 });
+
+        if (name == Id::comment and Model::isAddress (deepestValue))
+            return {};
 
         if (deepestValue.isNotEmpty())
             return deepestValue;
@@ -329,10 +333,10 @@ struct Items
 
                 const auto& value { *childSourceLine->get<juce::String> (Id::value) };
 
-                if (not Model::isColumnAddress (value))
+                if (not model.isColumnAddress (row, value))
                     break;
 
-                if (auto* cell { model.getTableCell (*sourceRow, Model::getColumn (value)) })
+                if (auto* cell { model.getTableCell (*sourceRow, model.getColumn (row, value)) })
                     childValues.add (*cell->get<juce::String> (Id::value));
             }
 
@@ -418,6 +422,49 @@ struct Items
     }
 
     /**
+     * @brief Resolves one item's own replacement map -- @p tokens' own
+     *        names, each mapped to its resolved value through
+     *        getColumnValue(), commenting a non-empty @c comment value.
+     *
+     * @param model            The model @p sourceRow, when present,
+     *                         belongs to.
+     * @param templateDocument The template document @p sourceRow's own
+     *                         private render data is read through, when
+     *                         present.
+     * @param tokens           The placeholder tokens to resolve.
+     * @param sourceRow        The item's source row, or @c nullptr when
+     *                         the item is a bare column value.
+     * @param sourceValue      The column value resolved when @p sourceRow
+     *                         is @c nullptr and a token matches
+     *                         @p sourceKey.
+     * @param sourceKey        The token name @p sourceValue answers for.
+     * @param extension        The target file extension a comment value
+     *                         is commented for.
+     * @returns @p tokens' own name-to-value map for this item.
+     */
+    static jam::HashMap<juce::Identifier, juce::String> getItemReplacement (const Model& model,
+        const TemplateDocument& templateDocument, const jam::Document::Identifiers& tokens,
+        Element* sourceRow, const juce::String& sourceValue, const juce::Identifier& sourceKey,
+        const juce::String& extension)
+    {
+        jam::HashMap<juce::Identifier, juce::String> replacements;
+
+        for (const auto& name : tokens)
+        {
+            auto value {
+                getColumnValue (model, templateDocument, sourceRow, sourceValue, sourceKey, name)
+            };
+
+            if (name == Id::comment and value.isNotEmpty())
+                value = Transforms::toComment (value, extension);
+
+            replacements.emplace (name, value);
+        }
+
+        return replacements;
+    }
+
+    /**
      * @brief Returns one replacement map per item -- @p sourceRows' own
      *        source rows followed by @p sourceValues' own column values,
      *        each mapping @p line's own placeholder tokens to their
@@ -451,30 +498,13 @@ struct Items
         const auto& tokens { *templateDocument.getCodeBlock (line)
                                    ->get<jam::Document::Identifiers> (Id::placeholder) };
 
-        const auto measureItem = [&model, &templateDocument, &tokens, &sourceKey, &itemReplacements,
-                                  &extension] (Element* sourceRow, const juce::String& sourceValue)
-        {
-            itemReplacements.add ({});
-            auto& replacements { itemReplacements.last() };
-
-            for (const auto& name : tokens)
-            {
-                auto value {
-                    getColumnValue (model, templateDocument, sourceRow, sourceValue, sourceKey, name)
-                };
-
-                if (name == Id::comment and value.isNotEmpty())
-                    value = Transforms::toComment (value, extension);
-
-                replacements.emplace (name, value);
-            }
-        };
-
         for (auto* sourceRow : sourceRows)
-            measureItem (sourceRow, {});
+            itemReplacements.add (
+                getItemReplacement (model, templateDocument, tokens, sourceRow, {}, sourceKey, extension));
 
         for (const auto& value : sourceValues)
-            measureItem (nullptr, value);
+            itemReplacements.add (
+                getItemReplacement (model, templateDocument, tokens, nullptr, value, sourceKey, extension));
 
         return itemReplacements;
     }
@@ -513,6 +543,44 @@ struct Items
     }
 
     /**
+     * @brief Returns @p literal with fill spaces inserted after its first
+     *        whitespace run, aligning @p previousName's own value against
+     *        @p columnWidths' own byte-width high-water mark.
+     *
+     * @param literal       The literal text between the previous marker
+     *                      and the next.
+     * @param previousName  The preceding token's own name, whose column
+     *                      width is read from @p columnWidths.
+     * @param previousValue The preceding token's own resolved value,
+     *                      whose byte width is padded up to
+     *                      @p previousName's own column width.
+     * @param columnWidths  Each token's own widest replacement's byte
+     *                      width across the join set.
+     * @returns @p literal, its first whitespace run widened by the fill
+     *          spaces @p previousName's own column width demands.
+     */
+    static juce::String getPaddedLiteral (const juce::String& literal, const juce::Identifier& previousName,
+        const juce::String& previousValue, const jam::HashMap<juce::Identifier, size_t>& columnWidths)
+    {
+        const auto literalStart { literal.getCharPointer() };
+        const auto whitespaceStart { juce::CharacterFunctions::trimBegin (literalStart,
+            literalStart.findTerminatingNull(),
+            [] (const auto& character)
+            { return not juce::CharacterFunctions::isWhitespace (*character); }) };
+        const auto whitespaceEnd { juce::CharacterFunctions::findEndOfWhitespace (whitespaceStart) };
+        const auto head { literal.substring (
+            0, static_cast<int> (literalStart.lengthUpTo (whitespaceEnd))) };
+        const auto tail { juce::String (whitespaceEnd) };
+        const auto fillWidth { columnWidths.at (previousName)
+            - static_cast<size_t> (previousValue.getNumBytesAsUTF8()) };
+
+        return head
+             + juce::String::repeatedString (
+                   juce::String::charToString (Chars::space), static_cast<int> (fillWidth))
+             + tail;
+    }
+
+    /**
      * @brief Returns one item's own column-aligned rendering of @p line's
      *        shape -- each marker replaced by @p replacements' own value,
      *        fill spaces inserted after each literal's first whitespace
@@ -535,7 +603,6 @@ struct Items
                                        const jam::HashMap<juce::Identifier, size_t>& columnWidths)
     {
         const auto& itemText { *templateDocument.getCodeBlock (line)->get<juce::String> (Id::value) };
-
         juce::String paddedText;
         juce::String remainingText { itemText };
         auto isFirstToken { true };
@@ -548,41 +615,17 @@ struct Items
             const auto name { juce::Identifier (jam::Format::toValidID (interior)) };
             const auto columnValue { replacements.at (name) };
             const auto literal { jam::Format::upTo (remainingText, marker, false) };
-
             remainingText = jam::Format::from (remainingText, marker, false);
-
-            if (isFirstToken)
-                paddedText += literal;
-            else
-            {
-                const auto literalStart { literal.getCharPointer() };
-                const auto whitespaceStart { juce::CharacterFunctions::trimBegin (literalStart,
-                    literalStart.findTerminatingNull(),
-                    [] (const auto& character)
-                    { return not juce::CharacterFunctions::isWhitespace (*character); }) };
-                const auto whitespaceEnd { juce::CharacterFunctions::findEndOfWhitespace (whitespaceStart) };
-
-                const auto head { literal.substring (
-                    0, static_cast<int> (literalStart.lengthUpTo (whitespaceEnd))) };
-                const auto tail { juce::String (whitespaceEnd) };
-                const auto fillWidth { columnWidths.at (previousName)
-                    - static_cast<size_t> (previousValue.getNumBytesAsUTF8()) };
-
-                paddedText += head;
-                paddedText += juce::String::repeatedString (
-                    juce::String::charToString (Chars::space), static_cast<int> (fillWidth));
-                paddedText += tail;
-            }
-
+            paddedText += isFirstToken
+                              ? literal
+                              : getPaddedLiteral (literal, previousName, previousValue, columnWidths);
             paddedText += columnValue;
-
             previousName = name;
             previousValue = columnValue;
             isFirstToken = false;
         }
 
         paddedText += remainingText;
-
         return paddedText.trimEnd();
     }
 
@@ -758,6 +801,29 @@ struct Items
     }
 
     /**
+     * @brief Answers whether @p sourceName names a column any of
+     *        @p tables' own output tables declares.
+     *
+     * @param model      The model @p tables belong to.
+     * @param tables     The tables searched for @p sourceName's own
+     *                   column.
+     * @param sourceName The column name to test.
+     * @returns @c true when at least one output table among @p tables
+     *          declares a @p sourceName column.
+     */
+    static bool isColumnSource (const Model& model, const jam::Array<Element*>& tables,
+        const juce::Identifier& sourceName)
+    {
+        return std::any_of (tables.begin(), tables.end(),
+            [&model, &sourceName] (Element* table)
+            {
+                auto* headerRow { Model::getTableHeaderRow (*table) };
+                return model.isOutputTable (*table)
+                       and model.getTableCell (*headerRow, sourceName) != nullptr;
+            });
+    }
+
+    /**
      * @brief Resolves @p source against @p row -- a wired table's own
      *        rows through getTableSourceRows(), a column shared across
      *        @p tables' own output rows through getColumnSourceValues(),
@@ -798,23 +864,12 @@ struct Items
         juce::Identifier sourceKey { Id::list };
 
         if (auto* sourceTable { model.getTable (row, source) }; sourceTable != nullptr)
-        {
             sourceRows = getTableSourceRows (model, row, *sourceTable, source);
-        }
         else
         {
             const auto sourceName { juce::Identifier (source) };
-            const auto hasColumnSource { std::any_of (
-                tables.begin(),
-                tables.end(),
-                [&model, &sourceName] (Element* table)
-                {
-                    auto* headerRow { Model::getTableHeaderRow (*table) };
-                    return model.isOutputTable (*table)
-                           and model.getTableCell (*headerRow, sourceName) != nullptr;
-                }) };
 
-            if (hasColumnSource)
+            if (isColumnSource (model, tables, sourceName))
             {
                 sourceKey = sourceName;
                 sourceValues = getColumnSourceValues (model, row, tables, sourceName);

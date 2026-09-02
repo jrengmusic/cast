@@ -10,9 +10,9 @@
 
 ## Current State
 
-**Last Sprint:** `## index comment` elimination — file documentation wired through `## headers` table addresses, engine-wide clean sweep (isAddress predicate, marker-scan SSOT, toolchain column gate, dead-code removal) ✅ (2026-09-01)
+**Last Sprint:** Audit clean sweep + headers restructure — scoped addresses (local `@table:column`, self-aliases dead), `## output` comment column eliminated (file docs = `- comment: @headers:brief` structure binding, `## headers` = `file | brief | comment`), colours.md split, Subprocess byte-law finish (parent chdir, single capture), L-sweep decomposition ✅ (2026-09-02)
 
-**Active Work:** None — cast/jam/eve byte-identical fixpoints; full default flow (configure, build, sign, notarize, install) exit 0
+**Active Work:** None — cast/jam/eve byte-identical fixpoints; full default Release chains proven end-to-end (cast .pkg notarized+stapled+QA-archived; eve VST3/AU Accepted+stapled, AAX wraptool)
 
 **Active ODE:** None
 
@@ -36,7 +36,7 @@
 | **TemplateDocument.h** | Template pool | One parsed document per `.cast` index row; shape lookup by `@alias:fence` address |
 | **Transforms.h** | String transforms | Case/escape/comment framing per extension (`map::commentSyntax`) |
 | **Jobs.h** | Thread pool | `Jobs::run (count, perIndex)` parallel dispatch |
-| **Help.h** | --help rendering | Help text via StyleManager + markdown (HELP.md + style.css via BinaryData) |
+| **Help.h** | --help rendering | Plain `printf` of the embedded HELP.md text (BinaryData) |
 | **generated/** | Codegen outputs | Files.h, Generated.h, HashMaps.h, Identifiers.h, ProjectInfo.h, Text.h — cast's own fixpoint outputs |
 | **resources/** | cast-output.md | Banner artwork source (markdown fenced code) |
 
@@ -44,7 +44,7 @@
 
 | File | Purpose |
 |------|---------|
-| **CAST.md** | Generation manifest: outputs, wiring rows (`list | separator | structure | file`); shapes addressed `@code:<fence>` into `../../jam/cast/code.cast` |
+| **CAST.md** | Generation manifest: outputs, four-column wiring rows (`list | separator | structure | file`); shapes addressed `@code:<fence>` into `../../jam/cast/code.cast`; per-output file documentation wired via `- comment: @headers:brief` structure bindings into the `## headers` table (`file | brief | comment`) |
 | **identifiers.md** | Identifier table → generated/Identifiers.h |
 | **text.md, comments.md, files.md, banner.md** | Data tables (one table per generated concern) |
 | **cmake.cast** | Shared CMakeLists.txt template, wired by cast/CAST.md and eve's manifest |
@@ -53,7 +53,7 @@
 
 | Location | Content |
 |----------|---------|
-| **docs/xml/** | Generated indices — cast headers + jam_core/jam_style/jam_terminal/jam_markdown |
+| **docs/xml/** | Generated indices — cast's own `Source/` headers only |
 | **docs/tagfile.xml** | Cross-reference tag file |
 
 ---
@@ -74,12 +74,14 @@
 **Build System:** CMake + Ninja (via JAM's BuildSetup)
 
 **Key Modules:**
-- `juce_core` — JUCE framework core
-- `jam_core` (sole includer of jam_Generated.h) → `jam_style`, `jam_terminal`, `jam_markdown` (transitive)
+- `juce_core`, `juce_gui_basics` — JUCE framework modules
+- `jam_core`, `jam_subprocess` (toolchain child processes), `jam_markdown` — user modules
+  (`project-info.md` `## user module`); `jam_style.h` includes `generated/jam_ColourIds.h`
+  directly, `jam_core` is no longer the sole includer of the generated umbrella family
 
 **Runtime:**
 - `./cast <manifest>` generates; `--format` runs by default, re-canonicalizing all origin .md files
-- `cast_BinaryData` embeds `Source/HELP.md` + `Source/style.css`
+- `cast_BinaryData` embeds `Source/HELP.md` and `Source/resources/cast-output.md` (`project-info.md` `## binary`)
 
 **Doxygen:**
 - Read doxygen XML before any C++ file search (use doxygen-protocol skill)

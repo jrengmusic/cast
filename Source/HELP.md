@@ -273,7 +273,7 @@ Joining more than one item from a single-line shape aligns their token columns: 
 
 `separator` is optional. Blank means newline.
 
-A wiring table is any manifest table with a `structure` column — `## output` and `## output index` in every project here. Nothing else is wiring: your index, `## toolchain`, and any plain data table you keep in the manifest are data, and a column named `file` in them is just a column. The manifest may declare itself in its own index, so a data table can live right beside the wiring that reads it — declare `| @headers | CAST.md |` and `@headers:headers` addresses a `## headers` table in the manifest.
+A wiring table is any manifest table with a `structure` column — `## output` and `## output index` in every project here. Nothing else is wiring: your index, `## toolchain`, and any plain data table you keep in the manifest are data, and a column named `file` in them is just a column. A data table can live right beside the wiring that reads it — an address whose first part names no index alias names a table of the manifest itself, so `@headers` addresses a `## headers` table in the same file. Aliases are scoped to the index; a manifest never aliases its own file.
 
 ### list — what iterates
 
@@ -406,35 +406,34 @@ Rows that declare the same `file` render as one merged shape; the wrap is emitte
 
 Same-file rows must be authored contiguously — a row for a file already closed by an intervening row of another file is a fatal error.
 
-### comment — file documentation, wired to a table
+### file documentation — a `- comment:` binding, wired to a table
 
-The wiring table's own `comment` column doubles as file documentation. Rows sharing one `file` render as one merged output (see File above); CAST reads the `comment` cell of that group's **first** row, by first appearance in authored order — the same rule that decides output-file ordering — and writes the resolved text between the banner and the file's own text, in the file's comment syntax. A blank first-row `comment` writes nothing extra.
+The wiring table carries no documentation column. A file's documentation is a `- comment:` binding in the **structure** cell of the file group's first row (first appearance in authored order — the same rule that decides output-file ordering), whose value is a table address: `@file:table:column`, or the local form `@table:column` for a table of the manifest itself — aliases are scoped to the index, so a manifest never aliases its own file. The addressed table carries a `file` column and documentation columns; CAST reads the row whose `file` matches the group's own output file and takes the cell of the column the address names — the `comment` column when the address names none. The resolved text is written between the banner and the file's own text, in the file's comment syntax. No binding, no matching row, or a blank cell writes nothing extra.
 
-That cell is either the fenced prose directly, or a whole-cell table address — `@file:table` — naming a table with `file` and `comment` columns. CAST reads that table's row whose `file` matches the group's own output file, and takes its `comment` cell as the header. This is the pattern for real projects: one small `## headers` table holds every file's header prose in one place, and every output row's `comment` cell just points at it.
+This is the pattern for real projects: one small `## headers` table holds every file's header prose in one place — a `brief` column for the doc block, a `comment` column for a single-liner — and every output group points one binding at it.
 
 ```markdown
 ## headers
 
-| file    | comment                         |
-| Out.h   | ```                             |
-|         | @file Out.h                     |
-|         | @brief One generated namespace. |
-|         | ```                             |
+| file    | brief                           | comment |
+| Out.h   | ```                             |         |
+|         | @file Out.h                     |         |
+|         | @brief One generated namespace. |         |
+|         | ```                             |         |
 
 ## output
 
-| list                  | separator | structure              | file    | comment           |
-| - list: @data:rows    |           | @code:namespace        | @Out.h  | @headers:headers  |
-|                       |           | - macro: #pragma once  |         |                    |
-|                       |           | - name: Out             |         |                    |
-|                       |           | - list: @code:entry     |         |                    |
+| list                  | separator | structure                    | file    |
+| - list: @data:rows    |           | @code:namespace              | @Out.h  |
+|                       |           | - macro: #pragma once        |         |
+|                       |           | - name: Out                  |         |
+|                       |           | - comment: @headers:brief    |         |
+|                       |           | - list: @code:entry          |         |
 ```
 
-Every output row that needs a header points the same `@headers:headers` address at the one table; the file match, not the row, decides which prose comes back. Declaring `## headers` as a table CAST also lists an output's includes from (`- list: @headers:headers`, per "Declared membership instead of a derived sweep" below) needs no extra care: the self-exclusion law (a file never lists itself) already keeps a file's own row out of its own include sweep, even though the same row supplies that file's header.
+The file match, not the row, decides which prose comes back. Declaring `## headers` as a table CAST also lists an output's includes from (`- list: @headers`, per "Declared membership instead of a derived sweep" below) needs no extra care: the self-exclusion law (a file never lists itself) already keeps a file's own row out of its own include sweep, even though the same table supplies that file's header.
 
-The same `comment` cell is still an ordinary column: any item shape sourced from that row reads it for its own `:::comment:::` too — this is unchanged from before the table form existed. The `@` sigil law (a `@`-sigiled cell is a reference, never data) settles what happens when one row does both jobs: an address-valued `comment` cell is a reference, so a reader that renders prose skips it and gets nothing — only the file-documentation reader above resolves the address. A row that is both a merge-group's first row and separately selected elsewhere as an item therefore supplies the file header correctly and contributes no per-item prose from that same cell.
-
-If that row still needs its own per-item prose, give it a `- comment: <text>` binding in the structure column — plain text, no `@`. The item-shape reader finds the binding before it ever reaches the (address-valued, empty) column, so the bound text renders exactly where the plain-column text used to. This binding never reaches the shape's own `:::comment:::` — that marker keeps reading the list-column comment reference or the table's documentation, same as always, regardless of what the row's structure column binds.
+The `@` sigil law (a `@`-sigiled value is a reference, never data) separates this binding's two readers. A `- comment:` binding whose value is plain text is per-item prose, same as always: the item-shape reader finds the binding before it falls to the source row's own `comment` column and renders the bound text. The file-documentation reader resolves only the address-valued form; a reader that renders prose never treats a reference as its prose. One structure cell may carry both — the sigil decides which reader takes which.
 
 ### toolchain — commands after the write
 
@@ -594,8 +593,6 @@ One guard, one member — and because the wrapper's slot is an ordinary slot, fe
 When a derived source starts sweeping in rows you never meant — `- list: file` collecting a build manifest into an include list — declare the membership as data, in the manifest itself:
 
 ```markdown
-| @headers | CAST.md |          in ## index — the manifest indexes itself
-
 ## headers
 
 | file          |
@@ -603,7 +600,7 @@ When a derived source starts sweeping in rows you never meant — `- list: file`
 | Identifiers.h |
 ```
 
-and wire `- list: @headers:headers`. The list is now exactly what the table says, and the next member is one row.
+and wire `- list: @headers` — the first part names no index alias, so it names the manifest's own table. The list is now exactly what the table says, and the next member is one row.
 
 ### Named commands, wired as wrapper tokens
 

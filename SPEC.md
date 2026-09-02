@@ -53,6 +53,33 @@ declares: no directory scanning, no globbing.
 
 Generated outputs are build artifacts and are never edited by hand.
 
+### 2.1 Invocation
+
+The command line selects what runs; it never carries generation rules.
+
+```
+cast [<manifest>] [<directory> | --format | --no-format | --<word>]
+cast --version
+cast --help
+```
+
+- No arguments: the manifest is `CAST.md` in the working directory.
+- `<manifest>`: a manifest path; the flag reads before or after it.
+- `<directory>`: every declared output writes under it, resolved against the
+  manifest's own directory, instead of the declared paths' default root.
+- Default order is format, then generate, then the default-flow toolchain rows (§6.9).
+- `--format`: format only — every declared markdown file re-canonicalized (§8),
+  write-if-different; no generation, no toolchain.
+- `--no-format`: generate only — no formatting.
+- `--<word>`: after format and generate, run only the `## toolchain` rows whose
+  `argument` cell equals `word` (§6.9), instead of the default-flow rows.
+- `--version`: the version and source commit, the same stamp the banners embed.
+- `--help`: the guide. HELP.md is derived from this specification and carries no
+  authority of its own (§1).
+
+`--format` and `--no-format` are mutually exclusive with each other, with
+`<directory>`, and with `--<word>` — one manifest, one flag, nothing else on the line.
+
 ---
 
 ## 3. Markdown Substrate
@@ -140,6 +167,11 @@ The **column** part is the omissible one. Two parts are always `@file : table`:
 One part is `@file` alone. The table is then the one named after the file, or the file's
 only table. The index never counts as a table for that purpose.
 
+The first part resolves against the writing file's index. A first part naming no index
+alias names a **table of the writing file itself** — the local form. The parts then
+shift left: `@table` is that table, `@table : column` names its column. A file never
+aliases itself; the local form is the only way a manifest addresses its own tables.
+
 An alias whose symbol names a `.cast` file addresses shapes, not tables:
 
 ```
@@ -179,7 +211,7 @@ shape.
 
 ### 4.4 Fatal
 
-- an alias absent from the writing file's index
+- an address's first part naming neither an index alias nor a table of the writing file
 - two index rows declaring the same alias
 - an index symbol naming a file that does not exist
 - an address naming a table or column that does not exist
@@ -260,8 +292,10 @@ its identity columns are gated like any other.
 
 ### 5.4 Documentation
 
-`comment` is a reserved column name, like `format` (§5.2): documentation, never data.
-Its entries are exempt from §5.3 uniqueness, and no expansion (§6.5) ever emits it.
+`comment` and `brief` are reserved column names, like `format` (§5.2): documentation,
+never data. Their entries are exempt from §5.3 uniqueness, and no expansion (§6.5)
+ever emits them. `brief` holds a file's documentation block; `comment` a single-line
+documentation — the file-documentation address (§6.8) selects between them by column.
 
 Three documentation channels, all data:
 
@@ -552,56 +586,38 @@ intervening row of another file is fatal (§10.1) — one file is written once.
 
 ### 6.8 File Documentation
 
-A wiring table's `comment` column (§6) carries a file's documentation, not only a row's.
-There is no separate reserved table for it — the engine groups an output table's rows by
-their declared `file` (§6.7) and reads the `comment` cell of each group's **first**
-row, by first appearance in authored order, the same law the engine already applies to
-output-file ordering.
+A wiring table carries no documentation column. A file's documentation is wired in the
+structure column: a `- comment:` binding whose value is a table address, on the file
+group's **first** row — first appearance in authored order, the same grouping law as
+§6.7 and the same law the engine already applies to output-file ordering.
 
-That cell is read as one of two forms:
+The address is `@file:table` or `@file:table:column` (§4.2) — or, for a table of the
+manifest itself, the local form `@table` or `@table:column`. The addressed table
+carries a `file` column and documentation columns; the engine reads the row whose
+`file` value equals the group's own output file name and takes the cell of the column
+the address names — the `comment` column when the address names none. The addressed
+cell is plain text or the fenced documentation form (§3.2): each fence line is one line
+of the file's documentation prose. A group whose first row carries no address-valued
+`- comment:` binding, a file absent from the addressed table, or an addressed cell that
+is blank, writes no file documentation — plain replacement, no special case (§5.4).
 
-- **plain text** — the fenced documentation form (§3.2) directly, unchanged: each fence
-  line is one line of the file's documentation prose.
-- **a table address** — `@file:table` (§4.2), whole-cell. The addressed table carries
-  `file` and `comment` columns; the engine reads the row whose `file` value equals the
-  group's own output file name and takes that row's own `comment` cell, in the same two
-  forms recursively resolved one level (a row's `comment` cell there is always plain
-  text). A file absent from the addressed table, or whose row's `comment` cell is blank,
-  writes no file documentation.
+The resolved prose is rendered in the file's own comment syntax exactly as a
+shape-level `:::comment:::` renders (§5.4), written between the banner and the group's
+own rendered shape, framed by one blank line on each side. The addressed table's
+documentation columns are documentation, never data (§5.4) — a fence there is not a
+literal, `toLiteral` never applies, and the `@` sigil law (§4) does not apply inside a
+fence's prose: documentation is never a reference, so a prose line beginning with
+`@file` or `@brief` is text. The binding's own value is the one exception — it is a
+reference, resolved as any other address is (§4.2).
 
-Either way, the resolved prose is rendered in the file's own comment syntax exactly as a
-shape-level `:::comment:::` renders (§5.4). The comment column, and the addressed
-table's own `comment` column, are documentation, never data (§5.4) — a fence there is
-not a literal, `toLiteral` never applies, and the `@` sigil law (§4) does not apply
-inside a fence's prose: documentation is never a reference, so a prose line beginning
-with `@file` or `@brief` is text. The address form's own cell value is the one
-exception — it is a reference, resolved as any other address is (§4.2).
-
-The resolved text is written between the banner and the group's own rendered shape,
-framed by one blank line on each side. A first row whose `comment` cell is blank, or
-whose addressed row resolves to no text, writes no file documentation — plain
-replacement, no special case (§5.4).
-
-A row's `comment` cell is also, unchanged, an ordinary column: an item shape sourced
-from that row reads it for its own `:::comment:::` marker (§6, "row" channel of §5.4).
-The two readers are independent, but they read one cell. Per §4, a `@`-sigiled cell is a
-reference, never data — so an item-shape reader, which renders prose, never treats a
-reference as its prose: an address-valued `comment` cell resolves empty to every reader
-except the file-documentation reader above, which is the one reader an address is
-addressed to. A row that is both a merge-group's first row and separately selected as an
-item elsewhere therefore carries the address for the file header and, correctly, no
-per-item prose from that same cell.
-
-When such a row still needs per-item prose of its own, a `- comment: <text>` binding on
-the row's structure column supplies it: an item-shape reader finds the binding before it
-would fall to the (now address-valued, and so empty) column, and renders the bound text.
-The binding's own value is never `@`-sigiled — a bound value that starts with `@` is a
-reference and is validated as one (§4.4), the same rule the list-column comment
-reference already follows. The shape-level `:::comment:::` marker never reads this
-binding: it is a structure-column binding, not the list-column reference form §5.4
-names, and the shape-level channel keeps resolving from the row's own comment reference
-or the addressed table's documentation exactly as documented there, untouched by any
-same-named structure-column binding on the row.
+The `@` sigil law (§4) is what separates this binding's two readers. A `- comment:`
+binding whose value is plain text is per-item prose, exactly as before: an item-shape
+reader finds the binding before it falls to the source row's own `comment` column, and
+renders the bound text. The file-documentation reader reads only the address-valued
+form; an item-shape reader, which renders prose, never treats a reference as its prose.
+One structure cell may carry both — the reference for the file header and the text for
+the row's items — the sigil decides which reader takes which, the same rule every
+`@`-sigiled value already follows (§4).
 
 ### 6.9 Toolchain
 
@@ -625,8 +641,10 @@ with no `argument` column has no row whose `argument` cell could ever equal a no
 as it is everywhere (§5.1).
 
 When the table is declared, its rows run after every declared output has written, in
-authored row order — one child process per row, the command cell and the flag cell
-joined by one space. A blank flag cell runs the command alone.
+authored row order — one child process per row. The command cell is the executable,
+taken verbatim — argv[0], never split. The flag cell is the argument list: it splits
+on spaces, and a double-quoted span becomes one argument with the quote marks removed.
+A blank flag cell runs the command alone.
 
 The CLI selects which rows run. With no `--<word>` argument, only the rows whose
 `argument` cell is blank run — the default flow. With `cast <manifest> --<word>`, only

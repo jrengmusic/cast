@@ -94,6 +94,79 @@ private:
     }
 
     /**
+     * @brief Resolves and creates every output-file group's own file --
+     *        each @p groupStarts' own row's declared @c file, resolved
+     *        against @p outputPath.
+     *
+     * @param outputPath   The directory output files are resolved against.
+     * @param rows         The table's own rows, read for each group's own
+     *                     declared @c file.
+     * @param groupStarts  Each group's own first index into @p rows.
+     * @returns Each group's own resolved, directory-created output file,
+     *          in @p groupStarts' own order.
+     */
+    jam::Array<juce::File> getOutputFiles (const juce::File& outputPath,
+        const jam::Array<Model::Element*>& rows, const jam::Array<int>& groupStarts) const
+    {
+        jam::Array<juce::File> outputFiles;
+        outputFiles.resize (groupStarts.size());
+
+        for (int index { 0 }; index < groupStarts.size(); ++index)
+        {
+            const auto& file { model.getValue (*rows.at (groupStarts.at (index)), Id::file) };
+            outputFiles.at (index) = jam::File::getOrCreate (outputPath, file);
+            outputFiles.at (index).getParentDirectory().createDirectory();
+        }
+
+        return outputFiles;
+    }
+
+    /**
+     * @brief Renders and writes one output-file group's own rows through
+     *        apply(), framed by its own banner and file-header comment,
+     *        write-if-different.
+     *
+     * @param rows        The table's own rows, sliced to @p index's own
+     *                    group by @p groupStarts.
+     * @param tables      The tables searched when a nested @c list token
+     *                    expands.
+     * @param groupStarts Each group's own first index into @p rows.
+     * @param outputFiles Each group's own resolved output file, index by
+     *                    index with @p groupStarts.
+     * @param index       The group's own index into @p groupStarts and
+     *                    @p outputFiles.
+     * @returns @p index's own resolved output file's full path when it
+     *          needed rewriting and the write failed, or an empty string
+     *          when its text was already canonical or wrote successfully.
+     */
+    juce::String toFile (const jam::Array<Model::Element*>& rows,
+        const jam::Array<Model::Element*>& tables, const jam::Array<int>& groupStarts,
+        const jam::Array<juce::File>& outputFiles, int index) const
+    {
+        const auto start { groupStarts.at (index) };
+        const auto& outputFile { outputFiles.at (index) };
+        const auto extension { Transforms::getCommentSyntaxKey (outputFile.getFileName()) };
+        auto comment { getFileComment (*rows.at (start), outputFile.getFileName()) };
+
+        if (comment.isNotEmpty())
+            comment = Transforms::toCommentBlock (comment, extension);
+
+        jam::MarkdownDocument output;
+        output.addChild (*output.root, Id::text)
+            ->add<juce::String> (Id::text, getBanner (extension, comment));
+
+        const auto groupEnd { index + 1 < groupStarts.size() ? groupStarts.at (index + 1) : rows.size() };
+
+        apply (output, tables, rows, start, groupEnd, extension);
+
+        const auto current { outputFile.loadFileAsString() };
+        const auto canonical { getText (output) };
+
+        return canonical != current and not toFile (output, outputFile) ? outputFile.getFullPathName()
+                                                                         : juce::String{};
+    }
+
+    /**
      * @brief Renders and writes @p table's rows to their declared files
      *        under @p outputPath, one juce::ThreadPool job per
      *        output-file group.
@@ -109,48 +182,14 @@ private:
         const auto tables { model.getTables() };
         const auto rows { model.getTableRows (table) };
         const auto groupStarts { getGroupStarts (rows) };
+        const auto outputFiles { getOutputFiles (outputPath, rows, groupStarts) };
 
         jam::Array<juce::String> tableFailures;
         tableFailures.resize (groupStarts.size());
 
-        jam::Array<juce::File> outputFiles;
-        outputFiles.resize (groupStarts.size());
-
-        for (int index { 0 }; index < groupStarts.size(); ++index)
-        {
-            const auto& file { model.getValue (*rows.at (groupStarts.at (index)), Id::file) };
-            outputFiles.at (index) = jam::File::getOrCreate (outputPath, file);
-            outputFiles.at (index).getParentDirectory().createDirectory();
-        }
-
         Jobs::run (groupStarts.size(),
             [this, &rows, &groupStarts, &tables, &tableFailures, &outputFiles] (int index)
-            {
-                const auto start { groupStarts.at (index) };
-                const auto& outputFile { outputFiles.at (index) };
-                const auto extension { Transforms::getCommentSyntaxKey (outputFile.getFileName()) };
-
-                auto comment { getFileComment (*rows.at (start), outputFile.getFileName()) };
-
-                if (comment.isNotEmpty())
-                    comment = Transforms::toCommentBlock (comment, extension);
-
-                jam::MarkdownDocument output;
-                output.addChild (*output.root, Id::text)
-                    ->add<juce::String> (Id::text, getBanner (extension, comment));
-
-                const auto groupEnd { index + 1 < groupStarts.size()
-                                          ? groupStarts.at (index + 1)
-                                          : rows.size() };
-
-                apply (output, tables, rows, start, groupEnd, extension);
-
-                const auto current { outputFile.loadFileAsString() };
-                const auto canonical { getText (output) };
-
-                if (canonical != current and not toFile (output, outputFile))
-                    tableFailures.at (index) = outputFile.getFullPathName();
-            });
+            { tableFailures.at (index) = toFile (rows, tables, groupStarts, outputFiles, index); });
 
         for (const auto& failedFile : tableFailures)
             if (failedFile.isNotEmpty())
@@ -182,38 +221,49 @@ private:
 
     /**
      * @brief Resolves @p firstRow's own file-header comment -- @p firstRow's
-     *        @c comment cell, read as a wired table address when it is
-     *        @-sigiled, or as plain text otherwise.
+     *        structure-column @c comment binding, paired with its own first
+     *        shape line, read as a wired table address when its value is
+     *        @-sigiled. A plain-text @c comment binding at that position is
+     *        the item-prose channel (SPEC §6.8), never file documentation,
+     *        and resolves empty here.
      *
-     * @pre When @p firstRow's @c comment cell is @-sigiled, it resolves to
-     *      a table -- established once by Validator::isReference() before
-     *      the writer ever runs.
+     * @pre When @p firstRow's @c comment binding is @-sigiled, it resolves
+     *      to a table -- established once by Validator::isReference()
+     *      before the writer ever runs.
      *
      * @param firstRow The output-file group's own first row, whose
-     *                 @c comment cell is resolved.
+     *                 @c comment binding is resolved.
      * @param file     The group's own output file, matched against the
      *                 addressed table's @c file column when @p firstRow's
-     *                 @c comment cell is a table address.
+     *                 @c comment binding is a table address.
      * @returns The resolved comment text, or an empty string when
-     *          @p firstRow declares no @c comment cell, the cell is blank,
-     *          or the addressed table carries no row for @p file.
+     *          @p firstRow declares no @-sigiled @c comment binding, or the
+     *          addressed table carries no row for @p file.
      */
     juce::String getFileComment (Model::Element& firstRow, const juce::String& file) const
     {
-        auto* commentCell { model.getTableCell (firstRow, Id::comment) };
+        auto* firstLine { Shapes::getFirstLine (model, firstRow) };
 
-        if (commentCell == nullptr)
+        if (firstLine == nullptr)
             return {};
 
-        const auto& commentValue { *commentCell->get<juce::String> (Id::value) };
+        auto* commentBinding { model.getBinding (firstRow, Id::structure, *firstLine, Id::comment) };
+
+        if (commentBinding == nullptr)
+            return {};
+
+        const auto& commentValue { *commentBinding->get<juce::String> (Id::value) };
 
         if (not Model::isAddress (commentValue))
-            return commentValue;
+            return {};
 
         auto* headerTable { model.getTable (firstRow, commentValue) };
         jassert (headerTable != nullptr);
 
         const auto fileName { jam::Format::toFileName (file) };
+        const auto column { model.isColumnAddress (firstRow, commentValue)
+                                 ? model.getColumn (firstRow, commentValue)
+                                 : Id::comment };
 
         for (auto* headerRow : model.getTableRows (*headerTable))
         {
@@ -221,7 +271,7 @@ private:
 
             if (fileCell != nullptr
                 and jam::Format::toFileName (*fileCell->get<juce::String> (Id::value)) == fileName)
-                if (auto* headerCommentCell { model.getTableCell (*headerRow, Id::comment) })
+                if (auto* headerCommentCell { model.getTableCell (*headerRow, column) })
                     return *headerCommentCell->get<juce::String> (Id::value);
         }
 

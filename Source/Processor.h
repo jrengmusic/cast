@@ -77,43 +77,17 @@ struct Processor
         if (const auto result { validator.isValid (*model) }; not result.wasOk())
             return result;
 
-        jam::Array<juce::String> origins;
-
-        for (auto* table : model->getTables())
-        {
-            const auto origin { *table->get<juce::String> (Id::path) };
-            origins.addIfNotAlreadyThere (origin);
-        }
-
+        const auto origins { getOrigins() };
         jam::Array<juce::String> formatFailures;
         formatFailures.resize (origins.size());
 
         Jobs::run (origins.size(),
             [this, &origins, &formatFailures] (int index)
             {
-                const auto& origin { origins.at (index) };
-                const auto file { model->getFile (origin) };
-                const auto current { file.loadFileAsString() };
-
-                if (const auto canonical { formatter.getText (*model, origin) }; canonical != current)
-                    if (not file.replaceWithText (canonical,
-                        false,
-                        false,
-                        juce::String::charToString (Chars::newline).toRawUTF8()))
-                        formatFailures.at (index) = file.getFullPathName();
+                formatFailures.at (index) = writeOriginIfChanged (origins.at (index), formatter);
             });
 
-        jam::Strings failures;
-
-        for (const auto& failedFile : formatFailures)
-            if (failedFile.isNotEmpty())
-                failures.add (failedFile + Id::diagnosticSeparator + text::Diagnostics::failOutputWrite);
-
-        if (failures.size() > 0)
-            return juce::Result::fail (
-                failures.joinIntoString (juce::String::charToString (Chars::newline), 0, -1));
-
-        return juce::Result::ok();
+        return getWriteResult (formatFailures);
     }
 
 private:
@@ -133,45 +107,195 @@ private:
      */
     juce::Result run (const juce::String& toolchainArgument)
     {
-        auto toolchainArgumentMatched { toolchainArgument.isEmpty() };
+        const auto isToolchainArgumentGiven { toolchainArgument.isNotEmpty() };
+        auto hasMatchedToolchainRow { false };
 
         for (auto* table : model->getTables (Id::toolchain))
         {
             for (auto* row : model->getTableRows (*table))
             {
-                auto* argumentCell { model->getTableCell (*row, Id::argument) };
-                const auto argument { argumentCell != nullptr
-                                          ? *argumentCell->get<juce::String> (Id::value)
-                                          : juce::String{} };
+                const auto argument { getColumnValue (*row, Id::argument) };
 
                 if (argument == toolchainArgument)
                 {
-                    toolchainArgumentMatched = true;
+                    hasMatchedToolchainRow = true;
 
-                    const auto& command { model->getValue (*row, Id::command) };
-                    const auto& flag { model->getValue (*row, Id::flag) };
-                    const auto line { flag.isNotEmpty()
-                                          ? command + juce::String::charToString (Chars::space) + flag
-                                          : command };
-
-                    juce::ChildProcess process;
-
-                    if (not process.start (line))
-                        return juce::Result::fail (
-                            line + Id::diagnosticSeparator + text::Diagnostics::failToolchain);
-
-                    process.waitForProcessToFinish (-1);
-
-                    if (process.getExitCode() != 0)
-                        return juce::Result::fail (
-                            line + Id::diagnosticSeparator + text::Diagnostics::failToolchain);
+                    if (const auto result { runToolchainRow (*row) }; not result.wasOk())
+                        return result;
                 }
             }
         }
 
-        if (not toolchainArgumentMatched)
+        if (isToolchainArgumentGiven and not hasMatchedToolchainRow)
             return juce::Result::fail (toolchainArgument + Id::diagnosticSeparator
                                        + text::Diagnostics::failToolchainArgument);
+
+        return juce::Result::ok();
+    }
+
+    /**
+     * @brief Returns @p row's resolved value for @p column, or an empty
+     *        string when @p row declares no such column.
+     *
+     * @param row    The row @p column's cell is read from.
+     * @param column The column whose cell value is read.
+     * @returns @p row's resolved value for @p column, or an empty string
+     *          when @p row carries no cell for @p column.
+     */
+    juce::String getColumnValue (Model::Element& row, const juce::Identifier& column) const
+    {
+        auto* cell { model->getTableCell (row, column) };
+
+        return cell != nullptr ? *cell->get<juce::String> (Id::value) : juce::String {};
+    }
+
+    /**
+     * @brief Returns every table's own declared origin file, deduplicated.
+     *
+     * @returns Every distinct origin path found across the manifest's own
+     *          tables, in discovery order.
+     */
+    jam::Array<juce::String> getOrigins() const
+    {
+        jam::Array<juce::String> origins;
+
+        for (auto* table : model->getTables())
+        {
+            const auto origin { *table->get<juce::String> (Id::path) };
+            origins.addIfNotAlreadyThere (origin);
+        }
+
+        return origins;
+    }
+
+    /**
+     * @brief Rewrites @p origin's own file with @p formatter's own
+     *        canonical text, when that text differs from what is
+     *        currently on disk.
+     *
+     * @param origin    The origin path to canonicalize, resolved against
+     *                  the manifest's own directory.
+     * @param formatter The formatter @p origin's canonical text is read
+     *                  from.
+     * @returns @p origin's own resolved file's full path when it needed
+     *          rewriting and the write failed, or an empty string when
+     *          @p origin's text was already canonical or wrote
+     *          successfully.
+     */
+    juce::String writeOriginIfChanged (const juce::String& origin, const jam::MarkdownWriter& formatter) const
+    {
+        const auto file { model->getFile (origin) };
+        const auto current { file.loadFileAsString() };
+
+        if (const auto canonical { formatter.getText (*model, origin) }; canonical != current)
+            if (not file.replaceWithText (canonical,
+                false,
+                false,
+                juce::String::charToString (Chars::newline).toRawUTF8()))
+                return file.getFullPathName();
+
+        return {};
+    }
+
+    /**
+     * @brief Collects @p formatFailures' own non-empty entries into one
+     *        failure result.
+     *
+     * @param formatFailures Every output-file group's own writeOriginIfChanged()
+     *                       result, one per origin, empty when that origin
+     *                       wrote successfully or needed no write.
+     * @returns juce::Result::ok() when every entry is empty, or a failure
+     *          naming every file that failed to write.
+     */
+    juce::Result getWriteResult (const jam::Array<juce::String>& formatFailures) const
+    {
+        jam::Strings failures;
+
+        for (const auto& failedFile : formatFailures)
+            if (failedFile.isNotEmpty())
+                failures.add (failedFile + Id::diagnosticSeparator + text::Diagnostics::failOutputWrite);
+
+        if (failures.size() > 0)
+            return juce::Result::fail (
+                failures.joinIntoString (juce::String::charToString (Chars::newline), 0, -1));
+
+        return juce::Result::ok();
+    }
+
+    /**
+     * @brief Runs @p row's own @c command, followed by its @c flag when it
+     *        declares one, through runProcess().
+     *
+     * @param row The @c ## toolchain row whose @c command and @c flag are
+     *            run.
+     * @returns juce::Result::ok() when @p row's own process starts and
+     *          exits zero, or a failure naming its own command line.
+     */
+    juce::Result runToolchainRow (Model::Element& row)
+    {
+        const auto& command { model->getValue (row, Id::command) };
+        const auto flag { getColumnValue (row, Id::flag) };
+        const auto arguments { getToolchainArguments (command, flag) };
+        const auto diagnosticLine { flag.isNotEmpty()
+                                        ? command + juce::String::charToString (Chars::space) + flag
+                                        : command };
+
+        return runProcess (arguments, diagnosticLine);
+    }
+
+    /**
+     * @brief Tokenizes @p command and @p flag into one argv array.
+     *
+     * @param command The toolchain row's own @c command, placed at
+     *                argument index zero.
+     * @param flag    The toolchain row's own @c flag, tokenized after
+     *                @p command.
+     * @returns @p command followed by @p flag's own whitespace-tokenized
+     *          arguments.
+     */
+    juce::StringArray getToolchainArguments (const juce::String& command, const juce::String& flag) const
+    {
+        juce::StringArray arguments { command };
+        arguments.addTokens (flag, true);
+
+        return arguments;
+    }
+
+    /**
+     * @brief Runs @p arguments as a child process in the current working
+     *        directory, streaming its output to stdout and blocking until
+     *        it exits.
+     *
+     * @param arguments      The process argv, index zero the executable.
+     * @param diagnosticLine The command line named in a failure, when the
+     *                       process exits non-zero.
+     * @returns juce::Result::ok() when the process exits zero, or a
+     *          failure naming @p diagnosticLine.
+     */
+    juce::Result runProcess (const juce::StringArray& arguments, const juce::String& diagnosticLine)
+    {
+        juce::WaitableEvent finished;
+        auto exitCode { -1 };
+
+        jam::Subprocess subprocess;
+        subprocess.launch (arguments,
+                           juce::File::getCurrentWorkingDirectory(),
+                           [&finished, &exitCode] (int processExitCode, const std::string&)
+                           {
+                               exitCode = processExitCode;
+                               finished.signal();
+                           },
+                           [] (std::string_view chunk, bool)
+                           {
+                               fwrite (chunk.data(), 1, chunk.size(), stdout);
+                               fflush (stdout);
+                           });
+
+        finished.wait();
+
+        if (exitCode != 0)
+            return juce::Result::fail (
+                diagnosticLine + Id::diagnosticSeparator + text::Diagnostics::failToolchain);
 
         return juce::Result::ok();
     }

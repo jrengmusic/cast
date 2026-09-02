@@ -449,94 +449,125 @@ public:
     }
 
     /**
-     * @brief Resolves @p reference's address -- @c alias\[:table\] -- to
-     *        the table it names.
+     * @brief Resolves @p reference's address -- @c alias\[:table\], or,
+     *        absent an alias hit, @c table naming a table of @p row's own
+     *        document -- to the table it names.
      *
      * @param row       The row @p reference's alias part is resolved
-     *                  against.
+     *                  against, and whose own document the local form
+     *                  resolves against.
      * @param reference The address: an alias name, optionally followed by
-     *                  @c :table.
-     * @returns The referenced table, or @c nullptr when @p reference's
-     *          alias does not resolve.
+     *                  @c :table, or, absent an alias hit, a table name of
+     *                  @p row's own document.
+     * @returns The referenced table, or @c nullptr when neither the alias
+     *          nor the local table name resolves.
      */
     Element* getTable (Element& row, juce::StringRef reference) const
     {
         const auto parts { jam::Strings::fromTokens (
             reference, juce::String::charToString (Chars::colon), {}) };
         const auto sourceName { parts.size() > 0 ? parts.at (0).trim() : juce::String{} };
-        const auto tableName { parts.size() > 1 ? parts.at (1).trim() : juce::String{} };
         const auto declaredPath { getValue (row, sourceName) };
 
-        return declaredPath.isNotEmpty() ? getTable (declaredPath, tableName) : nullptr;
+        if (declaredPath.isNotEmpty())
+        {
+            const auto tableName { parts.size() > 1 ? parts.at (1).trim() : juce::String{} };
+            return getTable (declaredPath, tableName);
+        }
+
+        return getTable (*row.parent->get<juce::String> (Id::path),
+                         sourceName.trimCharactersAtStart (juce::String::charToString (Chars::at)));
     }
 
     /**
      * @brief Answers whether @p value is an @-sigiled address naming a
-     *        column -- @c \@alias:table:column, three or more
-     *        colon-separated parts, the third carrying no @c = filter.
+     *        column -- @c \@alias:table:column when @p value's first
+     *        segment hits @p row's own index, or, absent an alias hit,
+     *        the local form @c \@table:column -- carrying no @c = filter
+     *        at the column part.
      *
+     * @param row   The row @p value's first segment is resolved against,
+     *              to tell the alias form from the local form.
      * @param value The authored value to test.
      * @returns @c true when @p value is an @-sigiled address with a
      *          column part.
      */
-    static bool isColumnAddress (const juce::String& value)
+    bool isColumnAddress (Element& row, const juce::String& value) const
     {
         const auto parts { jam::Strings::fromTokens (
             value, juce::String::charToString (Chars::colon), {}) };
+        const auto sourceName { parts.size() > 0 ? parts.at (0).trim() : juce::String{} };
+        const auto columnIndex { getValue (row, sourceName).isNotEmpty() ? 2 : 1 };
 
-        return isAddress (value) and parts.size() > 2 and not parts.at (2).containsChar (Chars::equals);
+        return isAddress (value) and parts.size() > columnIndex
+               and not parts.at (columnIndex).containsChar (Chars::equals);
     }
 
     /**
      * @brief Returns @p value's column part -- an isColumnAddress()
-     *        address's last colon-separated segment, converted to a
-     *        valid identifier.
+     *        address's own column segment, converted to a valid
+     *        identifier.
      *
-     * @pre isColumnAddress (value)
+     * @pre isColumnAddress (row, value)
      *
+     * @param row   The row @p value's first segment is resolved against,
+     *              to tell the alias form from the local form.
      * @param value The @-sigiled column address to read.
      * @returns @p value's column name.
      */
-    static juce::Identifier getColumn (const juce::String& value)
+    juce::Identifier getColumn (Element& row, const juce::String& value) const
     {
         const auto parts { jam::Strings::fromTokens (
             value, juce::String::charToString (Chars::colon), {}) };
+        const auto sourceName { parts.size() > 0 ? parts.at (0).trim() : juce::String{} };
+        const auto columnIndex { getValue (row, sourceName).isNotEmpty() ? 2 : 1 };
 
-        return juce::Identifier (jam::Format::toValidID (parts.at (parts.size() - 1).trim()));
+        return juce::Identifier (jam::Format::toValidID (parts.at (columnIndex).trim()));
     }
 
     /**
      * @brief Answers whether @p value is an @-sigiled address naming a
-     *        cell-match filter -- @c \@alias:table:column=value, three or
-     *        more colon-separated parts, the third carrying an @c = sign.
+     *        cell-match filter -- @c \@alias:table:column=value when
+     *        @p value's first segment hits @p row's own index, or, absent
+     *        an alias hit, the local form @c \@table:column=value --
+     *        carrying an @c = sign at the filter part.
      *
+     * @param row   The row @p value's first segment is resolved against,
+     *              to tell the alias form from the local form.
      * @param value The authored value to test.
      * @returns @c true when @p value is an @-sigiled address with a
      *          filter part.
      */
-    static bool isFilteredAddress (const juce::String& value)
+    bool isFilteredAddress (Element& row, const juce::String& value) const
     {
         const auto parts { jam::Strings::fromTokens (
             value, juce::String::charToString (Chars::colon), {}) };
+        const auto sourceName { parts.size() > 0 ? parts.at (0).trim() : juce::String{} };
+        const auto filterIndex { getValue (row, sourceName).isNotEmpty() ? 2 : 1 };
 
-        return isAddress (value) and parts.size() > 2 and parts.at (2).containsChar (Chars::equals);
+        return isAddress (value) and parts.size() > filterIndex
+               and parts.at (filterIndex).containsChar (Chars::equals);
     }
 
     /**
      * @brief Returns @p value's filter column -- an isFilteredAddress()
-     *        address's third colon-separated segment, up to its @c =,
-     *        converted to a valid identifier.
+     *        address's own filter segment, up to its @c =, converted to a
+     *        valid identifier.
      *
-     * @pre isFilteredAddress (value)
+     * @pre isFilteredAddress (row, value)
      *
+     * @param row   The row @p value's first segment is resolved against,
+     *              to tell the alias form from the local form.
      * @param value The @-sigiled filter address to read.
      * @returns @p value's filter column name.
      */
-    static juce::Identifier getFilterColumn (const juce::String& value)
+    juce::Identifier getFilterColumn (Element& row, const juce::String& value) const
     {
         const auto parts { jam::Strings::fromTokens (
             value, juce::String::charToString (Chars::colon), {}) };
-        const auto filterPart { parts.at (2) };
+        const auto sourceName { parts.size() > 0 ? parts.at (0).trim() : juce::String{} };
+        const auto filterIndex { getValue (row, sourceName).isNotEmpty() ? 2 : 1 };
+        const auto filterPart { parts.at (filterIndex) };
 
         return juce::Identifier (jam::Format::toValidID (
             filterPart.upToFirstOccurrenceOf (
@@ -545,20 +576,23 @@ public:
 
     /**
      * @brief Returns @p value's filter value -- an isFilteredAddress()
-     *        address's third colon-separated segment, from its @c =
-     *        onward.
+     *        address's own filter segment, from its @c = onward.
      *
-     * @pre isFilteredAddress (value)
+     * @pre isFilteredAddress (row, value)
      *
+     * @param row   The row @p value's first segment is resolved against,
+     *              to tell the alias form from the local form.
      * @param value The @-sigiled filter address to read.
      * @returns @p value's filter value, empty when the filter matches a
      *          blank cell.
      */
-    static juce::String getFilterValue (const juce::String& value)
+    juce::String getFilterValue (Element& row, const juce::String& value) const
     {
         const auto parts { jam::Strings::fromTokens (
             value, juce::String::charToString (Chars::colon), {}) };
-        const auto filterPart { parts.at (2) };
+        const auto sourceName { parts.size() > 0 ? parts.at (0).trim() : juce::String{} };
+        const auto filterIndex { getValue (row, sourceName).isNotEmpty() ? 2 : 1 };
+        const auto filterPart { parts.at (filterIndex) };
 
         return filterPart.fromFirstOccurrenceOf (
             juce::String::charToString (Chars::equals), false, false).trim();
@@ -634,6 +668,34 @@ private:
     }
 
     /**
+     * @brief Returns @p document's own index rows' distinct data-file
+     *        origins, excluding @p manifestOrigin.
+     *
+     * @param document       The model whose index rows are read.
+     * @param manifestOrigin The manifest's own origin path, excluded from
+     *                       the result.
+     * @returns Every index row's own @c symbol resolving to a @c .md file
+     *          other than @p manifestOrigin, in row order.
+     */
+    static jam::Array<juce::String>
+    getTableOrigins (const Model& document, const juce::String& manifestOrigin)
+    {
+        jam::Array<juce::String> tableOrigins;
+
+        for (auto* indexRow : document.getTableRows (Id::index))
+        {
+            const auto pathCell { document.getTableValue (*indexRow, Id::symbol) };
+
+            if (juce::File::createFileWithoutCheckingPath (pathCell).hasFileExtension (
+                    Extensions::md)
+                and pathCell != manifestOrigin)
+                tableOrigins.add (pathCell);
+        }
+
+        return tableOrigins;
+    }
+
+    /**
      * @brief Parses @p documentFile as @p document's own manifest,
      *        splices in every data file its index declares, stamps
      *        every table's own @c wiring, then stamps every row through
@@ -653,19 +715,7 @@ private:
         document.appendChildren (jam::MarkdownDocument::parse (
             documentFile.loadFileAsString(), manifestOrigin));
 
-        jam::Array<juce::String> tableOrigins;
-
-        for (auto* indexRow : document.getTableRows (Id::index))
-        {
-            const auto pathCell { document.getTableValue (*indexRow, Id::symbol) };
-
-            if (juce::File::createFileWithoutCheckingPath (pathCell).hasFileExtension (
-                    Extensions::md)
-                and pathCell != manifestOrigin)
-                tableOrigins.add (pathCell);
-        }
-
-        parse (document, parent, tableOrigins);
+        parse (document, parent, getTableOrigins (document, manifestOrigin));
         addComments (document);
 
         for (auto* table : document.getTables())
@@ -678,6 +728,47 @@ private:
         for (auto* table : document.getTables())
             for (auto* row : document.getTableRows (*table))
                 addRow (document, *row);
+    }
+
+    /**
+     * @brief Returns @p row's own per-depth map-bullet count and blank-bullet
+     *        count -- @p listCell's own list-bullet count in excess of
+     *        @p structureCell's own shape count at each depth, and, from
+     *        @p listCell alone, each depth's own blank-valued bullet count.
+     *
+     * @param listCell      @p row's own @c list cell, or @c nullptr when
+     *                      absent.
+     * @param structureCell @p row's own @c structure cell, or @c nullptr
+     *                      when absent.
+     * @param document      The model @p row belongs to.
+     * @param row           The row whose columns are counted.
+     * @returns Each depth's own map-bullet excess, paired with each
+     *          depth's own blank-valued bullet count.
+     */
+    static std::pair<jam::Array<int>, jam::Array<int>> getExcess (Element* listCell,
+        Element* structureCell, const Model& document, Element& row)
+    {
+        jam::Array<int> counts;
+        jam::Array<int> blanks;
+        jam::Array<int> structureCounts;
+
+        if (listCell != nullptr)
+            addListCount (*listCell, 0, counts, blanks, document, row);
+
+        if (structureCell != nullptr)
+            addListCount (*structureCell, 0, structureCounts, document, row);
+
+        counts.resize (juce::jmax (counts.size(), structureCounts.size()));
+        structureCounts.resize (counts.size());
+        blanks.resize (counts.size());
+
+        jam::Array<int> excess;
+        excess.resize (counts.size());
+
+        for (int level { 0 }; level < counts.size(); ++level)
+            excess.set (level, juce::jmax (0, counts.at (level) - structureCounts.at (level)));
+
+        return { std::move (excess), std::move (blanks) };
     }
 
     /**
@@ -706,25 +797,7 @@ private:
         if (separatorCell != nullptr)
             addBindings (*separatorCell, document, row);
 
-        jam::Array<int> counts;
-        jam::Array<int> blanks;
-        jam::Array<int> structureCounts;
-
-        if (listCell != nullptr)
-            addListCount (*listCell, 0, counts, blanks);
-
-        if (structureCell != nullptr)
-            addListCount (*structureCell, 0, structureCounts);
-
-        counts.resize (juce::jmax (counts.size(), structureCounts.size()));
-        structureCounts.resize (counts.size());
-        blanks.resize (counts.size());
-
-        jam::Array<int> excess;
-        excess.resize (counts.size());
-
-        for (int level { 0 }; level < counts.size(); ++level)
-            excess.set (level, juce::jmax (0, counts.at (level) - structureCounts.at (level)));
+        auto [excess, blanks] { getExcess (listCell, structureCell, document, row) };
 
         jam::Array<int> shapeOrdinals;
         jam::Array<int> listShapeOrdinals;
@@ -890,15 +963,18 @@ private:
      *        through the blank-counting overload, discarding the blank
      *        count.
      *
-     * @param scope  The blockquote scope whose list bullets are counted.
-     * @param indent The blockquote depth @p scope itself sits at.
-     * @param counts Each depth's own list-bullet count, resized and
-     *               accumulated.
+     * @param scope    The blockquote scope whose list bullets are counted.
+     * @param indent   The blockquote depth @p scope itself sits at.
+     * @param counts   Each depth's own list-bullet count, resized and
+     *                 accumulated.
+     * @param document The model @p row belongs to.
+     * @param row      The row @p scope belongs to.
      */
-    static void addListCount (Element& scope, int indent, jam::Array<int>& counts)
+    static void
+    addListCount (Element& scope, int indent, jam::Array<int>& counts, const Model& document, Element& row)
     {
         jam::Array<int> blanks;
-        addListCount (scope, indent, counts, blanks);
+        addListCount (scope, indent, counts, blanks, document, row);
     }
 
     /**
@@ -906,14 +982,17 @@ private:
      *        -- every bullet whose value is not a column address -- and,
      *        among them, how many carry an empty value.
      *
-     * @param scope  The blockquote scope whose list bullets are counted.
-     * @param indent The blockquote depth @p scope itself sits at.
-     * @param counts Each depth's own list-bullet count, resized and
-     *               accumulated.
-     * @param blanks Each depth's own empty-valued list-bullet count,
-     *               resized and accumulated.
+     * @param scope    The blockquote scope whose list bullets are counted.
+     * @param indent   The blockquote depth @p scope itself sits at.
+     * @param counts   Each depth's own list-bullet count, resized and
+     *                 accumulated.
+     * @param blanks   Each depth's own empty-valued list-bullet count,
+     *                 resized and accumulated.
+     * @param document The model @p row belongs to.
+     * @param row      The row @p scope belongs to.
      */
-    static void addListCount (Element& scope, int indent, jam::Array<int>& counts, jam::Array<int>& blanks)
+    static void addListCount (Element& scope, int indent, jam::Array<int>& counts, jam::Array<int>& blanks,
+        const Model& document, Element& row)
     {
         if (indent == counts.size())
             counts.resize (indent + 1);
@@ -926,7 +1005,7 @@ private:
             if (block->isTag (Id::ul))
                 for (auto* item : *block)
                     if (item->id == Id::list
-                        and not isColumnAddress (*item->get<juce::String> (Id::value)))
+                        and not document.isColumnAddress (row, *item->get<juce::String> (Id::value)))
                     {
                         ++counts.at (indent);
 
@@ -935,7 +1014,7 @@ private:
                     }
 
             if (block->isTag (Id::blockquote))
-                addListCount (*block, indent + 1, counts, blanks);
+                addListCount (*block, indent + 1, counts, blanks, document, row);
         }
     }
 
@@ -983,7 +1062,7 @@ private:
 
         if (item.id == Id::list)
         {
-            const auto isColumn { isColumnAddress (blockText) };
+            const auto isColumn { document.isColumnAddress (row, blockText) };
             if (isColumn or mapOrdinal.at (indent) >= excess.at (indent))
             {
                 item.add<int> (Id::level, indent);
@@ -1012,6 +1091,40 @@ private:
             item.add<juce::String> (Id::templatePath,
                 document.getValue (row, jam::Format::getPreColon (blockText).trim()));
             item.add<juce::String> (Id::info, jam::Format::getPostColon (blockText).trim());
+        }
+    }
+
+    /**
+     * @brief Stamps @p block with its structure-line addressing -- level,
+     *        ordinal, resolved template path, info, and @c shape ordinal
+     *        -- when @p block is itself a shape paragraph.
+     *
+     * @param block          The paragraph block stamped when it is a shape.
+     * @param indent         The blockquote depth @p block sits at.
+     * @param shapeOrdinals  Each depth's next shape-paragraph ordinal,
+     *                       advanced when @p block is stamped.
+     * @param lineIndex      The document-order @c shape ordinal, advanced
+     *                       by one when @p block is stamped.
+     * @param paragraphOwner Each depth's own last shape-paragraph ordinal,
+     *                       set to @p block's own ordinal when stamped.
+     * @param document       The model @p row belongs to.
+     * @param row            The row @p block belongs to.
+     */
+    static void addParagraph (Element& block, int indent, jam::Array<int>& shapeOrdinals, int& lineIndex,
+        jam::Array<int>& paragraphOwner, const Model& document, Element& row)
+    {
+        const auto blockText { block.getAllSubText() };
+
+        if (document.isShape (row, blockText))
+        {
+            block.add<int> (Id::level, indent);
+            block.add<int> (Id::line, shapeOrdinals.at (indent)++);
+            block.add<juce::String> (Id::templatePath,
+                document.getValue (row, jam::Format::getPreColon (blockText).trim()));
+            block.add<juce::String> (Id::info, jam::Format::getPostColon (blockText).trim());
+            block.add<int> (Id::shape, lineIndex);
+            paragraphOwner.set (indent, lineIndex);
+            ++lineIndex;
         }
     }
 
@@ -1059,20 +1172,7 @@ private:
         for (auto* block : cell)
         {
             if (block->isTag (Id::p))
-            {
-                const auto blockText { block->getAllSubText() };
-                if (document.isShape (row, blockText))
-                {
-                    block->add<int> (Id::level, indent);
-                    block->add<int> (Id::line, shapeOrdinals.at (indent)++);
-                    block->add<juce::String> (Id::templatePath,
-                        document.getValue (row, jam::Format::getPreColon (blockText).trim()));
-                    block->add<juce::String> (Id::info, jam::Format::getPostColon (blockText).trim());
-                    block->add<int> (Id::shape, lineIndex);
-                    paragraphOwner.set (indent, lineIndex);
-                    ++lineIndex;
-                }
-            }
+                addParagraph (*block, indent, shapeOrdinals, lineIndex, paragraphOwner, document, row);
             if (block->isTag (Id::ul))
                 for (auto* item : *block)
                     addItem (*item, indent, ordinals, commentOrdinals, mapOrdinal, excess, lineIndex,
@@ -1182,6 +1282,42 @@ private:
     }
 
     /**
+     * @brief Returns @p cell's own authored text -- its literal child,
+     *        transformed and formatted for its column kind, its stamped
+     *        comment prose, or its own subtext, in that order of
+     *        preference.
+     *
+     * @param cell            The cell whose authored text is read.
+     * @param literal         @p cell's own backtick code child, or
+     *                        @c nullptr when it carries none.
+     * @param isCommentColumn Whether @p cell belongs to a @c comment or
+     *                        @c brief column.
+     * @param isCommentProse  Whether @p cell's own comment column carries
+     *                        prose rather than a literal.
+     * @param transform       @p cell's own @c format cell's transform
+     *                        name, applied to a literal's text.
+     * @returns @p cell's own authored text, resolved in preference order.
+     */
+    static juce::String getAuthoredText (Element& cell, const Element* literal, bool isCommentColumn,
+        bool isCommentProse, const juce::String& transform)
+    {
+        if (literal != nullptr and not isCommentProse)
+        {
+            juce::String text { literal->getAllSubText() };
+
+            if (Transforms::contains (transform))
+                text = Transforms::getTransformed (transform, text, {});
+
+            return isCommentColumn ? text : jam::Format::toLiteral (text);
+        }
+
+        if (isCommentProse)
+            return *cell.get<juce::String> (Id::rawText);
+
+        return cell.getAllSubText();
+    }
+
+    /**
      * @brief Stamps @p cell with its resolved value -- the authored
      *        literal or comment prose, transformed by @p cell's own
      *        @c format cell when present, then resolved through
@@ -1205,31 +1341,12 @@ private:
                 transform = formatCell->getAllSubText();
 
         const auto* literal { getLiteral (cell) };
-        const auto isCommentColumn { headerCell.id == Id::comment };
+        const auto isCommentColumn { headerCell.id == Id::comment or headerCell.id == Id::brief };
         const auto isCommentProse { isCommentColumn
                                     and (literal == nullptr
                                          or cell.getAllSubText() != literal->getAllSubText()) };
-        juce::String authored;
 
-        if (literal != nullptr and not isCommentProse)
-        {
-            juce::String text { literal->getAllSubText() };
-
-            if (Transforms::contains (transform))
-                text = Transforms::getTransformed (transform, text, {});
-
-            authored = isCommentColumn ? text : jam::Format::toLiteral (text);
-        }
-        else if (isCommentProse)
-        {
-            authored = *cell.get<juce::String> (Id::rawText);
-        }
-        else
-        {
-            authored = cell.getAllSubText();
-        }
-
-        auto value { authored };
+        auto value { getAuthoredText (cell, literal, isCommentColumn, isCommentProse, transform) };
 
         if (not isCommentColumn and headerCell.id != Id::alias and isAddress (value))
             value = getValue (row, value);
@@ -1265,6 +1382,38 @@ private:
     }
 
     /**
+     * @brief Resolves @p declaredPath's own unnamed table -- its one
+     *        non-index table, or, when it declares more than one, the
+     *        table whose id matches its own file's stem.
+     *
+     * @param declaredPath The data file whose unnamed table is resolved.
+     * @returns The resolved table, or @c nullptr when @p declaredPath
+     *          declares no table, or more than one and none matches its
+     *          own file stem.
+     */
+    Element* getUnnamedTable (const juce::String& declaredPath) const
+    {
+        jam::Array<Element*> fileTables;
+
+        for (auto* candidate : *this)
+            if (isBlockType (*candidate, map::BlockType::table) and not candidate->isTag (Id::index))
+                if (candidate->contains (Id::path) and *candidate->get<juce::String> (Id::path) == declaredPath)
+                    fileTables.add (candidate);
+
+        if (fileTables.size() == 1)
+            return fileTables.at (0);
+
+        const auto fileStem { juce::File::createFileWithoutCheckingPath (declaredPath)
+                                  .getFileNameWithoutExtension() };
+
+        for (auto* candidate : fileTables)
+            if (candidate->id == juce::Identifier (jam::Format::toValidID (fileStem)))
+                return candidate;
+
+        return nullptr;
+    }
+
+    /**
      * @brief Resolves @p declaredPath's own table -- @p tableName's own
      *        table when named, or, absent one, @p declaredPath's one
      *        table, or the table whose id matches its own file's stem
@@ -1290,24 +1439,7 @@ private:
             return nullptr;
         }
 
-        jam::Array<Element*> fileTables;
-
-        for (auto* candidate : *this)
-            if (isBlockType (*candidate, map::BlockType::table) and not candidate->isTag (Id::index))
-                if (candidate->contains (Id::path) and *candidate->get<juce::String> (Id::path) == declaredPath)
-                    fileTables.add (candidate);
-
-        if (fileTables.size() == 1)
-            return fileTables.at (0);
-
-        const auto fileStem { juce::File::createFileWithoutCheckingPath (declaredPath)
-                                  .getFileNameWithoutExtension() };
-
-        for (auto* candidate : fileTables)
-            if (candidate->id == juce::Identifier (jam::Format::toValidID (fileStem)))
-                return candidate;
-
-        return nullptr;
+        return getUnnamedTable (declaredPath);
     }
 
     juce::File directory;

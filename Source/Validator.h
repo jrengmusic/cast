@@ -429,7 +429,7 @@ struct Validator : jam::MarkdownValidator
             auto* sourceItem { model.getSource (row, indent, ordinal) };
             sourceValue = *sourceItem->get<juce::String> (Id::value);
 
-            if (Model::isColumnAddress (sourceValue))
+            if (model.isColumnAddress (row, sourceValue))
                 if (const auto result { hasTable (model, table, row, column, sourceValue) };
                     not result.wasOk())
                     return result;
@@ -454,15 +454,18 @@ struct Validator : jam::MarkdownValidator
      * @param column           The column @p scope was read from, named
      *                         in a failure's location.
      * @param scope            The blockquote scope walked.
-     * @param precedingShape   The most recently seen shape line, carried
-     *                         across sibling calls and checked through
-     *                         isShapeSupplied() at the next shape line.
-     * @returns juce::Result::ok() when every checked shape resolves, or
-     *          the first failing check's result.
+     * @param precedingShape   The most recently seen shape line, or
+     *                         @c nullptr when @p scope opens with none
+     *                         seen yet, checked through isShapeSupplied()
+     *                         at the next shape line.
+     * @returns @p precedingShape's own successor -- the last shape line
+     *          seen across @p scope and its nested blockquotes -- paired
+     *          with juce::Result::ok() when every checked shape resolves,
+     *          or the first failing check's result.
      */
-    static juce::Result isPlaceholderScope (const Model& model, const TemplateDocument& templateDocument,
-        Element& table, Element& row, const juce::Identifier& column, Element& scope,
-        Element*& precedingShape)
+    static std::pair<juce::Result, Element*> isPlaceholderScope (const Model& model,
+        const TemplateDocument& templateDocument, Element& table, Element& row,
+        const juce::Identifier& column, Element& scope, Element* precedingShape)
     {
         for (auto* block : scope)
         {
@@ -472,7 +475,7 @@ struct Validator : jam::MarkdownValidator
                     if (const auto result {
                             isShapeSupplied (model, table, row, column, *precedingShape) };
                         not result.wasOk())
-                        return result;
+                        return { result, precedingShape };
 
                 precedingShape = block;
             }
@@ -483,7 +486,7 @@ struct Validator : jam::MarkdownValidator
                     if (item->contains (Id::templatePath))
                         if (const auto result { hasTemplate (templateDocument, table, row, column, *item) };
                             not result.wasOk())
-                            return result;
+                            return { result, precedingShape };
 
                     if (item->id == Id::list and column == Id::structure)
                     {
@@ -491,20 +494,25 @@ struct Validator : jam::MarkdownValidator
                             if (const auto result {
                                     isShapeSupplied (model, table, row, column, *precedingShape) };
                                 not result.wasOk())
-                                return result;
+                                return { result, precedingShape };
 
                         precedingShape = item;
                     }
                 }
 
             if (block->isTag (Id::blockquote))
-                if (const auto result { isPlaceholderScope (model, templateDocument, table, row, column,
-                        *block, precedingShape) };
-                    not result.wasOk())
-                    return result;
+            {
+                auto [blockResult, blockShape] { isPlaceholderScope (model, templateDocument, table, row,
+                    column, *block, precedingShape) };
+
+                precedingShape = blockShape;
+
+                if (not blockResult.wasOk())
+                    return { blockResult, precedingShape };
+            }
         }
 
-        return juce::Result::ok();
+        return { juce::Result::ok(), precedingShape };
     }
 
     static juce::Result
@@ -516,12 +524,11 @@ struct Validator : jam::MarkdownValidator
                     for (auto* row : model.getTableRows (*table))
                         if (auto* scope { model.getTableCell (*row, column) })
                         {
-                            Element* precedingShape { nullptr };
+                            auto [scopeResult, precedingShape] { isPlaceholderScope (model, templateDocument,
+                                *table, *row, column, *scope, nullptr) };
 
-                            if (const auto result { isPlaceholderScope (model, templateDocument, *table,
-                                    *row, column, *scope, precedingShape) };
-                                not result.wasOk())
-                                return result;
+                            if (not scopeResult.wasOk())
+                                return scopeResult;
 
                             if (precedingShape != nullptr and column == Id::structure)
                                 if (const auto result {
@@ -593,11 +600,16 @@ struct Validator : jam::MarkdownValidator
     /**
      * @brief Checks that every expansion @c list bullet under @p scope
      *        pairs with a structure @c list line at its own (depth,
-     *        ordinal), and that every @-sigiled comment bullet's alias and
-     *        address resolve. A comment bullet whose value is not
+     *        ordinal), and that every @-sigiled comment bullet's address
+     *        resolves through Model::getTable() -- the alias form or,
+     *        absent an alias hit, the local form -- or names a code block
+     *        carrying documentation. A comment bullet whose value is not
      *        @-sigiled is plain prose, never a reference (SPEC §4), and is
      *        exempt. Bullets carrying no @c Id::line stamp -- the row join
-     *        and map bullets -- are exempt from the pairing check.
+     *        and map bullets -- are exempt from the pairing check. A
+     *        @c structure comment bullet is exempt from this address check
+     *        -- it is the file-documentation binding, validated instead by
+     *        isReference() through hasTable().
      *
      * @param model  The model @p row belongs to.
      * @param table  The table @p row belongs to, named in a failure's
@@ -608,7 +620,7 @@ struct Validator : jam::MarkdownValidator
      *               failure's location.
      * @param scope  The blockquote scope walked.
      * @returns juce::Result::ok() when every bullet pairs and resolves,
-     *          or a failure naming the orphan or missing alias.
+     *          or a failure naming the orphan bullet.
      */
     static juce::Result isPaired (const Model& model, Element& table, Element& row,
         const juce::Identifier& column, Element& scope)
@@ -629,22 +641,12 @@ struct Validator : jam::MarkdownValidator
                                                        + text::Diagnostics::failOrphan);
                     }
 
-                    if (item->id == Id::comment)
+                    if (item->id == Id::comment and column != Id::structure)
                     {
                         const auto& value { *item->get<juce::String> (Id::value) };
 
                         if (Model::isAddress (value))
                         {
-                            const auto parts { jam::Strings::fromTokens (
-                                value, juce::String::charToString (Chars::colon), {}) };
-                            const auto aliasName { parts.at (0).trim() };
-
-                            if (model.getValue (row, aliasName).isEmpty())
-                                return juce::Result::fail (getLocation (table, row, column.toString())
-                                                           + Id::diagnosticSeparator
-                                                           + text::Diagnostics::failAliasMissing
-                                                           + Id::diagnosticSeparator + aliasName);
-
                             auto* referencedCodeBlock { model.getCodeBlock (
                                 juce::Identifier (jam::Format::getPostColon (value).trim())) };
 
@@ -707,7 +709,11 @@ struct Validator : jam::MarkdownValidator
      *        @c structure, @c separator, and @c list scopes, and every
      *        @-sigiled non-wiring cell, resolves through hasTable() --
      *        a shape address is exempt, resolved instead by
-     *        Validator::isStructure().
+     *        Validator::isStructure(). A @c separator or @c list comment
+     *        binding is exempt -- it is item prose, validated instead by
+     *        isPaired(). A @c structure comment binding is not exempt --
+     *        it is the file-documentation binding, validated here like any
+     *        other address.
      *
      * @param model The model whose bindings and cells are checked.
      * @returns juce::Result::ok() when every @-sigiled entry resolves,
@@ -720,8 +726,8 @@ struct Validator : jam::MarkdownValidator
                     [&model, &column] (Element& table, Element& row, const juce::Identifier& entryId,
                         const juce::String& entryValue) -> juce::Result
                     {
-                        if (entryId != Id::comment and Model::isAddress (entryValue)
-                            and not model.isShape (row, entryValue))
+                        if ((entryId != Id::comment or column == Id::structure)
+                            and Model::isAddress (entryValue) and not model.isShape (row, entryValue))
                             return hasTable (model, table, row, column, entryValue);
 
                         return juce::Result::ok();
@@ -820,9 +826,11 @@ struct Validator : jam::MarkdownValidator
     }
 
     /**
-     * @brief Checks that @p entryValue's alias resolves in @p row's
-     *        writing file's index, and, when @p entryValue names a table
-     *        or column, that each part resolves in turn.
+     * @brief Checks that @p entryValue's first segment resolves -- against
+     *        @p row's writing file's index when it hits an alias, or,
+     *        absent an alias hit, as a table of @p row's own document --
+     *        and, when @p entryValue names a table or column, that each
+     *        part resolves in turn.
      *
      * @param model      The model @p row belongs to.
      * @param table      The table @p row belongs to, named in a failure's
@@ -830,50 +838,46 @@ struct Validator : jam::MarkdownValidator
      * @param row        The row @p entryValue was authored on.
      * @param column     The column @p entryValue was authored under, named
      *                   in a failure's location.
-     * @param entryValue The @-sigiled address:
-     *                   @c \@alias\[:table\[:column\[=value\]\]\]. A
-     *                   filter's @c =value suffix is stripped before the
-     *                   column part is checked.
+     * @param entryValue The @-sigiled address: the alias form
+     *                   @c \@alias\[:table\[:column\[=value\]\]\], or,
+     *                   absent an alias hit, the local form
+     *                   @c \@table\[:column\[=value\]\]. A filter's
+     *                   @c =value suffix is stripped before the column
+     *                   part is checked.
      * @returns juce::Result::ok() when every declared part resolves, or a
-     *          failure naming the missing alias, table, or column.
+     *          failure naming the missing table or column.
      */
     static juce::Result hasTable (const Model& model, Element& table, Element& row,
         const juce::Identifier& column, const juce::String& entryValue)
     {
         const auto parts { jam::Strings::fromTokens (
             entryValue, juce::String::charToString (Chars::colon), {}) };
-        const auto aliasName { parts.at (0).trim() };
+        const auto sourceName { parts.size() > 0 ? parts.at (0).trim() : juce::String{} };
+        const auto isAlias { model.getValue (row, sourceName).isNotEmpty() };
+        const auto columnIndex { isAlias ? 2 : 1 };
 
-        if (model.getValue (row, aliasName).isEmpty())
+        if (isAlias and parts.size() <= 1)
+            return juce::Result::ok();
+
+        auto* referencedTable { model.getTable (row, entryValue) };
+
+        if (referencedTable == nullptr)
             return juce::Result::fail (getLocation (table, row, column.toString())
                                        + Id::diagnosticSeparator
-                                       + text::Diagnostics::failAliasMissing
-                                       + Id::diagnosticSeparator + aliasName);
+                                       + text::Diagnostics::failTableMissing
+                                       + Id::diagnosticSeparator + entryValue);
 
-        if (parts.size() > 1)
+        if (parts.size() > columnIndex)
         {
-            const auto tableReference { aliasName + juce::String::charToString (Chars::colon)
-                                        + parts.at (1).trim() };
-            auto* referencedTable { model.getTable (row, tableReference) };
+            const auto columnName { parts.at (columnIndex).upToFirstOccurrenceOf (
+                juce::String::charToString (Chars::equals), false, false).trim() };
 
-            if (referencedTable == nullptr)
+            if (not model.getTableHeaders (*referencedTable)
+                        .contains (jam::Format::toValidID (columnName)))
                 return juce::Result::fail (getLocation (table, row, column.toString())
                                            + Id::diagnosticSeparator
-                                           + text::Diagnostics::failTableMissing
-                                           + Id::diagnosticSeparator + tableReference);
-
-            if (parts.size() > 2)
-            {
-                const auto columnName { parts.at (2).upToFirstOccurrenceOf (
-                    juce::String::charToString (Chars::equals), false, false).trim() };
-
-                if (not model.getTableHeaders (*referencedTable)
-                            .contains (jam::Format::toValidID (columnName)))
-                    return juce::Result::fail (getLocation (table, row, column.toString())
-                                               + Id::diagnosticSeparator
-                                               + text::Diagnostics::failColumnUnknown
-                                               + Id::diagnosticSeparator + columnName);
-            }
+                                           + text::Diagnostics::failColumnUnknown
+                                           + Id::diagnosticSeparator + columnName);
         }
 
         return juce::Result::ok();

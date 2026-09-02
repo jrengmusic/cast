@@ -111,6 +111,75 @@
 
 ## SPRINT HISTORY
 
+## Sprint: Audit Clean Sweep + Headers Restructure — Scoped Addresses, colours.md, Subprocess Byte-Law Finish, L-Sweep ✅
+
+**Date:** 2026-09-02
+**Duration:** single session (follows the data-driven-lifecycle sprint)
+
+### Agents Participated
+- COUNSELOR — audit triage (83 findings: fixed / closed-by-ruling / residual), design rulings carried (scoped addresses, headers schema, quote-aware argv), four direct engine fixes (sigil strip, brief documentation column, argv split, compile repairs), SPEC/HELP authorship
+- Auditor — one sprint sweep, 83 findings, coverage-over-filtering
+- Engineer ×12 — mechanical audit batches (jam/cast/eve), headers restructure across three manifests, colours.md split + prose restoration, engine binding/scoped-resolution work, L-sweep (3 lanes), docs sync, doxygen pass, ClangdConfig fix
+- Pathfinder — comment-cell resolution law discovery
+- Proof Engineer — staged regen/build/fixpoint proofs ×6, final full Release chains
+
+### Files Modified (cast)
+- `Source/Model.h` — scoped address law: first segment resolves alias-first, else a table of the row's own document (sigil stripped for the local table key); `isColumnAddress`/`getColumn`/`isFilteredAddress`/`getFilterColumn`/`getFilterValue` row-aware (column index shifts by form); `brief` joins `comment` as parse-time documentation column (:1248); L-splits: `getTableOrigins`, `getExcess` (move-return), `addParagraph`, `getAuthoredText`, `getUnnamedTable`
+- `Source/Writer.h` — file documentation reads the group first row's structure-cell `- comment:` binding (@-valued only; address→table→file-match→addressed column); comment wiring-column reader deleted; L-splits `getOutputFiles` + per-group `toFile` overload
+- `Source/Items.h` — item comment channel skips @-sigiled bindings (references never render as prose); filter accessors row-aware; L-splits `getItemReplacement`, `getPaddedLiteral`, `isColumnSource`
+- `Source/Validator.h` — address gates unified for alias + local forms (`hasTable` rewritten, duplicate alias-missing pre-checks removed); `isPlaceholderScope` out-param eliminated (pair return); structure-column comment addresses gated once
+- `Source/Shapes.h` — L-splits `getSourceTable`, `getMarkerValue`, `isListMarkerInline`, `getAvailableCount`, `getGroupKey`, `getGroupText`
+- `Source/Processor.h` — argv law: command cell verbatim = argv[0], flag cell quote-aware tokens; completion single-capture; `run()`/`format()` decomposed (`getColumnValue`, `getOrigins`, `writeOriginIfChanged`, `getWriteResult`, `runToolchainRow`, `getToolchainArguments`, `runProcess`); matched/given flags separated
+- `Source/main.cpp` — decomposed into single-responsibility free functions; argc literals named; false doc prose deleted
+- `Source/Help.h` — `specText` → `helpText`
+- `Source/HELP.md` — file-documentation section rewritten (binding law, local addresses); CLI section intact
+- `SPEC.md` — §2.1 Invocation (CLI, normative); §4.2 local address form + §4.4 fatal reworded; §5.4 `brief` reserved documentation column; §6.8 rewritten (structure-binding file docs, sigil-split readers); §6.9 argv law (command verbatim, quote-aware flag split)
+- `cast/CAST.md` — comment column deleted from `## output`/`## output index`; `## headers` → `file | brief | comment`; `- comment: @headers:brief` bindings at leading position; `@bimap`/`@headers` dead aliases removed
+- `cast/cmake.cast` — patched-JUCE fallback removed (determinism); `add_dependencies(post-build)`; dead `entry` fence removed; `CAST_INSTALL_ROOT` SSOT for `/opt`
+- `cast/text.md` — `failAliasMissing` row removed (dead)
+- `project-info.md` — `## binary` style.css/@jamSvg rows removed (dead payload); per-row separators normalized
+- `entitlements.plist` — empty dict (no named threat for a headless console binary)
+- `CLAUDE.md`, `HANDOFF-MACHINIST.md`, `RFC-toolchain-parity.md` — synced to the tree (chain description, ColourId, modules, BinaryData, delivered status)
+
+### Files Modified (jam)
+- `jam_subprocess/subprocess/jam_Subprocess.{h,cpp}` — env -C removed (parent chdir via `setAsCurrentWorkingDirectory`); Completion single-capture `(int, const std::string&)`; out-params/shadow-cap/dead members/dead env constants removed; asserts deduped to owner; `isReplace` verb-contract rename; threading prose truthful
+- `jam_style/style_manager/jam_StyleManager.{h,cpp}` — owns `SharedInstance<map::ColourId> colourId { std::in_place }` (fatal F1: no construction site existed)
+- `jam_style/jam_style.h` — trailing dependency comma removed
+- `jam_core/utils/jam_LookupTable.h` — `.at()` at constexpr sites; constructor-contract docs
+- `cast/CAST.md` — comment columns deleted; `## headers` restructured; 91 per-item one-liners as `- comment:` structure bindings (89 restored + 2 authored for GroupType/GroupLayoutPolicy); `@colours` alias; dead `@guiBasics`/`@CAST`/`@headers` aliases removed; umbrella file-doc binding
+- `cast/colours.md` — new: `## ColourNames` + `## ColourId` moved out of bimaps.md (3113 lines)
+- `cast/code.cast` — dead `macro-guard` fence + slot removed
+- `cmake/ClangdConfig.cmake` — quoted macro values captured and re-emitted (`-DCAST_COMMIT="hash"`)
+- `generated/*` — regenerated: jam_ColourIds.h gains its `@file` block; jam_Generated.h one-liners restored
+
+### Files Modified (eve)
+- `Source/EVEView.{h,cpp}` — default LookAndFeel unset in destructor; ask-guard replaced by owner assert + unconditional init
+- `Source/EVEProcessor.cpp` — explicit nullptr if-init checks
+- `Source/layout/interface.md`, `style.css` — END → EVE
+- `project-info.md` — `@char` alias (10 dedups); architecture single value column; per-row separators normalized
+- `cast/cmake.cast` — `add_dependencies` un-gated from APPLE; notarization zip cleanup; `format-install-directory` fence rename
+- `cast/CAST.md` — comment column deleted; `## headers` `file | brief | comment`; leading `- comment: @headers:brief` bindings
+
+### Alignment Check
+- [x] BLESSED principles followed
+- [x] NAMES.md adhered (all new names from the fixed verb set + existing domain nouns; list surfaced to ARCHITECT)
+- [x] MANIFESTO.md principles applied
+- [ ] Three L-exemptions carry overage with rationale (`getFill` 48, `getCommentTable` 34, `getSubstitutedLine` 31 — further split requires out-params or fake carriers, both forbidden)
+
+### Problems Solved
+- FATAL: `map::ColourId` had no construction site — StyleManager now owns the holder (VulkanEngine precedent)
+- Output-table `comment` column eliminated; file docs = structure-cell `- comment:` binding into `## headers` (`brief` block / `comment` one-liner), sigil splits the two readers
+- Scoped addresses: self-aliases dead; local `@table:column` resolves against the manifest itself — one law across tables, columns, filters, validation
+- cast no longer silently builds against eve's patched JUCE ($TMPDIR fallback removed)
+- Quote-aware argv: command cell verbatim argv[0]; flag cell split with quote grouping; SPEC states it
+- Full proofs: jam/cast/eve regen fixpoints; Release chains end-to-end (cast .pkg notarized Accepted + stapled + QA-archived; eve VST3/AU Accepted + stapled, AAX wraptool, zip cleanup verified)
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None (DEBT.md's two open entries — KANJUT conformance, plugin_bootstrap — were never in this sprint's scope; they remain on the ledger per JRENG law)
+
 ## Sprint: Data-Driven Lifecycle — Toolchain Flows, Post-Build Fences, Blank-Is-Nothing Law, Two-Table Build Schema ✅
 
 **Date:** 2026-09-01

@@ -20,6 +20,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
+option(CAST_SIGN "Run the sign/pkg/notarize/staple chain on a Release build" ON)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "macOS deployment target")
 
 if(APPLE)
@@ -34,7 +35,7 @@ project("cast"
     DESCRIPTION "Codegen Annotated Source of Truth"
 )
 
-message(STATUS "████████████░░████████████░░████████████░░████████████░░
+message(STATUS "\n████████████░░████████████░░████████████░░████████████░░
 ████░░  ████░░████░░  ████░░████░░  ████░░    ████░░
 ████░░        ████░░  ████░░████░░            ████░░
 ████░░        ████████████░░████████████░░    ████░░
@@ -79,33 +80,21 @@ set(CAST_JUCE_VERSION 8.0.14)
 
 find_package(Git REQUIRED)
 
-if(WIN32)
-    set(CAST_JUCE_TEMP_DIR "$ENV{TEMP}")
-elseif(DEFINED ENV{TMPDIR})
-    set(CAST_JUCE_TEMP_DIR "$ENV{TMPDIR}")
-else()
-    set(CAST_JUCE_TEMP_DIR "/tmp")
-endif()
+message(STATUS "CAST: using JUCE at ${CAST_JUCE_PATH}")
 
-set(CAST_PATCHED_JUCE_PATH "${CAST_JUCE_TEMP_DIR}/juce-patched")
+add_subdirectory("${CAST_JUCE_PATH}" "${CMAKE_BINARY_DIR}/JUCE")
 
-if(NOT EXISTS "${CAST_PATCHED_JUCE_PATH}")
-    message(STATUS "CAST: using JUCE at ${CAST_JUCE_PATH}")
-    set(CAST_PATCHED_JUCE_PATH "${CAST_JUCE_PATH}")
-endif()
-
-add_subdirectory("${CAST_PATCHED_JUCE_PATH}" "${CMAKE_BINARY_DIR}/JUCE")
-
-get_directory_property(CAST_FOUND_JUCE_VERSION DIRECTORY "${CAST_PATCHED_JUCE_PATH}" DEFINITION JUCE_VERSION)
+get_directory_property(CAST_FOUND_JUCE_VERSION DIRECTORY "${CAST_JUCE_PATH}" DEFINITION JUCE_VERSION)
 
 if(NOT CAST_FOUND_JUCE_VERSION VERSION_EQUAL CAST_JUCE_VERSION)
     message(FATAL_ERROR "CAST: JUCE ${CAST_FOUND_JUCE_VERSION} found, ${CAST_JUCE_VERSION} required — exact match")
 endif()
 
-message(STATUS "CAST: JUCE ${CAST_FOUND_JUCE_VERSION} found at ${CAST_PATCHED_JUCE_PATH}")
+message(STATUS "CAST: JUCE ${CAST_FOUND_JUCE_VERSION} found at ${CAST_JUCE_PATH}")
 
-juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_core")    # JAM Core
-juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_markdown")# Clean-room native CommonMark + GFM markdown parsing/rendering
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_core")      # JAM Core
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_subprocess")# JUCE-based subprocess launcher with streaming output and byte-cap truncation
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_markdown")  # Clean-room native CommonMark + GFM markdown parsing/rendering
 
 message(STATUS "CAST: user modules added from ${CMAKE_CURRENT_SOURCE_DIR}/../jam")
 
@@ -148,7 +137,9 @@ ${CMAKE_CURRENT_SOURCE_DIR}/Source/generated
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
 juce_core
+juce_gui_basics
 jam_core
+jam_subprocess
 jam_markdown
     PUBLIC
         juce::juce_recommended_config_flags
@@ -165,9 +156,7 @@ target_link_options(${PROJECT_NAME} PRIVATE
 
 file(GLOB CAST_BINARY_FILES CONFIGURE_DEPENDS
 Source/HELP.md
-Source/style.css
 Source/resources/cast-output.md
-${CMAKE_CURRENT_SOURCE_DIR}/../jam/resources/svg/*.svg
 )
 
 juce_add_binary_data(${PROJECT_NAME}_BinaryData
@@ -180,6 +169,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_BinaryData)
 
 include(CheckIPOSupported)
 
+add_custom_target(post-build ALL)
+add_dependencies(post-build ${PROJECT_NAME})
+
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     check_ipo_supported(RESULT CAST_IPO_SUPPORTED OUTPUT CAST_IPO_ERROR)
 
@@ -190,19 +182,45 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
         message(WARNING "CAST: LTO not supported — ${CAST_IPO_ERROR}")
     endif()
 
-    if(APPLE OR UNIX)
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    if(CAST_SIGN AND APPLE)
+        string(TIMESTAMP CAST_BUILD_DATE "%Y-%m-%d" UTC)
+        set(CAST_QA_PATH "$ENV{HOME}/Documents/Poems/dev/___builds___")
+        set(CAST_QA_DIRECTORY "${CAST_QA_PATH}/${CAST_BUILD_DATE} ${PROJECT_NAME} v${PROJECT_VERSION} macOS")
+        set(CAST_INSTALL_ROOT /opt)
+        file(WRITE "${CMAKE_BINARY_DIR}/${PROJECT_NAME}_pkg_scripts/postinstall"
+"#!/bin/bash
+REAL_USER=$(stat -f \"%Su\" /dev/console)
+REAL_HOME=$(eval echo ~$REAL_USER)
+mkdir -p \"$REAL_HOME/.local/bin\"
+ln -sf \"${CAST_INSTALL_ROOT}/${PROJECT_NAME}/${PROJECT_NAME}\" \"$REAL_HOME/.local/bin/${PROJECT_NAME}\"
+")
+        file(CHMOD "${CMAKE_BINARY_DIR}/${PROJECT_NAME}_pkg_scripts/postinstall" PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+        add_custom_command(TARGET post-build POST_BUILD
 COMMAND ${CMAKE_STRIP} $<TARGET_FILE:${PROJECT_NAME}>
+COMMAND xattr -cr $<TARGET_FILE:${PROJECT_NAME}>
 COMMAND codesign --force --options runtime --entitlements "${CMAKE_SOURCE_DIR}/entitlements.plist" --sign "Developer ID Application: Bayu Ardianto \\(9BDSN9TDX3\\)" $<TARGET_FILE:${PROJECT_NAME}>
-COMMAND ditto -c -k --keepParent $<TARGET_FILE:${PROJECT_NAME}> $<TARGET_FILE:${PROJECT_NAME}>.zip
-COMMAND xcrun notarytool submit $<TARGET_FILE:${PROJECT_NAME}>.zip --keychain-profile "notary" --wait
-COMMAND ${CMAKE_COMMAND} -E make_directory "$ENV{HOME}/.local/bin"
-COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PROJECT_NAME}> "$ENV{HOME}/.local/bin/${PROJECT_NAME}.tmp"
-COMMAND ${CMAKE_COMMAND} -E rename "$ENV{HOME}/.local/bin/${PROJECT_NAME}.tmp" "$ENV{HOME}/.local/bin/${PROJECT_NAME}"
-            COMMENT "CAST: post-build"
+COMMAND codesign --verify --verbose $<TARGET_FILE:${PROJECT_NAME}>
+COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/${PROJECT_NAME}_pkg_root${CAST_INSTALL_ROOT}/${PROJECT_NAME}"
+COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PROJECT_NAME}> "${CMAKE_BINARY_DIR}/${PROJECT_NAME}_pkg_root${CAST_INSTALL_ROOT}/${PROJECT_NAME}/"
+COMMAND pkgbuild --root "${CMAKE_BINARY_DIR}/${PROJECT_NAME}_pkg_root${CAST_INSTALL_ROOT}" --install-location "${CAST_INSTALL_ROOT}" --scripts "${CMAKE_BINARY_DIR}/${PROJECT_NAME}_pkg_scripts" --identifier "com.jrengmusic.cast" --version "${PROJECT_VERSION}" "${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pkg"
+COMMAND productsign --sign "Developer ID Installer: Bayu Ardianto \\(9BDSN9TDX3\\)" "${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pkg" "${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pkg.signed"
+COMMAND ${CMAKE_COMMAND} -E rename "${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pkg.signed" "${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pkg"
+COMMAND xcrun notarytool submit "${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pkg" --keychain-profile "notary" --wait
+COMMAND xcrun stapler staple "${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pkg"
+COMMAND ${CMAKE_COMMAND} -E make_directory "${CAST_QA_DIRECTORY}"
+COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pkg" "${CAST_QA_DIRECTORY}/${PROJECT_NAME}.pkg"
+            COMMENT "CAST: sign"
         )
     endif()
 endif()
+
+add_custom_command(TARGET post-build POST_BUILD
+COMMAND ${CMAKE_COMMAND} -E make_directory "$ENV{HOME}/.local/bin"
+COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PROJECT_NAME}> "$ENV{HOME}/.local/bin/${PROJECT_NAME}.tmp"
+COMMAND ${CMAKE_COMMAND} -E rename "$ENV{HOME}/.local/bin/${PROJECT_NAME}.tmp" "$ENV{HOME}/.local/bin/${PROJECT_NAME}"
+COMMAND ${CMAKE_COMMAND} -DPROJECT_ROOT=${CMAKE_SOURCE_DIR} -DBUILD_DIR=${CMAKE_BINARY_DIR} -DJAM_ROOT=${CMAKE_CURRENT_SOURCE_DIR}/../jam -DTARGET_NAME=${PROJECT_NAME} -DAPPLE=${APPLE} -DWIN32=${WIN32} -P ${CMAKE_CURRENT_SOURCE_DIR}/../jam/cmake/ClangdConfig.cmake
+    COMMENT "CAST: post-build"
+)
 
 message(STATUS "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 message(STATUS "CAST: ${PROJECT_NAME} configured")

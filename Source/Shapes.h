@@ -98,6 +98,40 @@ struct Shapes
     }
 
     /**
+     * @brief Resolves @p line's own first list source addressing a table,
+     *        walking @p line's own arity of sources in authored order.
+     *
+     * @param model            The model @p row and @p line belong to.
+     * @param templateDocument The template document @p line's own arity
+     *                         is read from.
+     * @param row              The row @p line's sources are addressed
+     *                         against.
+     * @param line             The structure line whose sources are
+     *                         walked.
+     * @returns The first source's own addressed table, or @c nullptr when
+     *          none of @p line's sources address one.
+     */
+    static Element* getSourceTable (const Model& model, const TemplateDocument& templateDocument,
+        Element& row, Element& line)
+    {
+        Element* table { nullptr };
+
+        for (int occurrence { 0 };
+             table == nullptr and occurrence < Items::getArity (templateDocument, line); ++occurrence)
+        {
+            auto* sourceLine { getSourceLine (model, templateDocument, line, occurrence) };
+
+            if (sourceLine != nullptr and not sourceLine->isTag (Id::p))
+                table = model.getTable (row,
+                    *model.getSource (row, *sourceLine->get<int> (Id::level),
+                         *sourceLine->get<int> (Id::line))
+                         ->get<juce::String> (Id::value));
+        }
+
+        return table;
+    }
+
+    /**
      * @brief Resolves @p line's comment table -- a list item's own
      *        addressed table, a paragraph's explicitly authored
      *        @-comment address, or, absent one, the first table addressed
@@ -138,17 +172,7 @@ struct Shapes
         }
         else
         {
-            for (int occurrence { 0 };
-                 table == nullptr and occurrence < Items::getArity (templateDocument, line); ++occurrence)
-            {
-                auto* sourceLine { getSourceLine (model, templateDocument, line, occurrence) };
-
-                if (sourceLine != nullptr and not sourceLine->isTag (Id::p))
-                    table = model.getTable (row,
-                        *model.getSource (row, *sourceLine->get<int> (Id::level),
-                             *sourceLine->get<int> (Id::line))
-                             ->get<juce::String> (Id::value));
-            }
+            table = getSourceTable (model, templateDocument, row, line);
         }
 
         if (table != nullptr)
@@ -227,6 +251,62 @@ struct Shapes
     }
 
     /**
+     * @brief Resolves @p name's own marker value -- getFill()'s own filled
+     *        occurrence for the @c list token, getTokenValue()'s own
+     *        resolved value for every other token -- then comments a
+     *        non-empty @c comment value as a block comment when
+     *        @p templateLine's own trimmed text equals @p marker, or an
+     *        inline comment otherwise.
+     *
+     * @param model            The model @p rows and @p lines belong to.
+     * @param templateDocument The template document each shape and its
+     *                         placeholder tokens are read from.
+     * @param tables           The tables searched when the @c list token
+     *                         expands.
+     * @param rows             The rows corresponding, index by index, to
+     *                         @p lines.
+     * @param lines            The structure lines corresponding, index by
+     *                         index, to @p rows.
+     * @param commentTable     The table @p name's documentation is read
+     *                         from, when @p name is @c comment.
+     * @param name             The token name to resolve.
+     * @param tokenOccurrence  @p name's own substitution count so far,
+     *                         passed through to getFill().
+     * @param joinText         The join text passed through to the
+     *                         @c list token's expansion.
+     * @param parentIndent     The parent shape's own indent, passed
+     *                         through to the @c list token's expansion.
+     * @param isAtColumnZero   Whether @p marker began at column zero in
+     *                         @p templateLine.
+     * @param extension        The target file extension a comment value
+     *                         is commented for.
+     * @param templateLine     @p marker's own authored template line.
+     * @param marker           @p name's own verbatim marker as authored
+     *                         in @p templateLine.
+     * @returns @p name's resolved, commented value.
+     */
+    static juce::String getMarkerValue (const Model& model, const TemplateDocument& templateDocument,
+        const jam::Array<Element*>& tables, const jam::Array<Element*>& rows,
+        const jam::Array<Element*>& lines, Element* commentTable, const juce::Identifier& name,
+        int tokenOccurrence, const juce::String& joinText, int parentIndent, bool isAtColumnZero,
+        const juce::String& extension, const juce::String& templateLine, const juce::String& marker)
+    {
+        auto value { name == Id::list
+                         ? getFill (model, templateDocument, tables, rows, lines,
+                               tokenOccurrence, joinText, parentIndent, isAtColumnZero, extension)
+                         : getTokenValue (model, templateDocument, tables, *rows.first(),
+                               *lines.first(), commentTable, name, joinText, parentIndent,
+                               isAtColumnZero, extension) };
+
+        if (name == Id::comment and value.isNotEmpty())
+            value = templateLine.trim() == marker
+                        ? Transforms::toCommentBlock (value, extension)
+                        : Transforms::toComment (value, extension);
+
+        return value;
+    }
+
+    /**
      * @brief Substitutes each of @p tokens' first remaining marker in
      *        @p templateLine with its resolved value -- the @c list token
      *        filled by getFill(), every other token resolved through
@@ -276,22 +356,11 @@ struct Shapes
                 const auto isAtColumnZero { templateLine.indexOf (marker) == 0 };
                 auto [occurrenceEntry, inserted] { occurrence.try_emplace (name, 0) };
                 auto& [occurrenceName, tokenOccurrence] { *occurrenceEntry };
-                auto value { name == Id::list
-                                 ? getFill (model, templateDocument, tables, rows, lines,
-                                       tokenOccurrence, joinText, parentIndent, isAtColumnZero, extension)
-                                 : getTokenValue (model, templateDocument, tables, *rows.first(),
-                                       *lines.first(), commentTable, name, joinText, parentIndent,
-                                       isAtColumnZero, extension) };
-
-                if (name == Id::comment and value.isNotEmpty())
-                    value = templateLine.trim() == marker
-                                ? Transforms::toCommentBlock (value, extension)
-                                : Transforms::toComment (value, extension);
-
-                const auto interior { marker.substring (
-                    Id::tripleColon.length(), marker.length() - Id::tripleColon.length()) };
-
-                lineText = jam::Format::replaceholder (lineText, interior, value);
+                const auto value { getMarkerValue (model, templateDocument, tables, rows, lines,
+                    commentTable, name, tokenOccurrence, joinText, parentIndent, isAtColumnZero,
+                    extension, templateLine, marker) };
+                lineText = jam::Format::replaceholder (lineText, marker.substring (
+                    Id::tripleColon.length(), marker.length() - Id::tripleColon.length()), value);
                 ++tokenOccurrence;
             }
         }
@@ -470,6 +539,42 @@ struct Shapes
     }
 
     /**
+     * @brief Answers whether @p sourceLine's own shape's @c list marker is
+     *        authored anywhere but column zero of its own template line.
+     *
+     * @param templateDocument The template document @p sourceLine's shape
+     *                         is read from.
+     * @param sourceLine       The structure line whose shape's @c list
+     *                         marker is checked.
+     * @returns @c true when @p sourceLine's shape declares a @c list
+     *          marker not at column zero, @c false when it declares one
+     *          at column zero or declares none.
+     */
+    static bool isListMarkerInline (const TemplateDocument& templateDocument, Element& sourceLine)
+    {
+        const auto& shapeTokens { *templateDocument.getCodeBlock (sourceLine)
+                                        ->get<jam::Document::Identifiers> (Id::placeholder) };
+
+        if (std::find (shapeTokens.begin(), shapeTokens.end(), Id::list) == shapeTokens.end())
+            return false;
+
+        const auto& shapeValue {
+            *templateDocument.getCodeBlock (sourceLine)->get<juce::String> (Id::value)
+        };
+        const auto marker { Items::getMarker (shapeValue, Id::list) };
+
+        for (const auto& shapeLine : jam::Strings::fromLines (shapeValue))
+        {
+            const auto markerPosition { shapeLine.indexOf (marker) };
+
+            if (markerPosition >= 0)
+                return markerPosition != 0;
+        }
+
+        return false;
+    }
+
+    /**
      * @brief Renders each of @p sourceLines' own list-item source through
      *        Items::getJoinedItems(), deduplicating byte-identical
      *        renders across @p rows, joins the distinct renders by
@@ -511,32 +616,7 @@ struct Shapes
             const auto sourceValue {
                 *model.getSource (row, indent, ordinal)->get<juce::String> (Id::value)
             };
-            const auto& shapeTokens { *templateDocument.getCodeBlock (sourceLine)
-                                            ->get<jam::Document::Identifiers> (Id::placeholder) };
-            const auto shapeHasListToken {
-                std::find (shapeTokens.begin(), shapeTokens.end(), Id::list) != shapeTokens.end()
-            };
-            auto listMarkerIsInline { false };
-
-            if (shapeHasListToken)
-            {
-                const auto& shapeValue {
-                    *templateDocument.getCodeBlock (sourceLine)->get<juce::String> (Id::value)
-                };
-                const auto marker { Items::getMarker (shapeValue, Id::list) };
-
-                for (const auto& shapeLine : jam::Strings::fromLines (shapeValue))
-                {
-                    const auto markerPosition { shapeLine.indexOf (marker) };
-
-                    if (markerPosition >= 0)
-                    {
-                        listMarkerIsInline = markerPosition != 0;
-                        break;
-                    }
-                }
-            }
-
+            const auto listMarkerIsInline { isListMarkerInline (templateDocument, sourceLine) };
             auto* separatorLine { model.getSeparator (row, indent, ordinal) };
             const auto value { separatorLine != nullptr
                                     ? templateDocument.getValue (
@@ -557,6 +637,31 @@ struct Shapes
 
         return getIndentedText (
             text, *sourceLines.first()->get<int> (Id::level), parentIndent, isAtColumnZero);
+    }
+
+    /**
+     * @brief Counts how many of @p structureLine's own arity of source
+     *        lines actually exist, walking getSourceLine() up to @p arity.
+     *
+     * @param model            The model @p structureLine belongs to.
+     * @param templateDocument The template document each walked line's
+     *                         shape is read from.
+     * @param structureLine    The structure line whose available sources
+     *                         are counted.
+     * @param arity            The upper bound on sources to count.
+     * @returns The number of @p structureLine's own sources found, up to
+     *          @p arity.
+     */
+    static int getAvailableCount (const Model& model, const TemplateDocument& templateDocument,
+        Element& structureLine, int arity)
+    {
+        auto availableCount { 0 };
+
+        while (availableCount < arity
+               and getSourceLine (model, templateDocument, structureLine, availableCount) != nullptr)
+            ++availableCount;
+
+        return availableCount;
     }
 
     /**
@@ -604,13 +709,7 @@ struct Shapes
         {
             auto* structureLine { lines.at (index) };
             const auto arity { Items::getArity (templateDocument, *structureLine) };
-            auto availableCount { 0 };
-
-            while (availableCount < arity
-                   and getSourceLine (model, templateDocument, *structureLine, availableCount)
-                           != nullptr)
-                ++availableCount;
-
+            const auto availableCount { getAvailableCount (model, templateDocument, *structureLine, arity) };
             const auto skippedCount { arity - availableCount };
 
             if (occurrence >= skippedCount)
@@ -646,6 +745,93 @@ struct Shapes
     }
 
     /**
+     * @brief Returns @p line's own grouping key -- its template path, info,
+     *        and every non-@c list token's own resolved value, joined by
+     *        newline -- the key getShape() groups rows by before
+     *        rendering.
+     *
+     * @param model            The model @p row and @p line belong to.
+     * @param templateDocument The template document @p line's shape and
+     *                         placeholder tokens are read from.
+     * @param tables           The tables searched when a nested @c list
+     *                         token expands.
+     * @param row              The row @p line's tokens are resolved
+     *                         against.
+     * @param line             The structure line whose grouping key is
+     *                         built.
+     * @param joinText         The join text passed through to a
+     *                         shape-valued token's own expansion.
+     * @param parentIndent     The parent shape's own indent, passed
+     *                         through to a shape-valued token's own
+     *                         expansion.
+     * @param extension        The target file extension a comment value
+     *                         is commented for.
+     * @returns @p line's own grouping key.
+     */
+    static juce::String getGroupKey (const Model& model, const TemplateDocument& templateDocument,
+        const jam::Array<Element*>& tables, Element& row, Element& line, const juce::String& joinText,
+        int parentIndent, const juce::String& extension)
+    {
+        auto* commentTable { getCommentTable (model, templateDocument, row, line) };
+        const auto& tokens { *templateDocument.getCodeBlock (line)
+                                   ->get<jam::Document::Identifiers> (Id::placeholder) };
+        jam::Strings key;
+        key.add (*line.get<juce::String> (Id::templatePath));
+        key.add (*line.get<juce::String> (Id::info));
+
+        for (const auto& name : tokens)
+            if (name != Id::list)
+                key.add (getTokenValue (model, templateDocument, tables, row, line, commentTable,
+                    name, joinText, parentIndent, false, extension));
+
+        return key.joinIntoString (juce::String::charToString (Chars::newline), 0, -1);
+    }
+
+    /**
+     * @brief Renders one grouping key's own rows and lines, selected by
+     *        @p indices out of @p rows and @p lines, through getLines().
+     *
+     * @param model            The model @p tables, @p rows, and @p lines
+     *                         belong to.
+     * @param templateDocument The template document the group's own shape
+     *                         and placeholder tokens are read from.
+     * @param tables           The tables searched when a nested @c list
+     *                         token expands.
+     * @param rows             Every row getShape() is grouping.
+     * @param lines            The structure lines corresponding, index by
+     *                         index, to @p rows.
+     * @param indices          The group's own indices into @p rows and
+     *                         @p lines.
+     * @param joinText         The join text passed through to the
+     *                         @c list token's expansion.
+     * @param parentIndent     The parent shape's own indent, passed
+     *                         through to getLines().
+     * @param extension        The target file extension a comment value
+     *                         is commented for.
+     * @returns The group's own rendered text.
+     */
+    static juce::String getGroupText (const Model& model, const TemplateDocument& templateDocument,
+        const jam::Array<Element*>& tables, const jam::Array<Element*>& rows,
+        const jam::Array<Element*>& lines, const jam::Array<int>& indices, const juce::String& joinText,
+        int parentIndent, const juce::String& extension)
+    {
+        jam::Array<Element*> groupRows;
+        jam::Array<Element*> groupLines;
+
+        for (const auto candidateIndex : indices)
+        {
+            groupRows.add (rows.at (candidateIndex));
+            groupLines.add (lines.at (candidateIndex));
+        }
+
+        const auto& tokens { *templateDocument.getCodeBlock (*groupLines.first())
+                                   ->get<jam::Document::Identifiers> (Id::placeholder) };
+
+        return getLines (model, templateDocument, tables, groupRows, groupLines,
+            *groupLines.first(), tokens, joinText, parentIndent, extension);
+    }
+
+    /**
      * @brief Groups @p rows' own lines by their shared template path,
      *        info, and non-@c list token values, renders each group once
      *        through getLines(), and joins every group's own rendered
@@ -677,23 +863,8 @@ struct Shapes
         jam::Strings keys;
 
         for (int index { 0 }; index < rows.size(); ++index)
-        {
-            auto& row { *rows.at (index) };
-            auto& line { *lines.at (index) };
-            auto* commentTable { getCommentTable (model, templateDocument, row, line) };
-            const auto& tokens { *templateDocument.getCodeBlock (line)
-                                       ->get<jam::Document::Identifiers> (Id::placeholder) };
-            jam::Strings key;
-            key.add (*line.get<juce::String> (Id::templatePath));
-            key.add (*line.get<juce::String> (Id::info));
-
-            for (const auto& name : tokens)
-                if (name != Id::list)
-                    key.add (getTokenValue (model, templateDocument, tables, row, line, commentTable,
-                        name, joinText, parentIndent, false, extension));
-
-            keys.add (key.joinIntoString (juce::String::charToString (Chars::newline), 0, -1));
-        }
+            keys.add (getGroupKey (model, templateDocument, tables, *rows.at (index), *lines.at (index),
+                joinText, parentIndent, extension));
 
         jam::HashMap<juce::String, jam::Array<int>> groupIndices;
 
@@ -703,22 +874,8 @@ struct Shapes
         jam::Strings groupTexts;
 
         for (const auto& [key, indices] : groupIndices)
-        {
-            jam::Array<Element*> groupRows;
-            jam::Array<Element*> groupLines;
-
-            for (const auto candidateIndex : indices)
-            {
-                groupRows.add (rows.at (candidateIndex));
-                groupLines.add (lines.at (candidateIndex));
-            }
-
-            const auto& tokens { *templateDocument.getCodeBlock (*groupLines.first())
-                                       ->get<jam::Document::Identifiers> (Id::placeholder) };
-
-            groupTexts.add (getLines (model, templateDocument, tables, groupRows, groupLines,
-                *groupLines.first(), tokens, joinText, parentIndent, extension));
-        }
+            groupTexts.add (getGroupText (model, templateDocument, tables, rows, lines, indices,
+                joinText, parentIndent, extension));
 
         return groupTexts.joinIntoString (joinText, 0, -1);
     }
