@@ -29,4 +29,5 @@ speaks. Prefix/affix-shaped entries pair with the offender's own text.
 | failToolchain          | `toolchain command failed`                 | A toolchain row's process could not start or exited nonzero.                   |
 | failToolchainArgument  | `toolchain argument not declared`          | A --\<word\> CLI argument matched no toolchain row's argument column.          |
 | failToolchainColumn    | `toolchain column not declared`            | A ## toolchain table's header row declares no command or flag column.          |
+| failFencePrefix        | `unknown fence prefix`                     | A fence's bracket word is not a comment-syntax extension or no-banner.         |
 +------------------------+--------------------------------------------+--------------------------------------------------------------------------------+

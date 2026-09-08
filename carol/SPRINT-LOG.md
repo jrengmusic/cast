@@ -111,6 +111,43 @@
 
 ## SPRINT HISTORY
 
+## Sprint: Bracketed Reserved Names + Placeable Banner ✅
+
+**Date:** 2026-09-08
+**Duration:** one session
+
+### Agents Participated
+- COUNSELOR: fable-5 — bracket law design carrier; separated the two banner faults (framing vs. position); traced `toValidID`'s keying chain to prove `[list]` → `_list_` without a run; bootstrap diagnosis when the migrated manifest locked out the old binary; audit orchestration and resolution
+- Engineer ×12 — bracket migration (engine + 10 data files), banner placement, comment fallback law, fence-prefix gate, string-compare sweep, `charToString` sweep, doxygen passes
+- Auditor ×3 — parallel sweep over jam sources, cast sources, and data/docs
+
+### Files Modified (cast, 19)
+- **Source:** `Validator.h` — 8 bullet-id compares migrated to the bracketed marker (six SPEC §10.1 fatals were dead), `isFencePrefix` added and widened to `structure`/`separator`/`list`; `Writer.h` — `getBody` extracted (banner substituted at its marker or prepended, emptied marker line elided), `getBanner` no longer owns the separator, null re-check and downstream assert removed, bail-outs positively nested; `Transforms.h` — comment law (no block frame → single-line mark on every line; no single-line mark → block frame), `getFencePrefix`, `getCommentSyntaxKey` fallback; `Items.h` — `getPaddedItem` passes an unknown marker through instead of throwing, `[comment]` token reads the bare `comment` column; `Model.h`/`Shapes.h`/`TemplateDocument.h` — bracketed markers as function-local `static const juce::Identifier`; `main.cpp` — reserved-flag lookup replaces four chained text tests
+- **generated:** `Identifiers.h`/`Text.h` — `Id::noBanner`, `failFencePrefix` hand-written once to break the bootstrap, then regenerated identically
+- **cast/:** `CAST.md` — `sqlComment` wiring row, `## headers` `comment` column populated; `comments.md` — `## sql comment`, `## shell comment` reduced to its single marker, `.mmd`/`.mermaid` rows; `identifiers.md`, `text.md`, `cmake.cast` — bracket migration
+- **docs:** `SPEC.md` — bracket law §1, fence prefix §7.3 with column scope, banner §5.5, `## toolchain` fatal added to §10.1, `brief`/`file`/`.md`/`.h` added to the hardcode lists, value-vs-address split for blank cells, declared-key law §11.3; `Source/HELP.md`; `CLAUDE.md`; `RFC-banner-opt-out.md` deleted
+
+### Alignment Check
+- [x] BLESSED — **S**: one bracketed marker derived from `Id::x` + `Chars::openBracket`, never a second literal; **E**: fence-prefix fatal names the fence and the column; **D**: `Validator` owns every gate, `Writer` re-checks none; **L**: `getBody` extraction returns `toFile` under the line limit
+- [x] NAMES.md — `getBody`, `getFencePrefix`, `isFencePrefix`, `bannerMarker`/`listMarker`/`commentMarker`, `reservedFlags`; `noBannerLine` follows `failingLine`'s established shape
+- [x] Auditor ×3, all findings resolved; doxygen pass complete
+- [x] Five projects at fixpoint; cast built, signed, notarized, stapled
+
+### Problems Solved
+- A comment-syntax table declaring only a single-line mark left both banner frame marks empty, so 13 banner lines landed as bare text — a generated `.sh` failed at line 2. Fixed in the engine, not per-table: `toCommentBlock` falls back to the single-line mark, which closes the same latent fault in `gomod`, `mermaid`, `css` and `html`
+- The banner always preceded the shape, so no output could carry a shebang or an XML declaration on line 1. `:::[banner]:::` places it; `whatdbg/build-windows.sh` now keeps `#!` on line 1
+- Bootstrap deadlock: cast is its own toolchain, so the migrated manifest locked out the binary that had to regenerate the headers the new binary needed. Broken by hand-writing the two missing generated symbols once, building through cmake directly, then regenerating
+- `Validator.h` was missed in the first migration pass, leaving six declared fatals unreachable and `isSourceCountValid` double-counting
+- eve's `## headers` fed both its file-documentation binding and its include sweep, so the build manifest's row emitted `#include "CMakeLists.txt"`; a `type` column now filters the sweep
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None
+
+---
+
 ## Sprint: Framework Codegen Chaining + TTY-Gated Clear ✅
 
 **Date:** 2026-09-02

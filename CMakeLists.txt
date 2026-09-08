@@ -29,7 +29,7 @@ elseif(WIN32)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
-project("cast"
+project(cast
     VERSION "0.1.0"
     LANGUAGES C CXX
     DESCRIPTION "Codegen Annotated Source of Truth"

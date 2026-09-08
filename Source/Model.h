@@ -69,7 +69,8 @@ public:
                 {
                     if (table->id == Id::index)
                     {
-                        if (table->contains (Id::path) and *table->get<juce::String> (Id::path) == file)
+                        if (table->contains (Id::path)
+                            and table->get<juce::String> (Id::path)->compare (juce::String (file)) == 0)
                         {
                             if (auto* symbolCell {
                                     getTableCell (*table, Id::symbol, juce::Identifier (aliasText)) })
@@ -214,9 +215,12 @@ public:
      */
     Element* getRowJoin (Element& row) const
     {
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+
         return getPairedItem (row, Id::separator,
             [] (const Element& candidate)
-            { return candidate.id == Id::list and not candidate.contains (Id::line); });
+            { return candidate.id == listMarker and not candidate.contains (Id::line); });
     }
 
     /**
@@ -239,10 +243,13 @@ public:
      */
     Element* getComment (Element& row, int indent, int ordinal) const
     {
+        static const juce::Identifier commentMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::comment.toString(), Chars::openBracket)) };
+
         return getPairedItem (row, Id::list,
             [indent, ordinal] (const Element& candidate)
             {
-                return candidate.id == Id::comment and *candidate.get<int> (Id::level) == indent
+                return candidate.id == commentMarker and *candidate.get<int> (Id::level) == indent
                        and *candidate.get<int> (Id::line) == ordinal;
             });
     }
@@ -294,13 +301,16 @@ public:
      */
     Element* getMap (Element& row, Element& line, int occurrence) const
     {
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+
         Element* item { nullptr };
         int matchOrdinal { 0 };
 
         getTableCell (row, Id::list)->applyFunctionRecursively (
             [&item, &matchOrdinal, &line, occurrence] (const Element& candidate) -> bool
             {
-                if (item == nullptr and candidate.parent->isTag (Id::ul) and candidate.id == Id::list
+                if (item == nullptr and candidate.parent->isTag (Id::ul) and candidate.id == listMarker
                     and not candidate.contains (Id::line)
                     and *candidate.get<int> (Id::shape) == *line.get<int> (Id::shape)
                     and candidate.get<juce::String> (Id::value)->isNotEmpty()
@@ -351,12 +361,15 @@ public:
      */
     Element* getNextLine (Element& line) const
     {
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+
         auto* walk { &line };
         Element* candidate { nullptr };
 
         while (candidate == nullptr
                or not (candidate->contains (Id::shape)
-                       and (candidate->isTag (Id::p) or candidate->id == Id::list)))
+                       and (candidate->isTag (Id::p) or candidate->id == listMarker)))
         {
             candidate = walk->firstChild != nullptr ? walk->firstChild : walk->nextSibling;
 
@@ -400,6 +413,9 @@ public:
     Element* getBinding (Element& row, const juce::Identifier& column, Element& line,
                          const juce::Identifier& name) const
     {
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+
         Element* item { nullptr };
         const auto ordinal { *line.get<int> (Id::shape) };
         auto reachedLine { false };
@@ -411,7 +427,7 @@ public:
                     reachedLine = true;
 
                 if (reachedLine and item == nullptr and candidate.parent->isTag (Id::ul)
-                    and candidate.id != Id::list and candidate.id == name
+                    and candidate.id != listMarker and candidate.id == name
                     and *candidate.get<int> (Id::shape) == ordinal)
                     item = const_cast<Element*> (&candidate);
 
@@ -464,8 +480,10 @@ public:
      */
     Element* getTable (Element& row, juce::StringRef reference) const
     {
-        const auto parts { jam::Strings::fromTokens (
-            reference, juce::String::charToString (Chars::colon), {}) };
+        static const auto colonText { juce::String::charToString (Chars::colon) };
+        static const auto atText { juce::String::charToString (Chars::at) };
+
+        const auto parts { jam::Strings::fromTokens (reference, colonText, {}) };
         const auto sourceName { parts.size() > 0 ? parts.at (0).trim() : juce::String{} };
         const auto declaredPath { getValue (row, sourceName) };
 
@@ -476,7 +494,7 @@ public:
         }
 
         return getTable (*row.parent->get<juce::String> (Id::path),
-                         sourceName.trimCharactersAtStart (juce::String::charToString (Chars::at)));
+                         sourceName.trimCharactersAtStart (atText));
     }
 
     /**
@@ -494,8 +512,9 @@ public:
      */
     bool isColumnAddress (Element& row, const juce::String& value) const
     {
-        const auto parts { jam::Strings::fromTokens (
-            value, juce::String::charToString (Chars::colon), {}) };
+        static const auto colonText { juce::String::charToString (Chars::colon) };
+
+        const auto parts { jam::Strings::fromTokens (value, colonText, {}) };
         const auto sourceName { parts.size() > 0 ? parts.at (0).trim() : juce::String{} };
         const auto columnIndex { getValue (row, sourceName).isNotEmpty() ? 2 : 1 };
 
@@ -517,8 +536,9 @@ public:
      */
     juce::Identifier getColumn (Element& row, const juce::String& value) const
     {
-        const auto parts { jam::Strings::fromTokens (
-            value, juce::String::charToString (Chars::colon), {}) };
+        static const auto colonText { juce::String::charToString (Chars::colon) };
+
+        const auto parts { jam::Strings::fromTokens (value, colonText, {}) };
         const auto sourceName { parts.size() > 0 ? parts.at (0).trim() : juce::String{} };
         const auto columnIndex { getValue (row, sourceName).isNotEmpty() ? 2 : 1 };
 
@@ -540,8 +560,9 @@ public:
      */
     bool isFilteredAddress (Element& row, const juce::String& value) const
     {
-        const auto parts { jam::Strings::fromTokens (
-            value, juce::String::charToString (Chars::colon), {}) };
+        static const auto colonText { juce::String::charToString (Chars::colon) };
+
+        const auto parts { jam::Strings::fromTokens (value, colonText, {}) };
         const auto sourceName { parts.size() > 0 ? parts.at (0).trim() : juce::String{} };
         const auto filterIndex { getValue (row, sourceName).isNotEmpty() ? 2 : 1 };
 
@@ -563,15 +584,16 @@ public:
      */
     juce::Identifier getFilterColumn (Element& row, const juce::String& value) const
     {
-        const auto parts { jam::Strings::fromTokens (
-            value, juce::String::charToString (Chars::colon), {}) };
+        static const auto colonText { juce::String::charToString (Chars::colon) };
+        static const auto equalsText { juce::String::charToString (Chars::equals) };
+
+        const auto parts { jam::Strings::fromTokens (value, colonText, {}) };
         const auto sourceName { parts.size() > 0 ? parts.at (0).trim() : juce::String{} };
         const auto filterIndex { getValue (row, sourceName).isNotEmpty() ? 2 : 1 };
         const auto filterPart { parts.at (filterIndex) };
 
         return juce::Identifier (jam::Format::toValidID (
-            filterPart.upToFirstOccurrenceOf (
-                juce::String::charToString (Chars::equals), false, false).trim()));
+            filterPart.upToFirstOccurrenceOf (equalsText, false, false).trim()));
     }
 
     /**
@@ -588,14 +610,15 @@ public:
      */
     juce::String getFilterValue (Element& row, const juce::String& value) const
     {
-        const auto parts { jam::Strings::fromTokens (
-            value, juce::String::charToString (Chars::colon), {}) };
+        static const auto colonText { juce::String::charToString (Chars::colon) };
+        static const auto equalsText { juce::String::charToString (Chars::equals) };
+
+        const auto parts { jam::Strings::fromTokens (value, colonText, {}) };
         const auto sourceName { parts.size() > 0 ? parts.at (0).trim() : juce::String{} };
         const auto filterIndex { getValue (row, sourceName).isNotEmpty() ? 2 : 1 };
         const auto filterPart { parts.at (filterIndex) };
 
-        return filterPart.fromFirstOccurrenceOf (
-            juce::String::charToString (Chars::equals), false, false).trim();
+        return filterPart.fromFirstOccurrenceOf (equalsText, false, false).trim();
     }
 
 private:
@@ -645,10 +668,13 @@ private:
      */
     Element* getPairedListItem (Element& row, const juce::Identifier& column, int indent, int ordinal) const
     {
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+
         return getPairedItem (row, column,
             [indent, ordinal] (const Element& candidate)
             {
-                return candidate.id == Id::list and candidate.contains (Id::line)
+                return candidate.id == listMarker and candidate.contains (Id::line)
                        and *candidate.get<int> (Id::level) == indent
                        and *candidate.get<int> (Id::line) == ordinal;
             });
@@ -688,7 +714,7 @@ private:
 
             if (juce::File::createFileWithoutCheckingPath (pathCell).hasFileExtension (
                     Extensions::md)
-                and pathCell != manifestOrigin)
+                and pathCell.compare (manifestOrigin) != 0)
                 tableOrigins.add (pathCell);
         }
 
@@ -721,7 +747,7 @@ private:
         for (auto* table : document.getTables())
             table->add<bool> (Id::wiring,
                 not table->isTag (Id::index) and table->contains (Id::path)
-                    and *table->get<juce::String> (Id::path) == document.manifestOrigin
+                    and table->get<juce::String> (Id::path)->compare (document.manifestOrigin) == 0
                     and document.getTableCell (*document.getTableHeaderRow (*table), Id::structure)
                             != nullptr);
 
@@ -873,8 +899,8 @@ private:
                                           and isBlockType (*child->nextSibling, map::BlockType::table)
                                           and (isBlockType (*child, map::BlockType::paragraph)
                                                or isBlockType (*child, map::BlockType::codeBlock))
-                                          and *child->get<juce::String> (Id::path)
-                                                  == *child->nextSibling->get<juce::String> (Id::path) };
+                                          and child->get<juce::String> (Id::path)->compare (
+                                                  *child->nextSibling->get<juce::String> (Id::path)) == 0 };
 
             if (isNamedFence and not boundToNextTable)
                 child->add<juce::String> (Id::comment, child->getAllSubText());
@@ -934,6 +960,9 @@ private:
     static void
     addBindings (Element& scope, juce::String& precedingBinding, const Model& document, Element& row)
     {
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+
         for (auto* block : scope)
         {
             if (block->isTag (Id::p) and document.isShape (row, block->getAllSubText()))
@@ -942,10 +971,11 @@ private:
             if (block->isTag (Id::ul))
                 for (auto* item : *block)
                 {
-                    const auto itemText { item->getAllSubText() };
-                    auto value { jam::Format::getPostColon (itemText).trim() };
+                    const auto valueView { document.getValueView (*item) };
+                    auto value { juce::String::fromUTF8 (valueView.data(),
+                        static_cast<int> (valueView.size())) };
 
-                    if (value.isEmpty() and item->id != Id::list)
+                    if (value.isEmpty() and item->id != listMarker)
                         value = jam::Format::toCamelCase (precedingBinding);
 
                     item->add<juce::String> (Id::value, value);
@@ -994,6 +1024,9 @@ private:
     static void addListCount (Element& scope, int indent, jam::Array<int>& counts, jam::Array<int>& blanks,
         const Model& document, Element& row)
     {
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+
         if (indent == counts.size())
             counts.resize (indent + 1);
 
@@ -1004,7 +1037,7 @@ private:
         {
             if (block->isTag (Id::ul))
                 for (auto* item : *block)
-                    if (item->id == Id::list
+                    if (item->id == listMarker
                         and not document.isColumnAddress (row, *item->get<juce::String> (Id::value)))
                     {
                         ++counts.at (indent);
@@ -1057,10 +1090,15 @@ private:
         jam::Array<int>& commentOrdinals, jam::Array<int>& mapOrdinal, const jam::Array<int>& excess,
         int& lineIndex, const Model& document, Element& row, const jam::Array<int>& paragraphOwner)
     {
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const juce::Identifier commentMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::comment.toString(), Chars::openBracket)) };
+
         const auto blockText { *item.get<juce::String> (Id::value) };
         const auto isShapeValue { document.isShape (row, blockText) };
 
-        if (item.id == Id::list)
+        if (item.id == listMarker)
         {
             const auto isColumn { document.isColumnAddress (row, blockText) };
             if (isColumn or mapOrdinal.at (indent) >= excess.at (indent))
@@ -1072,7 +1110,7 @@ private:
             }
             if (not isColumn) ++mapOrdinal.at (indent);
         }
-        else if (item.id == Id::comment)
+        else if (item.id == commentMarker)
         {
             item.add<int> (Id::level, indent);
             item.add<int> (Id::line, commentOrdinals.at (indent)++);
@@ -1206,6 +1244,9 @@ private:
     static void addMaps (const Model& document, Element& row, Element& scope, int indent,
         const jam::Array<int>& blanks, const jam::Array<int>& paragraphCount, jam::Array<int>& group)
     {
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+
         if (indent == group.size())
             group.resize (indent + 1);
 
@@ -1213,7 +1254,7 @@ private:
         {
             if (block->isTag (Id::ul))
                 for (auto* item : *block)
-                    if (item->id == Id::list and not item->contains (Id::line))
+                    if (item->id == listMarker and not item->contains (Id::line))
                     {
                         const auto groupCount { (indent < blanks.size() ? blanks.at (indent) : 0) + 1 };
                         const auto totalParagraphs {
@@ -1344,7 +1385,8 @@ private:
         const auto isCommentColumn { headerCell.id == Id::comment or headerCell.id == Id::brief };
         const auto isCommentProse { isCommentColumn
                                     and (literal == nullptr
-                                         or cell.getAllSubText() != literal->getAllSubText()) };
+                                         or cell.getAllSubText().compare (
+                                                literal->getAllSubText()) != 0) };
 
         auto value { getAuthoredText (cell, literal, isCommentColumn, isCommentProse, transform) };
 
@@ -1359,26 +1401,16 @@ private:
 
     /**
      * @brief Stamps every one of @p row's cells with its resolved value,
-     *        through addValue().
-     *
-     * @pre @p row carries the same cell count as @p headerRow.
+     *        through addValue(), each cell's own header cell found by its
+     *        column id.
      *
      * @param headerRow @p row's table's header row.
      * @param row       The row whose cells are stamped.
      */
     void addValues (Element& headerRow, Element& row)
     {
-        auto* headerCell { headerRow.firstChild };
-        auto* cell { row.firstChild };
-
-        while (cell != nullptr)
-        {
-            jassert (headerCell != nullptr);
-
-            addValue (*headerCell, row, *cell);
-            headerCell = headerCell->nextSibling;
-            cell = cell->nextSibling;
-        }
+        for (auto* cell : row)
+            addValue (*headerRow.getChildByID (cell->id), row, *cell);
     }
 
     /**
@@ -1397,7 +1429,8 @@ private:
 
         for (auto* candidate : *this)
             if (isBlockType (*candidate, map::BlockType::table) and not candidate->isTag (Id::index))
-                if (candidate->contains (Id::path) and *candidate->get<juce::String> (Id::path) == declaredPath)
+                if (candidate->contains (Id::path)
+                    and candidate->get<juce::String> (Id::path)->compare (declaredPath) == 0)
                     fileTables.add (candidate);
 
         if (fileTables.size() == 1)
@@ -1433,7 +1466,8 @@ private:
 
             for (auto* candidate : *this)
                 if (candidate->id == tableId)
-                    if (candidate->contains (Id::path) and *candidate->get<juce::String> (Id::path) == declaredPath)
+                    if (candidate->contains (Id::path)
+                        and candidate->get<juce::String> (Id::path)->compare (declaredPath) == 0)
                         return candidate;
 
             return nullptr;
@@ -1442,6 +1476,10 @@ private:
         return getUnnamedTable (declaredPath);
     }
 
+    /**
+     * The manifest file's own parent directory, stamped at parse() -- the
+     * directory getFile() resolves every relative path against.
+     */
     juce::File directory;
 
     /**

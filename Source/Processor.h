@@ -116,7 +116,7 @@ private:
             {
                 const auto argument { getColumnValue (*row, Id::argument) };
 
-                if (argument == toolchainArgument)
+                if (argument.compare (toolchainArgument) == 0)
                 {
                     hasMatchedToolchainRow = true;
 
@@ -184,14 +184,16 @@ private:
      */
     juce::String writeOriginIfChanged (const juce::String& origin, const jam::MarkdownWriter& formatter) const
     {
+        static const auto newlineText { juce::String::charToString (Chars::newline) };
+
         const auto file { model->getFile (origin) };
         const auto current { file.loadFileAsString() };
 
-        if (const auto canonical { formatter.getText (*model, origin) }; canonical != current)
+        if (const auto canonical { formatter.getText (*model, origin) }; canonical.compare (current) != 0)
             if (not file.replaceWithText (canonical,
                 false,
                 false,
-                juce::String::charToString (Chars::newline).toRawUTF8()))
+                newlineText.toRawUTF8()))
                 return file.getFullPathName();
 
         return {};
@@ -209,6 +211,8 @@ private:
      */
     juce::Result getWriteResult (const jam::Array<juce::String>& formatFailures) const
     {
+        static const auto newlineText { juce::String::charToString (Chars::newline) };
+
         jam::Strings failures;
 
         for (const auto& failedFile : formatFailures)
@@ -216,8 +220,7 @@ private:
                 failures.add (failedFile + Id::diagnosticSeparator + text::Diagnostics::failOutputWrite);
 
         if (failures.size() > 0)
-            return juce::Result::fail (
-                failures.joinIntoString (juce::String::charToString (Chars::newline), 0, -1));
+            return juce::Result::fail (failures.joinIntoString (newlineText, 0, -1));
 
         return juce::Result::ok();
     }
@@ -237,7 +240,7 @@ private:
         const auto flag { getColumnValue (row, Id::flag) };
         const auto arguments { getToolchainArguments (command, flag) };
         const auto diagnosticLine { flag.isNotEmpty()
-                                        ? command + juce::String::charToString (Chars::space) + flag
+                                        ? command + Chars::space + flag
                                         : command };
 
         return runProcess (arguments, diagnosticLine);

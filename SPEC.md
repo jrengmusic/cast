@@ -14,19 +14,28 @@ of any target language.
 
 The engine hardcodes these and nothing else:
 
-- the markers `:::token:::`, `@`, `` ` ``, `- key: value`, `> `
+- the markers `:::token:::`, `@`, `` ` ``, `- key: value`, `> `, `[word]`
 - the manifest column names
-- the reserved bullet names `list` (source, §6.5) and `comment` (documentation reference, §5.4)
-- the reserved token names `list` (expansion, §6.5) and `comment` (documentation, §5.4)
+- the reserved bullet names `[list]` (source, §6.5) and `[comment]` (documentation reference, §5.4)
+- the reserved token names `[list]` (expansion, §6.5), `[comment]` (documentation, §5.4) and `[banner]` (§5.5)
+- the reserved fence prefix `[no-banner]` (§7.3)
 - the index table name and its columns
-- the reserved column names `format`, `comment`, and `value` (map payload, §6.5)
-- the identity column names `name`, `key`, `alias` (§5.3)
+- the reserved column names `format`, `comment`, `brief`, and `value` (map payload, §6.5)
+- the identity column names `name`, `key`, `alias`, `file` (§5.3)
 - the toolchain table name and its columns
 - the manifest-syntax table name (§5.4)
 - the operation keywords
-- the `.cast` extension, which marks an index symbol as a template file (§4.2)
+- the `.cast` extension, which marks an index symbol as a template file (§4.2), the `.md`
+  extension, which marks an index symbol as a file that must exist (§4.4), and the `.h`
+  extension, the comment-syntax key an output falls back to (§5.4)
 
 Every other name in every file is data.
+
+**Square brackets mark a reserved name.** Every name the engine reserves is written
+enclosed — `:::[list]:::`, `- [comment]:`, a fence's `[sh]` prefix. A name without
+brackets is the author's, always, and `list`, `comment` and `banner` are ordinary token
+and binding names when written bare. Column names are the one exception: a column is
+already scoped by its table (§6), so reserved column names carry no brackets.
 
 ### 1.1 Data Is Correct
 
@@ -246,6 +255,10 @@ empty string is not an error and not a special case — it is string replacement
 nothing: a template token it fills renders empty, and a line left empty by its own
 placeholder elides for free, exactly like any other emptied placeholder line (§7). An
 empty `format` cell formats nothing — the value it binds to is written verbatim (§5.2).
+
+The law governs a cell read as a **value**. It does not govern a cell read as an
+**address**: an address names a thing, and a name that is nothing names nothing. The
+`## index` `symbol` cell is the one such cell, and a blank one is fatal (§4.1, §10.1).
 A blank `comment` cell documents nothing (§5.4). Both are this one law, applied to
 their own column.
 
@@ -306,7 +319,7 @@ Three documentation channels, all data:
   bound to a table; the info string is its name, the fence text is its prose,
   stamped at parse (§11.1) and addressed by a comment reference
 
-`:::comment:::` is the comment marker — the only place documentation reaches an
+`:::[comment]:::` is the comment marker — the only place documentation reaches an
 output. The author writes prose; documentation tags (`@file`, `@brief`) are authored
 text, comment syntax is not. The marker's replacement is rendered in the **output
 language's** comment syntax, selected by the file the row writes to, through the
@@ -316,7 +329,12 @@ The comment-syntax key is the output file's extension — except when the output
 exact name has a row in the manifest-syntax table. Build manifests carry deterministic
 names whose extensions do not name their language (`CMakeLists.txt` is CMake, not
 text); a manifest-syntax hit replaces the extension as the comment-syntax key, and
-every other output falls through to its extension.
+every other output falls through to its extension. A fence prefix outranks both (§7.3).
+
+An extension that names no comment-syntax table — and a file with no extension at all —
+resolves to the C table. Writing the file is never in doubt: an output cast cannot key
+is written in C syntax, not refused. A wrong comment mark is a bad line in one file; a
+refusal is no file at all.
 
 Marker position selects the form, exactly as marker position selects the expansion
 axis (§7):
@@ -331,9 +349,9 @@ axis (§7):
 The marker resolves by scope: in an item shape it reads the source row's `comment`
 column; at shape level it reads, in order:
 
-1. the row's **comment reference** — a `- comment: @file:<name>` bullet in the list
+1. the row's **comment reference** — a `- [comment]: @file:<name>` bullet in the list
    column at the shape line's own `>` count, pairing with that line exactly as a
-   `- list:` line pairs (§6.5). The address names a table (its table documentation)
+   `- [list]:` line pairs (§6.5). The address names a table (its table documentation)
    or a fence (§5.4). A wrapper shape declared across several rows carries the same
    reference on every declaring row — the reference is part of the shape's per-row
    declaration, like a binding.
@@ -344,6 +362,31 @@ column; at shape level it reads, in order:
 A missing comment is not an error and not a special case: the
 replacement is empty, and the line trims or collapses exactly like any other emptied
 placeholder line — plain replacement, no elision machinery.
+
+### 5.5 Banner
+
+Every output file carries the banner. The engine stamps it; a template never authors
+it. It is rendered in the output language's own comment syntax, keyed exactly as
+`:::[comment]:::` is keyed (§5.4), and the file's documentation (§6.8) is part of it and
+travels with it.
+
+`:::[banner]:::` places the banner. It renders where it sits — in any shape, at any
+depth, once for each occurrence. A file whose render carries no such marker takes the
+banner at the top, before its own first line. That is the only difference the marker
+makes: it moves the banner, it never creates one.
+
+Position is the author's because line 1 is not the engine's to know. A shell script
+needs `#!` first, an XML file needs its declaration first, and no extension tells the
+engine whether this particular file has one. The template holds line 1, so the template
+places the banner.
+
+A language that declares a banner frame is framed by it. A language that declares none
+takes its single-line marker before every banner line — the same rendering `:::[comment]:::`
+gives multi-line prose (§5.4). Shell, TOML and YAML have no block comment, and this is
+how they carry a banner at all.
+
+A file gets no banner when a fence of its render carries the `[no-banner]` prefix
+(§7.3). One marked fence suppresses the banner for the whole file, in every position.
 
 ---
 
@@ -356,7 +399,7 @@ Four reserved column names, in canonical authored order:
 ```
 
 A manifest table may also carry a `comment` column (§5.4): documentation for the row's
-items, read by an item shape's `:::comment:::` exactly as a data table's comment column
+items, read by an item shape's `:::[comment]:::` exactly as a data table's comment column
 is read. The marker always reads the item's own source row (§5.4) — a manifest row's
 comment cell therefore speaks where the manifest row itself is the source, as a
 selector's rows are; items sourced from a data table read that table's own rows, and
@@ -373,7 +416,7 @@ other wiring-adjacent data may live beside the wiring that reads them.
 
 ### 6.1 Bindings
 
-A binding is a bullet, `- <name>: <value>`, whose name is anything but `list`. It feeds
+A binding is a bullet, `- <name>: <value>`, whose name is anything but `[list]`. It feeds
 the template token of that name, paired **by name**. The value is an address — a data
 symbol or a shape (§4.2) — or plain text, resolved the same way everywhere a bullet
 value is read.
@@ -383,7 +426,7 @@ name is replaced by that shape's rendering. The wrapper is a shape line at its
 authored position in the structure column — it consumes the source lines that follow
 it, bounded by its own arity (§6.4); the bindings after it, up to the next shape
 line, bind **its** tokens; its `>` count is the indent its shape renders at. This is
-how a shape enters through a named token — `:::list:::` remains the only expansion
+how a shape enters through a named token — `:::[list]:::` remains the only expansion
 token, and a wrapper never fills one (§6.4).
 
 Everything a wrapper consumes — its bindings and its sources — is the wrapper's own
@@ -422,9 +465,9 @@ The structure column is read top to bottom. Two lines name a shape, by its addre
 (§4.2):
 
 - `@template:fence` — the shape renders once
-- `- list: @template:fence` — the shape renders once per item of the line's source (§6.5)
+- `- [list]: @template:fence` — the shape renders once per item of the line's source (§6.5)
 
-Both are **sources**: each fills one `:::list:::` occurrence of the shape above it. The
+Both are **sources**: each fills one `:::[list]:::` occurrence of the shape above it. The
 first line of the column is the row's own shape.
 
 A named bullet binds one token of the nearest shape line above it (§6.1). A wrapper
@@ -433,7 +476,7 @@ and the source lines after it are its to consume.
 
 ### 6.4 Arity
 
-A shape's arity is its count of `:::list:::` occurrences (§7). A shape consumes the next
+A shape's arity is its count of `:::[list]:::` occurrences (§7). A shape consumes the next
 *arity* source lines, in order; each consumed source consumes its own arity first, so
 nesting is declared by the template and never authored. Supplying **more** sources
 than the row's shapes demand is fatal (§10.1). Supplying fewer is legal: authored
@@ -443,7 +486,7 @@ template.
 
 A wrapper (§6.1) counts like a shape line, not like a source: it adds its own arity
 to the row's demand and supplies nothing — it fills a named token, never a
-`:::list:::` slot.
+`:::[list]:::` slot.
 
 `> ` count is indentation, and nothing else: one tab (four spaces) per `>`, the
 **absolute** column — measured from column 0 of the output file — at which that line's
@@ -456,7 +499,7 @@ ordinal within that count (§6.5). One symbol, one meaning, in all three columns
 
 ### 6.5 Expansion and Pairing
 
-`:::list:::` is the only expansion token (§7). Every other token is a named token and
+`:::[list]:::` is the only expansion token (§7). Every other token is a named token and
 takes its value from, in order:
 
 1. the binding of that name (§6.1) — for an item shape, the source row's own binding
@@ -464,28 +507,28 @@ takes its value from, in order:
    first (below)
 3. the column of that name — on the manifest row, or, for an item shape, on the source
    row
-4. the table documentation (§5.4), for the name `comment` at shape level
+4. the table documentation (§5.4), for the name `[comment]` at shape level
 
 **Maps.** A map is a table read one row per token: the row whose **first column** equals
 the token name supplies its `value` cell. `key | value` is the plain form;
 `name | type | value | comment` is the same map with more payload. Any table whose first
 column is an identity column (§5.3) is a map when a shape reads it as one; the same
-table iterated by a `- list:` expansion is a record table. Orientation is the reader's,
+table iterated by a `- [list]:` expansion is a record table. Orientation is the reader's,
 never the table's.
 
 A shape paragraph declares its maps in the list column, positionally, under the same
-slot law as expansions: at a `>` count, the list column's `- list:` lines in excess of
-the structure column's `- list:` lines at that count are map lines, read first in
+slot law as expansions: at a `>` count, the list column's `- [list]:` lines in excess of
+the structure column's `- [list]:` lines at that count are map lines, read first in
 authored order. Column-address lines (`@file:table:column`, the inline sources below)
 are neither expansions nor maps and are never counted: the address form is the
 discriminator, as it is for the inline marker. Map lines group to that count's shape paragraphs by order: a blank
-`- list:` closes the current paragraph's group and opens the next paragraph's; fewer
+`- [list]:` closes the current paragraph's group and opens the next paragraph's; fewer
 groups than paragraphs fill the trailing paragraphs, as fewer sources than arity fill a
 shape's trailing slots (§6.4). A different `>` count is a different scope and needs no
 placeholder. A map line with no shape paragraph at its count is fatal (§10.1). A map
 table with no `value` column is fatal (§10.1).
 
-`comment` at shape level skips rungs 2 and 3: a map row named `comment` is data, and a
+`[comment]` at shape level skips rungs 2 and 3: a map row named `comment` is data, and a
 manifest row's comment column documents the row's items (§6), never the row's own
 shape — shape documentation is the table channel (§5.4).
 
@@ -497,18 +540,18 @@ row, which slots carry text.
 
 Expansion pairs by order:
 
-- The list column's `- list:` lines pair with the structure column's `- list:` lines by
+- The list column's `- [list]:` lines pair with the structure column's `- [list]:` lines by
   `>` count and by ordinal within that count (§6.4). The list column names **what
   iterates**; the structure line names **the shape** each item renders through.
 - A shape consumes the source lines that follow it, bounded by its arity (§6.4). Its
-  `:::list:::` occurrences, in block order, take those sources in the same order.
-- A separator line pairs with the `- list:` line of the same ordinal (§6.6).
+  `:::[list]:::` occurrences, in block order, take those sources in the same order.
+- A separator line pairs with the `- [list]:` line of the same ordinal (§6.6).
 
-A `- list:` source paired with a structure `- list:` line is one of:
+A `- [list]:` source paired with a structure `- [list]:` line is one of:
 
 - an **address** — `@file:table` iterates that table's rows
 - a **column address** — `@file:table:column` names one column of the enclosing
-  expansion's table; it feeds an **inline** `:::list:::` (§7), never a column-0 one
+  expansion's table; it feeds an **inline** `:::[list]:::` (§7), never a column-0 one
 - a **cell-match filter** — `@file:table:column=value` (§4.2) iterates only that
   table's rows whose `column` cell equals `value`, byte-exactly; an empty `value`
   matches a blank cell (§5.1) — this is how a filtered address, not a second table,
@@ -532,17 +575,17 @@ its distinct values in first-appearance order — never sorted. A row may declar
 than one selector binding; each name selects its own row set, and two selectors on
 one row feed two slots by ordinal, like any two sources.
 
-An inline `:::list:::`'s sources are the column-address lines that follow the item
+An inline `:::[list]:::`'s sources are the column-address lines that follow the item
 shape's own source line, at the **same** `>` count, consecutive ordinals, in authored
 order — one line per column, each naming the column explicitly. The current row's
 value of each addressed column fills the marker, joined by the within-line join
 (§6.6). There is no implicit column set: every consumed column is named.
 
 A list-column line with no structure partner is a map line (above). A structure
-`- list:` line, or a separator line past the row join, with no list-column line of its
+`- [list]:` line, or a separator line past the row join, with no list-column line of its
 ordinal is fatal (§10.1).
 
-A shape-level `:::comment:::` (§5.4) falls back to the documentation of the first
+A shape-level `:::[comment]:::` (§5.4) falls back to the documentation of the first
 table addressed by the shape's own sources, in authored order; when no source
 addresses a table, it falls back to the documentation of the row's own table.
 
@@ -552,14 +595,14 @@ whose arity does not match the sources supplied is fatal (§6.4, §10.1).
 
 ### 6.6 Separator
 
-The separator column carries `- list:` lines mirroring the list column's. The line at
+The separator column carries `- [list]:` lines mirroring the list column's. The line at
 ordinal K is the join text for the expansion wired at ordinal K. No line, or a blank
 value, joins by newline. A value resolves like any bullet value (§6.1) — a shape address
 names a block whose text is the join; an index alias names a datum, formatted by the
 index's own `format` column (§4.1), which is how a join of one space is authored
 (`U+0020`, `fromUTF8`, §9).
 
-For an item shape whose `:::list:::` is inline (§6.5), the separator line at the item
+For an item shape whose `:::[list]:::` is inline (§6.5), the separator line at the item
 source line's own ordinal is the **within-line join** — the text between the addressed
 column values. The join between the items themselves is the newline default; an inline
 marker declares no other item join.
@@ -587,7 +630,7 @@ intervening row of another file is fatal (§10.1) — one file is written once.
 ### 6.8 File Documentation
 
 A wiring table carries no documentation column. A file's documentation is wired in the
-structure column: a `- comment:` binding whose value is a table address, on the file
+structure column: a `- [comment]:` binding whose value is a table address, on the file
 group's **first** row — first appearance in authored order, the same grouping law as
 §6.7 and the same law the engine already applies to output-file ordering.
 
@@ -598,19 +641,21 @@ carries a `file` column and documentation columns; the engine reads the row whos
 the address names — the `comment` column when the address names none. The addressed
 cell is plain text or the fenced documentation form (§3.2): each fence line is one line
 of the file's documentation prose. A group whose first row carries no address-valued
-`- comment:` binding, a file absent from the addressed table, or an addressed cell that
+`- [comment]:` binding, a file absent from the addressed table, or an addressed cell that
 is blank, writes no file documentation — plain replacement, no special case (§5.4).
 
 The resolved prose is rendered in the file's own comment syntax exactly as a
-shape-level `:::comment:::` renders (§5.4), written between the banner and the group's
-own rendered shape, framed by one blank line on each side. The addressed table's
+shape-level `:::[comment]:::` renders (§5.4), written immediately after the banner and
+framed by one blank line on each side. It is part of the banner and goes wherever the
+banner goes (§5.5): a file that places the banner with `:::[banner]:::` places its
+documentation there too, and a file with no banner carries no file documentation. The addressed table's
 documentation columns are documentation, never data (§5.4) — a fence there is not a
 literal, `toLiteral` never applies, and the `@` sigil law (§4) does not apply inside a
 fence's prose: documentation is never a reference, so a prose line beginning with
 `@file` or `@brief` is text. The binding's own value is the one exception — it is a
 reference, resolved as any other address is (§4.2).
 
-The `@` sigil law (§4) is what separates this binding's two readers. A `- comment:`
+The `@` sigil law (§4) is what separates this binding's two readers. A `- [comment]:`
 binding whose value is plain text is per-item prose, exactly as before: an item-shape
 reader finds the binding before it falls to the source row's own `comment` column, and
 renders the bound text. The file-documentation reader reads only the address-valued
@@ -674,7 +719,7 @@ logic, no formatting. Target-language conditional directives (`#if`, `#endif`, a
 their kin) are literal text like any other: the engine neither reads nor evaluates
 them, and slots inside such an arm take sources by the ordinary arity law (§6.4).
 
-`:::list:::` is the expansion token. A block's occurrence count is its arity (§6.4);
+`:::[list]:::` is the expansion token. A block's occurrence count is its arity (§6.4);
 each occurrence is filled by one source — its items joined by that source's separator
 (§6.6):
 
@@ -717,8 +762,46 @@ widest replacement across the join set. Fill never enters a token's replacement,
 token wrapped in literals (a quoted include path) emits verbatim. Content before the
 first token and after the last token never pads — a single-token shape emits unpadded
 and no emitted line carries trailing whitespace. Multi-line shapes, single-item
-joins, and single-line shapes carrying an inline `:::list:::` render unpadded. There
+joins, and single-line shapes carrying an inline `:::[list]:::` render unpadded. There
 is no column limit and no wrapping — a long line stays long.
+
+### 7.3 Fence Prefix
+
+A fence's info string is its name (§7), and the name may open with one bracket group:
+
+```
+[sh]script
+[no-banner]script
+```
+
+The group is part of the name. It is part of the address too, matched byte for byte —
+`@code:[sh]script`, never `@code:script`. Nothing after the group is read: a dash is an
+ordinary character, so `[sh]-script` and `[sh]script` are two different, equally legal
+names. One group per fence; a second is a name, not a prefix.
+
+Two words are legal inside the group:
+
+- **an extension, written without its dot** — `[sh]`, `[py]`, `[xml]`. It is the file's
+  comment-syntax key, and it outranks the output file's own extension and the
+  manifest-syntax table alike (§5.4). This is how a file with no extension, or one whose
+  extension does not name its language, declares what it is.
+- **`no-banner`** — the file carries no banner (§5.5).
+
+The fence always wins. The extension is a guess about the file's language; the prefix is
+the author's statement about it.
+
+Any other word is fatal, and so is a group that never closes (§10.1). The engine reads
+no meaning into the word beyond these two lookups — an extension word is matched against
+the comment-syntax table (§5.4), which is data, so the engine learns no language here
+either.
+
+Every shape address is gated, in every column that carries one — `structure`, `separator`
+and `list` alike. A `no-banner` prefix is honoured from those same three columns: any
+fence of the render suppresses the banner, wherever it is wired.
+
+An extension word answers for the whole output file, so one fence answers: the first
+shape line of the group's first row (§6.7). A prefix on a later fence of the same file
+states nothing new and is not read.
 
 ---
 
@@ -733,7 +816,7 @@ datum's own characters:
 - **encoding** — `toLiteral`, `toUTF8`, `fromUTF8`, `toHex`, `toCodepoint`, `fromCodepoint`
 - **text** — `join`, `toFileName`
 - **comment** — `toComment`, `toCommentBlock`, `brief`, for the banner CAST stamps and
-  the `:::comment:::` marker (§5.4)
+  the `:::[comment]:::` marker (§5.4)
 
 In every case operation, an all-uppercase word is an abbreviation and passes through
 unchanged in every position. `WindowFX` camel-cases to `windowFX`; `CSI` and `C4Type`
@@ -815,9 +898,9 @@ These, and nothing else:
 | `format` cell names an operation that is not in §8 | §8 |
 | duplicate entry within one identity column of one table | §5.3 |
 | a shape address names a fence that does not exist in its template file | §7 |
+| a fence prefix naming neither a comment-syntax extension nor `no-banner`, or a bracket group that never closes | §7.3 |
 | a map line with no shape paragraph at its `>` count | §6.5 |
 | a map table with no `value` column | §6.5 |
-| an output file whose comment-syntax key (§5.4) names no comment-syntax table | §5.4 |
 | an output file that cannot be written | §10 |
 | a toolchain row whose process cannot start or exits nonzero | §6.9 |
 | a `--<word>` CLI argument matching no toolchain row's `argument` cell | §6.9 |
@@ -826,10 +909,11 @@ These, and nothing else:
 | output row declares no structure | §6.3 |
 | same-file output rows not contiguous | §6.7 |
 | a row supplies more sources than its shapes demand | §6.4 |
-| a structure or separator `- list:` line without its list-column line of the same ordinal, the row join excepted | §6.5, §6.6 |
+| a structure or separator `- [list]:` line without its list-column line of the same ordinal, the row join excepted | §6.5, §6.6 |
 | duplicate binding name among one shape's bindings | §6.1 |
 | a comment reference naming neither a table nor a fence | §5.4 |
 | unterminated `:::` marker in a shape block | §7 |
+| a `## toolchain` header row declaring no `command` or no `flag` column | §6.9 |
 
 Any check the engine performs that is not in this table is a defect in the engine.
 
@@ -873,6 +957,13 @@ the ownership that made it feel necessary is fixed instead.
 
 Failure is loud. A missing key throws where it is looked up; it does not yield an empty
 string that travels downstream and emits blank output.
+
+A key a table never declares is not a missing key. A comment-syntax table declares the
+marks its language owns and no others (§5.4): CSS declares no single-line mark, `go.mod`
+declares no block frame. Reading such a key answers *this language has none*, and the
+reader takes the shape the language does declare. The table itself is the key that must
+exist — an extension naming no table is not an error either, because §5.4 resolves it to
+the C-family table.
 
 ---
 

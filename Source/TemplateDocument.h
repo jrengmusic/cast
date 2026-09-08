@@ -21,13 +21,17 @@ struct TemplateDocument
     /**
      * @brief Parses every @c .cast file @p model's index declares,
      *        keyed by its own symbol, and stamps each code block with
-     *        its own text and the @c :::token::: names it places.
+     *        its own text and the @c :::token::: names it places,
+     *        excluding the @c :::\[banner\]::: marker from that list.
      *
      * @param model The model whose index declares the template files to
      *              parse.
      */
     explicit TemplateDocument (const Model& model)
     {
+        static const juce::Identifier bannerMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::banner.toString(), Chars::openBracket)) };
+
         for (auto* indexRow : model.getTableRows (Id::index))
         {
             const auto symbol { model.getTableValue (*indexRow, Id::symbol) };
@@ -46,7 +50,12 @@ struct TemplateDocument
                         jam::Document::Identifiers names;
 
                         for (const auto& interior : getMarkers (blockText))
-                            names.add (juce::Identifier (jam::Format::toValidID (interior)));
+                        {
+                            const auto markerName { juce::Identifier (jam::Format::toValidID (interior)) };
+
+                            if (markerName != bannerMarker)
+                                names.add (markerName);
+                        }
 
                         block->add<jam::Document::Identifiers> (Id::placeholder, std::move (names));
                     }

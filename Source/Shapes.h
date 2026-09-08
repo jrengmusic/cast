@@ -80,6 +80,9 @@ struct Shapes
      */
     static Element* getFirstLine (const Model& model, Element& row)
     {
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+
         Element* line { nullptr };
 
         model.getTableCell (row, Id::structure)
@@ -88,7 +91,7 @@ struct Shapes
                 {
                     if (line == nullptr and candidate.contains (Id::shape)
                         and *candidate.get<int> (Id::shape) == 0
-                        and (candidate.isTag (Id::p) or candidate.id == Id::list))
+                        and (candidate.isTag (Id::p) or candidate.id == listMarker))
                         line = const_cast<Element*> (&candidate);
 
                     return line == nullptr;
@@ -224,7 +227,10 @@ struct Shapes
         const juce::Identifier& name, const juce::String& joinText, int parentIndent,
         bool isAtColumnZero, const juce::String& extension)
     {
-        if (name == Id::comment)
+        static const juce::Identifier commentMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::comment.toString(), Chars::openBracket)) };
+
+        if (name == commentMarker)
             return commentTable != nullptr ? *commentTable->get<juce::String> (Id::comment)
                                            : juce::String{};
 
@@ -291,15 +297,20 @@ struct Shapes
         int tokenOccurrence, const juce::String& joinText, int parentIndent, bool isAtColumnZero,
         const juce::String& extension, const juce::String& templateLine, const juce::String& marker)
     {
-        auto value { name == Id::list
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const juce::Identifier commentMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::comment.toString(), Chars::openBracket)) };
+
+        auto value { name == listMarker
                          ? getFill (model, templateDocument, tables, rows, lines,
                                tokenOccurrence, joinText, parentIndent, isAtColumnZero, extension)
                          : getTokenValue (model, templateDocument, tables, *rows.first(),
                                *lines.first(), commentTable, name, joinText, parentIndent,
                                isAtColumnZero, extension) };
 
-        if (name == Id::comment and value.isNotEmpty())
-            value = templateLine.trim() == marker
+        if (name == commentMarker and value.isNotEmpty())
+            value = templateLine.trim().compare (marker) == 0
                         ? Transforms::toCommentBlock (value, extension)
                         : Transforms::toComment (value, extension);
 
@@ -401,6 +412,8 @@ struct Shapes
         const jam::Document::Identifiers& tokens, const juce::String& joinText, int parentIndent,
         const juce::String& extension)
     {
+        static const auto newlineText { juce::String::charToString (Chars::newline) };
+
         jam::Strings textLines;
         auto previousLineIsEmpty { false };
         jam::HashMap<juce::Identifier, int> occurrence;
@@ -424,7 +437,7 @@ struct Shapes
             }
         }
 
-        return textLines.joinIntoString (juce::String::charToString (Chars::newline), 0, -1);
+        return textLines.joinIntoString (newlineText, 0, -1);
     }
 
     /**
@@ -446,6 +459,9 @@ struct Shapes
     static juce::String getIndentedText (const juce::String& text, int level, int parentIndent,
         bool isAtColumnZero)
     {
+        static const auto spaceText { juce::String::charToString (Chars::space) };
+        static const auto newlineText { juce::String::charToString (Chars::newline) };
+
         auto indentedText { text };
 
         if (isAtColumnZero)
@@ -454,15 +470,13 @@ struct Shapes
 
             if (indent != 0)
             {
-                const auto prefix { juce::String::repeatedString (
-                    juce::String::charToString (Chars::space), indent) };
+                const auto prefix { juce::String::repeatedString (spaceText, indent) };
                 jam::Strings prefixedLines;
 
                 for (const auto& textLine : jam::Strings::fromLines (text))
                     prefixedLines.add (textLine.isNotEmpty() ? prefix + textLine : textLine);
 
-                indentedText = prefixedLines.joinIntoString (
-                    juce::String::charToString (Chars::newline), 0, -1);
+                indentedText = prefixedLines.joinIntoString (newlineText, 0, -1);
             }
         }
 
@@ -552,16 +566,19 @@ struct Shapes
      */
     static bool isListMarkerInline (const TemplateDocument& templateDocument, Element& sourceLine)
     {
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+
         const auto& shapeTokens { *templateDocument.getCodeBlock (sourceLine)
                                         ->get<jam::Document::Identifiers> (Id::placeholder) };
 
-        if (std::find (shapeTokens.begin(), shapeTokens.end(), Id::list) == shapeTokens.end())
+        if (std::find (shapeTokens.begin(), shapeTokens.end(), listMarker) == shapeTokens.end())
             return false;
 
         const auto& shapeValue {
             *templateDocument.getCodeBlock (sourceLine)->get<juce::String> (Id::value)
         };
-        const auto marker { Items::getMarker (shapeValue, Id::list) };
+        const auto marker { Items::getMarker (shapeValue, listMarker) };
 
         for (const auto& shapeLine : jam::Strings::fromLines (shapeValue))
         {
@@ -605,6 +622,8 @@ struct Shapes
         const jam::Array<Element*>& sourceLines, const juce::String& joinText, int parentIndent,
         bool isAtColumnZero, const juce::String& extension)
     {
+        static const auto newlineText { juce::String::charToString (Chars::newline) };
+
         jam::Strings itemTexts;
 
         for (int index { 0 }; index < rows.size(); ++index)
@@ -624,7 +643,7 @@ struct Shapes
                                     : juce::String{} };
             const auto join { not listMarkerIsInline and value.isNotEmpty()
                                    ? value
-                                   : juce::String::charToString (Chars::newline) };
+                                   : newlineText };
             const auto childJoin { value };
             const auto itemText { Items::getJoinedItems (model, templateDocument, tables, row,
                 sourceValue, sourceLine, join, indent, ordinal, childJoin, extension) };
@@ -772,6 +791,10 @@ struct Shapes
         const jam::Array<Element*>& tables, Element& row, Element& line, const juce::String& joinText,
         int parentIndent, const juce::String& extension)
     {
+        static const auto newlineText { juce::String::charToString (Chars::newline) };
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+
         auto* commentTable { getCommentTable (model, templateDocument, row, line) };
         const auto& tokens { *templateDocument.getCodeBlock (line)
                                    ->get<jam::Document::Identifiers> (Id::placeholder) };
@@ -780,11 +803,11 @@ struct Shapes
         key.add (*line.get<juce::String> (Id::info));
 
         for (const auto& name : tokens)
-            if (name != Id::list)
+            if (name != listMarker)
                 key.add (getTokenValue (model, templateDocument, tables, row, line, commentTable,
                     name, joinText, parentIndent, false, extension));
 
-        return key.joinIntoString (juce::String::charToString (Chars::newline), 0, -1);
+        return key.joinIntoString (newlineText, 0, -1);
     }
 
     /**

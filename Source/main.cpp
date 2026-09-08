@@ -25,8 +25,10 @@ static void printBanner()
  */
 static void printBannerAndHelp()
 {
+    static const auto newlineText { juce::String::charToString (Chars::newline) };
+
     printBanner();
-    printf ("%s", juce::String::charToString (Chars::newline).toRawUTF8());
+    printf ("%s", newlineText.toRawUTF8());
     printHelp (BinaryData::getString (files::castHelp));
 }
 
@@ -78,7 +80,8 @@ static juce::String getPostFlagArgument (int argc, char* argv[])
  */
 static bool isFormatOnly (int argc, char* argv[])
 {
-    return getFlagArgument (argc, argv) == formatFlag or getPostFlagArgument (argc, argv) == formatFlag;
+    return getFlagArgument (argc, argv).compare (formatFlag) == 0
+           or getPostFlagArgument (argc, argv).compare (formatFlag) == 0;
 }
 
 /**
@@ -91,7 +94,8 @@ static bool isFormatOnly (int argc, char* argv[])
  */
 static bool isSkipFormat (int argc, char* argv[])
 {
-    return getFlagArgument (argc, argv) == noFormatFlag or getPostFlagArgument (argc, argv) == noFormatFlag;
+    return getFlagArgument (argc, argv).compare (noFormatFlag) == 0
+           or getPostFlagArgument (argc, argv).compare (noFormatFlag) == 0;
 }
 
 /**
@@ -107,7 +111,8 @@ static int getManifestIndex (int argc, char* argv[])
 {
     const auto flagArgument { getFlagArgument (argc, argv) };
 
-    return (flagArgument == formatFlag or flagArgument == noFormatFlag) ? postFlagArgIndex : flagArgIndex;
+    return (flagArgument.compare (formatFlag) == 0 or flagArgument.compare (noFormatFlag) == 0)
+               ? postFlagArgIndex : flagArgIndex;
 }
 
 /**
@@ -140,9 +145,10 @@ static juce::String getManifestArgument (int argc, char* argv[])
  */
 static bool isToolchainArgument (const juce::String& manifestArgument)
 {
+    static const jam::Strings reservedFlags { formatFlag, noFormatFlag, versionFlag, helpFlag };
+
     return manifestArgument.startsWith (Id::doubleDash.toString())
-           and manifestArgument != formatFlag and manifestArgument != noFormatFlag
-           and manifestArgument != versionFlag and manifestArgument != helpFlag;
+           and not reservedFlags.contains (manifestArgument, false);
 }
 
 /**
@@ -210,8 +216,8 @@ static juce::File getDocumentFile (int argc, char* argv[])
  */
 static bool isVersion (int argc, char* argv[])
 {
-    return (getFlagArgument (argc, argv) == versionFlag and argc == flagOnlyArgumentCount)
-           or getManifestArgument (argc, argv) == versionFlag;
+    return (getFlagArgument (argc, argv).compare (versionFlag) == 0 and argc == flagOnlyArgumentCount)
+           or getManifestArgument (argc, argv).compare (versionFlag) == 0;
 }
 
 /**
@@ -224,8 +230,8 @@ static bool isVersion (int argc, char* argv[])
  */
 static bool isHelp (int argc, char* argv[])
 {
-    return (getFlagArgument (argc, argv) == helpFlag and argc == flagOnlyArgumentCount)
-           or getManifestArgument (argc, argv) == helpFlag;
+    return (getFlagArgument (argc, argv).compare (helpFlag) == 0 and argc == flagOnlyArgumentCount)
+           or getManifestArgument (argc, argv).compare (helpFlag) == 0;
 }
 
 /**
@@ -237,9 +243,9 @@ static void writeVersion()
     const auto versionLine { ProjectInfo::projectName
                              + juce::String::charToString (Chars::space)
                              + ProjectInfo::versionString
-                             + juce::String::charToString (Chars::space)
-                             + juce::String::charToString (Chars::openParen) + CAST_COMMIT
-                             + juce::String::charToString (Chars::closeParen) };
+                             + Chars::space
+                             + Chars::openParen + CAST_COMMIT
+                             + Chars::closeParen };
     printf ("%s\n", versionLine.toRawUTF8());
 }
 

@@ -46,7 +46,7 @@ struct Items
                         const auto value { jam::Format::toFileName (
                             *cell->get<juce::String> (Id::value)) };
 
-                        if (value.isNotEmpty() and value != currentFile
+                        if (value.isNotEmpty() and value.compare (currentFile) != 0
                             and not sourceValues.contains (value, false))
                             sourceValues.add (value);
                     }
@@ -91,10 +91,10 @@ struct Items
                                                  *fileCell->get<juce::String> (Id::value))
                                            : juce::String{} };
             const auto matchesFilter { not isFiltered
-                or *model.getTableCell (*candidate, filterColumn)->get<juce::String> (Id::value)
-                       == filterValue };
+                or model.getTableCell (*candidate, filterColumn)->get<juce::String> (Id::value)
+                       ->compare (filterValue) == 0 };
 
-            if (candidateFile != currentFile and matchesFilter)
+            if (candidateFile.compare (currentFile) != 0 and matchesFilter)
                 sourceRows.add (candidate);
         }
 
@@ -103,19 +103,22 @@ struct Items
 
     /**
      * @brief Returns @p line's own arity -- its shape's count of
-     *        @c :::list::: occurrences.
+     *        @c :::\[list\]::: occurrences.
      *
      * @param templateDocument The template document @p line's shape is
      *                         read from.
      * @param line             The structure line whose arity is counted.
-     * @returns @p line's own shape's @c :::list::: occurrence count.
+     * @returns @p line's own shape's @c :::\[list\]::: occurrence count.
      */
     static int getArity (const TemplateDocument& templateDocument, Element& line)
     {
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+
         const auto& tokens { *templateDocument.getCodeBlock (line)
                                    ->get<jam::Document::Identifiers> (Id::placeholder) };
 
-        return static_cast<int> (std::count (tokens.begin(), tokens.end(), Id::list));
+        return static_cast<int> (std::count (tokens.begin(), tokens.end(), listMarker));
     }
 
     /**
@@ -136,6 +139,9 @@ struct Items
                                              const TemplateDocument& templateDocument,
                                              Element& row)
     {
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+
         jam::Array<int> privateShapes;
         const auto arityOf = [&templateDocument] (Element& line) { return getArity (templateDocument, line); };
 
@@ -143,7 +149,7 @@ struct Items
             scope->applyFunctionRecursively (
                 [&model, &privateShapes, &arityOf] (const Element& candidate) -> bool
                 {
-                    if (candidate.parent->isTag (Id::ul) and candidate.id != Id::list
+                    if (candidate.parent->isTag (Id::ul) and candidate.id != listMarker
                         and candidate.contains (Id::templatePath))
                     {
                         auto& line { const_cast<Element&> (candidate) };
@@ -184,6 +190,9 @@ struct Items
                                                        const jam::Array<Element*>& tables,
                                                        const juce::Identifier& source)
     {
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+
         jam::Array<Element*> sourceRows;
 
         for (auto* table : tables)
@@ -198,7 +207,7 @@ struct Items
                             [&matches, &source, &privateShapes] (const Element& item) -> bool
                             {
                                 if (item.parent->isTag (Id::ul) and item.id == source
-                                    and item.id != Id::list
+                                    and item.id != listMarker
                                     and not privateShapes.contains (*item.get<int> (Id::shape)))
                                     matches = true;
 
@@ -233,6 +242,11 @@ struct Items
     static juce::String getSourceValue (const Model& model, const TemplateDocument& templateDocument,
         Element& sourceRow, const juce::Identifier& name)
     {
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const juce::Identifier commentMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::comment.toString(), Chars::openBracket)) };
+
         juce::String deepestValue;
         const auto privateShapes { getPrivateShapes (model, templateDocument, sourceRow) };
 
@@ -240,14 +254,14 @@ struct Items
             scope->applyFunctionRecursively (
                 [&deepestValue, &name, &privateShapes] (const Element& item) -> bool
                 {
-                    if (item.parent->isTag (Id::ul) and item.id == name and item.id != Id::list
+                    if (item.parent->isTag (Id::ul) and item.id == name and item.id != listMarker
                         and not privateShapes.contains (*item.get<int> (Id::shape)))
                         deepestValue = *item.get<juce::String> (Id::value);
 
                     return true;
                 });
 
-        if (name == Id::comment and Model::isAddress (deepestValue))
+        if (name == commentMarker and Model::isAddress (deepestValue))
             return {};
 
         if (deepestValue.isNotEmpty())
@@ -255,10 +269,10 @@ struct Items
 
         juce::String columnValue;
 
-        if (auto* cell { model.getTableCell (sourceRow, name) })
+        if (auto* cell { model.getTableCell (sourceRow, name == commentMarker ? Id::comment : name) })
             columnValue = *cell->get<juce::String> (Id::value);
 
-        if (name == Id::comment and Model::isAddress (columnValue))
+        if (name == commentMarker and Model::isAddress (columnValue))
             return {};
 
         return name == Id::file ? jam::Format::toFileName (columnValue) : columnValue;
@@ -384,6 +398,11 @@ struct Items
                                  const juce::String& childJoin,
                                  const juce::String& extension)
     {
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const juce::Identifier commentMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::comment.toString(), Chars::openBracket)) };
+
         const auto& tokens { *templateDocument.getCodeBlock (line)
                                    ->get<jam::Document::Identifiers> (Id::placeholder) };
         auto itemText { *templateDocument.getCodeBlock (line)->get<juce::String> (Id::value) };
@@ -394,12 +413,12 @@ struct Items
 
             if (marker.isNotEmpty())
             {
-                auto value { name == Id::list
+                auto value { name == listMarker
                                  ? getChildValue (model, row, indent, sourceOrdinal, sourceRow, childJoin)
                                  : getColumnValue (
                                        model, templateDocument, sourceRow, sourceValue, sourceKey, name) };
 
-                if (name == Id::comment and value.isNotEmpty())
+                if (name == commentMarker and value.isNotEmpty())
                     value = Transforms::toComment (value, extension);
 
                 itemText = itemText.replace (marker, value);
@@ -447,6 +466,9 @@ struct Items
         Element* sourceRow, const juce::String& sourceValue, const juce::Identifier& sourceKey,
         const juce::String& extension)
     {
+        static const juce::Identifier commentMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::comment.toString(), Chars::openBracket)) };
+
         jam::HashMap<juce::Identifier, juce::String> replacements;
 
         for (const auto& name : tokens)
@@ -455,7 +477,7 @@ struct Items
                 getColumnValue (model, templateDocument, sourceRow, sourceValue, sourceKey, name)
             };
 
-            if (name == Id::comment and value.isNotEmpty())
+            if (name == commentMarker and value.isNotEmpty())
                 value = Transforms::toComment (value, extension);
 
             replacements.emplace (name, value);
@@ -536,7 +558,7 @@ struct Items
     static juce::String getMarker (const juce::String& text, const juce::Identifier& name)
     {
         for (const auto& interior : getMarkers (text))
-            if (jam::Format::toValidID (interior) == name.toString())
+            if (jam::Format::toValidID (interior).compare (name.toString()) == 0)
                 return Id::tripleColon + interior + Id::tripleColon;
 
         return {};
@@ -562,6 +584,8 @@ struct Items
     static juce::String getPaddedLiteral (const juce::String& literal, const juce::Identifier& previousName,
         const juce::String& previousValue, const jam::HashMap<juce::Identifier, size_t>& columnWidths)
     {
+        static const auto spaceText { juce::String::charToString (Chars::space) };
+
         const auto literalStart { literal.getCharPointer() };
         const auto whitespaceStart { juce::CharacterFunctions::trimBegin (literalStart,
             literalStart.findTerminatingNull(),
@@ -575,8 +599,7 @@ struct Items
             - static_cast<size_t> (previousValue.getNumBytesAsUTF8()) };
 
         return head
-             + juce::String::repeatedString (
-                   juce::String::charToString (Chars::space), static_cast<int> (fillWidth))
+             + juce::String::repeatedString (spaceText, static_cast<int> (fillWidth))
              + tail;
     }
 
@@ -585,7 +608,9 @@ struct Items
      *        shape -- each marker replaced by @p replacements' own value,
      *        fill spaces inserted after each literal's first whitespace
      *        run to align every token but the first against @p columnWidths
-     *        own byte-width high-water mark (SPEC §7.2).
+     *        own byte-width high-water mark (SPEC §7.2). A marker absent
+     *        from @p replacements is emitted verbatim and takes no part
+     *        in the column alignment.
      *
      * @param templateDocument The template document @p line's shape is
      *                         read from.
@@ -613,16 +638,26 @@ struct Items
         {
             const auto marker { Id::tripleColon + interior + Id::tripleColon };
             const auto name { juce::Identifier (jam::Format::toValidID (interior)) };
-            const auto columnValue { replacements.at (name) };
             const auto literal { jam::Format::upTo (remainingText, marker, false) };
             remainingText = jam::Format::from (remainingText, marker, false);
             paddedText += isFirstToken
                               ? literal
                               : getPaddedLiteral (literal, previousName, previousValue, columnWidths);
-            paddedText += columnValue;
-            previousName = name;
-            previousValue = columnValue;
-            isFirstToken = false;
+
+            if (auto replacementEntry { replacements.find (name) };
+                replacementEntry != replacements.end())
+            {
+                const auto& [replacementName, columnValue] { *replacementEntry };
+
+                paddedText += columnValue;
+                previousName = name;
+                previousValue = columnValue;
+                isFirstToken = false;
+            }
+            else
+            {
+                paddedText += marker;
+            }
         }
 
         paddedText += remainingText;
@@ -787,10 +822,13 @@ struct Items
                                       const juce::String& childJoin,
                                       const juce::String& extension)
     {
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+
         const auto& shapeText { *templateDocument.getCodeBlock (line)->get<juce::String> (Id::value) };
         const auto usePadding { isSingleLineShape (shapeText)
                                  and sourceRows.size() + sourceValues.size() > 1
-                                 and getMarker (shapeText, Id::list).isEmpty() };
+                                 and getMarker (shapeText, listMarker).isEmpty() };
 
         if (usePadding)
             return getPaddedItemTexts (
@@ -859,9 +897,12 @@ struct Items
                                   const juce::String& childJoin,
                                   const juce::String& extension)
     {
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+
         jam::Array<Element*> sourceRows;
         jam::Strings sourceValues;
-        juce::Identifier sourceKey { Id::list };
+        juce::Identifier sourceKey { listMarker };
 
         if (auto* sourceTable { model.getTable (row, source) }; sourceTable != nullptr)
             sourceRows = getTableSourceRows (model, row, *sourceTable, source);

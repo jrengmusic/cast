@@ -31,6 +31,7 @@ transform operations a format cell may declare (§8).
 | @string | join             | `join`               | Join text operation.                       |
 | @id     | key              | `key`                | Identity column key.                       |
 | @id     | list             | `list`               | Reserved expansion token name.             |
+| @id     | noBanner         | `no-banner`          | Banner-suppressing fence-prefix marker.    |
 | @id     | noFormat         | `no-format`          | Formatless-column marker.                  |
 | @id     | placeholder      | `placeholder`        | Placeholder token name.                    |
 | @id     | separator        | `separator`          | Separator column key.                      |

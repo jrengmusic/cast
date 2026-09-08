@@ -3,7 +3,7 @@
 ```
 @brief C-family comment syntax — the delimiters for a clang-style target.
 
-Carries every frame the `:::comment:::` marker renders into for a C-like
+Carries every frame the `:::[comment]:::` marker renders into for a C-like
 file: the single-line trailing marker (`Id::comment`, `///<`), the block
 brief marker (`Id::brief`, `@brief`), the block delimiters (`Id::blockOpen`
 / `Id::blockClose`), and the banner frame (`Id::bannerOpen` /
@@ -177,8 +177,9 @@ outputs.
 ```
 @brief Shell comment syntax.
 
-Carries only the single-line marker (`Id::comment`, `#`); shell has no
-block comment, so documentation renders inline only.
+Carries the single-line marker (`Id::comment`, `#`) alone; shell has no
+block comment, so Transforms::toCommentBlock() renders a multi-line value
+one `#`-marked line at a time, with no opening and no closing frame line.
 ```
 
 +-------------+-------+
@@ -187,51 +188,73 @@ block comment, so documentation renders inline only.
 | Id::comment | `#`   |
 +-------------+-------+
 
+## sql comment
+
+```
+@brief SQL comment syntax.
+
+Carries the single-line marker (`Id::comment`, `--`) and the C-style block
+frame, which also serves as the banner frame for `.sql` outputs.
+```
+
++-----------------+-------+
+| key             | value |
++=================+=======+
+| Id::comment     | `--`  |
+| Id::blockOpen   | `/*`  |
+| Id::blockClose  | `*/`  |
+| Id::bannerOpen  | `/*`  |
+| Id::bannerClose | `*/`  |
++-----------------+-------+
+
 ## comment syntax
 
 ```
 @brief File extension to comment-syntax table.
 
-Maps an output file's extension to the comment frame the `:::comment:::`
+Maps an output file's extension to the comment frame the `:::[comment]:::`
 marker renders in. Transforms.h reads one row per output file to wrap
 authored documentation, and Writer.h reads it to frame the banner. Each
-extension keys the `clangComment`, `cmakeComment`, `cssComment`,
+extension keys one of the `clangComment`, `cmakeComment`, `cssComment`,
 `gomodComment`, `htmlComment`, `luaComment`, `mermaidComment`,
-`pythonComment`, `rubyComment`, or `shellComment` map above.
+`pythonComment`, `rubyComment`, `shellComment` or `sqlComment` maps above.
+An extension absent from this table falls back to `clangComment`.
 ```
 
-+-----------+---------------+
-| key       | value         |
-+===========+===============+
-| `.h`      | clangComment  |
-| `.cpp`    | clangComment  |
-| `.c`      | clangComment  |
-| `.js`     | clangComment  |
-| `.ts`     | clangComment  |
-| `.jsx`    | clangComment  |
-| `.tsx`    | clangComment  |
-| `.java`   | clangComment  |
-| `.go`     | clangComment  |
-| `.rs`     | clangComment  |
-| `.rust`   | clangComment  |
-| `.cmake`  | cmakeComment  |
-| `.css`    | cssComment    |
-| `.mod`    | gomodComment  |
-| `.html`   | htmlComment   |
-| `.xml`    | htmlComment   |
-| `.lua`    | luaComment    |
-| `.py`     | pythonComment |
-| `.python` | pythonComment |
-| `.rb`     | rubyComment   |
-| `.ruby`   | rubyComment   |
-| `.sh`     | shellComment  |
-| `.bash`   | shellComment  |
-| `.shell`  | shellComment  |
-| `.toml`   | shellComment  |
-| `.sql`    | shellComment  |
-| `.yaml`   | shellComment  |
-| `.yml`    | shellComment  |
-+-----------+---------------+
++------------+----------------+
+| key        | value          |
++============+================+
+| `.h`       | clangComment   |
+| `.cpp`     | clangComment   |
+| `.c`       | clangComment   |
+| `.js`      | clangComment   |
+| `.ts`      | clangComment   |
+| `.jsx`     | clangComment   |
+| `.tsx`     | clangComment   |
+| `.java`    | clangComment   |
+| `.go`      | clangComment   |
+| `.rs`      | clangComment   |
+| `.rust`    | clangComment   |
+| `.cmake`   | cmakeComment   |
+| `.css`     | cssComment     |
+| `.mod`     | gomodComment   |
+| `.html`    | htmlComment    |
+| `.xml`     | htmlComment    |
+| `.lua`     | luaComment     |
+| `.mmd`     | mermaidComment |
+| `.mermaid` | mermaidComment |
+| `.py`      | pythonComment  |
+| `.python`  | pythonComment  |
+| `.rb`      | rubyComment    |
+| `.ruby`    | rubyComment    |
+| `.sh`      | shellComment   |
+| `.bash`    | shellComment   |
+| `.shell`   | shellComment   |
+| `.toml`    | shellComment   |
+| `.sql`     | sqlComment     |
+| `.yaml`    | shellComment   |
+| `.yml`     | shellComment   |
++------------+----------------+
 
 ## manifest syntax
 

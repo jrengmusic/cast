@@ -31,7 +31,7 @@
 | **Model.h** | Master document | Manifest parse → parallel per-file table parse → splice into ONE MarkdownDocument; value/table/alias resolution |
 | **Validator.h** | Manifest + table gates | Structure, source-count, address, format, index, hazard fatals — the only gate |
 | **Writer.h** | Output rendering | One job per output-file group; write-if-different; failure collection |
-| **Shapes.h** | Shape replacements | `:::list:::` expansion, bindings, depth indent, row merge law |
+| **Shapes.h** | Shape replacements | `:::[list]:::` expansion, bindings, depth indent, row merge law |
 | **Items.h** | Item rendering | Source discovery (cells/@address/column/binding), padding law, column-aligned rendering |
 | **TemplateDocument.h** | Template pool | One parsed document per `.cast` index row; shape lookup by `@alias:fence` address |
 | **Transforms.h** | String transforms | Case/escape/comment framing per extension (`map::commentSyntax`) |
@@ -44,7 +44,7 @@
 
 | File | Purpose |
 |------|---------|
-| **CAST.md** | Generation manifest: outputs, four-column wiring rows (`list | separator | structure | file`); shapes addressed `@code:<fence>` into `../../jam/cast/code.cast`; per-output file documentation wired via `- comment: @headers:brief` structure bindings into the `## headers` table (`file | brief | comment`) |
+| **CAST.md** | Generation manifest: outputs, four-column wiring rows (`list | separator | structure | file`); shapes addressed `@code:<fence>` into `../../jam/cast/code.cast`; per-output file documentation wired via `- [comment]: @headers:brief` structure bindings into the `## headers` table (`file | brief | comment`) |
 | **identifiers.md** | Identifier table → generated/Identifiers.h |
 | **text.md, comments.md, files.md, banner.md** | Data tables (one table per generated concern) |
 | **cmake.cast** | Shared CMakeLists.txt template, wired by cast/CAST.md and eve's manifest |

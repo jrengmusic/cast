@@ -261,6 +261,9 @@ struct Validator : jam::MarkdownValidator
     static juce::Result isBindingCountValid (Element& table, Element& row,
         const juce::Identifier& column, Element& scope, jam::HashSet<juce::Identifier>& seen)
     {
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+
         for (auto* child : scope)
         {
             if (child->isTag (Id::p) and child->contains (Id::templatePath))
@@ -269,7 +272,7 @@ struct Validator : jam::MarkdownValidator
             if (child->isTag (Id::ul))
                 for (auto* item : *child)
                 {
-                    if (item->id == Id::list)
+                    if (item->id == listMarker)
                         seen.clear();
                     else
                     {
@@ -467,6 +470,9 @@ struct Validator : jam::MarkdownValidator
         const TemplateDocument& templateDocument, Element& table, Element& row,
         const juce::Identifier& column, Element& scope, Element* precedingShape)
     {
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+
         for (auto* block : scope)
         {
             if (block->isTag (Id::p) and block->contains (Id::templatePath) and column == Id::structure)
@@ -488,7 +494,7 @@ struct Validator : jam::MarkdownValidator
                             not result.wasOk())
                             return { result, precedingShape };
 
-                    if (item->id == Id::list and column == Id::structure)
+                    if (item->id == listMarker and column == Id::structure)
                     {
                         if (precedingShape != nullptr)
                             if (const auto result {
@@ -515,6 +521,18 @@ struct Validator : jam::MarkdownValidator
         return { juce::Result::ok(), precedingShape };
     }
 
+    /**
+     * @brief Checks every output row's @c structure and @c separator
+     *        scopes for unresolved templates and unsupplied shapes,
+     *        through isPlaceholderScope(), then checks a @c structure
+     *        scope's own last shape line through isShapeSupplied().
+     *
+     * @param model            The model whose output tables are checked.
+     * @param templateDocument The template document each shape line's
+     *                         code block is read from.
+     * @returns juce::Result::ok() when every row's placeholders resolve,
+     *          or the first failing row's result.
+     */
     static juce::Result
     isPlaceholders (const Model& model, const TemplateDocument& templateDocument)
     {
@@ -555,6 +573,9 @@ struct Validator : jam::MarkdownValidator
      */
     static juce::Result isSourceCountValid (const Model& model, const TemplateDocument& templateDocument)
     {
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+
         for (auto* table : model.getTables())
             if (model.isOutputTable (*table))
                 for (auto* row : model.getTableRows (*table))
@@ -573,7 +594,7 @@ struct Validator : jam::MarkdownValidator
                                         templateDocument, const_cast<Element&> (candidate));
                                 }
 
-                                if (candidate.parent->isTag (Id::ul) and candidate.id == Id::list)
+                                if (candidate.parent->isTag (Id::ul) and candidate.id == listMarker)
                                 {
                                     ++supplied;
 
@@ -582,7 +603,7 @@ struct Validator : jam::MarkdownValidator
                                             templateDocument, const_cast<Element&> (candidate));
                                 }
 
-                                if (candidate.parent->isTag (Id::ul) and candidate.id != Id::list
+                                if (candidate.parent->isTag (Id::ul) and candidate.id != listMarker
                                     and candidate.contains (Id::templatePath))
                                     demanded += Items::getArity (
                                         templateDocument, const_cast<Element&> (candidate));
@@ -598,9 +619,11 @@ struct Validator : jam::MarkdownValidator
     }
 
     /**
-     * @brief Checks that every expansion @c list bullet under @p scope
-     *        pairs with a structure @c list line at its own (depth,
-     *        ordinal), and that every @-sigiled comment bullet's address
+     * @brief Checks that every expansion @c list bullet under @p scope,
+     *        when @p column is not the row's own @c list column, pairs
+     *        with a bullet in @p row's own @c list column at its own
+     *        (depth, ordinal) through Model::getSource(), and that every
+     *        @-sigiled comment bullet, when @p column is not @c structure,
      *        resolves through Model::getTable() -- the alias form or,
      *        absent an alias hit, the local form -- or names a code block
      *        carrying documentation. A comment bullet whose value is not
@@ -625,12 +648,17 @@ struct Validator : jam::MarkdownValidator
     static juce::Result isPaired (const Model& model, Element& table, Element& row,
         const juce::Identifier& column, Element& scope)
     {
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const juce::Identifier commentMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::comment.toString(), Chars::openBracket)) };
+
         for (auto* block : scope)
         {
             if (block->isTag (Id::ul))
                 for (auto* item : *block)
                 {
-                    if (item->id == Id::list and column != Id::list and item->contains (Id::line))
+                    if (item->id == listMarker and column != Id::list and item->contains (Id::line))
                     {
                         const auto indent { *item->get<int> (Id::level) };
                         const auto ordinal { *item->get<int> (Id::line) };
@@ -641,7 +669,7 @@ struct Validator : jam::MarkdownValidator
                                                        + text::Diagnostics::failOrphan);
                     }
 
-                    if (item->id == Id::comment and column != Id::structure)
+                    if (item->id == commentMarker and column != Id::structure)
                     {
                         const auto& value { *item->get<juce::String> (Id::value) };
 
@@ -721,12 +749,15 @@ struct Validator : jam::MarkdownValidator
      */
     static juce::Result isReference (const Model& model)
     {
+        static const juce::Identifier commentMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::comment.toString(), Chars::openBracket)) };
+
         for (const auto& column : { Id::structure, Id::separator, Id::list })
             if (const auto result { forEachBinding (model, column,
                     [&model, &column] (Element& table, Element& row, const juce::Identifier& entryId,
                         const juce::String& entryValue) -> juce::Result
                     {
-                        if ((entryId != Id::comment or column == Id::structure)
+                        if ((entryId != commentMarker or column == Id::structure)
                             and Model::isAddress (entryValue) and not model.isShape (row, entryValue))
                             return hasTable (model, table, row, column, entryValue);
 
@@ -765,11 +796,14 @@ struct Validator : jam::MarkdownValidator
     static juce::Result
     isMap (const Model& model, Element& table, Element& row, Element& scope)
     {
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+
         for (auto* block : scope)
         {
             if (block->isTag (Id::ul))
                 for (auto* item : *block)
-                    if (item->id == Id::list and not item->contains (Id::line))
+                    if (item->id == listMarker and not item->contains (Id::line))
                     {
                         if (not item->contains (Id::shape))
                             return juce::Result::fail (getLocation (table, row, Id::list.toString())
@@ -850,8 +884,10 @@ struct Validator : jam::MarkdownValidator
     static juce::Result hasTable (const Model& model, Element& table, Element& row,
         const juce::Identifier& column, const juce::String& entryValue)
     {
-        const auto parts { jam::Strings::fromTokens (
-            entryValue, juce::String::charToString (Chars::colon), {}) };
+        static const auto colonText { juce::String::charToString (Chars::colon) };
+        static const auto equalsText { juce::String::charToString (Chars::equals) };
+
+        const auto parts { jam::Strings::fromTokens (entryValue, colonText, {}) };
         const auto sourceName { parts.size() > 0 ? parts.at (0).trim() : juce::String{} };
         const auto isAlias { model.getValue (row, sourceName).isNotEmpty() };
         const auto columnIndex { isAlias ? 2 : 1 };
@@ -870,7 +906,7 @@ struct Validator : jam::MarkdownValidator
         if (parts.size() > columnIndex)
         {
             const auto columnName { parts.at (columnIndex).upToFirstOccurrenceOf (
-                juce::String::charToString (Chars::equals), false, false).trim() };
+                equalsText, false, false).trim() };
 
             if (not model.getTableHeaders (*referencedTable)
                         .contains (jam::Format::toValidID (columnName)))
@@ -940,7 +976,7 @@ struct Validator : jam::MarkdownValidator
         {
             const auto& file { model.getValue (*row, Id::file) };
 
-            if (file != previousFile)
+            if (file.compare (previousFile) != 0)
             {
                 if (previousFile.isNotEmpty())
                     closedFiles.insert (previousFile);
@@ -952,7 +988,7 @@ struct Validator : jam::MarkdownValidator
                 return juce::Result::fail (getLocation (table, *row, Id::file.toString())
                                            + Id::diagnosticSeparator
                                            + text::Diagnostics::failDuplicate + file
-                                           + juce::String::charToString (Chars::doubleQuote));
+                                           + Chars::doubleQuote);
         }
 
         return juce::Result::ok();
@@ -991,7 +1027,7 @@ struct Validator : jam::MarkdownValidator
                             return juce::Result::fail (getLocation (table, *row, column.toString())
                                                        + Id::diagnosticSeparator
                                                        + text::Diagnostics::failDuplicate + value
-                                                       + juce::String::charToString (Chars::doubleQuote));
+                                                       + Chars::doubleQuote);
 
                         seen.insert (value);
                     }
@@ -1046,7 +1082,7 @@ struct Validator : jam::MarkdownValidator
                             return juce::Result::fail (getLocation (*table, *row, Id::alias.toString())
                                                        + Id::diagnosticSeparator
                                                        + text::Diagnostics::failDuplicate + value
-                                                       + juce::String::charToString (Chars::doubleQuote));
+                                                       + Chars::doubleQuote);
 
                         seen.insert (value);
                     }
@@ -1076,28 +1112,60 @@ struct Validator : jam::MarkdownValidator
     }
 
     /**
-     * @brief Checks that every output row's own file resolves a known
-     *        comment-syntax key, through Transforms::getCommentSyntaxKey().
+     * @brief Checks that every output row's @c structure, @c separator,
+     *        and @c list scopes carry only legal fence-prefix bracket
+     *        words -- a complete bracket group whose word is either a
+     *        comment-syntax extension found in @c map::commentSyntax
+     *        under its own leading dot, or @c Id::noBanner. A bracket
+     *        group with no closing bracket fails the same gate.
      *
      * @param model The model whose output tables are checked.
-     * @returns juce::Result::ok() when every row's file resolves a known
-     *          comment syntax, or a failure naming the unresolved key.
+     * @returns juce::Result::ok() when every fence's bracket word is
+     *          legal, or a failure naming the illegal word.
      */
-    static juce::Result isCommentSyntax (const Model& model)
+    static juce::Result isFencePrefix (const Model& model)
     {
+        static const auto dotText { juce::String::charToString (Chars::dot) };
+
+        const auto noBanner { Id::noBanner.toString() };
+
         for (auto* table : model.getTables())
             if (model.isOutputTable (*table))
                 for (auto* row : model.getTableRows (*table))
-                {
-                    const auto syntaxKey { Transforms::getCommentSyntaxKey (
-                        model.getValue (*row, Id::file)) };
+                    for (const auto& column : { Id::structure, Id::separator, Id::list })
+                    if (auto* structureScope { model.getTableCell (*row, column) })
+                    {
+                        Element* failingLine { nullptr };
 
-                    if (not map::commentSyntax.contains (syntaxKey))
-                        return juce::Result::fail (getLocation (*table, *row, Id::file.toString())
-                                                   + Id::diagnosticSeparator
-                                                   + text::Diagnostics::failNotFound
-                                                   + Id::diagnosticSeparator + syntaxKey);
-                }
+                        structureScope->applyFunctionRecursively (
+                            [&failingLine, &noBanner] (const Element& candidate) -> bool
+                            {
+                                if (failingLine == nullptr and candidate.contains (Id::templatePath))
+                                {
+                                    const auto& fenceName { *candidate.get<juce::String> (Id::info) };
+
+                                    if (fenceName.startsWithChar (Chars::openBracket))
+                                    {
+                                        const auto word { Transforms::getFencePrefix (fenceName) };
+
+                                        if (word.isEmpty()
+                                            or (word.compare (noBanner) != 0
+                                                and not map::commentSyntax.contains (
+                                                    dotText + word)))
+                                            failingLine = const_cast<Element*> (&candidate);
+                                    }
+                                }
+
+                                return failingLine == nullptr;
+                            });
+
+                        if (failingLine != nullptr)
+                            return juce::Result::fail (getLocation (*table, *row, column.toString())
+                                                       + Id::diagnosticSeparator
+                                                       + text::Diagnostics::failFencePrefix
+                                                       + Id::diagnosticSeparator
+                                                       + *failingLine->get<juce::String> (Id::info));
+                    }
 
         return juce::Result::ok();
     }
@@ -1162,7 +1230,7 @@ struct Validator : jam::MarkdownValidator
                 if (const auto result { isContiguous (model, *table) }; not result.wasOk())
                     return result;
 
-        if (const auto result { isCommentSyntax (model) }; not result.wasOk())
+        if (const auto result { isFencePrefix (model) }; not result.wasOk())
             return result;
 
         if (const auto result { isStructure (model, templateDocument) }; not result.wasOk())
