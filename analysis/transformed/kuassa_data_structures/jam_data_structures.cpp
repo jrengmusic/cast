@@ -1,0 +1,8 @@
+#include "jam_data_structures.h"
+#include "model/jam_Model.cpp"
+#include "model/jam_ModelUtils.cpp"
+#include "json/jam_json.cpp"
+#include "parameter/jam_ParameterManager.cpp"
+#include "model/jam_AudioModel.cpp"
+#include "model/jam_SettingsModel.cpp"
+#include "registry/jam_Registry.cpp"

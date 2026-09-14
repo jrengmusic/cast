@@ -1,0 +1,32 @@
+diff --git a/modules/juce_graphics/images/juce_Image.h b/modules/juce_graphics/images/juce_Image.h
+--- a/modules/juce_graphics/images/juce_Image.h
++++ b/modules/juce_graphics/images/juce_Image.h
+@@ -605,6 +605,14 @@ public:
+     virtual BackupExtensions* getBackupExtensions() { return nullptr; }
+     virtual const BackupExtensions* getBackupExtensions() const { return nullptr; }
+
++    // Resolves to the root ImagePixelData that this instance is ultimately a subsection of.
++    // Default: this image is its own source (not a subsection of anything).
++    virtual Ptr getSourcePixelData() { return this; }
++
++    // Returns the area of getSourcePixelData() that this instance represents.
++    // Default: the full bounds of this image (i.e. not a subsection).
++    virtual Rectangle<int> getSubsection() const { return { width, height }; }
++
+     /** Initialises a BitmapData object. */
+     virtual void initialiseBitmapData (Image::BitmapData&, int x, int y, Image::BitmapData::ReadWriteMode) = 0;
+     /** Returns the number of Image objects which are currently referring to the same internal
+diff --git a/modules/juce_graphics/images/juce_Image.cpp b/modules/juce_graphics/images/juce_Image.cpp
+--- a/modules/juce_graphics/images/juce_Image.cpp
++++ b/modules/juce_graphics/images/juce_Image.cpp
+@@ -275,8 +275,8 @@ public:
+     {
+     }
+
+-    Rectangle<int>      getSubsection()      const { return area; }
+-    ImagePixelData::Ptr getSourcePixelData() const { return sourceImage; }
++    Rectangle<int>      getSubsection()      const override { return area; }
++    ImagePixelData::Ptr getSourcePixelData()       override { return sourceImage; }
+
+     std::unique_ptr<LowLevelGraphicsContext> createLowLevelContext() override
+     {

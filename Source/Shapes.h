@@ -188,14 +188,40 @@ struct Shapes
     }
 
     /**
+     * @brief Returns @p line's own item-shape source row -- the filtered
+     *        or plain table row @p line's own paired list source
+     *        addresses, the same resolution Items::getItem() reads for a
+     *        nested item-shape (SPEC §6.5 rung 3, "for an item shape, on
+     *        the source row").
+     *
+     * @param model The model @p row and @p line belong to.
+     * @param row   The row @p line's own list source is addressed against.
+     * @param line  The item-shape list bullet whose source row is resolved.
+     * @returns @p line's own resolved source row, or @c nullptr when its
+     *          own paired list source addresses no table row -- an
+     *          under-supplied filter elides rather than failing (SPEC
+     *          §6.4, §6.5).
+     */
+    static Element* getItemSourceRow (const Model& model, Element& row, Element& line)
+    {
+        auto* source { model.getSource (row, *line.get<int> (Id::level), *line.get<int> (Id::line)) };
+        const auto& sourceValue { *source->get<juce::String> (Id::value) };
+        auto* sourceTable { model.getTable (row, sourceValue) };
+        auto sourceRows { Items::getTableSourceRows (model, row, *sourceTable, sourceValue) };
+
+        return sourceRows.isEmpty() ? nullptr : sourceRows.at (0);
+    }
+
+    /**
      * @brief Resolves @p name's value for @p line, in the order SPEC
      *        §6.5 declares: for the name @c comment, @p commentTable's own
      *        documentation (SPEC §5.4's shape-level channel -- a list-column
      *        comment reference or table documentation, never a
      *        structure-column binding), short-circuiting before any other
      *        rung; for every other name, in order, a binding of that
-     *        name, then @p line's own maps' @p name row, then @p row's
-     *        own @p name column.
+     *        name, then @p line's own maps' @p name row, then, for @p line
+     *        an item shape, its own source row's @p name column, or,
+     *        otherwise, @p row's own @p name column.
      *
      * @param model            The model @p row and @p line belong to.
      * @param templateDocument The template document each map value is
@@ -220,7 +246,9 @@ struct Shapes
      * @param extension        The target file extension a comment value
      *                         is commented for.
      * @returns @p name's resolved value, or an empty string when none of
-     *          the rungs names it.
+     *          the rungs names it -- including when @p line is an item
+     *          shape whose own paired list source elides for
+     *          under-supply, addressing no row (SPEC §6.4, §6.5).
      */
     static juce::String getTokenValue (const Model& model, const TemplateDocument& templateDocument,
         const jam::Array<Element*>& tables, Element& row, Element& line, Element* commentTable,
@@ -229,6 +257,8 @@ struct Shapes
     {
         static const juce::Identifier commentMarker { jam::Format::toValidID (
             jam::Format::withEnclosure (Id::comment.toString(), Chars::openBracket)) };
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
 
         if (name == commentMarker)
             return commentTable != nullptr ? *commentTable->get<juce::String> (Id::comment)
@@ -247,7 +277,12 @@ struct Shapes
             if (auto* cell { model.getTableCell (*map, Id::value, name) })
                 return *cell->get<juce::String> (Id::value);
 
-        if (auto* cell { model.getTableCell (row, name) })
+        auto* columnRow { line.id == listMarker ? getItemSourceRow (model, row, line) : &row };
+
+        if (columnRow == nullptr)
+            return {};
+
+        if (auto* cell { model.getTableCell (*columnRow, name) })
         {
             const auto& columnValue { *cell->get<juce::String> (Id::value) };
             return name == Id::file ? jam::Format::toFileName (columnValue) : columnValue;

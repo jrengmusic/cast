@@ -96,16 +96,20 @@ private:
     }
 
     /**
-     * @brief Resolves and creates every output-file group's own file --
-     *        each @p groupStarts' own row's declared @c file, resolved
-     *        against @p outputPath.
+     * @brief Resolves every output-file group's own file -- each
+     *        @p groupStarts' own row's declared @c file, resolved against
+     *        @p outputPath. A whole-file group's own file is created when
+     *        absent (SPEC §6.3); a region group's own file is resolved
+     *        without creating it -- the row does not create the file it
+     *        patches (SPEC §6.10), and Validator::isRegionFilePresent()
+     *        has already established that it exists.
      *
      * @param outputPath   The directory output files are resolved against.
      * @param rows         The table's own rows, read for each group's own
      *                     declared @c file.
      * @param groupStarts  Each group's own first index into @p rows.
-     * @returns Each group's own resolved, directory-created output file,
-     *          in @p groupStarts' own order.
+     * @returns Each group's own resolved output file, in @p groupStarts'
+     *          own order.
      */
     jam::Array<juce::File> getOutputFiles (const juce::File& outputPath,
         const jam::Array<Model::Element*>& rows, const jam::Array<int>& groupStarts) const
@@ -115,28 +119,38 @@ private:
 
         for (int index { 0 }; index < groupStarts.size(); ++index)
         {
-            const auto& file { model.getValue (*rows.at (groupStarts.at (index)), Id::file) };
-            outputFiles.at (index) = jam::File::getOrCreate (outputPath, file);
-            outputFiles.at (index).getParentDirectory().createDirectory();
+            auto& firstRow { *rows.at (groupStarts.at (index)) };
+            const auto& file { model.getValue (firstRow, Id::file) };
+
+            if (model.isRegionRow (firstRow))
+                outputFiles.at (index) = outputPath.getChildFile (file);
+            else
+            {
+                outputFiles.at (index) = jam::File::getOrCreate (outputPath, file);
+                outputFiles.at (index).getParentDirectory().createDirectory();
+            }
         }
 
         return outputFiles;
     }
 
     /**
-     * @brief Renders and writes one output-file group's own rows through
-     *        apply(), framed by its own banner and file-header comment,
-     *        write-if-different. The group's own comment-syntax key is
-     *        read from its own first shape line's fence prefix when one
-     *        is authored -- @c \[no-banner\] excepted -- or resolved
-     *        through Transforms::getCommentSyntaxKey() otherwise. When
-     *        any of the group's own rows carries an @c \[no-banner\]
-     *        fence, no banner renders; otherwise the rendered banner
-     *        either substitutes a @c :::\[banner\]::: marker authored
-     *        anywhere in the group's own shape text, or, absent one, is
-     *        prepended before it. When the banner is empty and a marker
-     *        is authored, the marker's own line is dropped rather than
-     *        left blank.
+     * @brief Delegates a region group -- one whose first row carries both
+     *        the @c \[begin\] and @c \[end\] bindings (Model::isRegionRow())
+     *        -- to toRegionFile(); otherwise renders and writes the
+     *        group's own rows through apply(), framed by its own banner
+     *        and file-header comment, write-if-different. The group's own
+     *        comment-syntax key is read from its own first shape line's
+     *        fence prefix when one is authored -- @c \[no-banner\]
+     *        excepted -- or resolved through
+     *        Transforms::getCommentSyntaxKey() otherwise. When any of the
+     *        group's own rows carries an @c \[no-banner\] fence, no
+     *        banner renders; otherwise the rendered banner either
+     *        substitutes a @c :::\[banner\]::: marker authored anywhere
+     *        in the group's own shape text, or, absent one, is prepended
+     *        before it. When the banner is empty and a marker is
+     *        authored, the marker's own line is dropped rather than left
+     *        blank.
      *
      * @param rows        The table's own rows, sliced to @p index's own
      *                    group by @p groupStarts.
@@ -147,7 +161,8 @@ private:
      *                    index with @p groupStarts.
      * @param index       The group's own index into @p groupStarts and
      *                    @p outputFiles.
-     * @returns @p index's own resolved output file's full path when it
+     * @returns toRegionFile()'s own result for a region group; otherwise
+     *          @p index's own resolved output file's full path when it
      *          needed rewriting and the write failed, or an empty string
      *          when its text was already canonical or wrote successfully.
      */
@@ -161,12 +176,24 @@ private:
         const auto& outputFile { outputFiles.at (index) };
         const auto groupEnd { index + 1 < groupStarts.size() ? groupStarts.at (index + 1) : rows.size() };
 
+        static const juce::Identifier beginMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::begin.toString(), Chars::openBracket)) };
+        static const juce::Identifier endMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::end.toString(), Chars::openBracket)) };
+
         auto* firstLine { Shapes::getFirstLine (model, *rows.at (start)) };
         const auto fencePrefix { Transforms::getFencePrefix (*firstLine->get<juce::String> (Id::info)) };
         const auto noBanner { Id::noBanner.toString() };
         const auto extension { fencePrefix.isNotEmpty() and fencePrefix.compare (noBanner) != 0
                                     ? dotText + fencePrefix
                                     : Transforms::getCommentSyntaxKey (outputFile.getFileName()) };
+
+        auto* beginBinding { model.getBinding (*rows.at (start), Id::structure, *firstLine, beginMarker) };
+        auto* endBinding { model.getBinding (*rows.at (start), Id::structure, *firstLine, endMarker) };
+
+        if (model.isRegionRow (*rows.at (start)))
+            return toRegionFile (rows, tables, start, groupEnd, outputFile, *rows.at (start),
+                extension, beginBinding, endBinding);
 
         auto comment { getFileComment (*rows.at (start), outputFile.getFileName()) };
 
@@ -202,7 +229,111 @@ private:
         const auto canonical { getText (output) };
 
         return canonical.compare (current) != 0 and not toFile (output, outputFile)
-                   ? outputFile.getFullPathName()
+                   ? outputFile.getFullPathName() + Id::diagnosticSeparator
+                         + text::Diagnostics::failOutputWrite
+                   : juce::String{};
+    }
+
+    /**
+     * @brief Finds @p beginValue's own first matching line and, strictly
+     *        after it, @p endValue's own first matching line (SPEC §6.10).
+     *
+     * Validator::isRegionDelimited() has already established that both
+     * delimiters resolve, in order, before the writer ever runs --
+     * toRegionFile() reads this result to splice the region, not to
+     * re-check it.
+     *
+     * @param lines      The region file's own content, split into lines.
+     * @param beginValue The resolved @c \[begin\] delimiter text.
+     * @param endValue   The resolved @c \[end\] delimiter text.
+     * @returns @p beginValue's own matching line index paired with
+     *          @p endValue's own matching line index.
+     */
+    static std::pair<int, int> getDelimiterLines (
+        const jam::Strings& lines, const juce::String& beginValue, const juce::String& endValue)
+    {
+        auto beginLine { -1 };
+
+        for (int lineIndex { 0 }; lineIndex < lines.size() and beginLine < 0; ++lineIndex)
+            if (lines.at (lineIndex).contains (beginValue))
+                beginLine = lineIndex;
+
+        auto endLine { -1 };
+
+        for (int lineIndex { beginLine + 1 }; lineIndex < lines.size() and endLine < 0; ++lineIndex)
+            if (lines.at (lineIndex).contains (endValue))
+                endLine = lineIndex;
+
+        return { beginLine, endLine };
+    }
+
+    /**
+     * @brief Splices @p rows' own rendered shape into @p outputFile's own
+     *        region -- the lines strictly between its @c \[begin\] and
+     *        @c \[end\] delimiters -- write-if-different, every line
+     *        outside the region kept byte-for-byte. No banner and no file
+     *        documentation render (SPEC §6.10); Validator has already
+     *        established the region's pairing, the file's existence, and
+     *        the delimiters' own presence and order, so this trusts all
+     *        three unconditionally.
+     *
+     * @param rows          The table's own rows, sliced to the group's
+     *                      own [@p start, @p groupEnd) range.
+     * @param tables        The tables searched when a nested @c list
+     *                      token expands.
+     * @param start         The group's own first index into @p rows.
+     * @param groupEnd      The index one past the group's own last row in
+     *                      @p rows.
+     * @param outputFile    The region file patched, already resolved
+     *                      without creation by getOutputFiles().
+     * @param firstRow      The group's own first row, whose bindings are
+     *                      resolved against.
+     * @param extension     The target file extension the shape renders
+     *                      for.
+     * @param beginBinding  The group's own @c \[begin\] binding.
+     * @param endBinding    The group's own @c \[end\] binding.
+     * @returns @p outputFile's own full path when it needed rewriting and
+     *          the write failed, or an empty string when its text was
+     *          already canonical or wrote successfully.
+     */
+    juce::String toRegionFile (const jam::Array<Model::Element*>& rows,
+        const jam::Array<Model::Element*>& tables, int start, int groupEnd,
+        const juce::File& outputFile, Model::Element& firstRow, const juce::String& extension,
+        Model::Element* beginBinding, Model::Element* endBinding) const
+    {
+        static const auto newlineText { juce::String::charToString (Chars::newline) };
+
+        const auto beginValue { templateDocument.getValue (
+            model, firstRow, *beginBinding->get<juce::String> (Id::value)) };
+        const auto endValue { templateDocument.getValue (
+            model, firstRow, *endBinding->get<juce::String> (Id::value)) };
+
+        const auto current { outputFile.loadFileAsString() };
+        const auto lines { jam::Strings::fromLines (current) };
+        const auto [beginLine, endLine] { getDelimiterLines (lines, beginValue, endValue) };
+
+        jam::MarkdownDocument rendered;
+        apply (rendered, tables, rows, start, groupEnd, extension);
+
+        jam::Strings spliced;
+
+        for (int lineIndex { 0 }; lineIndex <= beginLine; ++lineIndex)
+            spliced.add (lines.at (lineIndex));
+
+        spliced.addLines (getText (rendered).trimEnd());
+
+        for (int lineIndex { endLine }; lineIndex < lines.size(); ++lineIndex)
+            spliced.add (lines.at (lineIndex));
+
+        auto canonical { spliced.joinIntoString (newlineText, 0, -1) };
+
+        if (current.endsWith (newlineText) and not canonical.endsWith (newlineText))
+            canonical += newlineText;
+
+        return canonical.compare (current) != 0
+                   and not outputFile.replaceWithText (canonical, false, false, newlineText.toRawUTF8())
+                   ? outputFile.getFullPathName() + Id::diagnosticSeparator
+                         + text::Diagnostics::failOutputWrite
                    : juce::String{};
     }
 
@@ -233,8 +364,7 @@ private:
 
         for (const auto& failedFile : tableFailures)
             if (failedFile.isNotEmpty())
-                failures.add (failedFile + Id::diagnosticSeparator
-                             + text::Diagnostics::failOutputWrite);
+                failures.add (failedFile);
 
         return failures;
     }

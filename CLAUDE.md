@@ -10,7 +10,7 @@
 
 ## Current State
 
-**Last Sprint:** Framework codegen chaining + TTY-gated clear — cast and eve `## toolchain` each gain three `cast ../jam/cast/CAST.md` rows (one per argument group, ahead of cmake) so jam's generated headers are re-cast before configure; `main.cpp` gains `isTerminalOutput()` so `std::system ("clear")` runs only at a tty and no longer writes escape bytes into a pipe ✅ (2026-09-02)
+**Last Sprint:** Framework codegen chaining + TTY-gated clear — cast and eve `## toolchain` each gain three `cast ../jam/cast/spell.md` rows (one per argument group, ahead of cmake) so jam's generated headers are re-cast before configure; `main.cpp` gains `isTerminalOutput()` so `std::system ("clear")` runs only at a tty and no longer writes escape bytes into a pipe ✅ (2026-09-02)
 
 **Active Work:** None — cast/jam/eve byte-identical fixpoints; full default Release chains proven end-to-end (cast .pkg notarized+stapled+QA-archived; eve VST3/AU Accepted+stapled, AAX wraptool)
 
@@ -44,10 +44,10 @@
 
 | File | Purpose |
 |------|---------|
-| **CAST.md** | Generation manifest: outputs, four-column wiring rows (`list | separator | structure | file`); shapes addressed `@code:<fence>` into `../../jam/cast/code.cast`; per-output file documentation wired via `- [comment]: @headers:brief` structure bindings into the `## headers` table (`file | brief | comment`) |
+| **spell.md** | Generation manifest: outputs, four-column wiring rows (`list | separator | structure | file`); shapes addressed `@code:<fence>` into `../../jam/cast/code.cast`; per-output file documentation wired via `- [comment]: @headers:brief` structure bindings into the `## headers` table (`file | brief | comment`) |
 | **identifiers.md** | Identifier table → generated/Identifiers.h |
 | **text.md, comments.md, files.md, banner.md** | Data tables (one table per generated concern) |
-| **cmake.cast** | Shared CMakeLists.txt template, wired by cast/CAST.md and eve's manifest |
+| **cmake.cast** | Shared CMakeLists.txt template, wired by cast/spell.md and eve's manifest |
 
 ### Doxygen
 
@@ -113,6 +113,6 @@
 ## Activation Notes
 
 - Read SPEC.md before changes (determinism contract is non-negotiable; SPEC is normative, HELP.md derived)
-- Generated files in Source/generated/ are cast's own fixpoint outputs — regenerate via `./cast cast/CAST.md`, never hand-edit
+- Generated files in Source/generated/ are cast's own fixpoint outputs — regenerate via `./cast cast/spell.md`, never hand-edit
 - Doxygen prose is written last (after implementation + audit completes; never during planning or code review)
 - Use doxygen-protocol skill before any C++ file/symbol search

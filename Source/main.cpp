@@ -5,6 +5,7 @@
 
 #include <JuceHeader.h>
 #include "Processor.h"
+#include "Sync.h"
 #include "Help.h"
 
 #ifdef _WIN32
@@ -41,6 +42,7 @@ static const juce::String formatFlag { Id::doubleDash + Id::format.toString() };
 static const juce::String noFormatFlag { Id::doubleDash + Id::noFormat.toString() };
 static const juce::String versionFlag { Id::doubleDash + Id::version.toString() };
 static const juce::String helpFlag { Id::doubleDash + Id::help.toString() };
+static const juce::String syncFlag { Id::doubleDash + Id::sync.toString() };
 
 /**
  * @brief Returns @p argv's own flag-position argument -- the first CLI
@@ -145,7 +147,7 @@ static juce::String getManifestArgument (int argc, char* argv[])
  */
 static bool isToolchainArgument (const juce::String& manifestArgument)
 {
-    static const jam::Strings reservedFlags { formatFlag, noFormatFlag, versionFlag, helpFlag };
+    static const jam::Strings reservedFlags { formatFlag, noFormatFlag, versionFlag, helpFlag, syncFlag };
 
     return manifestArgument.startsWith (Id::doubleDash.toString())
            and not reservedFlags.contains (manifestArgument, false);
@@ -190,7 +192,7 @@ static juce::String getOutputDirectory (int argc, char* argv[])
 /**
  * @brief Resolves @p argv's own manifest file against the current working
  *        directory -- the argument at getManifestIndex(), or, absent one,
- *        the default @c CAST.md file name.
+ *        the default @c spell.md file name.
  *
  * @param argc The CLI argument count.
  * @param argv The CLI argument vector.
@@ -302,6 +304,73 @@ static int runDocumentNotFound (const juce::File& documentFile)
     return 1;
 }
 
+static constexpr int syncArgumentCount { 4 };
+static constexpr int syncSourceArgIndex { 2 };
+static constexpr int syncTargetArgIndex { 3 };
+
+/**
+ * @brief Answers whether @p argv requests @c --sync at the flag position.
+ *
+ * @param argc The CLI argument count.
+ * @param argv The CLI argument vector.
+ * @returns @c true when @p argv declares @c --sync.
+ */
+static bool isSyncFlag (int argc, char* argv[])
+{
+    return getFlagArgument (argc, argv).compare (syncFlag) == 0;
+}
+
+/**
+ * @brief Runs Sync between @p sourceRoot and @p targetRoot, under a scoped
+ *        JUCE GUI initialiser and the framework's shared-instance stamp,
+ *        and prints the resulting error to stderr on failure.
+ *
+ * @param sourceRoot The sync source root directory.
+ * @param targetRoot The sync target root directory.
+ * @returns @c 0 when the sync run succeeds, or @c 1 after printing the
+ *          failure's error message.
+ */
+static int runSync (const juce::File& sourceRoot, const juce::File& targetRoot)
+{
+    juce::ScopedJuceInitialiser_GUI libraryInitialiser;
+    Generated generated;
+    jam::Stamp stamp;
+
+    const auto result { Sync::run (sourceRoot, targetRoot) };
+
+    if (result.wasOk())
+        return 0;
+
+    const auto errorLine { ProjectInfo::projectName + Id::diagnosticSeparator + result.getErrorMessage() };
+    fprintf (stderr, "%s\n", errorLine.toRawUTF8());
+    return 1;
+}
+
+/**
+ * @brief Answers @c --sync's own arity requirement -- exactly its two root
+ *        arguments -- then dispatches to runSync(), or reports the arity
+ *        fatal on stderr.
+ *
+ * @param argc The CLI argument count.
+ * @param argv The CLI argument vector.
+ * @returns @c 0 when the sync run succeeds, or @c 1 after printing the
+ *          arity fatal or the sync run's own failure.
+ */
+static int runSyncArguments (int argc, char* argv[])
+{
+    if (argc != syncArgumentCount)
+    {
+        const auto errorLine { ProjectInfo::projectName + Id::diagnosticSeparator + syncFlag
+                               + Id::diagnosticSeparator + text::Diagnostics::failSyncArguments };
+        fprintf (stderr, "%s\n", errorLine.toRawUTF8());
+        return 1;
+    }
+
+    return runSync (
+        juce::File::getCurrentWorkingDirectory().getChildFile (juce::String::fromUTF8 (argv[syncSourceArgIndex])),
+        juce::File::getCurrentWorkingDirectory().getChildFile (juce::String::fromUTF8 (argv[syncTargetArgIndex])));
+}
+
 static bool isTerminalOutput() noexcept
 {
 #ifdef _WIN32
@@ -321,6 +390,9 @@ int main (int argc, char* argv[])
         std::system ("clear");
 #endif
     }
+
+    if (isSyncFlag (argc, argv))
+        return runSyncArguments (argc, argv);
 
     if (isVersion (argc, argv))
     {

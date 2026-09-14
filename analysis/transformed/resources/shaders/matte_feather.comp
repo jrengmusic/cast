@@ -1,0 +1,70 @@
+// Contour-distance feather: per pixel, d = Chebyshev distance to the nearest
+// zero-alpha tap within the square window of radius. Out-of-bounds taps count
+// as zero-alpha. factor = pow(clamp(d / radius, 0, 1), curve).
+// curve == 1.0 is linear; curve > 1.0 concentrates falloff toward the edge.
+#version 450
+#extension GL_EXT_nonuniform_qualifier : require
+#extension GL_GOOGLE_include_directive : require
+
+#include "bindless_texture.glsl"
+
+layout (push_constant) uniform MatteFeatherPC
+{
+    int width;
+    int height;
+    uint sourceTextureIndex;
+    float radius;
+    float curve;
+};
+
+layout (set = 2, binding = 1, std430) buffer MatteOutputBuffer { uint matteOutput[]; };
+
+// local_size paired with jam::matteWorkgroupSize (jam_VulkanMatteChokePushConstants.h)
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+void main()
+{
+    int x = int (gl_GlobalInvocationID.x);
+    int y = int (gl_GlobalInvocationID.y);
+
+    if (x < width && y < height)
+    {
+        vec4 center = texelFetch (sampler2D (textures[nonuniformEXT (sourceTextureIndex)], nearestSampler),
+                                  ivec2 (x, y), 0);
+
+        int window = int (ceil (radius));
+        float minDist = radius;
+
+        for (int dy = -window; dy <= window; ++dy)
+        {
+            for (int dx = -window; dx <= window; ++dx)
+            {
+                int sx = x + dx;
+                int sy = y + dy;
+
+                float tapAlpha = 0.0;
+
+                if (sx >= 0 && sx < width && sy >= 0 && sy < height)
+                {
+                    tapAlpha = texelFetch (sampler2D (textures[nonuniformEXT (sourceTextureIndex)], nearestSampler),
+                                          ivec2 (sx, sy), 0).a;
+                }
+
+                if (tapAlpha == 0.0)
+                {
+                    minDist = min (minDist, float (max (abs (dx), abs (dy))));
+                }
+            }
+        }
+
+        float factor = pow (clamp (minDist / radius, 0.0, 1.0), curve);
+        vec4 result = center * factor;
+
+        uint packed = (uint (round (result.a * 255.0)) << 24u)
+                    | (uint (round (result.r * 255.0)) << 16u)
+                    | (uint (round (result.g * 255.0)) << 8u)
+                    |  uint (round (result.b * 255.0));
+
+        matteOutput[y * width + x] = packed;
+    }
+}

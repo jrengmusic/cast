@@ -111,6 +111,86 @@
 
 ## SPRINT HISTORY
 
+## Sprint: Manifest Rename CAST.md → spell.md — Twelve Manifests, Eight Projects, One Table Cell ✅
+
+**Date:** 2026-09-15
+**Duration:** one session
+
+### Agents Participated
+- COUNSELOR: opus-5 — engine read that proved no code change was needed (the manifest name never enters the engine); scope inventory across every root; five Engineer dispatches partitioned by repository with quoted file sets; independent post-verification of each wave; `Id::key` collision diagnosis
+- Pathfinder: haiku — cross-machine `CAST.md` inventory (15 files, 257 references, per-root); `namespace Id` intersection measurement between cast's and jam's generated headers
+- Engineer: sonnet-5 ×5 — the renames and reference edits, one wave per repository group, each under Destructive-Edit Discipline (dry-run count → per-occurrence Edit → zero-hit verify)
+
+### Files
+- cast: `cast/files.md:18` (the default name — one value cell), `cast/CAST.md` → `cast/spell.md`, `project-info.md` (3 toolchain rows), `SPEC.md`, `Source/HELP.md` (18), `Source/main.cpp:195` (doxygen prose), `CLAUDE.md`, `HANDOFF-MACHINIST.md`, `.project`, `cast/identifiers.md` (`key` row deleted)
+- jam: `cast/CAST.md` → `cast/spell.md`, `user-modules-info.md` ignore row, `.claude/CLAUDE.md` (3)
+- whatdbg / end / eve / jfs / sandbox: manifest renamed, `project-info.md` toolchain rows (4/3/3/3/47), `.project`, plus `CLAUDE.md`, `ARCHITECTURE.md`, `DEBT.md`, `SPEC.md` where each carried the name
+- archetype: three stub manifests renamed, three `INIT.md` (`@manifest` + `frameworkCastManifest` rows), `ARCHETYPE.md` (13)
+- KANJUT: `user_modules/cast/CAST.md` → `spell.md` + ignore row; `jreng-filter-strip/cast/CAST.md` → `spell.md` + 3 toolchain rows, `.project`
+- machine config: `nvim/lua/core/project/cast.lua:11` (`M.TOOLCHAIN_MANIFEST`), `core/build.lua` (3), `core/doxygen.lua`, `core/cast-build.lua` (2 comments), `WINDOWS-SETUP.md`
+
+### Changes
+- **No engine change.** `Model::parse` takes a `juce::File` (`Model.h:38`) and derives `manifestOrigin` from whatever file it is given (`Model.h:816-820`); the name enters exactly once, as the working-directory default at `main.cpp:208` (`getChildFile (files::cast)`), and that value is a table cell. Changing `cast/files.md:18` changes the default. `files::cast` keeps its identifier name — only its value moved.
+- **Rename executed as data, then as paths.** 12 manifests renamed; ~150 references updated across 8 projects and the machine config. Grid-table column widths preserved byte-for-byte: `spell.md` is one character longer, so each edited cell gave up exactly one space of trailing padding and no `+---+` rule line was touched.
+- **Dotfiles were the near-miss.** The first inventory pass excluded dot-paths and left 7 `.project` files (`manifest = "cast/CAST.md"`) and `jam/.claude/CLAUDE.md` pointing at a file that no longer existed. A second pass with `--hidden --no-ignore` caught them. Every nvim manifest lookup traces through the single `TOOLCHAIN_MANIFEST` value (`core/project/cast.lua:11`), consumed by reference at `cast-build.lua:17,31,34`, `project.lua:35`, `cast.lua:294` — no hand-built path exists, so the literal grep was sufficient there.
+- **`Id::key` ODR collision fixed.** `cast/identifiers.md` declared `key` → `"key"` while jam already declares `Id::key` → `"key"` (`jam_Identifiers.h:655`); both headers open `namespace Id` in one translation unit. cast's row deleted; the three call sites (`Sync.h:485`, `Sync.h:522`, `Validator.h:1402`) now resolve to jam's identical Identifier. This differs from last sprint's `syncBoundary` disposition because there the values differ — jam's `Id::boundary` is `"Boundary"` (`jam_Identifiers.h:167`), a C4 keyword — so that one needed a renamed symbol, not a deleted row. Measured intersection of the two headers is now empty (41 cast declarations vs 1,338 jam).
+
+### Alignment
+- Scope quoted, never inferred: each Engineer prompt carried an explicit file set and a forbidden list; `carol/SPRINT-LOG.md`, `PLAN-*.md`, `RFC-*.md`, `SMOKE-*.md`, `analysis/`, `.eve/` and `___lib___-reference/` keep the old name because they record what was true when written.
+- Destructive-Edit Discipline on all five waves: predicted count, per-occurrence `Edit` (no `sed`/`perl`/`awk`), post-edit zero-hit reconciliation. Every wave reconciled exactly.
+- SSOT: the default manifest name is declared once, in `cast/files.md`. The `key` fix removes a second declaration of a word jam already owns.
+- One subagent claim discarded as unevidenced: Pathfinder asserted jam "independently includes or re-generates" cast's identifiers.md. Nothing supports it; the two tables are separate sources that declared the same word.
+
+### Debts Paid
+- None — both DEBT.md entries out of scope
+
+### Debts Deferred / Residuals (verbatim to ARCHITECT)
+- **Not yet run (ARCHITECT's keystroke):** `./cast cast/spell.md` — `Source/generated/Files.h:30` still holds `"CAST.md"` and is the last live occurrence; only a cast run may change it. Then rebuild and reinstall `~/.local/bin/cast`; the installed binary's default is still the old name (every toolchain row passes an explicit path, so chains work either way).
+- **Build not green yet.** The `Id::key` fix is authored but unverified — the build that surfaced it has not been re-run.
+- **@Auditor did not run this sprint.**
+- `files::cast` still names the manifest constant while its value is `spell.md`. Left as found: the rename ARCHITECT quoted was the file and the table, not the identifier.
+- Eight repositories changed; each commits separately. The cast working tree also carries the previous sprint's uncommitted `--sync` work.
+
+---
+
+## Sprint: Region-Patch Outputs + cast --sync — Kernel Sync Proven Against the Hand-Authored Oracle ✅
+
+**Date:** 2026-09-10
+**Duration:** one session
+
+### Agents Participated
+- COUNSELOR: fable-5 — oracle-first method carrier; scratchpad harness that derived and byte-proved the replacement law before any code; three SPEC §2.2 mid-sprint corrections from engine evidence (namespace bare-pair collateral, canonicalization scope law, gate roots); region-patch capability design ([begin]/[end] delimiters as data); all audit-finding dispositions
+- Pathfinder: haiku — jam/KANJUT state survey; four-token + pair-law measurement runs; module-declaration field inventory across 34 headers; build/fixpoint verification
+- Engineer: sonnet-5 — Writer region branch; Model/Shapes item-shape-first fixes; Sync.h + --sync; Validator sync gates; Transforms word primitives; both user-modules-info.md files; CAST.md/code.cast wiring in both frameworks; jam prose cleanup + KUASSA_ macro fix; audit fix round; doxygen pass
+- Auditor: opus-5 — one sweep, 44 findings, all resolved or dispositioned this sprint
+
+### Files
+- cast engine: SPEC.md (0.9 — §1, §2.1, §2.2 Sync, §6.10 Region, §10.1 +14 rows), Source/{Sync.h new, Writer.h, Validator.h, Model.h, Shapes.h, Transforms.h, main.cpp, HELP.md}, cast/{text.md, identifiers.md, files.md}, Source/generated/*
+- jam: user-modules-info.md (new), cast/CAST.md (+20 region rows, @modules index), cast/code.cast (moduleDeclaration fence), all 20 module headers (declaration regions now generated), 17 prose lines, 4 files LF-normalized, 20 KUASSA_ macro hits → JAM_
+- KANJUT (user_modules): user-modules-info.md (new), cast/CAST.md (+14 region rows), cast/code.cast, all 14 module headers regenerated
+
+### Changes
+- **Region-patch outputs (SPEC §6.10):** an output row with `- [begin]:` / `- [end]:` bindings replaces the lines between the delimiters in an existing file. First use: every JUCE module declaration generates from one `## module` table — the four jam vendor variants, the jam.com URL, and the blank websites all self-healed on first regeneration. Engine fixes forced by SPEC's letter: Model::getStructure accepts an item-shape as the row's own shape (§6.3), and the top-level render chain resolves rung-3 tokens from the filtered source row (§6.5).
+- **cast --sync (SPEC §2.2):** deterministic kernel mirror. The law: four composed namespace/prefix forms + identity-table value pairs (longest-first, text-descending tiebreak) + whole-word boundary class + LF normalization + data-scope md canonicalization + ignore rows + mirror-delete of source leftovers. Contamination check proved its worth immediately: it caught 20 stale KUASSA_ guards inside jam_vulkan.
+- **Proof:** the sandbox sync writes exactly the 22 files the pre-code harness predicted, deletes nothing, and a second run writes zero lines. Region regeneration is byte-stable in both frameworks.
+- One live incident: a mid-sprint run with an incomplete render path blanked 20 jam declaration regions; the data table regenerated all of them (the designed repair path), verified against pre-damage evidence.
+
+### Alignment
+- SPEC-first throughout; every engine check maps 1:1 to §10.1; three SPEC corrections came from engine/sandbox evidence, never from silent workarounds.
+- SSOT: declaration data declared once per framework; generated/ and region interiors never carried by sync — each root re-casts its own.
+
+### Debts Paid
+- none from DEBT.md (both open entries out of scope)
+
+### Debts Deferred / Residuals (verbatim to ARCHITECT)
+- **Live run pending (ARCHITECT's keystroke, classifier-blocked for agents):** `cast --sync ~/Documents/Poems/dev/jam ~/Documents/Poems/kuassa/user_modules` (expect the proven 22-file report), run it twice (second silent), then `cast cast/CAST.md` inside user_modules twice (regenerates generated/ from the synced text.md; second silent).
+- jam_markdown MarkdownWriter defect (found, untouched — jam scope): a bare CommonMark autolink `<rbj@audioimagination.com>` loses its opening `<` on parse→write round-trip.
+- ~/.local/bin/cast is stale — cast/eve toolchain rows chaining `cast ../jam/cast/CAST.md` fatal until the new binary is installed.
+- Doxygen regeneration + zero-warning check deferred: no Doxyfile in the cast repo; input lives in the machine config (~/.config/nvim/doxygen/).
+- Accepted with citation: Sync.h 612 lines (L smell investigated; gates→Validator and word primitives→Transforms already split; remainder one responsibility); syncBoundary identifier (ODR collision with jam's Id::boundary; data value stays `boundary`); Items has no first-row-only entry point (array materialized to read element 0); Validator Element& params non-const project-wide; oracle data-naming notes (licenseFileExtension holds a glob on the KANJUT side; module table `name`=ID vs `title`=JUCE name field); MarkdownWriter thread-sharing precedent (Processor.h:74) unverified under concurrency; region blank-field lines keep template padding while the last line trims.
+
+---
+
 ## Sprint: Bracketed Reserved Names + Placeable Banner ✅
 
 **Date:** 2026-09-08

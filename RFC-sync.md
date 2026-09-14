@@ -64,7 +64,8 @@ and every path (`echo.cmake:635-678`), most-specific first:
    `JAM_USING_AQUATIC_PRIME` → `KUASSA_USING_AQUATIC_PRIME`)
 5. filePrefix `jam_` → `kuassa_` — `:652` (contents and file names)
 6. `vendor:` / `website:` values inside JUCE module declaration blocks only,
-   whitespace-tolerant — `:657-662`
+   whitespace-tolerant — `:657-662`; `applicationName` is spliced the same way — a
+   whole-token identity value, per-framework, not a substring transform
 7. Module Pairs (module names that differ beyond the prefix) — `:664-673`
 8. Bare word `jam` → `kuassa` at non-word boundaries, repeated to fixpoint — `:675`,
    `:599-616`
@@ -113,6 +114,7 @@ Proposed tables (column names reuse SPEC §5.3 identity columns where they fit �
 | macroPrefix    | JAM_   |
 | moduleVendor   | JRENG  |
 | companyWebsite | …      |
+| applicationName | JAM   |   (KANJUT's value is KANJUT)
 | namespaceShort |        |   (blank on jam; `ku` on KANJUT — target-only, never a source token)
 
 ## module

@@ -1,0 +1,44 @@
+// Pass 1 of the two-pass stack blur — reads the source through the bindless
+// sampled-image array (set 1), writes transposed into the set-2 output SSBO
+// (out[x * lineCount + line]). Pass 2 (stack_blur_buffer.comp) reads this
+// transposed layout and writes transposed again, restoring the original
+// row-major orientation.
+#version 450
+#extension GL_EXT_nonuniform_qualifier : require
+#extension GL_GOOGLE_include_directive : require
+
+#include "bindless_texture.glsl"
+
+layout (push_constant) uniform StackBlurPC { int radius; int lineCount; int lineLength; uint sourceTextureIndex; };
+
+layout (set = 2, binding = 0, std430) readonly buffer StackBlurInputBuffer { uint stackBlurInput[]; };
+layout (set = 2, binding = 1, std430) buffer StackBlurOutputBuffer { uint stackBlurOutput[]; };
+
+int stackBlurCurrentLine;
+
+vec4 loadElement (int element)
+{
+    int clampedElement = clamp (element, 0, lineLength - 1);
+    vec4 sampled = texelFetch (sampler2D (textures[nonuniformEXT (sourceTextureIndex)], nearestSampler),
+                                ivec2 (clampedElement, stackBlurCurrentLine), 0);
+
+    return round (sampled * 255.0);
+}
+
+#include "stack_blur.glsl"
+
+// local_size_x is paired with jam::stackBlurWorkgroupSize
+// (jam_VulkanStackBlurPushConstants.h) — one invocation per line, so this
+// value determines VulkanGraphics::dispatchStackBlur()'s workgroup count.
+layout (local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+void main()
+{
+    int line = int (gl_GlobalInvocationID.x);
+
+    if (line < lineCount)
+    {
+        stackBlurCurrentLine = line;
+        stackBlurLine();
+    }
+}

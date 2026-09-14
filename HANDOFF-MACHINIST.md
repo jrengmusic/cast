@@ -21,7 +21,7 @@ coupling back to JAM's cmake helpers.
 Three projects are CAST-managed: `cast`, `eve`, `jam` (codegen only, no build).
 Everything else in `~/Documents/Poems` is still legacy CMake.
 
-The whole lifecycle is data-driven. `cast cast/CAST.md` (no flag) runs the default
+The whole lifecycle is data-driven. `cast cast/spell.md` (no flag) runs the default
 flow declared in `project-info.md`'s `## toolchain` table; `--debug` and `--no-sign`
 run their own rows; an undeclared `--word` is fatal. Both `cast` and `eve` carry the
 identical three-argument shape:
@@ -67,7 +67,7 @@ field and is the only thing carried across a re-parse — everything else is der
   validator, deterministic serializer, `fs_event` watchers on the declared sources,
   and the `User ProjectChanged` event. A change re-parses the whole document; nothing
   is ever patched in place.
-- `core/project/cast.lua` — the CAST locator. `project-info.md` + `cast/CAST.md` +
+- `core/project/cast.lua` — the CAST locator. `project-info.md` + `cast/spell.md` +
   `compile_commands.json` → the AST. Targets come from the `## format` table × a
   platform-keyed JUCE artefact-layout constant table; configurations come from the
   `## toolchain` table's `argument` column and each cmake row's `-B` directory.
@@ -94,7 +94,7 @@ the DAP adapter on both platforms — every `codelldb` reference is gone from
 ### Consequence — legacy projects have no build path
 
 There is no fallback branch any more. A project without `project-info.md` +
-`cast/CAST.md` gets a loud notification and nothing else: no build, no debug, no
+`cast/spell.md` gets a loud notification and nothing else: no build, no debug, no
 clean, no doxygen, no navigator. This is the ratified "migrate or nothing" rule, and
 it makes Phase 5 the blocking item.
 
@@ -104,7 +104,7 @@ it makes Phase 5 the blocking item.
 
 ### 1. Phase 5 migration queue (blocking DX)
 
-Each of these needs `project-info.md` + `cast/CAST.md` + `cast/cmake.cast` before it
+Each of these needs `project-info.md` + `cast/spell.md` + `cast/cmake.cast` before it
 can be built or debugged from nvim again:
 
 | Project | Kind | Notes |

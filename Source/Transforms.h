@@ -207,6 +207,94 @@ struct Transforms
         return getTransforms().get (name, input, extension);
     }
 
+    /**
+     * @brief Answers whether @p character sits outside a word --
+     *        Sync's own whole-word matching law (SPEC §2.2): the
+     *        characters before and after a match are absent or outside
+     *        @c [A-Za-z0-9_].
+     *
+     * @param character The character to test, or Chars::nullCharacter
+     *                  when the position it stands for is absent (text
+     *                  start or end).
+     * @returns @c true when @p character is absent or not a letter,
+     *          digit, or underscore.
+     */
+    static bool isWordBoundaryChar (juce::juce_wchar character) noexcept
+    {
+        return character == Chars::nullCharacter
+               or not (juce::CharacterFunctions::isLetterOrDigit (character) or character == Chars::underscore);
+    }
+
+    /**
+     * @brief Finds @p word's own next whole-word match in @p text at or
+     *        after @p cursor -- the one scan getWordBoundaryReplaced()
+     *        and containsWholeWord() each read through.
+     *
+     * @param text   The text searched.
+     * @param word   The word searched for.
+     * @param cursor The byte offset the search starts from.
+     * @returns @p word's own next whole-word match position, or @c -1
+     *          when none remains.
+     */
+    static int getNextWholeWordMatch (const juce::String& text, const juce::String& word, int cursor)
+    {
+        for (auto position { text.indexOf (cursor, word) }; position >= 0; position = text.indexOf (cursor, word))
+        {
+            const auto beforeChar { position > 0 ? text[position - 1] : Chars::nullCharacter };
+            const auto matchEnd { position + word.length() };
+            const auto afterChar { matchEnd < text.length() ? text[matchEnd] : Chars::nullCharacter };
+
+            if (isWordBoundaryChar (beforeChar) and isWordBoundaryChar (afterChar))
+                return position;
+
+            cursor = position + 1;
+        }
+
+        return -1;
+    }
+
+    /**
+     * @brief Replaces every whole-word occurrence of @p source in
+     *        @p text with @p target, a non-whole-word occurrence left
+     *        untouched.
+     *
+     * @param text   The text to transform.
+     * @param source The word to replace.
+     * @param target The replacement text.
+     * @returns @p text with every whole-word @p source occurrence
+     *          replaced by @p target.
+     */
+    static juce::String
+    getWordBoundaryReplaced (const juce::String& text, const juce::String& source, const juce::String& target)
+    {
+        juce::String result;
+        int cursor { 0 };
+
+        for (auto position { getNextWholeWordMatch (text, source, cursor) }; position >= 0;
+             position = getNextWholeWordMatch (text, source, cursor))
+        {
+            result += text.substring (cursor, position) + target;
+            cursor = position + source.length();
+        }
+
+        result += text.substring (cursor);
+        return result;
+    }
+
+    /**
+     * @brief Answers whether @p text contains @p word as a whole word --
+     *        Sync's own contamination check for a @c word-boundary
+     *        identity pair (SPEC §2.2).
+     *
+     * @param text The text to search.
+     * @param word The word to search for.
+     * @returns @c true when @p text contains @p word as a whole word.
+     */
+    static bool containsWholeWord (const juce::String& text, const juce::String& word)
+    {
+        return getNextWholeWordMatch (text, word, 0) >= 0;
+    }
+
 private:
     /**
      * @brief Registers the case transforms -- @c toUpper, @c toTitle,

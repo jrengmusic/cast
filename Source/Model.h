@@ -142,20 +142,28 @@ public:
     }
 
     /**
-     * @brief Returns @p scope's own shape paragraph's resolved template
-     *        file path -- the first non-nested paragraph stamped with
-     *        @c Id::templatePath.
+     * @brief Returns @p scope's own shape line's resolved template file
+     *        path -- the first non-nested paragraph stamped with
+     *        @c Id::templatePath, or, absent one, an item-shape list's own
+     *        first item when it carries @c Id::templatePath (SPEC §6.3:
+     *        the first line of the column is the row's own shape, whether
+     *        authored as a bare paragraph or a @c - [list]: item).
      *
-     * @param scope The blockquote scope searched for its own shape
-     *              paragraph.
+     * @param scope The blockquote scope searched for its own shape line.
      * @returns The resolved @c .cast file path, or an empty string when
-     *          @p scope carries no shape paragraph of its own.
+     *          @p scope carries no shape line of its own.
      */
     juce::String getStructure (Element& scope) const
     {
         for (auto* block : scope)
+        {
             if (block->isTag (Id::p) and block->contains (Id::templatePath))
                 return *block->get<juce::String> (Id::templatePath);
+
+            if (block->isTag (Id::ul) and block->firstChild != nullptr
+                and block->firstChild->contains (Id::templatePath))
+                return *block->firstChild->get<juce::String> (Id::templatePath);
+        }
 
         return {};
     }
@@ -449,6 +457,79 @@ public:
     bool isOutputTable (Element& table) const noexcept
     {
         return *table.get<bool> (Id::wiring);
+    }
+
+    /**
+     * @brief Answers whether @p row's own structure column carries a
+     *        bullet keyed @p marker anywhere in its scope -- the scan
+     *        hasRegionBegin() and hasRegionEnd() each read through,
+     *        parameterized by their own marker.
+     *
+     * @param row    The row whose structure column is searched.
+     * @param marker The binding marker id searched for.
+     * @returns @c true when @p row's structure column carries @p marker.
+     */
+    bool hasRegionBinding (Element& row, const juce::Identifier& marker) const
+    {
+        auto hasBinding { false };
+
+        if (auto* structureScope { getTableCell (row, Id::structure) })
+            structureScope->applyFunctionRecursively (
+                [&hasBinding, &marker] (const Element& candidate) -> bool
+                {
+                    if (not hasBinding and candidate.parent->isTag (Id::ul) and candidate.id == marker)
+                        hasBinding = true;
+
+                    return not hasBinding;
+                });
+
+        return hasBinding;
+    }
+
+    /**
+     * @brief Answers whether @p row declares a @c - [begin]: binding
+     *        (SPEC §6.10).
+     *
+     * @param row The row to test.
+     * @returns @c true when @p row carries a @c \[begin\] binding.
+     */
+    bool hasRegionBegin (Element& row) const
+    {
+        static const juce::Identifier beginMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::begin.toString(), Chars::openBracket)) };
+
+        return hasRegionBinding (row, beginMarker);
+    }
+
+    /**
+     * @brief Answers whether @p row declares a @c - [end]: binding (SPEC
+     *        §6.10).
+     *
+     * @param row The row to test.
+     * @returns @c true when @p row carries an @c \[end\] binding.
+     */
+    bool hasRegionEnd (Element& row) const
+    {
+        static const juce::Identifier endMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::end.toString(), Chars::openBracket)) };
+
+        return hasRegionBinding (row, endMarker);
+    }
+
+    /**
+     * @brief Answers whether @p row is a region row -- carrying both its
+     *        own @c \[begin\] and @c \[end\] bindings (SPEC §6.10). This
+     *        is the one region-row definition Validator and Writer both
+     *        read: Validator::isRegionPaired() catches a row that carries
+     *        exactly one binding, which this predicate alone would treat
+     *        as a whole-file row.
+     *
+     * @param row The row to test.
+     * @returns @c true when @p row carries both region bindings.
+     */
+    bool isRegionRow (Element& row) const
+    {
+        return hasRegionBegin (row) and hasRegionEnd (row);
     }
 
     /**
