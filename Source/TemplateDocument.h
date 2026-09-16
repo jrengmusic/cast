@@ -41,7 +41,7 @@ struct TemplateDocument
                 documents.emplace (symbol,
                     jam::MarkdownDocument::parse (model.getFile (symbol).loadFileAsString(), symbol));
 
-                for (auto* block : *documents.at (symbol).root)
+                for (auto* block : *documents.at (symbol).getRoot())
                     if (block->contains (Id::type)
                         and *block->get<int> (Id::type) == map::BlockType::codeBlock)
                     {
@@ -71,7 +71,7 @@ struct TemplateDocument
      * @param line The structure line whose shape's code block is read.
      * @returns @p line's own shape's code block.
      */
-    Element* getCodeBlock (const Element& line) const
+    const Element* getCodeBlock (const Element& line) const
     {
         return documents.at (*line.get<juce::String> (Id::templatePath))
             .getCodeBlock (juce::Identifier (*line.get<juce::String> (Id::info)));
@@ -86,7 +86,7 @@ struct TemplateDocument
      * @param fence        The fence name to read.
      * @returns @p fence's code block.
      */
-    Element* getCodeBlock (const juce::String& templatePath, const juce::Identifier& fence) const
+    const Element* getCodeBlock (const juce::String& templatePath, const juce::Identifier& fence) const
     {
         return documents.at (templatePath).getCodeBlock (fence);
     }
@@ -103,7 +103,7 @@ struct TemplateDocument
      *                followed by @c :fence.
      * @returns @p address's resolved code block's own text.
      */
-    const juce::String& getBlockValue (const Model& model, Element& row, const juce::String& address) const
+    const juce::String& getBlockValue (const Model& model, const Element& row, const juce::String& address) const
     {
         const auto templatePath { model.getValue (row, jam::Format::getPreColon (address).trim()) };
         const auto fence { jam::Format::getPostColon (address).trim() };
@@ -122,7 +122,7 @@ struct TemplateDocument
      * @param value The authored value to resolve.
      * @returns @p value's resolved text.
      */
-    juce::String getValue (const Model& model, Element& row, const juce::String& value) const
+    juce::String getValue (const Model& model, const Element& row, const juce::String& value) const
     {
         if (model.isShape (row, value))
             return getBlockValue (model, row, value);

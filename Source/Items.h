@@ -31,8 +31,8 @@ struct Items
      *          order.
      */
     static jam::Strings getColumnSourceValues (const Model& model,
-                                                Element& row,
-                                                const jam::Array<Element*>& tables,
+                                                const Element& row,
+                                                const jam::Array<const Element*>& tables,
                                                 const juce::Identifier& source)
     {
         const auto currentFile { jam::Format::toFileName (model.getValue (row, Id::file)) };
@@ -72,16 +72,16 @@ struct Items
      *          filter column value, when @p source names one, equals the
      *          filter value.
      */
-    static jam::Array<Element*> getTableSourceRows (const Model& model,
-                                                     Element& row,
-                                                     Element& sourceTable,
+    static jam::Array<const Element*> getTableSourceRows (const Model& model,
+                                                     const Element& row,
+                                                     const Element& sourceTable,
                                                      const juce::String& source)
     {
         const auto currentFile { jam::Format::toFileName (model.getValue (row, Id::file)) };
         const auto isFiltered { model.isFilteredAddress (row, source) };
         const auto filterColumn { isFiltered ? model.getFilterColumn (row, source) : juce::Identifier{} };
         const auto filterValue { isFiltered ? model.getFilterValue (row, source) : juce::String{} };
-        jam::Array<Element*> sourceRows;
+        jam::Array<const Element*> sourceRows;
 
         for (auto* candidate : model.getTableRows (sourceTable))
         {
@@ -110,7 +110,7 @@ struct Items
      * @param line             The structure line whose arity is counted.
      * @returns @p line's own shape's @c :::\[list\]::: occurrence count.
      */
-    static int getArity (const TemplateDocument& templateDocument, Element& line)
+    static int getArity (const TemplateDocument& templateDocument, const Element& line)
     {
         static const juce::Identifier listMarker { jam::Format::toValidID (
             jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
@@ -137,13 +137,13 @@ struct Items
      */
     static jam::Array<int> getPrivateShapes (const Model& model,
                                              const TemplateDocument& templateDocument,
-                                             Element& row)
+                                             const Element& row)
     {
         static const juce::Identifier listMarker { jam::Format::toValidID (
             jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
 
         jam::Array<int> privateShapes;
-        const auto arityOf = [&templateDocument] (Element& line) { return getArity (templateDocument, line); };
+        const auto arityOf = [&templateDocument] (const Element& line) { return getArity (templateDocument, line); };
 
         if (auto* scope { model.getTableCell (row, Id::structure) })
             scope->applyFunctionRecursively (
@@ -152,11 +152,10 @@ struct Items
                     if (candidate.parent->isTag (Id::ul) and candidate.id != listMarker
                         and candidate.contains (Id::templatePath))
                     {
-                        auto& line { const_cast<Element&> (candidate) };
-                        auto* cursor { model.getNextLine (line) };
+                        auto* cursor { model.getNextLine (candidate) };
 
                         for (int occurrence { 0 };
-                             cursor != nullptr and occurrence < arityOf (line); ++occurrence)
+                             cursor != nullptr and occurrence < arityOf (candidate); ++occurrence)
                         {
                             privateShapes.addIfNotAlreadyThere (*cursor->get<int> (Id::shape));
                             cursor = model.getNextShapeLine (*cursor, arityOf);
@@ -185,15 +184,15 @@ struct Items
      * @returns Every row whose structure wiring selects @p source, in
      *          discovery order.
      */
-    static jam::Array<Element*> getBindingSourceRows (const Model& model,
+    static jam::Array<const Element*> getBindingSourceRows (const Model& model,
                                                        const TemplateDocument& templateDocument,
-                                                       const jam::Array<Element*>& tables,
+                                                       const jam::Array<const Element*>& tables,
                                                        const juce::Identifier& source)
     {
         static const juce::Identifier listMarker { jam::Format::toValidID (
             jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
 
-        jam::Array<Element*> sourceRows;
+        jam::Array<const Element*> sourceRows;
 
         for (auto* table : tables)
             if (model.isOutputTable (*table))
@@ -240,7 +239,7 @@ struct Items
      *          reference.
      */
     static juce::String getSourceValue (const Model& model, const TemplateDocument& templateDocument,
-        Element& sourceRow, const juce::Identifier& name)
+        const Element& sourceRow, const juce::Identifier& name)
     {
         static const juce::Identifier listMarker { jam::Format::toValidID (
             jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
@@ -300,7 +299,7 @@ struct Items
      */
     static juce::String getColumnValue (const Model& model,
                                         const TemplateDocument& templateDocument,
-                                        Element* sourceRow,
+                                        const Element* sourceRow,
                                         const juce::String& sourceValue,
                                         const juce::Identifier& sourceKey,
                                         const juce::Identifier& name)
@@ -331,8 +330,8 @@ struct Items
      * @returns Every resolved child column value, in authored order,
      *          joined by @p childJoin.
      */
-    static juce::String getChildValue (const Model& model, Element& row, int indent,
-                                       int sourceOrdinal, Element* sourceRow,
+    static juce::String getChildValue (const Model& model, const Element& row, int indent,
+                                       int sourceOrdinal, const Element* sourceRow,
                                        const juce::String& childJoin)
     {
         jam::Strings childValues;
@@ -388,11 +387,11 @@ struct Items
      */
     static juce::String getItem (const Model& model,
                                  const TemplateDocument& templateDocument,
-                                 Element* sourceRow,
+                                 const Element* sourceRow,
                                  const juce::String& sourceValue,
                                  const juce::Identifier& sourceKey,
-                                 Element& line,
-                                 Element& row,
+                                 const Element& line,
+                                 const Element& row,
                                  int indent,
                                  int sourceOrdinal,
                                  const juce::String& childJoin,
@@ -463,7 +462,7 @@ struct Items
      */
     static jam::HashMap<juce::Identifier, juce::String> getItemReplacement (const Model& model,
         const TemplateDocument& templateDocument, const jam::Document::Identifiers& tokens,
-        Element* sourceRow, const juce::String& sourceValue, const juce::Identifier& sourceKey,
+        const Element* sourceRow, const juce::String& sourceValue, const juce::Identifier& sourceKey,
         const juce::String& extension)
     {
         static const juce::Identifier commentMarker { jam::Format::toValidID (
@@ -510,10 +509,10 @@ struct Items
     static jam::Array<jam::HashMap<juce::Identifier, juce::String>> getItemReplacements (
         const Model& model,
         const TemplateDocument& templateDocument,
-        const jam::Array<Element*>& sourceRows,
+        const jam::Array<const Element*>& sourceRows,
         const jam::Strings& sourceValues,
         const juce::Identifier& sourceKey,
-        Element& line,
+        const Element& line,
         const juce::String& extension)
     {
         jam::Array<jam::HashMap<juce::Identifier, juce::String>> itemReplacements;
@@ -623,7 +622,7 @@ struct Items
      *          item text.
      */
     static juce::String getPaddedItem (const TemplateDocument& templateDocument,
-                                       Element& line,
+                                       const Element& line,
                                        const jam::HashMap<juce::Identifier, juce::String>& replacements,
                                        const jam::HashMap<juce::Identifier, size_t>& columnWidths)
     {
@@ -686,10 +685,10 @@ struct Items
      */
     static jam::Strings getPaddedItemTexts (const Model& model,
                                             const TemplateDocument& templateDocument,
-                                            const jam::Array<Element*>& sourceRows,
+                                            const jam::Array<const Element*>& sourceRows,
                                             const jam::Strings& sourceValues,
                                             const juce::Identifier& sourceKey,
-                                            Element& line,
+                                            const Element& line,
                                             const juce::String& extension)
     {
         jam::Strings texts;
@@ -750,11 +749,11 @@ struct Items
      */
     static jam::Strings getPlainItemTexts (const Model& model,
                                            const TemplateDocument& templateDocument,
-                                           const jam::Array<Element*>& sourceRows,
+                                           const jam::Array<const Element*>& sourceRows,
                                            const jam::Strings& sourceValues,
                                            const juce::Identifier& sourceKey,
-                                           Element& line,
-                                           Element& row,
+                                           const Element& line,
+                                           const Element& row,
                                            int indent,
                                            int sourceOrdinal,
                                            const juce::String& childJoin,
@@ -764,7 +763,7 @@ struct Items
 
         const auto renderItem = [&model, &templateDocument, &sourceKey, &line, &row, indent,
                                  sourceOrdinal, &childJoin, &extension, &texts] (
-            Element* sourceRow, const juce::String& sourceValue)
+            const Element* sourceRow, const juce::String& sourceValue)
         {
             const auto itemText { getItem (model, templateDocument, sourceRow, sourceValue,
                 sourceKey, line, row, indent, sourceOrdinal, childJoin, extension) };
@@ -812,11 +811,11 @@ struct Items
      */
     static jam::Strings getItemTexts (const Model& model,
                                       const TemplateDocument& templateDocument,
-                                      const jam::Array<Element*>& sourceRows,
+                                      const jam::Array<const Element*>& sourceRows,
                                       const jam::Strings& sourceValues,
                                       const juce::Identifier& sourceKey,
-                                      Element& line,
-                                      Element& row,
+                                      const Element& line,
+                                      const Element& row,
                                       int indent,
                                       int sourceOrdinal,
                                       const juce::String& childJoin,
@@ -849,11 +848,11 @@ struct Items
      * @returns @c true when at least one output table among @p tables
      *          declares a @p sourceName column.
      */
-    static bool isColumnSource (const Model& model, const jam::Array<Element*>& tables,
+    static bool isColumnSource (const Model& model, const jam::Array<const Element*>& tables,
         const juce::Identifier& sourceName)
     {
         return std::any_of (tables.begin(), tables.end(),
-            [&model, &sourceName] (Element* table)
+            [&model, &sourceName] (const Element* table)
             {
                 auto* headerRow { Model::getTableHeaderRow (*table) };
                 return model.isOutputTable (*table)
@@ -888,10 +887,10 @@ struct Items
      */
     static jam::Strings getItems (const Model& model,
                                   const TemplateDocument& templateDocument,
-                                  const jam::Array<Element*>& tables,
-                                  Element& row,
+                                  const jam::Array<const Element*>& tables,
+                                  const Element& row,
                                   const juce::String& source,
-                                  Element& line,
+                                  const Element& line,
                                   int indent,
                                   int sourceOrdinal,
                                   const juce::String& childJoin,
@@ -900,7 +899,7 @@ struct Items
         static const juce::Identifier listMarker { jam::Format::toValidID (
             jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
 
-        jam::Array<Element*> sourceRows;
+        jam::Array<const Element*> sourceRows;
         jam::Strings sourceValues;
         juce::Identifier sourceKey { listMarker };
 
@@ -947,10 +946,10 @@ struct Items
      */
     static juce::String getJoinedItems (const Model& model,
                                         const TemplateDocument& templateDocument,
-                                        const jam::Array<Element*>& tables,
-                                        Element& row,
+                                        const jam::Array<const Element*>& tables,
+                                        const Element& row,
                                         const juce::String& source,
-                                        Element& line,
+                                        const Element& line,
                                         const juce::String& separator,
                                         int indent,
                                         int sourceOrdinal,

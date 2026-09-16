@@ -42,7 +42,7 @@ struct Writer : jam::Document::Writer
      */
     juce::String getText (const jam::Document& document) const override
     {
-        return document.root->getAllSubText();
+        return document.getRoot()->getAllSubText();
     }
 
     /**
@@ -82,7 +82,7 @@ private:
      * @param rows The rows searched for output-file group boundaries.
      * @returns Every group's first index, in @p rows' own order.
      */
-    jam::Array<int> getGroupStarts (const jam::Array<Model::Element*>& rows) const
+    jam::Array<int> getGroupStarts (const jam::Array<const Model::Element*>& rows) const
     {
         jam::Array<int> groupStarts;
 
@@ -112,14 +112,14 @@ private:
      *          own order.
      */
     jam::Array<juce::File> getOutputFiles (const juce::File& outputPath,
-        const jam::Array<Model::Element*>& rows, const jam::Array<int>& groupStarts) const
+        const jam::Array<const Model::Element*>& rows, const jam::Array<int>& groupStarts) const
     {
         jam::Array<juce::File> outputFiles;
         outputFiles.resize (groupStarts.size());
 
         for (int index { 0 }; index < groupStarts.size(); ++index)
         {
-            auto& firstRow { *rows.at (groupStarts.at (index)) };
+            const auto& firstRow { *rows.at (groupStarts.at (index)) };
             const auto& file { model.getValue (firstRow, Id::file) };
 
             if (model.isRegionRow (firstRow))
@@ -166,8 +166,8 @@ private:
      *          needed rewriting and the write failed, or an empty string
      *          when its text was already canonical or wrote successfully.
      */
-    juce::String toFile (const jam::Array<Model::Element*>& rows,
-        const jam::Array<Model::Element*>& tables, const jam::Array<int>& groupStarts,
+    juce::String toFile (const jam::Array<const Model::Element*>& rows,
+        const jam::Array<const Model::Element*>& tables, const jam::Array<int>& groupStarts,
         const jam::Array<juce::File>& outputFiles, int index) const
     {
         static const auto dotText { juce::String::charToString (Chars::dot) };
@@ -200,7 +200,7 @@ private:
         if (comment.isNotEmpty())
             comment = Transforms::toCommentBlock (comment, extension);
 
-        Model::Element* noBannerLine { nullptr };
+        const Model::Element* noBannerLine { nullptr };
 
         for (int rowIndex { start }; rowIndex < groupEnd and noBannerLine == nullptr; ++rowIndex)
             for (const auto& column : { Id::structure, Id::separator, Id::list })
@@ -211,7 +211,7 @@ private:
                         if (noBannerLine == nullptr and candidate.contains (Id::templatePath)
                             and Transforms::getFencePrefix (*candidate.get<juce::String> (Id::info))
                                     .compare (noBanner) == 0)
-                            noBannerLine = const_cast<Model::Element*> (&candidate);
+                            noBannerLine = &candidate;
 
                         return noBannerLine == nullptr;
                     });
@@ -222,7 +222,7 @@ private:
         apply (rendered, tables, rows, start, groupEnd, extension);
 
         jam::MarkdownDocument output;
-        output.addChild (*output.root, Id::text)
+        output.addChild (*output.getRoot(), Id::text)
             ->add<juce::String> (Id::text, getBody (getText (rendered), banner));
 
         const auto current { outputFile.loadFileAsString() };
@@ -296,10 +296,10 @@ private:
      *          the write failed, or an empty string when its text was
      *          already canonical or wrote successfully.
      */
-    juce::String toRegionFile (const jam::Array<Model::Element*>& rows,
-        const jam::Array<Model::Element*>& tables, int start, int groupEnd,
-        const juce::File& outputFile, Model::Element& firstRow, const juce::String& extension,
-        Model::Element* beginBinding, Model::Element* endBinding) const
+    juce::String toRegionFile (const jam::Array<const Model::Element*>& rows,
+        const jam::Array<const Model::Element*>& tables, int start, int groupEnd,
+        const juce::File& outputFile, const Model::Element& firstRow, const juce::String& extension,
+        const Model::Element* beginBinding, const Model::Element* endBinding) const
     {
         static const auto newlineText { juce::String::charToString (Chars::newline) };
 
@@ -347,7 +347,7 @@ private:
      * @returns Every failed file's diagnostic line, or an empty
      *          jam::Strings when every file wrote successfully.
      */
-    jam::Strings toFile (Model::Element& table, const juce::File& outputPath) const
+    jam::Strings toFile (const Model::Element& table, const juce::File& outputPath) const
     {
         jam::Strings failures;
         const auto tables { model.getTables() };
@@ -378,7 +378,7 @@ private:
      * @returns The resolved row-join text, or an empty string when
      *          @p firstRow's separator column declares no row join.
      */
-    juce::String getRowJoin (Model::Element& firstRow) const
+    juce::String getRowJoin (const Model::Element& firstRow) const
     {
         auto* rowJoinLine { model.getRowJoin (firstRow) };
 
@@ -410,7 +410,7 @@ private:
      *          @p firstRow declares no @-sigiled @c comment binding, or the
      *          addressed table carries no row for @p file.
      */
-    juce::String getFileComment (Model::Element& firstRow, const juce::String& file) const
+    juce::String getFileComment (const Model::Element& firstRow, const juce::String& file) const
     {
         auto* firstLine { Shapes::getFirstLine (model, firstRow) };
 
@@ -464,8 +464,8 @@ private:
      * @param extension The target file extension a comment value is
      *                  commented for.
      */
-    void apply (jam::MarkdownDocument& output, const jam::Array<Model::Element*>& tables,
-               const jam::Array<Model::Element*>& rows, int index, int groupEnd,
+    void apply (jam::MarkdownDocument& output, const jam::Array<const Model::Element*>& tables,
+               const jam::Array<const Model::Element*>& rows, int index, int groupEnd,
                const juce::String& extension) const
     {
         static const auto newlineText { juce::String::charToString (Chars::newline) };
@@ -479,8 +479,8 @@ private:
                                         + Chars::newline
                                   : newlineText };
 
-        jam::Array<Model::Element*> groupRows;
-        jam::Array<Model::Element*> groupLines;
+        jam::Array<const Model::Element*> groupRows;
+        jam::Array<const Model::Element*> groupLines;
 
         for (; index < groupEnd; ++index)
         {
@@ -489,12 +489,12 @@ private:
             groupLines.add (Shapes::getFirstLine (model, *row));
         }
 
-        output.addChild (*output.root, Id::text)
+        output.addChild (*output.getRoot(), Id::text)
             ->add<juce::String> (Id::text,
                 Shapes::getShape (model, templateDocument, tables, groupRows, groupLines, joinText,
                     0, extension));
 
-        output.addChild (*output.root, Id::text)
+        output.addChild (*output.getRoot(), Id::text)
             ->add<juce::String> (Id::text, newlineText);
     }
 

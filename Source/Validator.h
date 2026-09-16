@@ -32,8 +32,8 @@ struct Validator : jam::MarkdownValidator
      * @returns juce::Result::ok() when @p line's shape resolves, or a
      *          failure naming @p line's own info.
      */
-    static juce::Result hasTemplate (const TemplateDocument& templateDocument, Element& table,
-        Element& row, const juce::Identifier& column, Element& line)
+    static juce::Result hasTemplate (const TemplateDocument& templateDocument, const Element& table,
+        const Element& row, const juce::Identifier& column, const Element& line)
     {
         if (templateDocument.getCodeBlock (line) == nullptr)
             return juce::Result::fail (getLocation (table, row, column.toString())
@@ -106,7 +106,7 @@ struct Validator : jam::MarkdownValidator
      */
     template <typename Function>
     static juce::Result
-    forEachBinding (Element& table, Element& row, Element& scope, Function&& function)
+    forEachBinding (const Element& table, const Element& row, const Element& scope, Function&& function)
     {
         for (auto* child : scope)
         {
@@ -223,14 +223,14 @@ struct Validator : jam::MarkdownValidator
                             getLocation (*table, *row, Id::structure.toString())
                             + Id::diagnosticSeparator + text::Diagnostics::failStructureMissing);
 
-                    Element* failingLine { nullptr };
+                    const Element* failingLine { nullptr };
 
                     structureScope->applyFunctionRecursively (
                         [&failingLine, &templateDocument] (const Element& candidate) -> bool
                         {
                             if (failingLine == nullptr and candidate.contains (Id::templatePath)
                                 and templateDocument.getCodeBlock (candidate) == nullptr)
-                                failingLine = const_cast<Element*> (&candidate);
+                                failingLine = &candidate;
 
                             return failingLine == nullptr;
                         });
@@ -258,8 +258,8 @@ struct Validator : jam::MarkdownValidator
      * @returns juce::Result::ok() when every scope's bindings are unique,
      *          or a failure naming the duplicate binding.
      */
-    static juce::Result isBindingCountValid (Element& table, Element& row,
-        const juce::Identifier& column, Element& scope, jam::HashSet<juce::Identifier>& seen)
+    static juce::Result isBindingCountValid (const Element& table, const Element& row,
+        const juce::Identifier& column, const Element& scope, jam::HashSet<juce::Identifier>& seen)
     {
         static const juce::Identifier listMarker { jam::Format::toValidID (
             jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
@@ -339,8 +339,8 @@ struct Validator : jam::MarkdownValidator
      * @returns juce::Result::ok() when every shape's markers pair, or a
      *          failure naming the unterminated shape.
      */
-    static juce::Result isMarkerCountValid (const TemplateDocument& templateDocument, Element& table,
-        Element& row, Element& structureScope)
+    static juce::Result isMarkerCountValid (const TemplateDocument& templateDocument, const Element& table,
+        const Element& row, const Element& structureScope)
     {
         juce::String shapeId;
 
@@ -420,8 +420,8 @@ struct Validator : jam::MarkdownValidator
      *          shape or its column-address source resolves, or a failure
      *          naming the unresolved reference.
      */
-    static juce::Result isShapeSupplied (const Model& model, Element& table, Element& row,
-        const juce::Identifier& column, Element& precedingShape)
+    static juce::Result isShapeSupplied (const Model& model, const Element& table, const Element& row,
+        const juce::Identifier& column, const Element& precedingShape)
     {
         juce::String sourceValue;
 
@@ -466,9 +466,9 @@ struct Validator : jam::MarkdownValidator
      *          with juce::Result::ok() when every checked shape resolves,
      *          or the first failing check's result.
      */
-    static std::pair<juce::Result, Element*> isPlaceholderScope (const Model& model,
-        const TemplateDocument& templateDocument, Element& table, Element& row,
-        const juce::Identifier& column, Element& scope, Element* precedingShape)
+    static std::pair<juce::Result, const Element*> isPlaceholderScope (const Model& model,
+        const TemplateDocument& templateDocument, const Element& table, const Element& row,
+        const juce::Identifier& column, const Element& scope, const Element* precedingShape)
     {
         static const juce::Identifier listMarker { jam::Format::toValidID (
             jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
@@ -590,8 +590,7 @@ struct Validator : jam::MarkdownValidator
                                 if (candidate.isTag (Id::p) and candidate.contains (Id::templatePath))
                                 {
                                     ++supplied;
-                                    demanded += Items::getArity (
-                                        templateDocument, const_cast<Element&> (candidate));
+                                    demanded += Items::getArity (templateDocument, candidate);
                                 }
 
                                 if (candidate.parent->isTag (Id::ul) and candidate.id == listMarker)
@@ -599,14 +598,12 @@ struct Validator : jam::MarkdownValidator
                                     ++supplied;
 
                                     if (candidate.contains (Id::templatePath))
-                                        demanded += Items::getArity (
-                                            templateDocument, const_cast<Element&> (candidate));
+                                        demanded += Items::getArity (templateDocument, candidate);
                                 }
 
                                 if (candidate.parent->isTag (Id::ul) and candidate.id != listMarker
                                     and candidate.contains (Id::templatePath))
-                                    demanded += Items::getArity (
-                                        templateDocument, const_cast<Element&> (candidate));
+                                    demanded += Items::getArity (templateDocument, candidate);
                             });
 
                         if (supplied - 1 > demanded)
@@ -645,8 +642,8 @@ struct Validator : jam::MarkdownValidator
      * @returns juce::Result::ok() when every bullet pairs and resolves,
      *          or a failure naming the orphan bullet.
      */
-    static juce::Result isPaired (const Model& model, Element& table, Element& row,
-        const juce::Identifier& column, Element& scope)
+    static juce::Result isPaired (const Model& model, const Element& table, const Element& row,
+        const juce::Identifier& column, const Element& scope)
     {
         static const juce::Identifier listMarker { jam::Format::toValidID (
             jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
@@ -754,7 +751,7 @@ struct Validator : jam::MarkdownValidator
 
         for (const auto& column : { Id::structure, Id::separator, Id::list })
             if (const auto result { forEachBinding (model, column,
-                    [&model, &column] (Element& table, Element& row, const juce::Identifier& entryId,
+                    [&model, &column] (const Element& table, const Element& row, const juce::Identifier& entryId,
                         const juce::String& entryValue) -> juce::Result
                     {
                         if ((entryId != commentMarker or column == Id::structure)
@@ -767,7 +764,7 @@ struct Validator : jam::MarkdownValidator
                 return result;
 
         return forEachEntry (model,
-            [&model] (Element& table, Element& row, const juce::Identifier& column,
+            [&model] (const Element& table, const Element& row, const juce::Identifier& column,
                 const juce::String& entryValue) -> juce::Result
             {
                 if (Model::isAddress (entryValue))
@@ -794,7 +791,7 @@ struct Validator : jam::MarkdownValidator
      *          column.
      */
     static juce::Result
-    isMap (const Model& model, Element& table, Element& row, Element& scope)
+    isMap (const Model& model, const Element& table, const Element& row, const Element& scope)
     {
         static const juce::Identifier listMarker { jam::Format::toValidID (
             jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
@@ -881,7 +878,7 @@ struct Validator : jam::MarkdownValidator
      * @returns juce::Result::ok() when every declared part resolves, or a
      *          failure naming the missing table or column.
      */
-    static juce::Result hasTable (const Model& model, Element& table, Element& row,
+    static juce::Result hasTable (const Model& model, const Element& table, const Element& row,
         const juce::Identifier& column, const juce::String& entryValue)
     {
         static const auto colonText { juce::String::charToString (Chars::colon) };
@@ -1184,7 +1181,7 @@ struct Validator : jam::MarkdownValidator
      *          or a failure naming @p row's own file.
      */
     static juce::Result isRegionDelimited (const Model& model, const TemplateDocument& templateDocument,
-        Element& table, Element& row, const juce::Identifier& beginMarker, const juce::Identifier& endMarker)
+        const Element& table, const Element& row, const juce::Identifier& beginMarker, const juce::Identifier& endMarker)
     {
         auto* firstLine { Shapes::getFirstLine (model, row) };
         auto* beginBinding { model.getBinding (row, Id::structure, *firstLine, beginMarker) };
@@ -1226,7 +1223,8 @@ struct Validator : jam::MarkdownValidator
                 for (auto* row : model.getTableRows (*table))
                     if (model.isRegionRow (*row))
                         if (const auto result {
-                                isRegionDelimited (model, templateDocument, *table, *row, beginMarker, endMarker) };
+                                isRegionDelimited (model, templateDocument, *table,
+                                    *row, beginMarker, endMarker) };
                             not result.wasOk())
                             return result;
 
@@ -1293,7 +1291,7 @@ struct Validator : jam::MarkdownValidator
         }
 
         return forEachCell (model, Id::format.toString(),
-            [] (Element& table, Element& row, const juce::String& transform) -> juce::Result
+            [] (const Element& table, const Element& row, const juce::String& transform) -> juce::Result
             {
                 if (transform.isNotEmpty() and not Transforms::contains (transform))
                     return juce::Result::fail (getLocation (table, row, Id::format.toString())
@@ -1316,7 +1314,7 @@ struct Validator : jam::MarkdownValidator
      *          or a failure naming the file that reappears after its group
      *          closed.
      */
-    static juce::Result isContiguous (const Model& model, Element& table)
+    static juce::Result isContiguous (const Model& model, const Element& table)
     {
         jam::HashSet<juce::String> closedFiles;
         juce::String previousFile;
@@ -1359,8 +1357,8 @@ struct Validator : jam::MarkdownValidator
      * @returns juce::Result::ok() when every non-reference value is
      *          unique, or a failure naming the duplicate value.
      */
-    static juce::Result isUniqueColumn (const Model& model, Element& table,
-        const jam::Array<Element*>& rows, const juce::Identifier& column)
+    static juce::Result isUniqueColumn (const Model& model, const Element& table,
+        const jam::Array<const Element*>& rows, const juce::Identifier& column)
     {
         jam::HashSet<juce::String> seen;
 
@@ -1395,7 +1393,7 @@ struct Validator : jam::MarkdownValidator
      * @returns juce::Result::ok() when every identity column is unique,
      *          or the first failing column's result.
      */
-    static juce::Result isUniqueTable (const Model& model, Element& table)
+    static juce::Result isUniqueTable (const Model& model, const Element& table)
     {
         const auto rows { model.getTableRows (table) };
 
@@ -1484,7 +1482,7 @@ struct Validator : jam::MarkdownValidator
                     for (const auto& column : { Id::structure, Id::separator, Id::list })
                     if (auto* structureScope { model.getTableCell (*row, column) })
                     {
-                        Element* failingLine { nullptr };
+                        const Element* failingLine { nullptr };
 
                         structureScope->applyFunctionRecursively (
                             [&failingLine, &noBanner] (const Element& candidate) -> bool
@@ -1501,7 +1499,7 @@ struct Validator : jam::MarkdownValidator
                                             or (word.compare (noBanner) != 0
                                                 and not map::commentSyntax.contains (
                                                     dotText + word)))
-                                            failingLine = const_cast<Element*> (&candidate);
+                                            failingLine = &candidate;
                                     }
                                 }
 

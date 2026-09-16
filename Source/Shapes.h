@@ -36,11 +36,11 @@ struct Shapes
      * @param line             The structure line to advance past.
      * @returns The next structure line, or @c nullptr when none remains.
      */
-    static Element*
-    getLineAfter (const Model& model, const TemplateDocument& templateDocument, Element& line)
+    static const Element*
+    getLineAfter (const Model& model, const TemplateDocument& templateDocument, const Element& line)
     {
         return model.getNextShapeLine (line,
-            [&templateDocument] (Element& candidate) { return Items::getArity (templateDocument, candidate); });
+            [&templateDocument] (const Element& candidate) { return Items::getArity (templateDocument, candidate); });
     }
 
     /**
@@ -58,10 +58,10 @@ struct Shapes
      * @returns The @p occurrence-th source line, or @c nullptr when none
      *          remains.
      */
-    static Element* getSourceLine (const Model& model, const TemplateDocument& templateDocument,
-        Element& line, int occurrence)
+    static const Element* getSourceLine (const Model& model, const TemplateDocument& templateDocument,
+        const Element& line, int occurrence)
     {
-        auto* cursor { model.getNextLine (line) };
+        const Element* cursor { model.getNextLine (line) };
 
         for (int index { 0 }; cursor != nullptr and index < occurrence; ++index)
             cursor = getLineAfter (model, templateDocument, *cursor);
@@ -78,12 +78,12 @@ struct Shapes
      * @returns @p row's first shape line, or @c nullptr when its
      *          structure scope declares none.
      */
-    static Element* getFirstLine (const Model& model, Element& row)
+    static const Element* getFirstLine (const Model& model, const Element& row)
     {
         static const juce::Identifier listMarker { jam::Format::toValidID (
             jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
 
-        Element* line { nullptr };
+        const Element* line { nullptr };
 
         model.getTableCell (row, Id::structure)
             ->applyFunctionRecursively (
@@ -92,7 +92,7 @@ struct Shapes
                     if (line == nullptr and candidate.contains (Id::shape)
                         and *candidate.get<int> (Id::shape) == 0
                         and (candidate.isTag (Id::p) or candidate.id == listMarker))
-                        line = const_cast<Element*> (&candidate);
+                        line = &candidate;
 
                     return line == nullptr;
                 });
@@ -114,10 +114,10 @@ struct Shapes
      * @returns The first source's own addressed table, or @c nullptr when
      *          none of @p line's sources address one.
      */
-    static Element* getSourceTable (const Model& model, const TemplateDocument& templateDocument,
-        Element& row, Element& line)
+    static const Element* getSourceTable (const Model& model, const TemplateDocument& templateDocument,
+        const Element& row, const Element& line)
     {
-        Element* table { nullptr };
+        const Element* table { nullptr };
 
         for (int occurrence { 0 };
              table == nullptr and occurrence < Items::getArity (templateDocument, line); ++occurrence)
@@ -152,10 +152,10 @@ struct Shapes
      *          table when no source resolves one but it carries a
      *          comment, or @c nullptr when neither resolves.
      */
-    static Element* getCommentTable (const Model& model, const TemplateDocument& templateDocument,
-        Element& row, Element& line)
+    static const Element* getCommentTable (const Model& model, const TemplateDocument& templateDocument,
+        const Element& row, const Element& line)
     {
-        Element* table { nullptr };
+        const Element* table { nullptr };
 
         if (not line.isTag (Id::p))
         {
@@ -202,7 +202,7 @@ struct Shapes
      *          under-supplied filter elides rather than failing (SPEC
      *          §6.4, §6.5).
      */
-    static Element* getItemSourceRow (const Model& model, Element& row, Element& line)
+    static const Element* getItemSourceRow (const Model& model, const Element& row, const Element& line)
     {
         auto* source { model.getSource (row, *line.get<int> (Id::level), *line.get<int> (Id::line)) };
         const auto& sourceValue { *source->get<juce::String> (Id::value) };
@@ -251,7 +251,7 @@ struct Shapes
      *          under-supply, addressing no row (SPEC §6.4, §6.5).
      */
     static juce::String getTokenValue (const Model& model, const TemplateDocument& templateDocument,
-        const jam::Array<Element*>& tables, Element& row, Element& line, Element* commentTable,
+        const jam::Array<const Element*>& tables, const Element& row, const Element& line, const Element* commentTable,
         const juce::Identifier& name, const juce::String& joinText, int parentIndent,
         bool isAtColumnZero, const juce::String& extension)
     {
@@ -327,8 +327,8 @@ struct Shapes
      * @returns @p name's resolved, commented value.
      */
     static juce::String getMarkerValue (const Model& model, const TemplateDocument& templateDocument,
-        const jam::Array<Element*>& tables, const jam::Array<Element*>& rows,
-        const jam::Array<Element*>& lines, Element* commentTable, const juce::Identifier& name,
+        const jam::Array<const Element*>& tables, const jam::Array<const Element*>& rows,
+        const jam::Array<const Element*>& lines, const Element* commentTable, const juce::Identifier& name,
         int tokenOccurrence, const juce::String& joinText, int parentIndent, bool isAtColumnZero,
         const juce::String& extension, const juce::String& templateLine, const juce::String& marker)
     {
@@ -384,8 +384,8 @@ struct Shapes
      * @returns The substituted line text.
      */
     static juce::String getSubstitutedLine (const Model& model,
-        const TemplateDocument& templateDocument, const jam::Array<Element*>& tables,
-        const jam::Array<Element*>& rows, const jam::Array<Element*>& lines,
+        const TemplateDocument& templateDocument, const jam::Array<const Element*>& tables,
+        const jam::Array<const Element*>& rows, const jam::Array<const Element*>& lines,
         const jam::Document::Identifiers& tokens, jam::HashMap<juce::Identifier, int>& occurrence,
         const juce::String& templateLine, const juce::String& joinText, int parentIndent,
         const juce::String& extension)
@@ -442,8 +442,8 @@ struct Shapes
      * @returns @p line's own shape's rendered text, joined by newline.
      */
     static juce::String getLines (const Model& model, const TemplateDocument& templateDocument,
-        const jam::Array<Element*>& tables, const jam::Array<Element*>& rows,
-        const jam::Array<Element*>& lines, Element& line,
+        const jam::Array<const Element*>& tables, const jam::Array<const Element*>& rows,
+        const jam::Array<const Element*>& lines, const Element& line,
         const jam::Document::Identifiers& tokens, const juce::String& joinText, int parentIndent,
         const juce::String& extension)
     {
@@ -539,11 +539,11 @@ struct Shapes
      * @returns The rendered, indented shape text.
      */
     static juce::String getShapeText (const Model& model, const TemplateDocument& templateDocument,
-        const jam::Array<Element*>& tables, Element& row, Element& line, const juce::String& joinText,
+        const jam::Array<const Element*>& tables, const Element& row, const Element& line, const juce::String& joinText,
         int parentIndent, bool isAtColumnZero, const juce::String& extension)
     {
-        jam::Array<Element*> rows;
-        jam::Array<Element*> sourceLines;
+        jam::Array<const Element*> rows;
+        jam::Array<const Element*> sourceLines;
         rows.add (&row);
         sourceLines.add (&line);
 
@@ -576,8 +576,8 @@ struct Shapes
      * @returns The rendered, indented shape group text.
      */
     static juce::String getShapeText (const Model& model, const TemplateDocument& templateDocument,
-        const jam::Array<Element*>& tables, const jam::Array<Element*>& rows,
-        const jam::Array<Element*>& sourceLines, const juce::String& joinText, int parentIndent,
+        const jam::Array<const Element*>& tables, const jam::Array<const Element*>& rows,
+        const jam::Array<const Element*>& sourceLines, const juce::String& joinText, int parentIndent,
         bool isAtColumnZero, const juce::String& extension)
     {
         const auto text { getShape (model, templateDocument, tables, rows, sourceLines, joinText,
@@ -599,7 +599,7 @@ struct Shapes
      *          marker not at column zero, @c false when it declares one
      *          at column zero or declares none.
      */
-    static bool isListMarkerInline (const TemplateDocument& templateDocument, Element& sourceLine)
+    static bool isListMarkerInline (const TemplateDocument& templateDocument, const Element& sourceLine)
     {
         static const juce::Identifier listMarker { jam::Format::toValidID (
             jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
@@ -653,8 +653,8 @@ struct Shapes
      * @returns The rendered, indented item-group text.
      */
     static juce::String getItemText (const Model& model, const TemplateDocument& templateDocument,
-        const jam::Array<Element*>& tables, const jam::Array<Element*>& rows,
-        const jam::Array<Element*>& sourceLines, const juce::String& joinText, int parentIndent,
+        const jam::Array<const Element*>& tables, const jam::Array<const Element*>& rows,
+        const jam::Array<const Element*>& sourceLines, const juce::String& joinText, int parentIndent,
         bool isAtColumnZero, const juce::String& extension)
     {
         static const auto newlineText { juce::String::charToString (Chars::newline) };
@@ -663,8 +663,8 @@ struct Shapes
 
         for (int index { 0 }; index < rows.size(); ++index)
         {
-            auto& row { *rows.at (index) };
-            auto& sourceLine { *sourceLines.at (index) };
+            const auto& row { *rows.at (index) };
+            const auto& sourceLine { *sourceLines.at (index) };
             const auto indent { *sourceLine.get<int> (Id::level) };
             const auto ordinal { *sourceLine.get<int> (Id::line) };
             const auto sourceValue {
@@ -707,7 +707,7 @@ struct Shapes
      *          @p arity.
      */
     static int getAvailableCount (const Model& model, const TemplateDocument& templateDocument,
-        Element& structureLine, int arity)
+        const Element& structureLine, int arity)
     {
         auto availableCount { 0 };
 
@@ -750,14 +750,14 @@ struct Shapes
      *          followed by item sources, joined by @p joinText.
      */
     static juce::String getFill (const Model& model, const TemplateDocument& templateDocument,
-        const jam::Array<Element*>& tables, const jam::Array<Element*>& rows,
-        const jam::Array<Element*>& lines, int occurrence, const juce::String& joinText,
+        const jam::Array<const Element*>& tables, const jam::Array<const Element*>& rows,
+        const jam::Array<const Element*>& lines, int occurrence, const juce::String& joinText,
         int parentIndent, bool isAtColumnZero, const juce::String& extension)
     {
-        jam::Array<Element*> shapeRows;
-        jam::Array<Element*> shapeSourceLines;
-        jam::Array<Element*> itemRows;
-        jam::Array<Element*> itemSourceLines;
+        jam::Array<const Element*> shapeRows;
+        jam::Array<const Element*> shapeSourceLines;
+        jam::Array<const Element*> itemRows;
+        jam::Array<const Element*> itemSourceLines;
 
         for (int index { 0 }; index < rows.size(); ++index)
         {
@@ -823,7 +823,7 @@ struct Shapes
      * @returns @p line's own grouping key.
      */
     static juce::String getGroupKey (const Model& model, const TemplateDocument& templateDocument,
-        const jam::Array<Element*>& tables, Element& row, Element& line, const juce::String& joinText,
+        const jam::Array<const Element*>& tables, const Element& row, const Element& line, const juce::String& joinText,
         int parentIndent, const juce::String& extension)
     {
         static const auto newlineText { juce::String::charToString (Chars::newline) };
@@ -869,12 +869,12 @@ struct Shapes
      * @returns The group's own rendered text.
      */
     static juce::String getGroupText (const Model& model, const TemplateDocument& templateDocument,
-        const jam::Array<Element*>& tables, const jam::Array<Element*>& rows,
-        const jam::Array<Element*>& lines, const jam::Array<int>& indices, const juce::String& joinText,
+        const jam::Array<const Element*>& tables, const jam::Array<const Element*>& rows,
+        const jam::Array<const Element*>& lines, const jam::Array<int>& indices, const juce::String& joinText,
         int parentIndent, const juce::String& extension)
     {
-        jam::Array<Element*> groupRows;
-        jam::Array<Element*> groupLines;
+        jam::Array<const Element*> groupRows;
+        jam::Array<const Element*> groupLines;
 
         for (const auto candidateIndex : indices)
         {
@@ -914,8 +914,8 @@ struct Shapes
      *          order, joined by @p joinText.
      */
     static juce::String getShape (const Model& model, const TemplateDocument& templateDocument,
-        const jam::Array<Element*>& tables, const jam::Array<Element*>& rows,
-        const jam::Array<Element*>& lines, const juce::String& joinText, int parentIndent,
+        const jam::Array<const Element*>& tables, const jam::Array<const Element*>& rows,
+        const jam::Array<const Element*>& lines, const juce::String& joinText, int parentIndent,
         const juce::String& extension)
     {
         jam::Strings keys;
