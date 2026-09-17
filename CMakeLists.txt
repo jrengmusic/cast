@@ -27,6 +27,8 @@ if(APPLE)
     set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "macOS architectures")
 elseif(WIN32)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    set(CMAKE_RC_FLAGS "/C65001")
+    set(CMAKE_NINJA_CMCLDEPS_RC OFF)
 endif()
 
 project(cast
@@ -52,6 +54,11 @@ execute_process(
 
 message(STATUS "CAST: configuring ${PROJECT_NAME} ${PROJECT_VERSION}")
 
+set(CMAKE_C_FLAGS_RELEASE "")
+set(CMAKE_CXX_FLAGS_RELEASE "")
+set(CMAKE_C_FLAGS_DEBUG "")
+set(CMAKE_CXX_FLAGS_DEBUG "")
+
 if(APPLE)
     set(CAST_RELEASE_COMPILE_FLAGS
 -Wno-shadow;-Wno-unused-parameter;-Wno-float-equal;-Wno-sign-conversion;-Wno-switch-enum;-Wno-implicit-float-conversion;-O3;-flto=thin
@@ -63,15 +70,31 @@ if(APPLE)
 -Wno-shadow;-Wno-unused-parameter;-Wno-float-equal;-Wno-sign-conversion;-Wno-switch-enum;-Wno-implicit-float-conversion;-O0;-g
     )
 elseif(WIN32)
-    set(CAST_RELEASE_COMPILE_FLAGS
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        set(CAST_RELEASE_COMPILE_FLAGS
 /wd4456;/wd4100;/wd4244;/permissive-;/Zc:rvalueCast;/W4;/FC;/O2;/GL
-    )
-    set(CAST_RELEASE_LINK_FLAGS
+        )
+        set(CAST_RELEASE_LINK_FLAGS
 /LTCG;/OPT:REF;/OPT:ICF
-    )
-    set(CAST_DEBUG_COMPILE_FLAGS
+        )
+        set(CAST_DEBUG_COMPILE_FLAGS
 /wd4456;/wd4100;/wd4244;/permissive-;/Zc:rvalueCast;/W4;/FC;/Od;/Zi
-    )
+        )
+    else()
+        set(CAST_RELEASE_COMPILE_FLAGS
+-Wno-shadow;-Wno-unused-parameter;-Wno-float-equal;-Wno-sign-conversion;-Wno-switch-enum;-Wno-implicit-float-conversion;-O3;-flto=thin
+        )
+        list(REMOVE_ITEM CAST_RELEASE_COMPILE_FLAGS "-O3")
+        list(APPEND CAST_RELEASE_COMPILE_FLAGS "/clang:-O3")
+        set(CAST_RELEASE_LINK_FLAGS
+/LTCG;/OPT:REF;/OPT:ICF
+        )
+        set(CAST_DEBUG_COMPILE_FLAGS
+-Wno-shadow;-Wno-unused-parameter;-Wno-float-equal;-Wno-sign-conversion;-Wno-switch-enum;-Wno-implicit-float-conversion;-O0;-g
+        )
+        list(REMOVE_ITEM CAST_DEBUG_COMPILE_FLAGS "-O0" "-g")
+        list(APPEND CAST_DEBUG_COMPILE_FLAGS "/Z7")
+    endif()
 endif()
 
 set(CAST_JUCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../JUCE")
@@ -217,7 +240,10 @@ endif()
 add_custom_command(TARGET post-build POST_BUILD
 COMMAND ${CMAKE_COMMAND} -E make_directory "$ENV{HOME}/.local/bin"
 COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PROJECT_NAME}> "$ENV{HOME}/.local/bin/${PROJECT_NAME}.tmp"
-COMMAND ${CMAKE_COMMAND} -E rename "$ENV{HOME}/.local/bin/${PROJECT_NAME}.tmp" "$ENV{HOME}/.local/bin/${PROJECT_NAME}"
+COMMAND ${CMAKE_COMMAND} -E rm -f "$ENV{HOME}/.local/bin/${PROJECT_NAME}.old"
+COMMAND ${CMAKE_COMMAND} -E touch "$ENV{HOME}/.local/bin/${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}"
+COMMAND ${CMAKE_COMMAND} -E rename "$ENV{HOME}/.local/bin/${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}" "$ENV{HOME}/.local/bin/${PROJECT_NAME}.old"
+COMMAND ${CMAKE_COMMAND} -E rename "$ENV{HOME}/.local/bin/${PROJECT_NAME}.tmp" "$ENV{HOME}/.local/bin/${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}"
     COMMENT "CAST: post-build"
 )
 

@@ -1,12 +1,12 @@
 CompileFlags:
-  CompilationDatabase: /Users/jreng/Documents/Poems/dev/cast
+  CompilationDatabase: C:/Users/jreng/Documents/Poems/dev/cast
   Remove: [--target=*]
   Add:
-    - -DCAST_COMMIT=\"bad4055\"
+    - -TP
+    - -DCAST_COMMIT=\"9e492af\"
     - -DDONT_SET_USING_JUCE_NAMESPACE=1
     - -DJUCE_DONT_DECLARE_PROJECTINFO=1
     - -DJUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1
-    - -DJUCE_IN_APP_PURCHASES=0
     - -DJUCE_MODULE_AVAILABLE_jam_core=1
     - -DJUCE_MODULE_AVAILABLE_jam_markdown=1
     - -DJUCE_MODULE_AVAILABLE_jam_subprocess=1
@@ -18,27 +18,26 @@ CompileFlags:
     - -DJUCE_STANDALONE_APPLICATION=1
     - -DJUCE_TARGET_HAS_BINARY_DATA=1
     - -DNDEBUG=1
+    - -D_CONSOLE=1
     - -D_NDEBUG=1
-    - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Release/cast_artefacts/JuceLibraryCode
-    - -I/Users/jreng/Documents/Poems/dev/cast/../jam
-    - -I/Users/jreng/Documents/Poems/dev/cast/Source/generated
-    - -I/Users/jreng/Documents/Poems/JUCE/modules
-    - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Release/juce_binarydata_cast_BinaryData/JuceLibraryCode
-    - -O3
-    - -DNDEBUG
-    - -std=c++17
+    - -IC:\Users\jreng\Documents\Poems\dev\cast\Builds\Release\cast_artefacts\JuceLibraryCode
+    - -IC:\Users\jreng\Documents\Poems\dev\cast\..\jam
+    - -IC:\Users\jreng\Documents\Poems\dev\cast\Source\generated
+    - -IC:\Users\jreng\Documents\Poems\JUCE\modules
+    - -IC:\Users\jreng\Documents\Poems\dev\cast\Builds\Release\juce_binarydata_cast_BinaryData\JuceLibraryCode
+    - /DWIN32
+    - -std:c++17
+    - -MT
     - -flto=thin
-    - -arch
-    - x86_64
-    - -arch
-    - arm64
-    - -mmacosx-version-min=11.0
     - -Wno-shadow
     - -Wno-unused-parameter
     - -Wno-float-equal
     - -Wno-sign-conversion
     - -Wno-switch-enum
     - -Wno-implicit-float-conversion
+    - -O3
+    - --
+    - C:\Users\jreng\Documents\Poems\dev\cast\Source\main.cpp
 Diagnostics:
   MissingIncludes: None
   UnusedIncludes: None

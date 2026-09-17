@@ -39,6 +39,9 @@
 | - [list]: @project-info:release:stage=       | - [list]: @semicolon      | - [list]: @cmake:win                          |              |
 | - [list]: @project-info:release:stage=linker | - [list]: @semicolon      | - [list]: @cmake:win                          |              |
 | - [list]: @project-info:debug:stage=         | - [list]: @semicolon      | - [list]: @cmake:win                          |              |
+| - [list]: @project-info:release:stage=       | - [list]: @semicolon      | - [list]: @cmake:mac                          |              |
+| - [list]: @project-info:release:stage=linker | - [list]: @semicolon      | - [list]: @cmake:win                          |              |
+| - [list]: @project-info:debug:stage=         | - [list]: @semicolon      | - [list]: @cmake:mac                          |              |
 | - [list]: @project-info:user module          |                           | - [list]: @cmake:module                       |              |
 | - [list]: @project-info:source glob          |                           | - [list]: @cmake:glob-pattern                 |              |
 | - [list]: @project-info:define               |                           | - [list]: @cmake:value                        |              |

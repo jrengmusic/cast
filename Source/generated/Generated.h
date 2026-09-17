@@ -30,6 +30,7 @@
 #include "Text.h"        ///< One diagnostic string per fatal.
 #include "Files.h"       ///< Names of the documents the engine embeds.
 #include "HashMaps.h"    ///< Banner palette and per-extension comment syntax.
+#include "Generated.h"   ///< One construction point for every generated symbol.
 
 struct Generated
 {

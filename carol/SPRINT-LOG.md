@@ -111,6 +111,80 @@
 
 ## SPRINT HISTORY
 
+## Sprint: Windows vcvarsall-Free Environment — clang-cl Recipe, SIOF Kills, Template Hygiene, whatdbg Online ✅
+
+**Date:** 2026-09-17
+**Duration:** one full session (follows the Windows bootstrap session, same day)
+
+### Agents Participated
+- COUNSELOR — RFC intake, recipe design, nine build-iteration drives, root-cause verification (llvm-rc codepage, cmcldeps flag routing, SIOF stack), all template/data edits, two RFC/handoff documents, one violation disclosed and repaired
+- Librarian ×2 — JUCE Windows compiler matrix + vcvarsall escape routes; RC escaping + clang-cl known-good recipes (llvm-rc `/C` codepage flag was the decisive find)
+- Pathfinder ×10 — build-iteration executors (scripted, verbatim), history digs (KANJUT wraptool, whatdbg win flags), SIOF sweep, whatdbg recon; two runs rejected for improvisation, one sweep claim corrected against the canon path
+- Engineer ×6 — cast main.cpp SIOF accessors, jam hygiene batch, jam+kuassa ViewManagerPanel accessors, whatdbg COM MI fix (via COUNSELOR read), file deletions
+- whatdbg — first production use on Windows: captured the clang-cl SIOF crash stack (dbgeng lane, DAP session)
+
+### Files Modified (cast)
+- `Source/main.cpp:11-15,42-70` — `<windows.h>` under `_WIN32`; `SetConsoleOutputCP (CP_UTF8)` opens `main()`; five file-scope flag statics → construct-on-first-use accessors (`getFormatFlag` family) — SIOF crash under clang-cl init order, stack proven by whatdbg
+- `cast/cmake.cast` — `WIN32`: `CMAKE_RC_FLAGS /C65001` + `CMAKE_NINJA_CMCLDEPS_RC OFF`; compiler-ID branch (MSVC → win column, clang-cl → mac column + win linker column) with visible dialect translation (`-O3`→`/clang:-O3`, `-O0 -g`→`/Z7`); `CMAKE_C(XX)_FLAGS_RELEASE/DEBUG` blanked (tables own the flags); install-rename gains the rename-aside `.old` dance (running-exe replacement, Windows-legal)
+- `cast/spell.md` — three wiring rows for the clang-cl flag lists (mac-cell compile ×2, win-cell linker)
+
+### Files Modified (whatdbg)
+- `build.bat` — new: MSVC bootstrap (vswhere→vcvarsall→`cast project-info.md --no-sign`), stale-cache purge
+- `Source/debug/Callbacks.h:22-23`, `Callbacks.cpp:122` — `OutputCallbacks` derives both `IDebugOutputCallbacks` and `IDebugOutputCallbacks2` (dbgeng.h:19424: the 2-interface inherits IUnknown only); IUnknown QI cast disambiguated — first-ever Windows compile of this TU
+- `cast/cmake.cast` — same four template lanes as cast; `windows-build` fence deleted
+- `cast/spell.md` — clang-cl wiring rows; `@build-windows` alias + output row deleted
+- `project-info.md` — `windows` toolchain rows deleted (vcvarsall workaround, ARCHITECT-sentenced)
+- `build-windows.sh` — deleted (generated workaround; build.bat is the escape hatch)
+
+### Files Modified (jam)
+- `jam_core/document/jam_DocumentIndex.cpp:271,298` — `[[maybe_unused]]` on assert-consumed IO results (Release strips jassert)
+- `jam_core/text/jam_Format.cpp:602` — `[[maybe_unused]] productName` (used only under the audio-processors branch)
+- `jam_core/utilities/jam_Platform.h:110`, `jam_core/binary_data/jam_Raw.h:120` — `static`→`inline` (per-TU header linkage)
+- `jam_plugin_bootstrap/view/jam_ViewManagerPanel.cpp:5-25` — SIOF: three Id::-composing statics → `getFlexBasisUnit`/`getMarginTopUnit`/`getLayoutProperties` accessors, three call sites
+
+### Files Modified (jreng-filter-strip)
+- `cast/cmake.cast` — the four template lanes; crossplatform `qa-copy` (`cmake -E copy_directory`, `$<TARGET_FILE_DIR>/../..`, JUCE_PRODUCT_NAME + BUNDLE_EXTENSION — ditto and Apple-only genexes out); `wraptool-windows` fence (no notarize flag, signs the QA copy — KANJUT SignAAX@68b5d29e shape); `elseif(WIN32)` AAX sign branch
+- `cast/spell.md` — clang-cl wiring rows
+- `project-info.md` — `identityWindows` (cert thumbprint) in `## signing`
+
+### Files Modified (kuassa user_modules / KANJUT)
+- `kuassa_plugin_bootstrap/view/kuassa_ViewManagerPanel.cpp:5-26` — same SIOF accessor fix as jam (canon copy; `___lib___` ruled stale)
+- `RFC.md` — new: OpenSSL 1.1.1l `/MTd` build procedure + Windows hygiene rollout status
+
+### Files Modified (~/.config)
+- `HANDOFF-MACHINIST.md` — rewritten: machine recipe (CC/CXX/RC + two PATH dirs), caveats, companion changes, both build.bat kept; duplicate `HANDOFF.md` deleted
+
+### Alignment Check
+- [x] BLESSED principles followed — zero engine change, zero SPEC amendment; every platform difference lives in machine config or table/template data
+- [x] NAMES.md adhered — accessor family, `wraptool-windows`, `identityWindows` ARCHITECT-ratified before use
+- [x] MANIFESTO.md principles applied — SSOT (tables own flags after config-default blanking), D (SIOF fixes replace link-order luck with guaranteed order)
+- [x] Violation Protocol honored — scratch builds' post-build overwrote `~/.local/bin/cast.exe` (CMakeLists:217-221); disclosed immediately, repaired via ARCHITECT's build.bat rerun, later iterations built the `cast` target only
+
+### Problems Solved
+- **vcvarsall escaped, proven:** clang-cl self-discovery + `RC`=llvm-rc + `/C65001`; activated-vs-bare builds byte-identical except the 2-byte PE timestamp; `©` verified in the binary by codepoints (169…)
+- **clang-cl segfault root-caused and killed:** whatdbg stack → `dynamic initializer for 'formatFlag'` → SIOF on inline `Id::` identifiers; construct-on-first-use accessors in cast, jam, KANJUT canon
+- **whatdbg on Windows:** COM MI fix compiled the dbgeng lane for the first time; built, installed, and immediately used to debug the crash that rebuilt it
+- **Warning hygiene to zero (cast, whatdbg):** compiler-keyed flag lanes; dialect-split flags translated visibly in the template; framework-default restatement removed then re-owned by the tables with defaults blanked
+- **Banner mojibake:** console OEM codepage — `SetConsoleOutputCP (CP_UTF8)`, cast-side per ARCHITECT ruling
+- **Windows AAX signing lane recovered from KANJUT history** (thumbprint signid, notarize conditional) and wired as template data
+- **Corrections logged:** Librarian's "CMake defaults RC to llvm-rc" refuted (cache showed bare `rc`; `RC` env var is load-bearing); sweep's kuassa path corrected to canon `user_modules`; DocumentIndex "fail-fast violations" reclassified — both already asserted
+
+### State for Continuation
+- jreng-filter-strip: Debug blocked on `libcrypto64MTd.lib` (ledger); Release NOT blocked — first Windows regenerate+build pending; AAX SDK build, wraptool win proof, VST2/ASIO wiring, AU no-op check all unverified (`kuassa/user_modules/RFC.md` §3.2)
+- MACHINIST owes the machine env on each Windows box (`~/.config/HANDOFF-MACHINIST.md`); until set, bare-shell builds fail by design — build.bat is the lane
+- Install-rename dance unproven live: next `cast cast/spell.md` self-rebuild from the installed cast is the test (watch the `touch`-on-running-exe step)
+- jam_Raw.h:111 residual: `getString(String)` overload still `static` while its sibling went `inline` — linkage asymmetry, Auditor-grade
+- ARCHITECT.md and project docs still name `___lib___` as KANJUT home — canon is `kuassa/user_modules/` (RFC §3.3)
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- libcrypto64MTd.lib missing (ARCHITECT-commanded to ledger; ID pending ARCHITECT's `carol debt add`) — OpenSSL 1.1.1l `/MTd` build per `kuassa/user_modules/RFC.md` §2
+- DEBT.md's two standing entries (KANJUT conformance, plugin_bootstrap conformance) — never in this sprint's scope; remain per JRENG law
+
+---
+
 ## Sprint: Reader-Const Propagation — Processor and Sync Rows Go Const ✅
 
 **Date:** 2026-09-17

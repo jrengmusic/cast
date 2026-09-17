@@ -10,6 +10,7 @@
 
 #ifdef _WIN32
 #include <io.h>
+#include <windows.h>
 #else
 #include <unistd.h>
 #endif
@@ -38,11 +39,35 @@ static constexpr int postFlagArgIndex { 2 };
 static constexpr int flagOnlyArgumentCount { 2 };
 static constexpr int postFlagArgumentCount { 3 };
 
-static const juce::String formatFlag { Id::doubleDash + Id::format.toString() };
-static const juce::String noFormatFlag { Id::doubleDash + Id::noFormat.toString() };
-static const juce::String versionFlag { Id::doubleDash + Id::version.toString() };
-static const juce::String helpFlag { Id::doubleDash + Id::help.toString() };
-static const juce::String syncFlag { Id::doubleDash + Id::sync.toString() };
+static const juce::String& getFormatFlag()
+{
+    static const juce::String formatFlag { Id::doubleDash + Id::format.toString() };
+    return formatFlag;
+}
+
+static const juce::String& getNoFormatFlag()
+{
+    static const juce::String noFormatFlag { Id::doubleDash + Id::noFormat.toString() };
+    return noFormatFlag;
+}
+
+static const juce::String& getVersionFlag()
+{
+    static const juce::String versionFlag { Id::doubleDash + Id::version.toString() };
+    return versionFlag;
+}
+
+static const juce::String& getHelpFlag()
+{
+    static const juce::String helpFlag { Id::doubleDash + Id::help.toString() };
+    return helpFlag;
+}
+
+static const juce::String& getSyncFlag()
+{
+    static const juce::String syncFlag { Id::doubleDash + Id::sync.toString() };
+    return syncFlag;
+}
 
 /**
  * @brief Returns @p argv's own flag-position argument -- the first CLI
@@ -82,8 +107,8 @@ static juce::String getPostFlagArgument (int argc, char* argv[])
  */
 static bool isFormatOnly (int argc, char* argv[])
 {
-    return getFlagArgument (argc, argv).compare (formatFlag) == 0
-           or getPostFlagArgument (argc, argv).compare (formatFlag) == 0;
+    return getFlagArgument (argc, argv).compare (getFormatFlag()) == 0
+           or getPostFlagArgument (argc, argv).compare (getFormatFlag()) == 0;
 }
 
 /**
@@ -96,8 +121,8 @@ static bool isFormatOnly (int argc, char* argv[])
  */
 static bool isSkipFormat (int argc, char* argv[])
 {
-    return getFlagArgument (argc, argv).compare (noFormatFlag) == 0
-           or getPostFlagArgument (argc, argv).compare (noFormatFlag) == 0;
+    return getFlagArgument (argc, argv).compare (getNoFormatFlag()) == 0
+           or getPostFlagArgument (argc, argv).compare (getNoFormatFlag()) == 0;
 }
 
 /**
@@ -113,7 +138,7 @@ static int getManifestIndex (int argc, char* argv[])
 {
     const auto flagArgument { getFlagArgument (argc, argv) };
 
-    return (flagArgument.compare (formatFlag) == 0 or flagArgument.compare (noFormatFlag) == 0)
+    return (flagArgument.compare (getFormatFlag()) == 0 or flagArgument.compare (getNoFormatFlag()) == 0)
                ? postFlagArgIndex : flagArgIndex;
 }
 
@@ -147,7 +172,7 @@ static juce::String getManifestArgument (int argc, char* argv[])
  */
 static bool isToolchainArgument (const juce::String& manifestArgument)
 {
-    static const jam::Strings reservedFlags { formatFlag, noFormatFlag, versionFlag, helpFlag, syncFlag };
+    static const jam::Strings reservedFlags { getFormatFlag(), getNoFormatFlag(), getVersionFlag(), getHelpFlag(), getSyncFlag() };
 
     return manifestArgument.startsWith (Id::doubleDash.toString())
            and not reservedFlags.contains (manifestArgument, false);
@@ -218,8 +243,8 @@ static juce::File getDocumentFile (int argc, char* argv[])
  */
 static bool isVersion (int argc, char* argv[])
 {
-    return (getFlagArgument (argc, argv).compare (versionFlag) == 0 and argc == flagOnlyArgumentCount)
-           or getManifestArgument (argc, argv).compare (versionFlag) == 0;
+    return (getFlagArgument (argc, argv).compare (getVersionFlag()) == 0 and argc == flagOnlyArgumentCount)
+           or getManifestArgument (argc, argv).compare (getVersionFlag()) == 0;
 }
 
 /**
@@ -232,8 +257,8 @@ static bool isVersion (int argc, char* argv[])
  */
 static bool isHelp (int argc, char* argv[])
 {
-    return (getFlagArgument (argc, argv).compare (helpFlag) == 0 and argc == flagOnlyArgumentCount)
-           or getManifestArgument (argc, argv).compare (helpFlag) == 0;
+    return (getFlagArgument (argc, argv).compare (getHelpFlag()) == 0 and argc == flagOnlyArgumentCount)
+           or getManifestArgument (argc, argv).compare (getHelpFlag()) == 0;
 }
 
 /**
@@ -317,7 +342,7 @@ static constexpr int syncTargetArgIndex { 3 };
  */
 static bool isSyncFlag (int argc, char* argv[])
 {
-    return getFlagArgument (argc, argv).compare (syncFlag) == 0;
+    return getFlagArgument (argc, argv).compare (getSyncFlag()) == 0;
 }
 
 /**
@@ -360,7 +385,7 @@ static int runSyncArguments (int argc, char* argv[])
 {
     if (argc != syncArgumentCount)
     {
-        const auto errorLine { ProjectInfo::projectName + Id::diagnosticSeparator + syncFlag
+        const auto errorLine { ProjectInfo::projectName + Id::diagnosticSeparator + getSyncFlag()
                                + Id::diagnosticSeparator + text::Diagnostics::failSyncArguments };
         fprintf (stderr, "%s\n", errorLine.toRawUTF8());
         return 1;
@@ -382,6 +407,10 @@ static bool isTerminalOutput() noexcept
 
 int main (int argc, char* argv[])
 {
+#ifdef _WIN32
+    SetConsoleOutputCP (CP_UTF8);
+#endif
+
     if (isTerminalOutput())
     {
 #ifdef _WIN32
