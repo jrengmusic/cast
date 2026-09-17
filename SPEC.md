@@ -15,7 +15,7 @@ knowledge of a target language.
 
 The engine hardcodes these items and no other items:
 
-- the markers `:::token:::`, `@`, `` ` ``, `- key: value`, `> `, `[word]`
+- the markers `:::token:::`, `@`, `````, `- key: value`, `> `, `[word]`
 - the manifest column names
 - the reserved bullet names `[list]` (source, §6.5), `[comment]` (documentation reference, §5.4), and `[begin]` / `[end]` (region delimiters, §6.10)
 - the reserved token names `[list]` (expansion, §6.5), `[comment]` (documentation, §5.4) and `[banner]` (§5.5)
@@ -302,14 +302,14 @@ tokens by name. A column is named for what it yields.
 
 A data cell is exactly one of:
 
-| Form | Value |
-|---|---|
-| plain | the text, verbatim |
-| backticked | `toLiteral` applied to the span's bytes |
-| fenced | `toLiteral` applied to the fence's content, line breaks included |
-| blank | nothing — an empty string |
+| Form       | Value                                                            |
+| ---------- | ---------------------------------------------------------------- |
+| plain      | the text, verbatim                                               |
+| backticked | `toLiteral` applied to the span's bytes                          |
+| fenced     | `toLiteral` applied to the fence's content, line breaks included |
+| blank      | nothing — an empty string                                        |
 
-A backtick is not decoration and is not an escape — the backtick *is* the `toLiteral`
+A backtick is not decoration and is not an escape — the backtick _is_ the `toLiteral`
 operation. A backticked cell needs no `format` column beside it. A fenced cell is the
 same operation over a datum that spans lines (§3.2). A fenced cell needs a `format`
 column only where the edge space of one of its own lines must survive the formatter's
@@ -419,14 +419,14 @@ The marker resolves by scope. In an item shape, it reads the source row's `comme
 column. At shape level, it reads, in order:
 
 1. the row's **comment reference** — a `- [comment]: @file:<name>` bullet in the list
-   column at the shape line's own `>` count. The bullet pairs with that line exactly
-   as a `- [list]:` line pairs (§6.5). The address names a table (its table
-   documentation) or a fence (§5.4). A wrapper shape declared across several rows
-   carries the same reference on each declaring row — the reference is part of the
-   shape's per-row declaration, like a binding.
+  column at the shape line's own `>` count. The bullet pairs with that line exactly
+  as a `- [list]:` line pairs (§6.5). The address names a table (its table
+  documentation) or a fence (§5.4). A wrapper shape declared across several rows
+  carries the same reference on each declaring row — the reference is part of the
+  shape's per-row declaration, like a binding.
 2. positionally — the documentation of the first table that the shape's expansions
-   address. When no source addresses a table, it reads the documentation of the row's
-   own table.
+  address. When no source addresses a table, it reads the documentation of the row's
+  own table.
 
 A missing comment is not an error and is not a special case. The replacement is
 empty. The line trims or collapses exactly like each other emptied placeholder line —
@@ -547,7 +547,7 @@ and the source lines after it are its own to consume.
 ### 6.4 Arity
 
 A shape's arity is its count of `:::[list]:::` occurrences (§7). A shape consumes the
-next *arity* source lines, in order. Each consumed source consumes its own arity
+next _arity_ source lines, in order. Each consumed source consumes its own arity
 first. Thus the template declares the nesting, and the author never authors it. To
 supply **more** sources than the row's shapes demand is fatal (§10.1). To supply
 fewer is legal: the authored sources fill a shape's **trailing** slots, and the
@@ -575,9 +575,9 @@ and takes its value from, in order:
 
 1. the binding of that name (§6.1) — for an item shape, the source row's own binding
 2. the shape's **maps** — the row of that name in each map table, first declared
-   first (below)
+  first (below)
 3. the column of that name — on the manifest row, or, for an item shape, on the
-   source row
+  source row
 4. the table documentation (§5.4), for the name `[comment]` at shape level
 
 **Maps.** A map is a table that the engine reads one row per token. The row whose
@@ -992,46 +992,46 @@ file:line (column): rule
 
 These, and nothing else:
 
-| Rule | Clause |
-|---|---|
-| alias absent from the writing file's index | §4.4 |
-| duplicate alias in one index | §4.4 |
-| index symbol names a file that does not exist | §4.4 |
-| address names a table or column that does not exist | §4.4 |
-| `\| format \| format \|` adjacency | §5.2 |
-| `format` cell names an operation that is not in §8 | §8 |
-| duplicate entry within one identity column of one table | §5.3 |
-| a shape address names a fence that does not exist in its template file | §7 |
-| a fence prefix naming neither a comment-syntax extension nor `no-banner`, or a bracket group that never closes | §7.3 |
-| a map line with no shape paragraph at its `>` count | §6.5 |
-| a map table with no `value` column | §6.5 |
-| an output file that cannot be written | §10 |
-| a toolchain row whose process cannot start or exits nonzero | §6.9 |
-| a `--<word>` CLI argument matching no toolchain row's `argument` cell | §6.9 |
-| malformed table, during formatting only | §3.3 |
-| index `symbol` cell empty | §4.1 |
-| output row declares no structure | §6.3 |
-| same-file output rows not contiguous | §6.7 |
-| a row supplies more sources than its shapes demand | §6.4 |
+| Rule                                                                                                              | Clause     |
+| ----------------------------------------------------------------------------------------------------------------- | ---------- |
+| alias absent from the writing file's index                                                                        | §4.4       |
+| duplicate alias in one index                                                                                      | §4.4       |
+| index symbol names a file that does not exist                                                                     | §4.4       |
+| address names a table or column that does not exist                                                               | §4.4       |
+| `\| format \| format \|` adjacency                                                                                | §5.2       |
+| `format` cell names an operation that is not in §8                                                                | §8         |
+| duplicate entry within one identity column of one table                                                           | §5.3       |
+| a shape address names a fence that does not exist in its template file                                            | §7         |
+| a fence prefix naming neither a comment-syntax extension nor `no-banner`, or a bracket group that never closes    | §7.3       |
+| a map line with no shape paragraph at its `>` count                                                               | §6.5       |
+| a map table with no `value` column                                                                                | §6.5       |
+| an output file that cannot be written                                                                             | §10        |
+| a toolchain row whose process cannot start or exits nonzero                                                       | §6.9       |
+| a `--<word>` CLI argument matching no toolchain row's `argument` cell                                             | §6.9       |
+| malformed table, during formatting only                                                                           | §3.3       |
+| index `symbol` cell empty                                                                                         | §4.1       |
+| output row declares no structure                                                                                  | §6.3       |
+| same-file output rows not contiguous                                                                              | §6.7       |
+| a row supplies more sources than its shapes demand                                                                | §6.4       |
 | a structure or separator `- [list]:` line without its list-column line of the same ordinal, the row join excepted | §6.5, §6.6 |
-| duplicate binding name among one shape's bindings | §6.1 |
-| a comment reference naming neither a table nor a fence | §5.4 |
-| unterminated `:::` marker in a shape block | §7 |
-| a `## toolchain` header row declaring no `command` or no `flag` column | §6.9 |
-| a region row whose file does not exist | §6.10 |
-| a `- [begin]:` binding without `- [end]:`, or the reverse | §6.10 |
-| a region delimiter value matching no line, or `[end]` matching at or before `[begin]` | §6.10 |
-| a file shared between region rows and whole-file rows | §6.10 |
-| `user-modules-info.md` absent at a sync root | §2.2 |
-| a composed identity key absent from either sync file | §2.2 |
-| a kernel row naming no directory at its root, or a `<filePrefix>*` directory undeclared — checked at each root | §2.2 |
-| kernel sets not corresponding one to one after the path transform | §2.2 |
-| a source text file containing a pair's target value — names the file and the token | §2.2 |
-| sync source root equals target root | §2.2 |
-| a `--sync` line without exactly two roots | §2.1 |
-| a sync source file that cannot be read | §2.2 |
-| a sync delete that fails | §2.2 |
-| the manifest file does not exist | §2.1 |
+| duplicate binding name among one shape's bindings                                                                 | §6.1       |
+| a comment reference naming neither a table nor a fence                                                            | §5.4       |
+| unterminated `:::` marker in a shape block                                                                        | §7         |
+| a `## toolchain` header row declaring no `command` or no `flag` column                                            | §6.9       |
+| a region row whose file does not exist                                                                            | §6.10      |
+| a `- [begin]:` binding without `- [end]:`, or the reverse                                                         | §6.10      |
+| a region delimiter value matching no line, or `[end]` matching at or before `[begin]`                             | §6.10      |
+| a file shared between region rows and whole-file rows                                                             | §6.10      |
+| `user-modules-info.md` absent at a sync root                                                                      | §2.2       |
+| a composed identity key absent from either sync file                                                              | §2.2       |
+| a kernel row naming no directory at its root, or a `<filePrefix>*` directory undeclared — checked at each root    | §2.2       |
+| kernel sets not corresponding one to one after the path transform                                                 | §2.2       |
+| a source text file containing a pair's target value — names the file and the token                                | §2.2       |
+| sync source root equals target root                                                                               | §2.2       |
+| a `--sync` line without exactly two roots                                                                         | §2.1       |
+| a sync source file that cannot be read                                                                            | §2.2       |
+| a sync delete that fails                                                                                          | §2.2       |
+| the manifest file does not exist                                                                                  | §2.1       |
 
 Any check that the engine performs and that is not in this table is a defect in the
 engine.
@@ -1080,7 +1080,7 @@ empty string that travels downstream and emits blank output.
 A key that a table never declares is not a missing key. A comment-syntax table
 declares the marks that its language owns and no others (§5.4): CSS declares no
 single-line mark, and `go.mod` declares no block frame. To read such a key answers
-*this language has none*, and the reader takes the shape that the language does
+_this language has none_, and the reader takes the shape that the language does
 declare. The table itself is the key that must exist — and an extension that names no
 table is not an error either, because §5.4 resolves it to the C-family table.
 

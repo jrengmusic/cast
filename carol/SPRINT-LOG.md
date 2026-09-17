@@ -111,6 +111,40 @@
 
 ## SPRINT HISTORY
 
+## Sprint: Reader-Const Propagation — Processor and Sync Rows Go Const ✅
+
+**Date:** 2026-09-17
+**Duration:** one session (shared with jam Sprint 136)
+
+### Agents Participated
+- COUNSELOR: fable-5 — root-caused all four compile errors to jam's reader-const refactor plus one new overload overlap in jam_Document.h; ruled the ambiguity fix at the owner; verified every edit on disk
+- Engineer: sonnet-5 — one wave, three files (two cast, one jam), type-only sweep under an explicit file set
+
+### Files
+- `Source/Processor.h:145,:237` — `getColumnValue` and `runToolchainRow` take `const Model::Element& row`; bodies unchanged (Model's const reader overloads already existed)
+- `Source/Sync.h` — 15 sites: `Model::Element*` → `const Model::Element*` across the identity-row family (return type :477, local `rows` :481, sort lambda :493, params :230/:282/:329/:520/:538/:559/:594/:623/:670/:706/:954/:1069)
+
+### Changes
+- jam's MarkdownDocument reader API now returns const elements (jam_MarkdownDocument.h:65-305); cast's two straggler read paths — the toolchain runner and the sync identity-row family — now hold rows const end to end. Type-only; zero logic changes, zero new names.
+- The companion jam_Document.h ambiguity fix (static `get` vs the defaulted-value member `get`) is logged in jam Sprint 136 — it unblocked cast's jam_XML.h instantiations.
+
+### Alignment
+- [x] CODING.md — "Readers return const": read paths hold const rows; no const_cast, no mutable re-find
+- [x] Scope quoted: file set fixed to the compiler's error list; Sync.h swept whole-file with every occurrence confirmed inside the identity-row family
+- [x] NAMES.md — zero new names
+
+### Problems Solved
+- All four pasted compile errors fixed; ARCHITECT verified cast, end, ggwp build clean
+
+### Debts Paid
+- None — both DEBT.md entries untouched this sprint
+
+### Debts Deferred / Residuals (verbatim to ARCHITECT)
+- @Auditor did not run this sprint (compile-fix scope)
+- Working tree carried a modified `SPEC.md` at session start — not authored this sprint; verify ownership before commit
+
+---
+
 ## Sprint: Manifest Rename CAST.md → spell.md — Twelve Manifests, Eight Projects, One Table Cell ✅
 
 **Date:** 2026-09-15

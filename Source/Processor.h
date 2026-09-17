@@ -142,7 +142,7 @@ private:
      * @returns @p row's resolved value for @p column, or an empty string
      *          when @p row carries no cell for @p column.
      */
-    juce::String getColumnValue (Model::Element& row, const juce::Identifier& column) const
+    juce::String getColumnValue (const Model::Element& row, const juce::Identifier& column) const
     {
         auto* cell { model->getTableCell (row, column) };
 
@@ -234,7 +234,7 @@ private:
      * @returns juce::Result::ok() when @p row's own process starts and
      *          exits zero, or a failure naming its own command line.
      */
-    juce::Result runToolchainRow (Model::Element& row)
+    juce::Result runToolchainRow (const Model::Element& row)
     {
         const auto& command { model->getValue (row, Id::command) };
         const auto flag { getColumnValue (row, Id::flag) };

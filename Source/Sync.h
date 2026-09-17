@@ -227,7 +227,7 @@ private:
      *          check, or the first failing file's diagnostic.
      */
     static juce::Result runContamination (const jam::Array<juce::File>& sourceFiles, const juce::File& sourceRoot,
-        const Model& sourceInfo, const Model& targetInfo, const jam::Array<Model::Element*>& identityRows,
+        const Model& sourceInfo, const Model& targetInfo, const jam::Array<const Model::Element*>& identityRows,
         const std::pair<juce::String, juce::String>& namespaceSpacePair,
         const std::pair<juce::String, juce::String>& namespaceColonPair)
     {
@@ -279,7 +279,7 @@ private:
     static jam::Array<std::pair<juce::String, juce::String>> getSyncResults (const jam::Array<juce::File>& sourceFiles,
         const juce::File& sourceRoot, const juce::File& targetRoot, const juce::String& sourceFilePrefix,
         const juce::String& targetFilePrefix, const Model& sourceInfo, const Model& targetInfo,
-        const jam::Array<Model::Element*>& identityRows, const std::pair<juce::String, juce::String>& namespaceSpacePair,
+        const jam::Array<const Model::Element*>& identityRows, const std::pair<juce::String, juce::String>& namespaceSpacePair,
         const std::pair<juce::String, juce::String>& namespaceColonPair)
     {
         jam::Array<std::pair<juce::String, juce::String>> syncResults;
@@ -326,7 +326,7 @@ private:
      */
     static juce::Result runTransform (const jam::Array<juce::File>& sourceFiles, const juce::File& sourceRoot,
         const juce::File& targetRoot, const juce::String& sourceFilePrefix, const juce::String& targetFilePrefix,
-        const Model& sourceInfo, const Model& targetInfo, const jam::Array<Model::Element*>& identityRows,
+        const Model& sourceInfo, const Model& targetInfo, const jam::Array<const Model::Element*>& identityRows,
         const std::pair<juce::String, juce::String>& namespaceSpacePair,
         const std::pair<juce::String, juce::String>& namespaceColonPair,
         const jam::HashSet<juce::String>& targetKernelNames)
@@ -474,11 +474,11 @@ private:
      * @returns @p sourceInfo's own qualifying identity rows, sorted for
      *          application.
      */
-    static jam::Array<Model::Element*> getIdentityRows (const Model& sourceInfo, const Model& targetInfo)
+    static jam::Array<const Model::Element*> getIdentityRows (const Model& sourceInfo, const Model& targetInfo)
     {
         static const auto namespaceKeyText { Id::tokenNamespace.toString() };
 
-        jam::Array<Model::Element*> rows;
+        jam::Array<const Model::Element*> rows;
 
         for (auto* sourceRow : sourceInfo.getTableRows (Id::identity))
         {
@@ -490,7 +490,7 @@ private:
         }
 
         std::sort (rows.begin(), rows.end(),
-            [&sourceInfo] (Model::Element* first, Model::Element* second)
+            [&sourceInfo] (const Model::Element* first, const Model::Element* second)
             {
                 const auto firstValue { sourceInfo.getValue (*first, Id::value) };
                 const auto secondValue { sourceInfo.getValue (*second, Id::value) };
@@ -517,7 +517,7 @@ private:
      *          value.
      */
     static std::pair<juce::String, juce::String>
-    getRowPair (const Model& sourceInfo, const Model& targetInfo, Model::Element* row)
+    getRowPair (const Model& sourceInfo, const Model& targetInfo, const Model::Element* row)
     {
         const auto key { sourceInfo.getValue (*row, Id::key) };
         const auto sourceValue { sourceInfo.getValue (*row, Id::value) };
@@ -535,7 +535,7 @@ private:
      * @param row        The identity row to test.
      * @returns @c true when @p row's own boundary cell reads @c word.
      */
-    static bool isRowWordBoundary (const Model& sourceInfo, Model::Element* row)
+    static bool isRowWordBoundary (const Model& sourceInfo, const Model::Element* row)
     {
         static const auto wordBoundaryText { Id::word.toString() };
 
@@ -556,7 +556,7 @@ private:
      *                   pair.
      */
     template <typename Visitor>
-    static void visitRow (const Model& sourceInfo, const Model& targetInfo, Model::Element* row, Visitor&& visit)
+    static void visitRow (const Model& sourceInfo, const Model& targetInfo, const Model::Element* row, Visitor&& visit)
     {
         const auto [sourceValue, targetValue] { getRowPair (sourceInfo, targetInfo, row) };
         visit (sourceValue, targetValue, isRowWordBoundary (sourceInfo, row));
@@ -591,7 +591,7 @@ private:
      * @returns @p rowIndex's own row's source length, or @c -1 when
      *          @p rowIndex is out of range.
      */
-    static int getRowLength (const Model& sourceInfo, const jam::Array<Model::Element*>& identityRows, int rowIndex)
+    static int getRowLength (const Model& sourceInfo, const jam::Array<const Model::Element*>& identityRows, int rowIndex)
     {
         return rowIndex < identityRows.size() ? sourceInfo.getValue (*identityRows.at (rowIndex), Id::value).length()
                                                : -1;
@@ -620,7 +620,7 @@ private:
      */
     template <typename Visitor>
     static void forEachIdentityPair (const Model& sourceInfo, const Model& targetInfo,
-        const jam::Array<Model::Element*>& identityRows, const std::pair<juce::String, juce::String>& namespaceSpacePair,
+        const jam::Array<const Model::Element*>& identityRows, const std::pair<juce::String, juce::String>& namespaceSpacePair,
         const std::pair<juce::String, juce::String>& namespaceColonPair, Visitor&& visit)
     {
         int rowIndex { 0 };
@@ -667,7 +667,7 @@ private:
      * @returns @p text, transformed by every pair in merged order.
      */
     static juce::String getTransformedText (const juce::String& text, const Model& sourceInfo,
-        const Model& targetInfo, const jam::Array<Model::Element*>& identityRows,
+        const Model& targetInfo, const jam::Array<const Model::Element*>& identityRows,
         const std::pair<juce::String, juce::String>& namespaceSpacePair,
         const std::pair<juce::String, juce::String>& namespaceColonPair)
     {
@@ -703,7 +703,7 @@ private:
      *          empty string when @p text is clean.
      */
     static juce::String getContaminationToken (const juce::String& text, const Model& sourceInfo,
-        const Model& targetInfo, const jam::Array<Model::Element*>& identityRows,
+        const Model& targetInfo, const jam::Array<const Model::Element*>& identityRows,
         const std::pair<juce::String, juce::String>& namespaceSpacePair,
         const std::pair<juce::String, juce::String>& namespaceColonPair)
     {
@@ -951,7 +951,7 @@ private:
      *          the offending token or the read failure.
      */
     static juce::String getContaminationCheck (const juce::File& sourceFile, const juce::File& sourceRoot,
-        const Model& sourceInfo, const Model& targetInfo, const jam::Array<Model::Element*>& identityRows,
+        const Model& sourceInfo, const Model& targetInfo, const jam::Array<const Model::Element*>& identityRows,
         const std::pair<juce::String, juce::String>& namespaceSpacePair,
         const std::pair<juce::String, juce::String>& namespaceColonPair)
     {
@@ -1066,7 +1066,7 @@ private:
     static std::pair<juce::String, juce::String> getSyncOutcome (const juce::File& sourceFile,
         const juce::File& sourceRoot, const juce::File& targetRoot, const juce::String& sourceFilePrefix,
         const juce::String& targetFilePrefix, const Model& sourceInfo, const Model& targetInfo,
-        const jam::Array<Model::Element*>& identityRows, const std::pair<juce::String, juce::String>& namespaceSpacePair,
+        const jam::Array<const Model::Element*>& identityRows, const std::pair<juce::String, juce::String>& namespaceSpacePair,
         const std::pair<juce::String, juce::String>& namespaceColonPair)
     {
         const auto rootRelativePath { getNormalizedPath (sourceFile.getRelativePathFrom (sourceRoot)) };
