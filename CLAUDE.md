@@ -10,13 +10,13 @@
 
 ## Current State
 
-**Last Sprint:** Framework codegen chaining + TTY-gated clear — cast and eve `## toolchain` each gain three `cast ../jam/cast/spell.md` rows (one per argument group, ahead of cmake) so jam's generated headers are re-cast before configure; `main.cpp` gains `isTerminalOutput()` so `std::system ("clear")` runs only at a tty and no longer writes escape bytes into a pipe ✅ (2026-09-02)
+**Last Sprint:** Sync engine — two defects closed: a target file whose on-disk name differs from the transformed path only by case is renamed before the write (`Sync::getCaseReconciliationFailure`), so mirror-delete no longer removes it on case-insensitive filesystems; identity rows sharing a source value but naming different target values are refused by `Validator::isUniquePair` with `failSyncAmbiguity`. SPEC §2.2/§10.1 and HELP carry both rules. Windows Release built and installed; three scratchpad proofs green ✅ (2026-09-21)
 
 **Active Work:** None — cast/jam/eve byte-identical fixpoints; full default Release chains proven end-to-end (cast .pkg notarized+stapled+QA-archived; eve VST3/AU Accepted+stapled, AAX wraptool)
 
 **Active ODE:** None
 
-**Active Debt:** Two open entries in DEBT.md — DEBT-20260831T021428 (KANJUT conformance wholesale owed), DEBT-20260831T021425 (plugin_bootstrap conformance owed, JFS must build with JAM)
+**Active Debt:** One open entry in DEBT.md — DEBT-20260831T021425 (plugin_bootstrap conformance owed, JFS must build with JAM)
 
 ---
 
@@ -65,7 +65,7 @@
 | **SPEC.md** | Normative feature spec (project root) — SPEC is normative; HELP.md is derived and carries no authority | ✅ Current |
 | **Source/HELP.md** | Help text rendered by --help, derived from SPEC | ✅ Current |
 | **carol/SPRINT-LOG.md** | Cross-session memory: sprint history + active handoff | ✅ Current |
-| **DEBT.md** | Inter-sprint ledger | Two open entries — KANJUT conformance, plugin_bootstrap conformance |
+| **DEBT.md** | Inter-sprint ledger | One open entry — plugin_bootstrap conformance |
 
 ---
 

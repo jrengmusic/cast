@@ -25,8 +25,8 @@ struct Sync
 {
     /**
      * @brief Runs one sync between @p sourceRoot and @p targetRoot --
-     *        the roots-distinct, info-file-present, and composed-key
-     *        gates, then runGates() for the rest.
+     *        the roots-distinct, info-file-present, composed-key, and
+     *        unique-pair gates, then runGates() for the rest.
      *
      * @param sourceRoot The framework root sync reads from.
      * @param targetRoot The framework root sync writes and mirror-deletes
@@ -53,6 +53,10 @@ struct Sync
 
         if (const auto result {
                 Validator::isComposedComplete (sourceInfoFile, targetInfoFile, *sourceInfo, *targetInfo) };
+            not result.wasOk())
+            return result;
+
+        if (const auto result { Validator::isUniquePair (sourceInfoFile, *sourceInfo, *targetInfo) };
             not result.wasOk())
             return result;
 
@@ -989,8 +993,83 @@ private:
     }
 
     /**
+     * @brief Renames @p targetFile's own case-differing sibling, if any,
+     *        onto @p targetFile -- a case-sensitive host's own reconciler
+     *        for a case-insensitive-authored path (SPEC §2.2).
+     *
+     * @param targetFile The output file whose parent directory is
+     *                   scanned for a case-differing sibling.
+     * @returns An empty string when no sibling differs by case only or
+     *          the rename succeeded, or getWriteFailure()'s own
+     *          diagnostic when the rename failed.
+     */
+    static juce::String getCaseReconciliationFailure (const juce::File& targetFile)
+    {
+        for (const auto& sibling : targetFile.getParentDirectory().findChildFiles (juce::File::findFiles, false))
+            if (sibling.getFileName().compareIgnoreCase (targetFile.getFileName()) == 0
+                and sibling.getFileName().compare (targetFile.getFileName()) != 0)
+                if (not sibling.moveFileTo (targetFile))
+                    return getWriteFailure (targetFile);
+
+        return juce::String {};
+    }
+
+    /**
+     * @brief Writes @p targetFile write-if-different from @p binaryContent.
+     *
+     * @param targetFile        The file to write.
+     * @param targetRelativePath @p targetFile's own root-relative path,
+     *                          reported on a successful write.
+     * @param binaryContent     The raw bytes to write.
+     * @returns @p targetRelativePath paired with an empty string when the
+     *          write succeeded or was unneeded, or an empty string paired
+     *          with getWriteFailure()'s own diagnostic when the write
+     *          failed.
+     */
+    static std::pair<juce::String, juce::String> getBinaryWriteOutcome (const juce::File& targetFile,
+        const juce::String& targetRelativePath, const juce::MemoryBlock& binaryContent)
+    {
+        juce::MemoryBlock currentData;
+        targetFile.loadFileAsData (currentData);
+
+        if (currentData == binaryContent)
+            return { juce::String {}, juce::String {} };
+
+        return targetFile.replaceWithData (binaryContent.getData(), binaryContent.getSize())
+                   ? std::make_pair (targetRelativePath, juce::String {})
+                   : std::make_pair (juce::String {}, getWriteFailure (targetFile));
+    }
+
+    /**
+     * @brief Writes @p targetFile write-if-different from @p textContent,
+     *        LF-normalized.
+     *
+     * @param targetFile        The file to write.
+     * @param targetRelativePath @p targetFile's own root-relative path,
+     *                          reported on a successful write.
+     * @param textContent       The transformed text to write.
+     * @returns @p targetRelativePath paired with an empty string when the
+     *          write succeeded or was unneeded, or an empty string paired
+     *          with getWriteFailure()'s own diagnostic when the write
+     *          failed.
+     */
+    static std::pair<juce::String, juce::String> getTextWriteOutcome (const juce::File& targetFile,
+        const juce::String& targetRelativePath, const juce::String& textContent)
+    {
+        static const auto newlineText { juce::String::charToString (Chars::newline) };
+
+        if (targetFile.loadFileAsString().compare (textContent) == 0)
+            return { juce::String {}, juce::String {} };
+
+        return targetFile.replaceWithText (textContent, false, false, newlineText.toRawUTF8())
+                   ? std::make_pair (targetRelativePath, juce::String {})
+                   : std::make_pair (juce::String {}, getWriteFailure (targetFile));
+    }
+
+    /**
      * @brief Writes @p targetFile write-if-different, binary or text per
-     *        @p isBinary, creating its parent directory first.
+     *        @p isBinary, creating its parent directory first and
+     *        reconciling any case-differing sibling onto it.
      *
      * @param targetFile        The file to write.
      * @param targetRelativePath @p targetFile's own root-relative path,
@@ -1003,36 +1082,23 @@ private:
      *                          @p isBinary is @c true.
      * @returns @p targetRelativePath paired with an empty string when the
      *          write succeeded or was unneeded, or an empty string paired
-     *          with getWriteFailure()'s own diagnostic when the write
-     *          failed.
+     *          with getWriteFailure()'s own or getCaseReconciliationFailure()'s
+     *          own diagnostic when the write or the reconciliation failed.
      */
     static std::pair<juce::String, juce::String> getWriteOutcome (const juce::File& targetFile,
         const juce::String& targetRelativePath, bool isBinary, const juce::String& textContent,
         const juce::MemoryBlock& binaryContent)
     {
-        static const auto newlineText { juce::String::charToString (Chars::newline) };
-
         targetFile.getParentDirectory().createDirectory();
 
+        if (const auto reconciliationFailure { getCaseReconciliationFailure (targetFile) };
+            reconciliationFailure.isNotEmpty())
+            return { juce::String {}, reconciliationFailure };
+
         if (isBinary)
-        {
-            juce::MemoryBlock currentData;
-            targetFile.loadFileAsData (currentData);
+            return getBinaryWriteOutcome (targetFile, targetRelativePath, binaryContent);
 
-            if (currentData == binaryContent)
-                return { juce::String {}, juce::String {} };
-
-            return targetFile.replaceWithData (binaryContent.getData(), binaryContent.getSize())
-                       ? std::make_pair (targetRelativePath, juce::String {})
-                       : std::make_pair (juce::String {}, getWriteFailure (targetFile));
-        }
-
-        if (targetFile.loadFileAsString().compare (textContent) == 0)
-            return { juce::String {}, juce::String {} };
-
-        return targetFile.replaceWithText (textContent, false, false, newlineText.toRawUTF8())
-                   ? std::make_pair (targetRelativePath, juce::String {})
-                   : std::make_pair (juce::String {}, getWriteFailure (targetFile));
+        return getTextWriteOutcome (targetFile, targetRelativePath, textContent);
     }
 
     /**

@@ -111,6 +111,42 @@
 
 ## SPRINT HISTORY
 
+## Sprint: Sync Engine — Case-Only Rename Reconciled, Ambiguous Identity Pairs Refused ✅
+
+**Date:** 2026-09-21
+**Duration:** one session (shared with jam Sprint 137, user_modules Sprint 123, jreng-filter-strip Sprint 85)
+
+### Agents Participated
+- COUNSELOR: fable-5 — both defects read to the line in `Sync.h`, rulings, audit triage, CLAUDE.md
+- Engineer: sonnet-5 — engine fixes, SPEC/HELP/text rows, build, three scratchpad proofs (two passes), audit fixes + docs + rebuild
+- Auditor: opus-5 — shared sweep (cast findings 4, 5, 14-17, 20, 28, 29 — all resolved)
+
+### Files Modified
+- `Source/Sync.h` — `getCaseReconciliationFailure` (unfiltered sibling scan, `compareIgnoreCase` select, byte-exact `compare` differ, `moveFileTo`; SPEC §2.2 "on every host" now true — a wildcard scan was case-sensitive on Linux and split filenames on `,`/`;`), called unconditionally from `getWriteOutcome`; `getWriteOutcome` split into `getBinaryWriteOutcome` / `getTextWriteOutcome` (each ≤ 30 lines); `Sync::run` gates `Validator::isUniquePair` after `isComposedComplete`; docs
+- `Source/Validator.h` — `isUniquePair (sourceInfoFile, sourceInfo, targetInfo)`: source value → target value map (`jam::HashMap`, `try_emplace` + structured bindings, the `isRegionExclusive` idiom), Identifier compare against `Id::tokenNamespace`, `const auto&` bindings, fails `file: value: failSyncAmbiguity`; `isComposedComplete` now reads `Id::identity`, `Id::filePrefix`, `Id::macroPrefix`, `Id::hyphenPrefix` (local literal duplicates removed); docs
+- `cast/text.md:39` — `failSyncAmbiguity | identity source value maps to more than one target` (value column widened to 54); `Source/generated/Text.h:62` regenerated
+- `SPEC.md` §2.2 — byte-equal source values must name byte-equal target values (fatal, names file and value); on-disk name differing only by case is renamed to the transformed path before the write, a failed rename is fatal as an output that cannot be written; §10.1 — one new row (ambiguity). `Source/HELP.md:37,39` mirrored
+- `CLAUDE.md` — Current State; debt count corrected to one open entry
+
+### Alignment Check
+- [x] BLESSED — E: two silent behaviours now fail loudly or converge in one run; S: no duplicate identifier literals; D: pair application no longer depends on `std::sort`'s order among equal keys
+- [x] NAMES.md — `isUniquePair` joins `isUniqueColumn/isUniqueTable/isUniqueAlias`; `failSyncAmbiguity` joins `failSync*`; `getCaseReconciliationFailure` joins `getWriteFailure`; `getBinaryWriteOutcome`/`getTextWriteOutcome` join `getWriteOutcome`
+- [x] MANIFESTO.md — engine gate rather than table edit for the ambiguity: kuassa's four `Kuassa` identity values are correct data; the kuassa→jam direction is refused, not silently mis-mapped
+
+### Problems Solved
+- Case collision (user_modules Sprint 121 :100): write landed on the differently-cased inode, mirror-delete compared exact names and deleted it; proof (a) converges in one run
+- Identity ambiguity (:101): four kuassa keys share the value `Kuassa`; pairs were applied in unspecified order; proof (b) refuses with the new diagnostic and passes when targets agree
+- Build break against jam canon (`jam_PluginHost.h:81` `juce::Desktop`) — fixed at jam (Sprint 137)
+- Proof (c): jam → user_modules copy syncs exactly this sprint's file set
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- `DEBT-20260831T021425` — plugin_bootstrap conformance (JFS must build with JAM), untouched
+
+---
+
 ## Sprint: Windows vcvarsall-Free Environment — clang-cl Recipe, SIOF Kills, Template Hygiene, whatdbg Online ✅
 
 **Date:** 2026-09-17

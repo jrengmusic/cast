@@ -123,7 +123,9 @@ occurs inside unrelated names; `filePrefix`, `macroPrefix`, and `hyphenPrefix`
 contribute their plain pairs, and `filePrefix` also transforms every path segment —
 directory names and file names alike. A row whose `boundary` cell is `word` matches
 whole words only: the characters before and after the match are absent or outside
-`[A-Za-z0-9_]`. Every other row matches plain text.
+`[A-Za-z0-9_]`. Every other row matches plain text. Two rows whose source values are
+byte-equal must name byte-equal target values; a run whose source file breaks this is
+fatal, and the diagnostic names the file and the value (§10.1).
 
 **The walk.** Sync visits the source's `kernel` rows. A `kernel` row names a
 directory; every other class value is provision. At each root, every kernel row's
@@ -136,7 +138,10 @@ file that cannot be read is fatal (§10.1). A file with a NUL byte in its first
 to LF (§10). A `.md` file re-canonicalizes through the formatter (§3.3) after the
 transform only when its kernel scope's own name carries no `filePrefix` — the data
 scopes, never the module directories. Every write is write-if-different, and a
-write or delete that fails is fatal (§10.1).
+write or delete that fails is fatal (§10.1). Before a write, a target file whose
+on-disk name differs from the transformed path only by case is renamed to the
+transformed path, so mirror-delete compares exact names on every host; a rename
+that fails is fatal as an output that cannot be written (§10).
 
 **Contamination.** A source text file that already contains a pair's target value
 is fatal, and the diagnostic names the file and the token (§10.1) — the transform
@@ -1024,6 +1029,7 @@ These, and nothing else:
 | a file shared between region rows and whole-file rows                                                             | §6.10      |
 | `user-modules-info.md` absent at a sync root                                                                      | §2.2       |
 | a composed identity key absent from either sync file                                                              | §2.2       |
+| two identity rows sharing a source value with different target values — names the file and the value              | §2.2       |
 | a kernel row naming no directory at its root, or a `<filePrefix>*` directory undeclared — checked at each root    | §2.2       |
 | kernel sets not corresponding one to one after the path transform                                                 | §2.2       |
 | a source text file containing a pair's target value — names the file and the token                                | §2.2       |
