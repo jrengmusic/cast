@@ -249,9 +249,9 @@
 |               | @brief CAST's identifier and transform-name vocabulary.                       |                                                    |
 |               | ```                                                                           |                                                    |
 +---------------+-------------------------------------------------------------------------------+----------------------------------------------------+
-| Text.h        | ```                                                                           | One diagnostic string per fatal.                   |
+| Text.h        | ```                                                                           | One string per fatal, plus the success line.       |
 |               | @file Text.h                                                                  |                                                    |
-|               | @brief Engine failure-message strings — one constant per fatal.               |                                                    |
+|               | @brief Engine message strings — one constant per fatal, one for success.      |                                                    |
 |               | ```                                                                           |                                                    |
 +---------------+-------------------------------------------------------------------------------+----------------------------------------------------+
 | Files.h       | ```                                                                           | Names of the documents the engine embeds.          |

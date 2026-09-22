@@ -162,8 +162,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_BinaryData)
 
 include(CheckIPOSupported)
 
-add_custom_target(post-build ALL)
-add_dependencies(post-build ${PROJECT_NAME})
+set(CAST_POST_BUILD_STAMP_FILE "${CMAKE_BINARY_DIR}/post-build.stamp")
+set(CAST_POST_BUILD_DEPENDS $<TARGET_FILE:${PROJECT_NAME}>)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     check_ipo_supported(RESULT CAST_IPO_SUPPORTED OUTPUT CAST_IPO_ERROR)
@@ -181,7 +181,9 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
         set(CAST_QA_DIRECTORY "${CAST_QA_PATH}/${CAST_BUILD_DATE} ${PROJECT_NAME} v${PROJECT_VERSION} macOS")
         set(CAST_INSTALL_ROOT /opt)
 :::postinstall:::
-        add_custom_command(TARGET post-build POST_BUILD
+        set(CAST_SIGN_STAMP_FILE "${CMAKE_BINARY_DIR}/sign.stamp")
+        add_custom_command(OUTPUT "${CAST_SIGN_STAMP_FILE}"
+            DEPENDS $<TARGET_FILE:${PROJECT_NAME}>
 :::strip:::
 :::xattr:::
 :::codesign:::
@@ -193,17 +195,22 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
 :::staple:::
 :::qa-directory:::
 :::qa-copy:::
+COMMAND ${CMAKE_COMMAND} -E touch "${CAST_SIGN_STAMP_FILE}"
             COMMENT "CAST: sign"
         )
+        set(CAST_POST_BUILD_DEPENDS "${CAST_SIGN_STAMP_FILE}")
     endif()
 endif()
 
-add_custom_command(TARGET post-build POST_BUILD
+add_custom_command(OUTPUT "${CAST_POST_BUILD_STAMP_FILE}"
+    DEPENDS ${CAST_POST_BUILD_DEPENDS}
 :::install-directory:::
 :::install-copy:::
 :::install-rename:::
+COMMAND ${CMAKE_COMMAND} -E touch "${CAST_POST_BUILD_STAMP_FILE}"
     COMMENT "CAST: post-build"
 )
+add_custom_target(post-build ALL DEPENDS "${CAST_POST_BUILD_STAMP_FILE}")
 
 message(STATUS "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 message(STATUS "CAST: ${PROJECT_NAME} configured")
