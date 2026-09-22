@@ -3,7 +3,7 @@ CompileFlags:
   Remove: [--target=*]
   Add:
     - -TP
-    - -DCAST_COMMIT=\"9e492af\"
+    - -DCAST_COMMIT=\"5ecf4c1\"
     - -DDONT_SET_USING_JUCE_NAMESPACE=1
     - -DJUCE_DONT_DECLARE_PROJECTINFO=1
     - -DJUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1
@@ -35,7 +35,6 @@ CompileFlags:
     - -Wno-sign-conversion
     - -Wno-switch-enum
     - -Wno-implicit-float-conversion
-    - -O3
     - --
     - C:\Users\jreng\Documents\Poems\dev\cast\Source\main.cpp
 Diagnostics:

@@ -67,6 +67,7 @@ struct Diagnostics
     static constexpr const char* const failSyncRead           { "source file cannot be read"                         };///< A sync source file could not be read.
     static constexpr const char* const failSyncDelete         { "delete failed"                                      };///< A sync mirror-delete could not remove a target file.
     static constexpr const char* const failSyncArguments      { "--sync takes a source root and a target root"       };///< A --sync line did not carry exactly two roots.
+    static constexpr const char* const done                   { "Fine."                                              };///< Every step of the run succeeded.
 };
 
 /**______________________________END OF NAMESPACE______________________________*/

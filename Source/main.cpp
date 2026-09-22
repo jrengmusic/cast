@@ -291,6 +291,15 @@ static void writeVersion()
  * @returns @c 0 when every run step succeeds, or @c 1 after printing the
  *          first failure's error message.
  */
+static bool isTerminalOutput() noexcept
+{
+#ifdef _WIN32
+    return _isatty (_fileno (stdout)) != 0;
+#else
+    return isatty (fileno (stdout)) != 0;
+#endif
+}
+
 static int runDocument (const juce::File& documentFile, bool skipFormat, bool formatOnly,
     const juce::String& outputDirectory, const juce::String& toolchainArgument)
 {
@@ -304,7 +313,15 @@ static int runDocument (const juce::File& documentFile, bool skipFormat, bool fo
         result = processor.generate (outputDirectory, toolchainArgument);
 
     if (result.wasOk())
+    {
+        if (isTerminalOutput())
+        {
+            const auto doneLine { ProjectInfo::projectName + Id::diagnosticSeparator + text::Diagnostics::done };
+            printf ("%s\n", doneLine.toRawUTF8());
+        }
+
         return 0;
+    }
 
     const auto errorLine { ProjectInfo::projectName + Id::diagnosticSeparator
                            + result.getErrorMessage() };
@@ -364,7 +381,15 @@ static int runSync (const juce::File& sourceRoot, const juce::File& targetRoot)
     const auto result { Sync::run (sourceRoot, targetRoot) };
 
     if (result.wasOk())
+    {
+        if (isTerminalOutput())
+        {
+            const auto doneLine { ProjectInfo::projectName + Id::diagnosticSeparator + text::Diagnostics::done };
+            printf ("%s\n", doneLine.toRawUTF8());
+        }
+
         return 0;
+    }
 
     const auto errorLine { ProjectInfo::projectName + Id::diagnosticSeparator + result.getErrorMessage() };
     fprintf (stderr, "%s\n", errorLine.toRawUTF8());
@@ -394,15 +419,6 @@ static int runSyncArguments (int argc, char* argv[])
     return runSync (
         juce::File::getCurrentWorkingDirectory().getChildFile (juce::String::fromUTF8 (argv[syncSourceArgIndex])),
         juce::File::getCurrentWorkingDirectory().getChildFile (juce::String::fromUTF8 (argv[syncTargetArgIndex])));
-}
-
-static bool isTerminalOutput() noexcept
-{
-#ifdef _WIN32
-    return _isatty (_fileno (stdout)) != 0;
-#else
-    return isatty (fileno (stdout)) != 0;
-#endif
 }
 
 int main (int argc, char* argv[])

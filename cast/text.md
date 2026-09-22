@@ -44,4 +44,5 @@ speaks. Prefix/affix-shaped entries pair with the offender's own text.
 | failSyncRead           | `source file cannot be read`                         | A sync source file could not be read.                                          |
 | failSyncDelete         | `delete failed`                                      | A sync mirror-delete could not remove a target file.                           |
 | failSyncArguments      | `--sync takes a source root and a target root`       | A --sync line did not carry exactly two roots.                                 |
+| done                   | `Fine.`                                              | Every step of the run succeeded.                                               |
 +------------------------+------------------------------------------------------+--------------------------------------------------------------------------------+
