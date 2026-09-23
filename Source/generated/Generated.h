@@ -27,7 +27,7 @@
 
 #include "ProjectInfo.h" ///< Product name, version, and source commit.
 #include "Identifiers.h" ///< Every Id:: name and transform-operation name.
-#include "Text.h"        ///< One diagnostic string per fatal.
+#include "Text.h"        ///< One string per fatal, plus the success line.
 #include "Files.h"       ///< Names of the documents the engine embeds.
 #include "HashMaps.h"    ///< Banner palette and per-extension comment syntax.
 #include "Generated.h"   ///< One construction point for every generated symbol.

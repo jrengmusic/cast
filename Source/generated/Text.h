@@ -16,7 +16,7 @@
 
 /**
  * @file Text.h
- * @brief Engine failure-message strings — one constant per fatal.
+ * @brief Engine message strings — one constant per fatal, one for success.
  */
 
 #pragma once
@@ -26,11 +26,12 @@ namespace text
 /*_____________________________________________________________________________*/
 
 /**
- * @brief Engine failure-message texts, emitted verbatim when a gate fails.
+ * @brief Engine message texts, emitted verbatim when a gate fails or a run completes.
  *
- * Each constant is the exact diagnostic text CAST prints for one fatal in
- * SPEC §10.1. The Validator owns the decision; these strings are the words it
- * speaks. Prefix/affix-shaped entries pair with the offender's own text.
+ * Each constant is the exact text CAST prints for one fatal in SPEC §10.1, plus the
+ * one success line printed when every step of a run succeeds. The Validator and
+ * main.cpp own the decision; these strings are the words they speak. Prefix/affix-
+ * shaped entries pair with the offender's own text.
  */
 struct Diagnostics
 {
