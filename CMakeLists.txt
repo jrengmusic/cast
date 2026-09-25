@@ -131,7 +131,7 @@ message(STATUS "CAST: JUCE ${CAST_FOUND_JUCE_VERSION} found at ${CAST_JUCE_PATH}
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_core")      # JAM Core
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_subprocess")# JUCE-based subprocess launcher with streaming output and byte-cap truncation
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_markdown")  # Clean-room native CommonMark + GFM markdown parsing/rendering
-juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_document")  # Universal line break and reflow over jam::Document (UAX #14)
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_document")  # Universal line break and reflow (UAX #14)
 
 message(STATUS "CAST: user modules added from ${CMAKE_CURRENT_SOURCE_DIR}/../jam")
 

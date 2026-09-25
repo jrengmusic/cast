@@ -1437,10 +1437,11 @@ struct Validator : jam::MarkdownValidator
     }
 
     /**
-     * @brief Checks every non-index, non-wiring table for column
-     *        uniqueness, through isUniqueTable() -- a data table kept in
-     *        the manifest is gated like any other; only wiring tables are
-     *        exempt (SPEC §5.3).
+     * @brief Checks every non-index, non-wiring, non-format table for
+     *        column uniqueness, through isUniqueTable() -- a data table
+     *        kept in the manifest is gated like any other; wiring tables
+     *        are exempt (SPEC §5.3), and @c ## format is gated separately
+     *        by isFormat().
      *
      * @param model The model whose data tables are checked.
      * @returns juce::Result::ok() when every checked table is unique, or
@@ -1449,7 +1450,7 @@ struct Validator : jam::MarkdownValidator
     static juce::Result isUnique (const Model& model)
     {
         for (auto* table : model.getTables())
-            if (not model.isOutputTable (*table) and not table->isTag (Id::index))
+            if (not model.isOutputTable (*table) and not table->isTag (Id::index) and not table->isTag (Id::format))
                 if (const auto result { isUniqueTable (model, *table) }; not result.wasOk())
                     return result;
 
@@ -1537,6 +1538,53 @@ struct Validator : jam::MarkdownValidator
                 return juce::Result::fail (getLocation (*table, *headerRow, Id::toolchain.toString())
                                            + Id::diagnosticSeparator
                                            + text::Diagnostics::failToolchainColumn);
+        }
+
+        return juce::Result::ok();
+    }
+
+    /**
+     * @brief Checks every declared @c ## format table's header, column
+     *        uniqueness, and every row's own @c width -- the invariant
+     *        Processor::format() trusts unconditionally when it builds
+     *        its column-width map.
+     *
+     * Every @c ## format table's header row must carry a @c name and a
+     * @c width column (text::Diagnostics::failFormatColumn). The table
+     * then passes isUniqueTable(). Every row's own @c width must
+     * round-trip as an integer greater than zero
+     * (text::Diagnostics::failFormatWidth).
+     *
+     * @param model The model whose @c ## format tables are checked.
+     * @returns juce::Result::ok() when every declared @c ## format table
+     *          carries both columns, is unique, and every row's own
+     *          @c width is a positive integer, or the first failure's
+     *          result.
+     */
+    static juce::Result isFormat (const Model& model)
+    {
+        for (auto* table : model.getTables (Id::format))
+        {
+            auto* headerRow { model.getTableRow (*table, Id::headerRow) };
+
+            if (model.getTableCell (*headerRow, Id::name) == nullptr
+                or model.getTableCell (*headerRow, Id::width) == nullptr)
+                return juce::Result::fail (getLocation (*table, *headerRow, Id::format.toString())
+                                           + Id::diagnosticSeparator
+                                           + text::Diagnostics::failFormatColumn);
+
+            if (const auto result { isUniqueTable (model, *table) }; not result.wasOk())
+                return result;
+
+            for (auto* row : model.getTableRows (*table))
+            {
+                const auto width { model.getValue (*row, Id::width) };
+
+                if (juce::String (width.getIntValue()).compare (width) != 0 or width.getIntValue() <= 0)
+                    return juce::Result::fail (getLocation (*table, *row, Id::width.toString())
+                                               + Id::diagnosticSeparator
+                                               + text::Diagnostics::failFormatWidth);
+            }
         }
 
         return juce::Result::ok();

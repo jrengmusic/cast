@@ -84,6 +84,8 @@ cast --help
 - `--max-table-width n` and `--line-wrap n`: each is a value pair, in any position on
   the line. Each composes with `--format`, `--no-format` and the manifest argument.
   §3.3 governs their effect.
+- `--line-wrap` must be a positive integer; `--max-table-width` must be a non-negative
+  integer — any other value is fatal (§10.1).
 - `<directory>`: each declared output writes under this directory, in place of the
   declared paths' default root. The engine resolves the directory against the
   manifest's own directory.
@@ -210,10 +212,21 @@ CAST rewrites its own declared markdown to canonical form, write-if-different.
 - `format (format (x)) == format (x)`
 - the engine reports a malformed table and never rewrites that file
 
-A line break in a plain cell reads as a newline. A grid-table body cell splits at
-`--max-table-width`, break only — the default 0 means no split. A paragraph reflows at
-`--line-wrap`, default 100. No wrapped line starts a block. The format stays a
-fixpoint under both rules.
+A line break in a plain cell reads as a newline. A grid-table body cell in a column
+that `## format` names (§6.11) reflows at that width: its authored soft line breaks
+collapse by the paragraph rule, then it splits, break only. A column that `## format`
+does not name keeps its natural width — no split — unless `--max-table-width` is
+positive, in which case the unnamed columns share that width after the named columns
+and the border overhead. The default 0 means no split. A share of zero or less is the
+natural width. A run with no break opportunity that is wider than the width splits at
+the width by character count. A backticked literal splits like any other text, and the
+split reads back as a space inside the literal — the author names a width that fits the
+literal. A fenced cell's lines are content: no line joins another, and a line wider than
+the width splits the same way — the split is a line break in the value (§3.2).
+A grid table whose body has no border between rows never splits: a split line would
+carry an empty first cell, and §3.1 would then read the body by another row law. A
+paragraph reflows at `--line-wrap`, default 100. No wrapped line starts a block. The
+format stays a fixpoint under every rule.
 
 ---
 
@@ -427,7 +440,8 @@ axis (§7):
   then the block-close glyph behind one space. A blank prose line renders the glyph
   alone. The block-line glyph applies when the language declares one. Single-line
   prose renders on one line: block open, the text, block close.
-- inline, after content — single-line form: the language's comment glyph and the text
+- inline, after content — single-line form: the language's comment glyph and the text,
+  its lines joined by one space
 
 The marker resolves by scope. In an item shape, it reads the source row's `comment`
 column. At shape level, it reads, in order:
@@ -821,6 +835,34 @@ value that matches no line, or an `[end]` value whose first match is at or befor
 shared between a region row and a whole-file row is fatal (§10.1). Same-file region
 rows merge by the §6.7 law inside the one region.
 
+### 6.11 Format
+
+`## format` is a reserved table name, and it is optional. The reservation is by name,
+not by file, exactly as `## toolchain` (§6.9): the engine looks the table up across the
+whole spliced document. The table name and the reserved column name `format` (§5.2)
+do not meet — one names a table, the other a cell.
+
+```
+| name | width |
+```
+
+`name` is a column name. `width` is the wrap width of every body cell in a column of
+that name, in every grid table the run formats, a positive integer. `name` is an
+identity column (§5.3), thus a column named two times is the duplicate fatal.
+
+The table drives the formatter (§3.3) and nothing else. A column the table names
+reflows at its width. A column it does not name keeps its natural width. No `## format`
+table means no column reflows — the formatter's default. A split inserts a line break
+into the cell, and a plain cell's line break reads as a newline (§3.3); an inline
+comment's lines join at the output (§5.4). The author sets each named column's width
+for that column's content: a backticked literal wider than the width splits, and its
+value reads back with a space at the split (§3.3). A fenced cell's lines stay lines,
+each split at the width (§3.3). A grid table whose body has no border between rows never splits (§3.3).
+
+A header row that declares no `name` or no `width` column is fatal. A `width` cell that
+is not a positive integer is fatal (§10.1). Both checks run during formatting only —
+the table drives the formatter and nothing else.
+
 ---
 
 ## 7. Templates
@@ -1046,6 +1088,9 @@ These, and nothing else:
 | a sync source file that cannot be read                                                                            | §2.2       |
 | a sync delete that fails                                                                                          | §2.2       |
 | the manifest file does not exist                                                                                  | §2.1       |
+| a `--line-wrap` value below 1, a negative `--max-table-width`, or a flag value that is not an integer             | §2.1       |
+| a `## format` header row declaring no `name` or no `width` column, during formatting only                         | §6.11      |
+| a `## format` `width` cell that is not a positive integer, during formatting only                                 | §6.11      |
 
 Any check that the engine performs and that is not in this table is a defect in the
 engine.

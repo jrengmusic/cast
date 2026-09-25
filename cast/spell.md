@@ -1,3 +1,11 @@
+## format
+
++---------+-------+
+| name    | width |
++=========+=======+
+| comment | 40    |
++---------+-------+
+
 ## index
 
 +---------------+----------------------------------------------+
@@ -236,43 +244,43 @@
 
 ## headers
 
-+---------------+-------------------------------------------------------------------------------+----------------------------------------------------+
-| file          | brief                                                                         | comment                                            |
-+===============+===============================================================================+====================================================+
-| ProjectInfo.h | ```                                                                           | Product name, version, and source commit.          |
-|               | @file ProjectInfo.h                                                           |                                                    |
-|               | @brief Project metadata — the generated ProjectInfo namespace.                |                                                    |
-|               | ```                                                                           |                                                    |
-+---------------+-------------------------------------------------------------------------------+----------------------------------------------------+
-| Identifiers.h | ```                                                                           | Every Id:: name and transform-operation name.      |
-|               | @file Identifiers.h                                                           |                                                    |
-|               | @brief CAST's identifier and transform-name vocabulary.                       |                                                    |
-|               | ```                                                                           |                                                    |
-+---------------+-------------------------------------------------------------------------------+----------------------------------------------------+
-| Text.h        | ```                                                                           | One string per fatal, plus the success line.       |
-|               | @file Text.h                                                                  |                                                    |
-|               | @brief Engine message strings — one constant per fatal, one for success.      |                                                    |
-|               | ```                                                                           |                                                    |
-+---------------+-------------------------------------------------------------------------------+----------------------------------------------------+
-| Files.h       | ```                                                                           | Names of the documents the engine embeds.          |
-|               | @file Files.h                                                                 |                                                    |
-|               | @brief CAST's own document file names, referenced by the engine.              |                                                    |
-|               | ```                                                                           |                                                    |
-+---------------+-------------------------------------------------------------------------------+----------------------------------------------------+
-| HashMaps.h    | ```                                                                           | Banner palette and per-extension comment syntax.   |
-|               | @file HashMaps.h                                                              |                                                    |
-|               | @brief CAST's banner palette and per-extension comment-syntax tables.         |                                                    |
-|               | ```                                                                           |                                                    |
-+---------------+-------------------------------------------------------------------------------+----------------------------------------------------+
-| Generated.h   | ```                                                                           | One construction point for every generated symbol. |
-|               | @file Generated.h                                                             |                                                    |
-|               | @brief CAST's generated-header umbrella — re-exports every generated concern. |                                                    |
-|               |                                                                               |                                                    |
-|               | Aggregate of CAST's generated registries. Owns the jam::Generated shared-     |                                                    |
-|               | instance aggregate, giving one construction point for every generated symbol  |                                                    |
-|               | the engine references.                                                        |                                                    |
-|               | ```                                                                           |                                                    |
-+---------------+-------------------------------------------------------------------------------+----------------------------------------------------+
++---------------+-------------------------------------------------------------------------------+------------------------------------------+
+| file          | brief                                                                         | comment                                  |
++===============+===============================================================================+==========================================+
+| ProjectInfo.h | ```                                                                           | Product name, version, and source        |
+|               | @file ProjectInfo.h                                                           | commit.                                  |
+|               | @brief Project metadata — the generated ProjectInfo namespace.                |                                          |
+|               | ```                                                                           |                                          |
++---------------+-------------------------------------------------------------------------------+------------------------------------------+
+| Identifiers.h | ```                                                                           | Every Id:: name and transform-operation  |
+|               | @file Identifiers.h                                                           | name.                                    |
+|               | @brief CAST's identifier and transform-name vocabulary.                       |                                          |
+|               | ```                                                                           |                                          |
++---------------+-------------------------------------------------------------------------------+------------------------------------------+
+| Text.h        | ```                                                                           | One string per fatal, plus the success   |
+|               | @file Text.h                                                                  | line.                                    |
+|               | @brief Engine message strings — one constant per fatal, one for success.      |                                          |
+|               | ```                                                                           |                                          |
++---------------+-------------------------------------------------------------------------------+------------------------------------------+
+| Files.h       | ```                                                                           | Names of the documents the engine        |
+|               | @file Files.h                                                                 | embeds.                                  |
+|               | @brief CAST's own document file names, referenced by the engine.              |                                          |
+|               | ```                                                                           |                                          |
++---------------+-------------------------------------------------------------------------------+------------------------------------------+
+| HashMaps.h    | ```                                                                           | Banner palette and per-extension comment |
+|               | @file HashMaps.h                                                              | syntax.                                  |
+|               | @brief CAST's banner palette and per-extension comment-syntax tables.         |                                          |
+|               | ```                                                                           |                                          |
++---------------+-------------------------------------------------------------------------------+------------------------------------------+
+| Generated.h   | ```                                                                           | One construction point for every         |
+|               | @file Generated.h                                                             | generated symbol.                        |
+|               | @brief CAST's generated-header umbrella — re-exports every generated concern. |                                          |
+|               |                                                                               |                                          |
+|               | Aggregate of CAST's generated registries. Owns the jam::Generated shared-     |                                          |
+|               | instance aggregate, giving one construction point for every generated symbol  |                                          |
+|               | the engine references.                                                        |                                          |
+|               | ```                                                                           |                                          |
++---------------+-------------------------------------------------------------------------------+------------------------------------------+
 
 ## output index
 

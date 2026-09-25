@@ -111,11 +111,67 @@
 
 ## SPRINT HISTORY
 
+## Sprint: sync-unibreak-wrap — `## format` Column Widths, Fence-Aware Universal Split, Quotation Classes as One Union Table ✅
+
+**Date:** 2026-09-26
+**Duration:** three sessions (PLAN-sync-unibreak-wrap.md revisions 4–6; the handoff below is the mid-sprint state)
+
+### Agents Participated
+- COUNSELOR: fable-5 — reads, PLAN, SPEC/HELP, audit resolution, proofs direction, this log
+- Engineer: sonnet-5 ×6 — writer clamp path, `## format` gate, packer, table merge, Model.h fix, doxygen pass, regen/build/proof/sync runs
+- Pathfinder: haiku — P1/P4/P6 evidence (generated diff, segfault repro, sync file lists)
+- Auditor: opus-5 — one sweep (Audit 2, dispositions in PLAN-sync-unibreak-wrap.md)
+
+### Decisions (ARCHITECT)
+1. `## format` (`name | width`) names any column; no restriction on which column. No table means no column reflows. Gate runs during formatting only.
+2. Reflow is fence-aware and universal: a run wider than the width splits by character count; a fenced cell's lines are content and split the same way — the split is a line break in the value; the consumer joins (`Format::join`, AquaticPrime). A backticked literal splits like any text and reads back with a space at the split; the author names a width that fits.
+3. libunibreak is translated into the data lane, not byte for byte: three parallel tables became one `## lineBreakQuotationClasses` (`key | type | language | codepoint | class`, alias `@byteCodepointByte` = `uint8_t, uint32_t, uint8_t`), read by `getLineBreakClass (codepoint, language)`.
+4. jfs `project-info.md` `## format`: `comment | 40`, `value | 40` — kept as authored.
+
+### Files Modified
+- `Source/Processor.h` — `format (maxTableWidth, lineWrap)`: `Validator::isFormat`, column-width map from `## format`, `MarkdownWriter` ctor; docs
+- `Source/Validator.h` — `isFormat` (header columns, `isUniqueTable`, integer round-trip > 0); `isUnique` skips `Id::format`; docs
+- `Source/Model.h:828–833` — `Id::wiring` stamp reads `getTableCell (*table, Id::structure, Id::headerRow)`; the header-row dereference that segfaulted on a headerless manifest table is gone
+- `Source/main.cpp` — `invalidFlagValue`, `getFlagValue` integer round-trip; runDocument doc block moved to its function; docs
+- `Source/Transforms.h` — `toComment` joins newlines before both branches; docs
+- `cast/text.md:47` — `failFlagValue`; `cast/spell.md` — `## format`; `project-info.md:142`
+- `SPEC.md` §3.3, §6.11, §10.1; `Source/HELP.md` — widths, split rules, backticked-literal split, fatals "during formatting only"
+- `PLAN-sync-unibreak-wrap.md` — Audit 2 dispositions, fence-aware reflow, libunibreak residue, names landed
+- `Source/generated/Text.h`, `CMakeLists.txt` — regenerated
+
+### Alignment Check
+- [x] BLESSED — D: `setRows` splits over-wide segments first, then one greedy pack (run 1 == run 2); E: no null guard where the framework API answers (`getTableCell` three-argument form)
+- [x] NAMES.md — `getLineBreakClass`, `lineBreakQuotationClasses`, `@byteCodepointByte`, `getRows`, `isCodeBlock`, `getWrappedGridTableText`, `invalidFlagValue`; `resolve`/`tailored` gone
+- [x] MANIFESTO.md — data lane over hand tables; delete-first on the three tables
+
+### Problems Solved
+- Segfault on a manifest whose non-index table has no header row (P4) — Model.h:833 dereferenced `getTableHeaderRow`
+- `Union::pack` codegen emitted type names as arguments — the wiring listed `:key`/`:type` in the list column; the `blockLinks` sibling shape fixed it
+- `Token` is non-copyable — `rows.add (std::move (row))`
+- Paragraph re-wrap oscillated between runs — split-then-pack
+- Proofs (cast.exe 02:20:07): P4 manifest exits 1 with `(#tr)`; jam, cast, jfs three-run fixpoints; wrap test (two-row bordered table at `text | 20`, 150-char token in a paragraph) fixpoint; sync jam→user_modules 14 files, rerun and reverse zero writes
+
+### State for Continuation
+- jfs `value | 40` splits `productWebsite` (52 chars) and 16 `## define` values; the regenerated `ProjectInfo.h` reads `jreng- filter-strip` and eight publicKey segments (scratch proof, `cast/spell.md` generator). ARCHITECT's data; the next jfs build emits it as is.
+- `cast --sync` needs `C:/…` paths under MSYS; `/c/…` mis-joins to `C:\c\…` (agent evidence; not in HELP)
+- A one-row grid table never wraps (`isRowBordered`, jam_MarkdownWriter.cpp:552–559) — by the grid law
+- kuassa `user_modules/cast/spell.md` mirrored by hand (index :52, block :1127–1137); its `:codepoint` list line is one column over until kuassa's own `cast --format`
+- Doxygen not regenerated: no `doxygen` ninja target on this machine
+- `scratchpad/` at the cast root is ARCHITECT's to delete
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- `DEBT-20260831T021425` — plugin_bootstrap conformance, untouched
+
+---
+
 ## Handoff to COUNSELOR: sync-unibreak-wrap — Unibreak as Document, Index/AnsiDocument split, PLAN Steps 1–14 done
 
 **From:** COUNSELOR
 **Date:** 2026-09-25
-**Status:** In Progress — code written and read-validated through Step 14, none built
+**Status:** Superseded — logged as the sprint entry above
 
 ### Context
 ARCHITECT's `cast --sync` request grew into three linked fixes: the sync

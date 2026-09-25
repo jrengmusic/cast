@@ -24,7 +24,10 @@ Arguments select what runs. They never carry generation rules.
 - `cast --version` — the version and the source commit, the same stamp that the generated banners embed
 - `cast --help` — this guide
 - `--max-table-width n` and `--line-wrap n` — each a value pair, in any position on
-  the line; each composes with `--format`, `--no-format` and the manifest argument
+  the line; each composes with `--format`, `--no-format` and the manifest argument.
+  `--line-wrap` must be a positive integer; `--max-table-width` must be a
+  non-negative integer — any other value is fatal. `--line-wrap` defaults to 100,
+  `--max-table-width` to 0
 
 The default order is format, then generate, then the default-flow toolchain rows. `--format` and `--no-format` exclude each other. Each also excludes an output directory and a `--<word>` toolchain argument. One manifest, one flag, nothing else on the line.
 
@@ -34,7 +37,7 @@ The default order is format, then generate, then the default-flow toolchain rows
 
 `cast --sync <source-root> <target-root>` mirrors one framework's kernel onto another's. It composes with nothing else on the line — no manifest, no other flag — and a `--sync` line without exactly its two roots is fatal.
 
-Each root carries a `user-modules-info.md` file at its top level: `## identity` (`key | value | boundary`), `## module` (`name | class`, plus data columns manifest wiring reads, never sync), and `## ignore` (`value`). The two roots must differ.
+Each root carries a `user-modules-info.md` file at its top level: `## identity` (`key | value | boundary`), `## module` (`name | class`, plus data columns manifest wiring reads, never sync), and `## ignore` (`value`). The two roots must differ. Sync reads exactly these three tables — any other table in the file belongs to the manifest and is never read by sync.
 
 The transform is one ordered replacement list, longest source first — sources of equal length order by their text, descending, and sources with equal text keep their authored row order, so the list is total. Each `## identity` key present in both files contributes a pair — source value to target value — except `namespace`, which contributes no plain pair: its bare word occurs inside unrelated names, so it never replaces on its own. When two or more rows share a byte-equal source value, the first authored row contributes the pair and the later rows contribute none. Three keys also compose, and each must be present in both files: `namespace` adds exactly two pairs, `namespace <source>` to `namespace <target>` and `<source>::` to `<target>::`; `filePrefix` and `macroPrefix` contribute their plain pairs, and `filePrefix` also transforms every path segment — directory and file names alike. A row whose `boundary` cell is `word` matches whole words only; every other row matches plain text.
 
@@ -177,7 +180,7 @@ At shape level, with no comment reference authored, `:::[comment]:::` falls back
 You never author the comment frame (`/** @brief ... */`, `///< ...`) yourself — you write prose only. CAST renders the frame from the comment-syntax table, keyed by the output file's extension — except when the file's exact name has a row in the manifest-syntax table (`CMakeLists.txt` is CMake, not text; that row's value replaces the extension as the key):
 
 - the marker alone on its line — block form. Multi-line prose renders one prose line per output line. Single-line prose renders open, text, close on one line.
-- the marker inline, after content — single-line form: the language's comment glyph, then the text.
+- the marker inline, after content — single-line form: the language's comment glyph, then the text, its lines joined by one space.
 
 A missing comment is not an error — the marker renders empty, and an emptied line trims or collapses like each other placeholder line.
 
@@ -492,6 +495,20 @@ The `@` sigil law (a `@`-sigiled value is a reference, never data) separates thi
 
 `cast spell.md` configures and builds `Builds/Ninja` in Release. `cast spell.md --debug` configures and builds `Builds/Debug` in Debug — the two default-flow rows do not run.
 
+### format — column widths
+
+`## format` is an optional table, `| name | width |`, reserved by name — not by file, like `## toolchain`. The table name and the reserved column name `format` do not meet — one names a table, the other a cell. `name` is a column name, and an identity column: a column named two times is the duplicate fatal. `width` is that column's wrap width, a positive integer. Every grid table that carries a column of that name reflows its body cells at that width — the authored soft line breaks collapse first, then the text wraps. A column the table does not name keeps its natural width. No `## format` table means no column reflows. A split puts a line break into the cell, and a plain cell's line break reads as a newline; an inline comment's lines join at the output. The author sets each named column's width for that column's content. A fenced cell's lines stay lines, each split at the width. A grid table whose body has no border between rows never splits.
+
+```
++---------+-------+
+| name    | width |
++=========+=======+
+| comment | 40    |
++---------+-------+
+```
+
+A header row without `name` or `width`, or a `width` cell that is not a positive integer, is fatal — during formatting only.
+
 ### Regions — patching an existing file
 
 An output row whose structure declares `- [begin]:` and `- [end]:` bindings does not create a file — it patches one that already exists. CAST finds the first line containing the resolved `[begin]` value, then the first later line containing the resolved `[end]` value, and replaces every line strictly between them with the rendered shape. The delimiter lines stay, and everything outside them stays byte for byte. No banner renders, and no file documentation renders — the file already carries its own framing, and the delimiter pair marks where CAST's own ownership begins and ends.
@@ -729,16 +746,26 @@ omitted row.
 
 CAST rewrites each declared markdown file to canonical form, write-if-different.
 
-- layout only — cell content, backtick literals, fenced cells, row order and authored borders all survive
+- layout only — cell content, row order and authored borders all survive; a column that `## format` names reflows at its width, backtick literals and fenced cells included
 - the formatter re-emits borders exactly where you authored them. It neither adds nor removes one
 - columns pad to their widest cell, on each line of each cell, a fence's content lines included — the right edge is always aligned, and `|this|` comes back as `| this |`
 - `format (format (x)) == format (x)` — a canonical file reformats to itself, byte for byte
 - a malformed table is reported with its `path:line`, and the file is never rewritten
 
-A line break in a plain cell reads as a newline. A grid-table body cell splits at
-`--max-table-width`, break only — the default 0 means no split. A paragraph reflows at
-`--line-wrap`, default 100. No wrapped line starts a block. The format stays a
-fixpoint under both rules.
+A line break in a plain cell reads as a newline. A grid-table body cell in a column
+that `## format` names (see format — column widths) reflows at that width: its authored
+soft line breaks collapse by the paragraph rule, then it splits, break only. A column
+that `## format` does not name keeps its natural width — no split — unless
+`--max-table-width` is positive, in which case the unnamed columns share that width
+after the named columns and the border overhead. The default 0 means no split. A share
+of zero or less is the natural width. A run with no break opportunity that is wider
+than the width splits at the width by character count. A backticked literal splits like
+any other text, and the split reads back as a space inside the literal — name a width
+that fits the literal. A fenced cell's lines are content: no line joins another, and a
+line wider than the width splits the same way — the split is a line break in the value. A grid table whose body has no border between rows never splits —
+a split line would carry an empty first cell, and the row law would then read the body
+differently. A paragraph reflows at `--line-wrap`, default 100. No wrapped line starts
+a block. The format stays a fixpoint under every rule.
 
 ---
 

@@ -14,22 +14,27 @@ struct Transforms
      *        falling through to toCommentBlock() when @p extension
      *        declares none.
      *
+     * @p input's own newlines are joined into spaces before either branch,
+     * so the rendered comment always stays on one line.
+     *
      * @param input     The text to comment.
      * @param extension The target file extension whose comment syntax is
      *                  used.
-     * @returns @p input, prefixed by @p extension's own comment glyph, or
-     *          toCommentBlock()'s own rendering when @p extension declares
-     *          no single-line comment glyph.
+     * @returns @p input, its newlines joined into spaces, prefixed by
+     *          @p extension's own comment glyph, or toCommentBlock()'s own
+     *          rendering when @p extension declares no single-line comment
+     *          glyph.
      */
     static juce::String toComment (const juce::String& input, const juce::String& extension)
     {
         const auto& syntax { map::commentSyntax.at (extension) };
         const auto comment { syntax.get (Id::comment) };
+        const auto joined { input.replaceCharacter (Chars::newline, Chars::space) };
 
         if (comment.isEmpty())
-            return toCommentBlock (input, extension);
+            return toCommentBlock (joined, extension);
 
-        return (comment + Chars::space + input).trim();
+        return (comment + Chars::space + joined).trim();
     }
 
     /**
@@ -115,7 +120,7 @@ struct Transforms
             return toComment (input, extension);
 
         return (blockOpen + Chars::space
-               + syntax.get (Id::brief) + Chars::space + input
+               + syntax.get (Id::brief) + Chars::space + input.replaceCharacter (Chars::newline, Chars::space)
                + Chars::space + syntax.get (Id::blockClose))
             .trim();
     }

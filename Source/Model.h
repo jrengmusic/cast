@@ -830,8 +830,7 @@ private:
                 table->add<bool> (Id::wiring,
                     not table->isTag (Id::index) and table->contains (Id::path)
                         and table->get<juce::String> (Id::path)->compare (document.manifestOrigin) == 0
-                        and document.getTableCell (*document.getTableHeaderRow (*table), Id::structure)
-                                != nullptr);
+                        and document.getTableCell (*table, Id::structure, Id::headerRow) != nullptr);
 
         for (auto* table : *document.root)
             if (jam::MarkdownDocument::isTable (*table))

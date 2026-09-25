@@ -38,6 +38,7 @@ static constexpr int flagArgIndex { 1 };
 static constexpr int postFlagArgIndex { 2 };
 static constexpr int flagOnlyArgumentCount { 2 };
 static constexpr int postFlagArgumentCount { 3 };
+static constexpr int invalidFlagValue { -1 };///< The value getFlagValue() returns when the flag's own text is not an integer.
 
 static const juce::String& getFormatFlag()
 {
@@ -81,11 +82,26 @@ static const juce::String& getLineWrapFlag()
     return lineWrapFlag;
 }
 
+/**
+ * @brief The integer that follows @p flag in @p argv.
+ *
+ * @param argc          The argument count.
+ * @param argv          The argument vector.
+ * @param flag          The flag whose following value is read.
+ * @param fallbackValue The value returned when @p flag is absent from @p argv.
+ * @returns The integer following @p flag, @p fallbackValue when @p flag is
+ *          absent, or invalidFlagValue when the following text does not
+ *          round-trip as an integer.
+ */
 static int getFlagValue (int argc, char* argv[], const juce::String& flag, int fallbackValue)
 {
-    for (auto index = 0; index < argc - 1; ++index)
+    for (int index { 0 }; index < argc - 1; ++index)
         if (juce::String::fromUTF8 (argv[index]).compare (flag) == 0)
-            return juce::String::fromUTF8 (argv[index + 1]).getIntValue();
+        {
+            const auto text { juce::String::fromUTF8 (argv[index + 1]) };
+
+            return juce::String (text.getIntValue()).compare (text) == 0 ? text.getIntValue() : invalidFlagValue;
+        }
 
     return fallbackValue;
 }
@@ -335,6 +351,19 @@ static void writeVersion()
 }
 
 /**
+ * @brief Whether stdout is a terminal -- the success line prints only then.
+ * @returns @c true when stdout is a TTY.
+ */
+static bool isTerminalOutput() noexcept
+{
+#ifdef _WIN32
+    return _isatty (_fileno (stdout)) != 0;
+#else
+    return isatty (fileno (stdout)) != 0;
+#endif
+}
+
+/**
  * @brief Parses @p documentFile into a Processor, then runs its format()
  *        and generate() as @p skipFormat and @p formatOnly select, and
  *        prints the resulting error to stderr on failure.
@@ -346,18 +375,13 @@ static void writeVersion()
  *                          Processor::generate().
  * @param toolchainArgument The CLI-selected toolchain group, passed
  *                          through to Processor::generate().
+ * @param maxTableWidth     The grid-table width passed through to
+ *                          Processor::format().
+ * @param lineWrap          The paragraph wrap column passed through to
+ *                          Processor::format().
  * @returns @c 0 when every run step succeeds, or @c 1 after printing the
  *          first failure's error message.
  */
-static bool isTerminalOutput() noexcept
-{
-#ifdef _WIN32
-    return _isatty (_fileno (stdout)) != 0;
-#else
-    return isatty (fileno (stdout)) != 0;
-#endif
-}
-
 static int runDocument (const juce::File& documentFile, bool skipFormat, bool formatOnly,
     const juce::String& outputDirectory, const juce::String& toolchainArgument, int maxTableWidth, int lineWrap)
 {
@@ -466,17 +490,15 @@ static int runSync (const juce::File& sourceRoot, const juce::File& targetRoot)
  */
 static int runSyncArguments (int argc, char* argv[])
 {
-    if (argc != syncArgumentCount)
-    {
-        const auto errorLine { ProjectInfo::projectName + Id::diagnosticSeparator + getSyncFlag()
-                               + Id::diagnosticSeparator + text::Diagnostics::failSyncArguments };
-        fprintf (stderr, "%s\n", errorLine.toRawUTF8());
-        return 1;
-    }
+    if (argc == syncArgumentCount)
+        return runSync (
+            juce::File::getCurrentWorkingDirectory().getChildFile (juce::String::fromUTF8 (argv[syncSourceArgIndex])),
+            juce::File::getCurrentWorkingDirectory().getChildFile (juce::String::fromUTF8 (argv[syncTargetArgIndex])));
 
-    return runSync (
-        juce::File::getCurrentWorkingDirectory().getChildFile (juce::String::fromUTF8 (argv[syncSourceArgIndex])),
-        juce::File::getCurrentWorkingDirectory().getChildFile (juce::String::fromUTF8 (argv[syncTargetArgIndex])));
+    const auto errorLine { ProjectInfo::projectName + Id::diagnosticSeparator + getSyncFlag()
+                           + Id::diagnosticSeparator + text::Diagnostics::failSyncArguments };
+    fprintf (stderr, "%s\n", errorLine.toRawUTF8());
+    return 1;
 }
 
 int main (int argc, char* argv[])
@@ -500,24 +522,34 @@ int main (int argc, char* argv[])
     const auto maxTableWidth { getFlagValue (argc, argv, getMaxTableWidthFlag(), jam::MarkdownWriter::defaultMaxTableWidth) };
     const auto lineWrap { getFlagValue (argc, argv, getLineWrapFlag(), jam::MarkdownWriter::defaultLineWrap) };
 
-    if (isVersion (argc, argv))
+    const auto isLineWrapValid { lineWrap > 0 };
+    const auto isMaxTableWidthValid { maxTableWidth >= 0 };
+
+    if (isLineWrapValid and isMaxTableWidthValid)
     {
-        writeVersion();
-        return 0;
+        if (isVersion (argc, argv))
+        {
+            writeVersion();
+            return 0;
+        }
+
+        if (isHelp (argc, argv))
+        {
+            printBannerAndHelp();
+            return 0;
+        }
+
+        const auto documentFile { getDocumentFile (argc, argv) };
+
+        if (documentFile.existsAsFile())
+            return runDocument (documentFile, isSkipFormat (argc, argv), isFormatOnly (argc, argv),
+                getOutputDirectory (argc, argv), getToolchainArgument (argc, argv),
+                maxTableWidth, lineWrap);
+
+        return runDocumentNotFound (documentFile);
     }
 
-    if (isHelp (argc, argv))
-    {
-        printBannerAndHelp();
-        return 0;
-    }
-
-    const auto documentFile { getDocumentFile (argc, argv) };
-
-    if (documentFile.existsAsFile())
-        return runDocument (documentFile, isSkipFormat (argc, argv), isFormatOnly (argc, argv),
-            getOutputDirectory (argc, argv), getToolchainArgument (argc, argv),
-            maxTableWidth, lineWrap);
-
-    return runDocumentNotFound (documentFile);
+    const auto errorLine { ProjectInfo::projectName + Id::diagnosticSeparator + text::Diagnostics::failFlagValue };
+    fprintf (stderr, "%s\n", errorLine.toRawUTF8());
+    return 1;
 }

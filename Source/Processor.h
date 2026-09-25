@@ -65,13 +65,34 @@ struct Processor
      *        rewriting each one, in parallel, whose canonical text
      *        differs from what is currently on disk.
      *
+     * Runs Validator::isFormat() first, then builds the column-width map
+     * from every @c ## format row -- @c name resolved to a valid ID
+     * mapped to @c width -- and constructs the MarkdownWriter with
+     * @p maxTableWidth, @p lineWrap, and that map, before running the
+     * jam structural validator and rewriting each changed origin.
+     *
+     * @param maxTableWidth The grid-table width the writer shares among
+     *                      its unnamed columns; 0 leaves them at their
+     *                      natural width.
+     * @param lineWrap      The column at which the writer wraps a
+     *                      paragraph's rendered lines.
      * @returns juce::Result::ok() when the manifest's own markdown
      *          validates and every changed file writes successfully, or a
      *          failure naming every file that failed to write.
      */
     juce::Result format (int maxTableWidth, int lineWrap)
     {
-        const jam::MarkdownWriter formatter { maxTableWidth, lineWrap };
+        if (const auto result { Validator::isFormat (*model) }; not result.wasOk())
+            return result;
+
+        jam::HashMap<juce::Identifier, int> columnWidth;
+
+        for (auto* table : model->getTables (Id::format))
+            for (auto* row : model->getTableRows (*table))
+                columnWidth.try_emplace (juce::Identifier (jam::Format::toValidID (model->getValue (*row, Id::name))),
+                    model->getValue (*row, Id::width).getIntValue());
+
+        const jam::MarkdownWriter formatter { maxTableWidth, lineWrap, std::move (columnWidth) };
         static const jam::MarkdownValidator validator;
 
         if (const auto result { validator.isValid (*model) }; not result.wasOk())
@@ -150,19 +171,19 @@ private:
     }
 
     /**
-     * @brief Returns every table's own declared origin file, deduplicated.
+     * @brief Returns every spliced block's own origin file, deduplicated.
      *
-     * @returns Every distinct origin path found across the manifest's own
-     *          tables, in discovery order.
+     * @returns Every distinct origin path found across the master
+     *          document's root children, in discovery order.
      */
-    jam::Array<juce::String> getOrigins() const
+    jam::Strings getOrigins() const
     {
-        jam::Array<juce::String> origins;
+        jam::Strings origins;
 
-        for (auto* table : model->getTables())
+        for (auto* block : *model->getRoot())
         {
-            const auto origin { *table->get<juce::String> (Id::path) };
-            origins.addIfNotAlreadyThere (origin);
+            const auto origin { *block->get<juce::String> (Id::path) };
+            origins.addIfNotAlreadyThere (origin, false);
         }
 
         return origins;

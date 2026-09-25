@@ -10,9 +10,9 @@
 
 ## Current State
 
-**Last Sprint:** Sync engine — two defects closed: a target file whose on-disk name differs from the transformed path only by case is renamed before the write (`Sync::getCaseReconciliationFailure`), so mirror-delete no longer removes it on case-insensitive filesystems; identity rows sharing a source value but naming different target values are refused by `Validator::isUniquePair` with `failSyncAmbiguity`. SPEC §2.2/§10.1 and HELP carry both rules. Windows Release built and installed; three scratchpad proofs green ✅ (2026-09-21)
+**Last Sprint:** sync-unibreak-wrap — `## format` (`name | width`) names any column and the writer reflows it at that width (`Processor::format` → `Validator::isFormat` → `jam::MarkdownWriter` column-width map); reflow is fence-aware and universal (`ReflowDocument::setRows` splits an over-wide segment by codepoint width, then packs; a fenced cell's lines are content, each split at the width); libunibreak's quotation tailoring is one `lineBreakQuotationClasses` union table read by `getLineBreakClass`; `Model::parse` no longer dereferences a missing header row. Windows Release built and installed; jam/cast/jfs three-run fixpoints and jam→KANJUT sync proven ✅ (2026-09-26)
 
-**Active Work:** None — cast/jam/eve byte-identical fixpoints; full default Release chains proven end-to-end (cast .pkg notarized+stapled+QA-archived; eve VST3/AU Accepted+stapled, AAX wraptool)
+**Active Work:** None — jfs `value | 40` splits `productWebsite` and 16 `## define` values in `project-info.md`; the regenerated literals carry the split (ARCHITECT's data, see carol/SPRINT-LOG.md State for Continuation)
 
 **Active ODE:** None
 
