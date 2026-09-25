@@ -23,6 +23,8 @@ Arguments select what runs. They never carry generation rules.
   rows whose `argument` cell equals `word`; the default-flow rows do not run
 - `cast --version` — the version and the source commit, the same stamp that the generated banners embed
 - `cast --help` — this guide
+- `--max-table-width n` and `--line-wrap n` — each a value pair, in any position on
+  the line; each composes with `--format`, `--no-format` and the manifest argument
 
 The default order is format, then generate, then the default-flow toolchain rows. `--format` and `--no-format` exclude each other. Each also excludes an output directory and a `--<word>` toolchain argument. One manifest, one flag, nothing else on the line.
 
@@ -34,7 +36,7 @@ The default order is format, then generate, then the default-flow toolchain rows
 
 Each root carries a `user-modules-info.md` file at its top level: `## identity` (`key | value | boundary`), `## module` (`name | class`, plus data columns manifest wiring reads, never sync), and `## ignore` (`value`). The two roots must differ.
 
-The transform is one ordered replacement list, longest source first — sources of equal length order by their text, descending, so the list is total. Each `## identity` key present in both files contributes a pair — source value to target value — except `namespace`, which contributes no plain pair: its bare word occurs inside unrelated names, so it never replaces on its own. Four keys also compose, and each must be present in both files: `namespace` adds exactly two pairs, `namespace <source>` to `namespace <target>` and `<source>::` to `<target>::`; `filePrefix`, `macroPrefix`, and `hyphenPrefix` contribute their plain pairs, and `filePrefix` also transforms every path segment — directory and file names alike. A row whose `boundary` cell is `word` matches whole words only; every other row matches plain text. Two rows whose source values are byte-equal must name byte-equal target values; a run whose source file breaks this is fatal, naming the file and the value.
+The transform is one ordered replacement list, longest source first — sources of equal length order by their text, descending, and sources with equal text keep their authored row order, so the list is total. Each `## identity` key present in both files contributes a pair — source value to target value — except `namespace`, which contributes no plain pair: its bare word occurs inside unrelated names, so it never replaces on its own. When two or more rows share a byte-equal source value, the first authored row contributes the pair and the later rows contribute none. Three keys also compose, and each must be present in both files: `namespace` adds exactly two pairs, `namespace <source>` to `namespace <target>` and `<source>::` to `<target>::`; `filePrefix` and `macroPrefix` contribute their plain pairs, and `filePrefix` also transforms every path segment — directory and file names alike. A row whose `boundary` cell is `word` matches whole words only; every other row matches plain text.
 
 Sync visits the source's `kernel` rows — every other class value is provision. A `kernel` row names a directory, and at each root, every kernel row's directory must exist, and every `<filePrefix>*` directory on disk must be declared. After the path transform, the two files' kernel sets must correspond one to one. Root-relative paths use `/` on every host. A file whose root-relative path matches an `## ignore` row (`*` wildcards) is skipped. A source file that cannot be read is fatal. A file with a NUL byte in its first 8000 bytes copies byte-for-byte. Every other file transforms as text and normalizes to LF. A `.md` file re-canonicalizes through the formatter after the transform only when its kernel scope's own name carries no `filePrefix` — the data scopes, never the module directories. Every write is write-if-different, and a write or delete that fails is fatal. Before a write, a target file whose on-disk name differs from the transformed path only by case is renamed to the transformed path, so mirror-delete compares exact names on every host; a rename that fails is fatal as an output that cannot be written.
 
@@ -732,6 +734,11 @@ CAST rewrites each declared markdown file to canonical form, write-if-different.
 - columns pad to their widest cell, on each line of each cell, a fence's content lines included — the right edge is always aligned, and `|this|` comes back as `| this |`
 - `format (format (x)) == format (x)` — a canonical file reformats to itself, byte for byte
 - a malformed table is reported with its `path:line`, and the file is never rewritten
+
+A line break in a plain cell reads as a newline. A grid-table body cell splits at
+`--max-table-width`, break only — the default 0 means no split. A paragraph reflows at
+`--line-wrap`, default 100. No wrapped line starts a block. The format stays a
+fixpoint under both rules.
 
 ---
 

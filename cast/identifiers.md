@@ -30,13 +30,14 @@ transform operations a format cell may declare (§8).
 | @id     | flag             | `flag`               | Toolchain table flag column.                              |
 | @string | fromCodepoint    | `from codepoint`     | Codepoint decode operation.                               |
 | @string | fromUTF8         | `from UTF8`          | UTF-8 decode operation.                                   |
-| @id     | hyphenPrefix     | `hyphenPrefix`       | Sync composed identity key — hyphen-case prefix.          |
 | @id     | identity         | `identity`           | Sync info-file identity table name.                       |
 | @id     | ignore           | `ignore`             | Sync info-file ignore table name.                         |
 | @string | join             | `join`               | Join text operation.                                      |
 | @id     | kernel           | `kernel`             | Sync module-row class keyword — a walked directory.       |
+| @id     | lineWrap         | `line-wrap`          | Prose reflow width CLI flag word.                         |
 | @id     | list             | `list`               | Reserved expansion token name.                            |
 | @id     | macroPrefix      | `macroPrefix`        | Sync composed identity key — macro-name prefix.           |
+| @id     | maxTableWidth    | `max-table-width`    | Grid-table cell-wrap width CLI flag word.                 |
 | @id     | noBanner         | `no-banner`          | Banner-suppressing fence-prefix marker.                   |
 | @id     | noFormat         | `no-format`          | Formatless-column marker.                                 |
 | @id     | placeholder      | `placeholder`        | Placeholder token name.                                   |

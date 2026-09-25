@@ -69,9 +69,9 @@ struct Processor
      *          validates and every changed file writes successfully, or a
      *          failure naming every file that failed to write.
      */
-    juce::Result format()
+    juce::Result format (int maxTableWidth, int lineWrap)
     {
-        static const jam::MarkdownWriter formatter;
+        const jam::MarkdownWriter formatter { maxTableWidth, lineWrap };
         static const jam::MarkdownValidator validator;
 
         if (const auto result { validator.isValid (*model) }; not result.wasOk())
@@ -82,7 +82,7 @@ struct Processor
         formatFailures.resize (origins.size());
 
         Jobs::run (origins.size(),
-            [this, &origins, &formatFailures] (int index)
+            [this, &origins, &formatFailures, &formatter] (int index)
             {
                 formatFailures.at (index) = writeOriginIfChanged (origins.at (index), formatter);
             });

@@ -56,10 +56,6 @@ struct Sync
             not result.wasOk())
             return result;
 
-        if (const auto result { Validator::isUniquePair (sourceInfoFile, *sourceInfo, *targetInfo) };
-            not result.wasOk())
-            return result;
-
         return runGates (sourceRoot, targetRoot, *sourceInfo, *targetInfo);
     }
 
@@ -493,7 +489,7 @@ private:
                 rows.add (sourceRow);
         }
 
-        std::sort (rows.begin(), rows.end(),
+        std::stable_sort (rows.begin(), rows.end(),
             [&sourceInfo] (const Model::Element* first, const Model::Element* second)
             {
                 const auto firstValue { sourceInfo.getValue (*first, Id::value) };
@@ -504,7 +500,15 @@ private:
                            : firstValue.compare (secondValue) > 0;
             });
 
-        return rows;
+        jam::Array<const Model::Element*> sortedRows;
+
+        for (auto* row : rows)
+            if (sortedRows.isEmpty()
+                or sourceInfo.getValue (*sortedRows.last(), Id::value).compare (sourceInfo.getValue (*row, Id::value))
+                       != 0)
+                sortedRows.add (row);
+
+        return sortedRows;
     }
 
     /**

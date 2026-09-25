@@ -29,7 +29,7 @@ The engine hardcodes these items and no other items:
 - the sync file name `user-modules-info.md`, its table names `identity`, `module`,
   and `ignore`, the columns `key`, `class`, and `boundary`, the class keywords
   `kernel` and `provision`, the boundary keyword `word`, and the composed identity
-  keys `namespace`, `filePrefix`, `macroPrefix`, and `hyphenPrefix` (§2.2)
+  keys `namespace`, `filePrefix`, and `macroPrefix` (§2.2)
 - the `.cast` extension, which marks an index symbol as a template file (§4.2), the `.md`
   extension, which marks an index symbol as a file that must exist (§4.4), and the `.h`
   extension, the comment-syntax key an output falls back to (§5.4)
@@ -73,7 +73,7 @@ Generated outputs are build artifacts. Do not edit a generated output by hand.
 The command line selects what runs. The command line never carries a generation rule.
 
 ```
-cast [<manifest>] [<directory> | --format | --no-format | --<word>]
+cast [<manifest>] [<directory> | --format | --no-format | --<word>] [--max-table-width n] [--line-wrap n]
 cast --sync <source-root> <target-root>
 cast --version
 cast --help
@@ -81,6 +81,9 @@ cast --help
 
 - No arguments: the manifest is `spell.md` in the working directory.
 - `<manifest>`: a manifest path. The flag reads before or after it.
+- `--max-table-width n` and `--line-wrap n`: each is a value pair, in any position on
+  the line. Each composes with `--format`, `--no-format` and the manifest argument.
+  §3.3 governs their effect.
 - `<directory>`: each declared output writes under this directory, in place of the
   declared paths' default root. The engine resolves the directory against the
   manifest's own directory.
@@ -112,20 +115,20 @@ plus data columns that manifest wiring reads, never sync), and `## ignore`
 differ (§10.1).
 
 **The transform is one ordered replacement list, longest source first** — sources
-of equal length order by their text, descending, so the list is total and the
-output never depends on authoring order. Each
+of equal length order by their text, descending, and sources with equal text keep
+their authored row order, so the list is total. Each
 `## identity` key present in both files contributes one pair: the source file's
 value → the target file's value — except `namespace`, which contributes no plain
-pair. The four composed keys must be present in both files (§10.1): `namespace`
+pair. When two or more rows share a byte-equal source value, the first authored row
+contributes the pair and the later rows contribute none. The three composed keys
+must be present in both files (§10.1): `namespace`
 contributes exactly two pairs, `namespace <source>` → `namespace <target>` and
 `<source>::` → `<target>::` — its bare value never replaces, because the bare word
-occurs inside unrelated names; `filePrefix`, `macroPrefix`, and `hyphenPrefix`
+occurs inside unrelated names; `filePrefix` and `macroPrefix`
 contribute their plain pairs, and `filePrefix` also transforms every path segment —
 directory names and file names alike. A row whose `boundary` cell is `word` matches
 whole words only: the characters before and after the match are absent or outside
-`[A-Za-z0-9_]`. Every other row matches plain text. Two rows whose source values are
-byte-equal must name byte-equal target values; a run whose source file breaks this is
-fatal, and the diagnostic names the file and the value (§10.1).
+`[A-Za-z0-9_]`. Every other row matches plain text.
 
 **The walk.** Sync visits the source's `kernel` rows. A `kernel` row names a
 directory; every other class value is provision. At each root, every kernel row's
@@ -205,6 +208,11 @@ CAST rewrites its own declared markdown to canonical form, write-if-different.
   row, and the formatter rewrites it as `| this |`
 - `format (format (x)) == format (x)`
 - the engine reports a malformed table and never rewrites that file
+
+A line break in a plain cell reads as a newline. A grid-table body cell splits at
+`--max-table-width`, break only — the default 0 means no split. A paragraph reflows at
+`--line-wrap`, default 100. No wrapped line starts a block. The format stays a
+fixpoint under both rules.
 
 ---
 
@@ -1029,7 +1037,6 @@ These, and nothing else:
 | a file shared between region rows and whole-file rows                                                             | §6.10      |
 | `user-modules-info.md` absent at a sync root                                                                      | §2.2       |
 | a composed identity key absent from either sync file                                                              | §2.2       |
-| two identity rows sharing a source value with different target values — names the file and the value              | §2.2       |
 | a kernel row naming no directory at its root, or a `<filePrefix>*` directory undeclared — checked at each root    | §2.2       |
 | kernel sets not corresponding one to one after the path transform                                                 | §2.2       |
 | a source text file containing a pair's target value — names the file and the token                                | §2.2       |

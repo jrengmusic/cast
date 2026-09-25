@@ -111,6 +111,179 @@
 
 ## SPRINT HISTORY
 
+## Handoff to COUNSELOR: sync-unibreak-wrap — Unibreak as Document, Index/AnsiDocument split, PLAN Steps 1–14 done
+
+**From:** COUNSELOR
+**Date:** 2026-09-25
+**Status:** In Progress — code written and read-validated through Step 14, none built
+
+### Context
+ARCHITECT's `cast --sync` request grew into three linked fixes: the sync
+tie-break (done, prior sprint), a formatter that wraps tables/paragraphs at
+`maxTableWidth`/`lineWrap`, and a universal line-break engine (`jam::UniBreak`,
+full UAX #14). Two earlier plan revisions were rejected for breaking contract:
+revision 2 mutated data in transit; revision 3's Step 6 built a hidden state
+machine (`UniBreak::Result`, `init`/`step`/`end`) that lived outside the
+Model. ARCHITECT ruled the correct shape directly: **`Unibreak` derives from
+`jam::Document`** — the same pattern as `CodeDocument`/`AnsiDocument` — so its
+line-break state is Model state (Elements + Tokens), not a smuggled struct.
+ARCHITECT also ruled `Document::Index` had drifted into a monospace-cell
+concern that is `AnsiDocument`'s contract, not the B-tree's, and that fixing
+that drift is in scope for this sprint even though `TextEditor` (Index's only
+consumer) is unrelated, unfinished work for EVE.
+
+Revision 4 (approved, `C:\Users\jreng\Documents\Poems\dev\cast\PLAN-sync-unibreak-wrap.md`)
+implements both rulings. Steps 1–14 of 16 are written; every step was read
+back against the plan and the CONTRACT in this session (not just accepted from
+the Engineer's own report) before the next step was dispatched.
+
+### Completed
+- **Step 6** (jam_core/text/jam_AttributedChar.h, jam_Charset.cpp): the one
+  width clamp (`getWidthClass`) and the one cluster walk
+  (`applyToClusters`), replacing duplicated logic that used to live inside
+  UniBreak and AnsiDocument separately.
+- **Step 7** (jam_core/text/jam_Unibreak.h/.cpp, jam_UnibreakRules.cpp —
+  renamed from jam_UniBreak\*): `Unibreak : Document`. `getToken` classifies
+  each codepoint and absorbs combining marks/ZWJ per LB9/LB10; `build()`
+  applies the UAX #14 boundary rules over `Document::Tokens` and writes
+  `Id::line` children carrying `Id::tokens` (segments) and `Id::row` (one
+  unwrapped row). The 64-bit packed `Result` and its four state packers are
+  gone; every rule reads its neighbour tokens in place.
+- **Step 8** (same files): `setRows` reflows `Id::row` from segments at a
+  given width limit, with a line-start test (`isAllowedLine`) that retracts a
+  row into the previous one when the candidate line would open a new block —
+  done by holding a candidate and deciding at the next boundary, since a
+  `Document` build permits multi-pass creation.
+- **Step 9** (jam_core/document/jam_Document.h Index section,
+  jam_DocumentIndex.cpp): every `Cells`/`AttributedChar`/`Id::cells`/`columns`
+  reference removed from `Document::Index`. It now counts lines and rows only,
+  keyed off `Id::row`. `Codec` gained `getNumBytes`/`clear` so the swap tier no
+  longer assumes the payload type.
+- **Step 10** (jam_terminal/document/jam_AnsiDocument.h/.cpp): received the
+  monospace-cell arithmetic moved verbatim out of Index (`setRows`,
+  `getRowNumber`, `getCellRange`, `getNumBytes`, `clear`) plus the one cluster
+  walk in `addTextRun` via `AttributedChar::applyToClusters`.
+- **Step 11** (jam_gui/jam_gui.h, jam_TextEditor.cpp): `jam_gui` now depends
+  on `jam_terminal`; TextEditor's Index call sites repointed at the new
+  AnsiDocument statics. No design change — ARCHITECT: "TextEditor is
+  unfinished work … will be continued later when working with EVE."
+- **Step 12** (jam_terminal/graphics/jam_TerminalGraphicsContext.h,
+  jam_TerminalGraphicsContextText.cpp): `buildAttributedCells` rewritten to
+  one `applyToClusters` walk over the `AttributedString`'s UTF-8 bytes; a
+  cluster takes its run's style by codepoint index. `Pen`,
+  `appendSegmentedCodepoint`, `addPendingClusterCells` deleted.
+- **Step 13** (jam_markdown/document/jam_MarkdownWriter.h/.cpp,
+  jam_MarkdownDocument.h/.cpp, jam_MarkdownBlockParser.cpp, bimaps.md):
+  paragraph reflow and grid-cell splitting go through
+  `Unibreak::parse` + `setRows`, as materialisation over the writer's own
+  joined text — never mutating the Model. `BlockParser::isOpenBlock` is a
+  table (`openBlockConditions`, keyed on the generated `map::OpenBlock`,
+  extended with `blockquote`/`listItem`/`setextHeading`/`table`) so a wrapped
+  line never opens a new block. `getWrappedText`'s name survived as the one
+  shared "parse → setRows → join rows" function reused by both the paragraph
+  and grid-cell callers (Rule 5 nearest-sibling; no new name needed).
+- **Step 14** (cast/Source/main.cpp, SPEC.md §2.1/§3.3, Source/HELP.md):
+  `getArgumentsWithoutFlag` and its two `jam::Array<char*>` copies deleted.
+  `getArgumentIndex` reads argv in place and every positional reader routes
+  through it. SPEC/HELP document the wrap/split/no-open-block rules.
+- **Step 16.1 (partial):** confirmed by grep that nothing references
+  `jam_graphics/text/jam_ShapedTextOptions.h` outside itself; `rm` was denied
+  by the permission classifier ("Irreversible Local Destruction").
+
+### Remaining
+- **Step 15:** no code change — confirm the pixel/`createLayout`/
+  `addFittedText` sites still don't hand-roll a wrap (revision 3 finding,
+  unchanged by revision 4).
+- **Step 16:**
+  1. ARCHITECT deletes `jam_graphics/text/jam_ShapedTextOptions.h` by hand
+     (or grants an `rm` permission rule and Step 16.1 re-runs).
+  2. Module table shape: 269/273 columns (kuassa/jam), open ARCHITECT
+     decision, unrelated to this PLAN's mechanics but blocking a clean
+     regenerate diff.
+  3. ARCHITECT regenerates jam (produces `map::unibreak` and the four new
+     `map::OpenBlock` rows the code already references), then regenerates
+     cast. Second run must be byte-identical.
+  4. Run the LineBreakTest.txt 17.0.0 harness through `Unibreak::parse`
+     (harness itself not yet re-pointed at the new entry point).
+  5. Re-run the sync proof.
+  6. `cast --format` twice on a file with long paragraphs and grid cells;
+     second run must write zero bytes.
+- Nothing in this sprint has been built or run. Neither repo compiles yet:
+  jam needs the ShapedTextOptions deletion + regenerate; cast needs jam's
+  regenerate for `map::unibreak`/`map::OpenBlock` before it links.
+- @Auditor has not run. It runs once, after Step 16's build proves clean,
+  covering the whole sprint.
+- Post-audit doc pass owed: stale Index doxygen prose still describes
+  `Id::cells` ownership (jam_Document.h Index section, flagged not fixed
+  during Step 9 per PLAN); one stale terminal-graphics doxygen line
+  (jam_TerminalGraphicsContext.h ~:915) still describes the old per-run walk.
+
+### Key Decisions
+- **Unibreak derives from Document, not a hand-rolled state machine.**
+  ARCHITECT: "why not just UniBreak inherit Document" — rejected two prior
+  plan revisions for inventing a new pattern (packed `Result`, callback-driven
+  `applyToLines`) where an isomorphic one (`CodeDocument`) already existed.
+- **Document::Index is not a cell/monospace concern.** ARCHITECT: "cell
+  monospace is AnsiDocument contract, has nothing to do with Index, B-Tree,
+  line, wrapping, reflow" — corrected my own repeated misreadings (I initially
+  called Index "terminal-only," then conflated fixing it with touching
+  TextEditor). The B-tree counts; AnsiDocument supplies what a count means.
+- **TextEditor stays a mechanical compile fix, not a design step.** Its Index
+  usage is the only reason Step 9's Index change needed a Step 11 at all;
+  ARCHITECT: "fixing AnsiDocument is scope of this plan … you only move
+  working implementation to AnsiDocument from Index," "then fix it so it
+  compiles" — no new TextEditor behavior.
+- **Cluster width comes from `AttributedChar`, not a new Unibreak/AnsiDocument
+  concept.** ARCHITECT: "isn't this already carried by AttributedChar?" — after
+  I asked two rejected questions (routing width through AnsiDocument, then
+  asking a false grapheme-vs-monospace choice) instead of reading
+  `AttributedChar::width`/`getWidthClass`, which already existed.
+- **The old `UniBreak`/`jam_UniBreakRules.cpp` files were renamed, not
+  deleted-and-recreated**, because the dev machine's filesystem is
+  case-insensitive (Windows/NTFS): `jam_UniBreak.h` and `jam_Unibreak.h` are
+  the same inode, so a literal delete-then-add would have destroyed the new
+  file. The Engineer used a two-step `mv` through a temp name instead — flagged
+  and accepted as equivalent to the PLAN's "delete old, add new."
+
+### Files Modified
+**jam repo** (`C:\Users\jreng\Documents\Poems\dev\jam`):
+- `jam_core/text/jam_AttributedChar.h`, `jam_Charset.cpp` — Step 6
+- `jam_core/text/jam_Unibreak.h`, `jam_Unibreak.cpp`, `jam_UnibreakRules.cpp` — Steps 7–8 (replaces jam_UniBreak\*)
+- `jam_core/jam_core.h`, `jam_core.cpp` — include order for Unibreak-as-Document
+- `jam/cast/lookuptables.md` — `## unibreak` table added
+- `jam_core/document/jam_Document.h`, `jam_DocumentIndex.cpp` — Step 9
+- `jam_terminal/document/jam_AnsiDocument.h`, `.cpp` — Step 10
+- `jam_gui/jam_gui.h`, `jam_gui/widgets/jam_TextEditor.cpp` — Step 11
+- `jam_terminal/graphics/jam_TerminalGraphicsContext.h`, `jam_TerminalGraphicsContextText.cpp` — Step 12
+- `jam_markdown/document/jam_MarkdownWriter.h`, `.cpp`, `jam_MarkdownDocument.h`, `.cpp`, `jam_MarkdownBlockParser.cpp` — Step 13
+- `jam/cast/bimaps.md` — `## OpenBlock` rows appended — Step 13
+- `jam_graphics/text/jam_ShapedTextOptions.h` — dead, deletion pending ARCHITECT
+
+**cast repo** (`C:\Users\jreng\Documents\Poems\dev\cast`):
+- `Source/main.cpp` — Step 14
+- `SPEC.md` §2.1/§3.3 — Step 14
+- `Source/HELP.md` — Step 14
+- `PLAN-sync-unibreak-wrap.md` — revision 4, this sprint's plan of record
+
+### Open Questions
+- Module table column shape (269/273) — ARCHITECT decision, Step 16.2.
+- None of Step 16's proofs have run; a genuine surprise (compile error,
+  fixpoint mismatch) could still surface once ARCHITECT builds.
+
+### Next Steps
+1. ARCHITECT deletes `jam_graphics/text/jam_ShapedTextOptions.h` (or grants
+   an `rm` rule) and decides the module table shape.
+2. ARCHITECT regenerates jam, then cast; reports the build result.
+3. COUNSELOR checks Step 15 (no-op confirmation), then runs the Step 16
+   proofs (LineBreakTest harness, sync proof, `cast --format` fixpoint) —
+   the harness needs re-pointing at `Unibreak::parse` before it can run.
+4. @Auditor sweeps once, whole sprint, after the build is clean.
+5. Post-audit doc pass: correct the stale Index and TerminalGraphicsContext
+   doxygen prose flagged above.
+6. Log sprint on ARCHITECT's "log sprint" / commit on "commit" or "push" —
+   two separate repos, two separate commits (message drafted in chat this
+   session, not yet applied).
+
 ## Sprint: Post-Build Stamp Gate — Install Runs Only When the Binary Changed ✅
 
 **Date:** 2026-09-22

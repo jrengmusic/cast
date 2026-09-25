@@ -43,7 +43,6 @@ inline const juce::Identifier filePrefix       { juce::String::fromUTF8 ("filePr
 inline const juce::Identifier flag             { juce::String::fromUTF8 ("flag")               };///< Toolchain table flag column.
 inline const juce::String     fromCodepoint    { juce::String::fromUTF8 ("from codepoint")     };///< Codepoint decode operation.
 inline const juce::String     fromUTF8         { juce::String::fromUTF8 ("from UTF8")          };///< UTF-8 decode operation.
-inline const juce::Identifier hyphenPrefix     { juce::String::fromUTF8 ("hyphenPrefix")       };///< Sync composed identity key — hyphen-case prefix.
 inline const juce::Identifier identity         { juce::String::fromUTF8 ("identity")           };///< Sync info-file identity table name.
 inline const juce::Identifier ignore           { juce::String::fromUTF8 ("ignore")             };///< Sync info-file ignore table name.
 inline const juce::String     join             { juce::String::fromUTF8 ("join")               };///< Join text operation.

@@ -952,9 +952,9 @@ struct Validator : jam::MarkdownValidator
     }
 
     /**
-     * @brief Checks that each of the four composed identity keys --
-     *        @c namespace, @c filePrefix, @c macroPrefix, @c hyphenPrefix
-     *        -- is present in both @p sourceInfo and @p targetInfo (SPEC
+     * @brief Checks that each of the three composed identity keys --
+     *        @c namespace, @c filePrefix, @c macroPrefix -- is present
+     *        in both @p sourceInfo and @p targetInfo (SPEC
      *        §2.2).
      *
      * @param sourceInfoFile The source's own resolved info file, named in
@@ -972,7 +972,7 @@ struct Validator : jam::MarkdownValidator
         const Model& sourceInfo, const Model& targetInfo)
     {
         static const jam::Strings composedKeys { Id::tokenNamespace.toString(), Id::filePrefix.toString(),
-            Id::macroPrefix.toString(), Id::hyphenPrefix.toString() };
+            Id::macroPrefix.toString() };
 
         for (const auto& key : composedKeys)
         {
@@ -985,47 +985,6 @@ struct Validator : jam::MarkdownValidator
             if (targetInfo.getTableRow (Id::identity, keyId) == nullptr)
                 return juce::Result::fail (targetInfoFile.getFullPathName() + Id::diagnosticSeparator
                                            + key + Id::diagnosticSeparator + text::Diagnostics::failSyncIdentity);
-        }
-
-        return juce::Result::ok();
-    }
-
-    /**
-     * @brief Checks that every identity key common to @p sourceInfo and
-     *        @p targetInfo, excluding @c namespace, maps each distinct
-     *        @p sourceInfo value to exactly one @p targetInfo value
-     *        (SPEC §2.2).
-     *
-     * @param sourceInfoFile The source's own resolved info file, named
-     *                       in a failure's location.
-     * @param sourceInfo     The source's own parsed info file.
-     * @param targetInfo     The target's own parsed info file.
-     * @returns juce::Result::ok() when every mapping is unambiguous, or
-     *          a failure naming the ambiguous source value.
-     */
-    static juce::Result
-    isUniquePair (const juce::File& sourceInfoFile, const Model& sourceInfo, const Model& targetInfo)
-    {
-        jam::HashMap<juce::String, juce::String> targetValues;
-
-        for (auto* sourceRow : sourceInfo.getTableRows (Id::identity))
-        {
-            const auto& key { sourceInfo.getValue (*sourceRow, Id::key) };
-            const juce::Identifier keyId { key };
-
-            if (keyId != Id::tokenNamespace)
-                if (auto* targetRow { targetInfo.getTableRow (Id::identity, keyId) })
-                {
-                    const auto& sourceValue { sourceInfo.getValue (*sourceRow, Id::value) };
-                    const auto& targetValue { targetInfo.getValue (*targetRow, Id::value) };
-                    auto [entry, inserted] { targetValues.try_emplace (sourceValue, targetValue) };
-                    auto& [entrySourceValue, entryTargetValue] { *entry };
-
-                    if (not inserted and entryTargetValue.compare (targetValue) != 0)
-                        return juce::Result::fail (sourceInfoFile.getFullPathName()
-                                                   + Id::diagnosticSeparator + sourceValue
-                                                   + Id::diagnosticSeparator + text::Diagnostics::failSyncAmbiguity);
-                }
         }
 
         return juce::Result::ok();

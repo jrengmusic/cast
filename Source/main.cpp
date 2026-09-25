@@ -69,6 +69,55 @@ static const juce::String& getSyncFlag()
     return syncFlag;
 }
 
+static const juce::String& getMaxTableWidthFlag()
+{
+    static const juce::String maxTableWidthFlag { Id::doubleDash + Id::maxTableWidth.toString() };
+    return maxTableWidthFlag;
+}
+
+static const juce::String& getLineWrapFlag()
+{
+    static const juce::String lineWrapFlag { Id::doubleDash + Id::lineWrap.toString() };
+    return lineWrapFlag;
+}
+
+static int getFlagValue (int argc, char* argv[], const juce::String& flag, int fallbackValue)
+{
+    for (auto index = 0; index < argc - 1; ++index)
+        if (juce::String::fromUTF8 (argv[index]).compare (flag) == 0)
+            return juce::String::fromUTF8 (argv[index + 1]).getIntValue();
+
+    return fallbackValue;
+}
+
+static int getArgumentIndex (int argc, char* argv[], int position)
+{
+    auto filteredPosition { 0 };
+    auto index { 0 };
+
+    while (index < argc)
+    {
+        const auto isMaxTableWidthPair { juce::String::fromUTF8 (argv[index]).compare (getMaxTableWidthFlag()) == 0
+                                         and index + 1 < argc };
+        const auto isLineWrapPair { juce::String::fromUTF8 (argv[index]).compare (getLineWrapFlag()) == 0
+                                    and index + 1 < argc };
+
+        if (isMaxTableWidthPair or isLineWrapPair)
+        {
+            index += 2;
+        }
+        else
+        {
+            if (filteredPosition == position) return index;
+
+            ++filteredPosition;
+            ++index;
+        }
+    }
+
+    return argc;
+}
+
 /**
  * @brief Returns @p argv's own flag-position argument -- the first CLI
  *        argument after the executable name.
@@ -80,7 +129,8 @@ static const juce::String& getSyncFlag()
  */
 static juce::String getFlagArgument (int argc, char* argv[])
 {
-    return argc >= flagOnlyArgumentCount ? juce::String::fromUTF8 (argv[flagArgIndex]) : juce::String {};
+    const auto index { getArgumentIndex (argc, argv, flagArgIndex) };
+    return index < argc ? juce::String::fromUTF8 (argv[index]) : juce::String {};
 }
 
 /**
@@ -94,7 +144,8 @@ static juce::String getFlagArgument (int argc, char* argv[])
  */
 static juce::String getPostFlagArgument (int argc, char* argv[])
 {
-    return argc >= postFlagArgumentCount ? juce::String::fromUTF8 (argv[postFlagArgIndex]) : juce::String {};
+    const auto index { getArgumentIndex (argc, argv, postFlagArgIndex) };
+    return index < argc ? juce::String::fromUTF8 (argv[index]) : juce::String {};
 }
 
 /**
@@ -156,7 +207,8 @@ static int getManifestIndex (int argc, char* argv[])
  */
 static juce::String getManifestArgument (int argc, char* argv[])
 {
-    const auto isExactManifestSlot { argc == postFlagArgumentCount
+    const auto isExactManifestSlot { getArgumentIndex (argc, argv, postFlagArgIndex) < argc
+                                     and getArgumentIndex (argc, argv, postFlagArgumentCount) == argc
                                      and getManifestIndex (argc, argv) == flagArgIndex
                                      and not isSkipFormat (argc, argv) };
 
@@ -225,9 +277,9 @@ static juce::String getOutputDirectory (int argc, char* argv[])
  */
 static juce::File getDocumentFile (int argc, char* argv[])
 {
-    const auto manifestIndex { getManifestIndex (argc, argv) };
+    const auto manifestIndex { getArgumentIndex (argc, argv, getManifestIndex (argc, argv)) };
 
-    return argc > manifestIndex
+    return manifestIndex < argc
                ? juce::File::getCurrentWorkingDirectory().getChildFile (
                      juce::String::fromUTF8 (argv[manifestIndex]))
                : juce::File::getCurrentWorkingDirectory().getChildFile (files::cast);
@@ -243,7 +295,10 @@ static juce::File getDocumentFile (int argc, char* argv[])
  */
 static bool isVersion (int argc, char* argv[])
 {
-    return (getFlagArgument (argc, argv).compare (getVersionFlag()) == 0 and argc == flagOnlyArgumentCount)
+    const auto isFlagOnly { getArgumentIndex (argc, argv, flagArgIndex) < argc
+                            and getArgumentIndex (argc, argv, flagOnlyArgumentCount) == argc };
+
+    return (getFlagArgument (argc, argv).compare (getVersionFlag()) == 0 and isFlagOnly)
            or getManifestArgument (argc, argv).compare (getVersionFlag()) == 0;
 }
 
@@ -257,7 +312,10 @@ static bool isVersion (int argc, char* argv[])
  */
 static bool isHelp (int argc, char* argv[])
 {
-    return (getFlagArgument (argc, argv).compare (getHelpFlag()) == 0 and argc == flagOnlyArgumentCount)
+    const auto isFlagOnly { getArgumentIndex (argc, argv, flagArgIndex) < argc
+                            and getArgumentIndex (argc, argv, flagOnlyArgumentCount) == argc };
+
+    return (getFlagArgument (argc, argv).compare (getHelpFlag()) == 0 and isFlagOnly)
            or getManifestArgument (argc, argv).compare (getHelpFlag()) == 0;
 }
 
@@ -301,13 +359,13 @@ static bool isTerminalOutput() noexcept
 }
 
 static int runDocument (const juce::File& documentFile, bool skipFormat, bool formatOnly,
-    const juce::String& outputDirectory, const juce::String& toolchainArgument)
+    const juce::String& outputDirectory, const juce::String& toolchainArgument, int maxTableWidth, int lineWrap)
 {
     Processor processor { documentFile };
     auto result { juce::Result::ok() };
 
     if (not skipFormat)
-        result = processor.format();
+        result = processor.format (maxTableWidth, lineWrap);
 
     if (result.wasOk() and not formatOnly)
         result = processor.generate (outputDirectory, toolchainArgument);
@@ -439,6 +497,9 @@ int main (int argc, char* argv[])
     if (isSyncFlag (argc, argv))
         return runSyncArguments (argc, argv);
 
+    const auto maxTableWidth { getFlagValue (argc, argv, getMaxTableWidthFlag(), jam::MarkdownWriter::defaultMaxTableWidth) };
+    const auto lineWrap { getFlagValue (argc, argv, getLineWrapFlag(), jam::MarkdownWriter::defaultLineWrap) };
+
     if (isVersion (argc, argv))
     {
         writeVersion();
@@ -455,7 +516,8 @@ int main (int argc, char* argv[])
 
     if (documentFile.existsAsFile())
         return runDocument (documentFile, isSkipFormat (argc, argv), isFormatOnly (argc, argv),
-            getOutputDirectory (argc, argv), getToolchainArgument (argc, argv));
+            getOutputDirectory (argc, argv), getToolchainArgument (argc, argv),
+            maxTableWidth, lineWrap);
 
     return runDocumentNotFound (documentFile);
 }
