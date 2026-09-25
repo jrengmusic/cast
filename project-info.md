@@ -139,6 +139,7 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 | @user-module | jam_core       | JAM Core                                                                     |
 | @user-module | jam_subprocess | JUCE-based subprocess launcher with streaming output and byte-cap truncation |
 | @user-module | jam_markdown   | Clean-room native CommonMark + GFM markdown parsing/rendering                |
+| @user-module | jam_document   | Universal line break and reflow over jam::Document (UAX #14)                 |
 +--------------+----------------+------------------------------------------------------------------------------+
 
 ## source glob

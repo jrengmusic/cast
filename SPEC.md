@@ -112,7 +112,8 @@ another's. Each root carries a `user-modules-info.md` file at its top level, wit
 three tables: `## identity` (`key | value | boundary`), `## module` (`name | class`,
 plus data columns that manifest wiring reads, never sync), and `## ignore`
 (`value`). Sync reads the two info files and no manifest. The two roots must
-differ (§10.1).
+differ (§10.1). Sync reads exactly these three tables — any other table in the file
+belongs to the manifest and is never read by sync.
 
 **The transform is one ordered replacement list, longest source first** — sources
 of equal length order by their text, descending, and sources with equal text keep
