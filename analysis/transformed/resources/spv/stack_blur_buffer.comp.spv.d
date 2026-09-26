@@ -1,1 +1,0 @@
-/Users/jreng/Documents/Poems/dev/eve/../jam/resources/spv/stack_blur_buffer.comp.spv: /Users/jreng/Documents/Poems/dev/eve/../jam/resources/shaders/stack_blur_buffer.comp /Users/jreng/Documents/Poems/dev/eve/../jam/resources/shaders/stack_blur.glsl

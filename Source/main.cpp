@@ -70,12 +70,6 @@ static const juce::String& getSyncFlag()
     return syncFlag;
 }
 
-static const juce::String& getMaxTableWidthFlag()
-{
-    static const juce::String maxTableWidthFlag { Id::doubleDash + Id::maxTableWidth.toString() };
-    return maxTableWidthFlag;
-}
-
 static const juce::String& getLineWrapFlag()
 {
     static const juce::String lineWrapFlag { Id::doubleDash + Id::lineWrap.toString() };
@@ -113,12 +107,10 @@ static int getArgumentIndex (int argc, char* argv[], int position)
 
     while (index < argc)
     {
-        const auto isMaxTableWidthPair { juce::String::fromUTF8 (argv[index]).compare (getMaxTableWidthFlag()) == 0
-                                         and index + 1 < argc };
         const auto isLineWrapPair { juce::String::fromUTF8 (argv[index]).compare (getLineWrapFlag()) == 0
                                     and index + 1 < argc };
 
-        if (isMaxTableWidthPair or isLineWrapPair)
+        if (isLineWrapPair)
         {
             index += 2;
         }
@@ -375,21 +367,19 @@ static bool isTerminalOutput() noexcept
  *                          Processor::generate().
  * @param toolchainArgument The CLI-selected toolchain group, passed
  *                          through to Processor::generate().
- * @param maxTableWidth     The grid-table width passed through to
- *                          Processor::format().
  * @param lineWrap          The paragraph wrap column passed through to
  *                          Processor::format().
  * @returns @c 0 when every run step succeeds, or @c 1 after printing the
  *          first failure's error message.
  */
 static int runDocument (const juce::File& documentFile, bool skipFormat, bool formatOnly,
-    const juce::String& outputDirectory, const juce::String& toolchainArgument, int maxTableWidth, int lineWrap)
+    const juce::String& outputDirectory, const juce::String& toolchainArgument, int lineWrap)
 {
     Processor processor { documentFile };
     auto result { juce::Result::ok() };
 
     if (not skipFormat)
-        result = processor.format (maxTableWidth, lineWrap);
+        result = processor.format (lineWrap);
 
     if (result.wasOk() and not formatOnly)
         result = processor.generate (outputDirectory, toolchainArgument);
@@ -519,13 +509,11 @@ int main (int argc, char* argv[])
     if (isSyncFlag (argc, argv))
         return runSyncArguments (argc, argv);
 
-    const auto maxTableWidth { getFlagValue (argc, argv, getMaxTableWidthFlag(), jam::MarkdownWriter::defaultMaxTableWidth) };
     const auto lineWrap { getFlagValue (argc, argv, getLineWrapFlag(), jam::MarkdownWriter::defaultLineWrap) };
 
     const auto isLineWrapValid { lineWrap > 0 };
-    const auto isMaxTableWidthValid { maxTableWidth >= 0 };
 
-    if (isLineWrapValid and isMaxTableWidthValid)
+    if (isLineWrapValid)
     {
         if (isVersion (argc, argv))
         {
@@ -543,8 +531,7 @@ int main (int argc, char* argv[])
 
         if (documentFile.existsAsFile())
             return runDocument (documentFile, isSkipFormat (argc, argv), isFormatOnly (argc, argv),
-                getOutputDirectory (argc, argv), getToolchainArgument (argc, argv),
-                maxTableWidth, lineWrap);
+                getOutputDirectory (argc, argv), getToolchainArgument (argc, argv), lineWrap);
 
         return runDocumentNotFound (documentFile);
     }

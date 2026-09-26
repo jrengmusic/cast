@@ -37,7 +37,6 @@ transform operations a format cell may declare (§8).
 | @id     | lineWrap         | `line-wrap`          | Prose reflow width CLI flag word.                         |
 | @id     | list             | `list`               | Reserved expansion token name.                            |
 | @id     | macroPrefix      | `macroPrefix`        | Sync composed identity key — macro-name prefix.           |
-| @id     | maxTableWidth    | `max-table-width`    | Grid-table cell-wrap width CLI flag word.                 |
 | @id     | noBanner         | `no-banner`          | Banner-suppressing fence-prefix marker.                   |
 | @id     | noFormat         | `no-format`          | Formatless-column marker.                                 |
 | @id     | placeholder      | `placeholder`        | Placeholder token name.                                   |

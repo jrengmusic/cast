@@ -50,7 +50,6 @@ inline const juce::Identifier kernel           { juce::String::fromUTF8 ("kernel
 inline const juce::Identifier lineWrap         { juce::String::fromUTF8 ("line-wrap")          };///< Prose reflow width CLI flag word.
 inline const juce::Identifier list             { juce::String::fromUTF8 ("list")               };///< Reserved expansion token name.
 inline const juce::Identifier macroPrefix      { juce::String::fromUTF8 ("macroPrefix")        };///< Sync composed identity key — macro-name prefix.
-inline const juce::Identifier maxTableWidth    { juce::String::fromUTF8 ("max-table-width")    };///< Grid-table cell-wrap width CLI flag word.
 inline const juce::Identifier noBanner         { juce::String::fromUTF8 ("no-banner")          };///< Banner-suppressing fence-prefix marker.
 inline const juce::Identifier noFormat         { juce::String::fromUTF8 ("no-format")          };///< Formatless-column marker.
 inline const juce::Identifier placeholder      { juce::String::fromUTF8 ("placeholder")        };///< Placeholder token name.

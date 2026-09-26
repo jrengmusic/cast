@@ -67,7 +67,7 @@ struct Diagnostics
     static constexpr const char* const failSyncRead           { "source file cannot be read"                     };///< A sync source file could not be read.
     static constexpr const char* const failSyncDelete         { "delete failed"                                  };///< A sync mirror-delete could not remove a target file.
     static constexpr const char* const failSyncArguments      { "--sync takes a source root and a target root"   };///< A --sync line did not carry exactly two roots.
-    static constexpr const char* const failFlagValue          { "flag value out of range"                        };///< A --line-wrap value below 1, a negative --max-table-width, or a value that is not an integer.
+    static constexpr const char* const failFlagValue          { "flag value out of range"                        };///< A --line-wrap value below 1, or a value that is not an integer.
     static constexpr const char* const failFormatColumn       { "format column not declared"                     };///< A ## format table's header row declares no name or width column.
     static constexpr const char* const failFormatWidth        { "format width must be a positive integer"        };///< A ## format width cell is not a positive integer.
     static constexpr const char* const done                   { "Fine."                                          };///< Every step of the run succeeded.

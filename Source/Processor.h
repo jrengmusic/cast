@@ -34,9 +34,11 @@ struct Processor
     }
 
     /**
-     * @brief Validates the parsed manifest through Validator::isValid(),
-     *        writes its declared outputs through the Writer, then runs
-     *        every selected @c ## toolchain row through run().
+     * @brief Validates the parsed manifest's own @c ## format shape
+     *        through Validator::isFormat(), then its full structure
+     *        through Validator::isValid(), writes its declared outputs
+     *        through the Writer, then runs every selected @c ## toolchain
+     *        row through run().
      *
      * @param output             A path resolved against the manifest's own
      *                           directory, giving the directory every
@@ -51,6 +53,9 @@ struct Processor
      */
     juce::Result generate (const juce::String& output = {}, const juce::String& toolchainArgument = {})
     {
+        if (const auto formatShape { Validator::isFormat (*model) }; not formatShape.wasOk())
+            return formatShape;
+
         if (const auto validation { Validator::isValid (*model, templateDocument) }; not validation.wasOk())
             return validation;
 
@@ -65,34 +70,24 @@ struct Processor
      *        rewriting each one, in parallel, whose canonical text
      *        differs from what is currently on disk.
      *
-     * Runs Validator::isFormat() first, then builds the column-width map
-     * from every @c ## format row -- @c name resolved to a valid ID
-     * mapped to @c width -- and constructs the MarkdownWriter with
-     * @p maxTableWidth, @p lineWrap, and that map, before running the
-     * jam structural validator and rewriting each changed origin.
+     * Runs Validator::isFormat() first, then constructs the MarkdownWriter
+     * with @p lineWrap and the Model's own reflowWidths (Model::parse's
+     * own single source for every @c ## format row's @c name/@c width
+     * pair -- see Model::getReflowWidths()), before running the jam
+     * structural validator and rewriting each changed origin.
      *
-     * @param maxTableWidth The grid-table width the writer shares among
-     *                      its unnamed columns; 0 leaves them at their
-     *                      natural width.
-     * @param lineWrap      The column at which the writer wraps a
-     *                      paragraph's rendered lines.
+     * @param lineWrap The column at which the writer wraps a paragraph's
+     *                 rendered lines.
      * @returns juce::Result::ok() when the manifest's own markdown
      *          validates and every changed file writes successfully, or a
      *          failure naming every file that failed to write.
      */
-    juce::Result format (int maxTableWidth, int lineWrap)
+    juce::Result format (int lineWrap)
     {
         if (const auto result { Validator::isFormat (*model) }; not result.wasOk())
             return result;
 
-        jam::HashMap<juce::Identifier, int> columnWidth;
-
-        for (auto* table : model->getTables (Id::format))
-            for (auto* row : model->getTableRows (*table))
-                columnWidth.try_emplace (juce::Identifier (jam::Format::toValidID (model->getValue (*row, Id::name))),
-                    model->getValue (*row, Id::width).getIntValue());
-
-        const jam::MarkdownWriter formatter { maxTableWidth, lineWrap, std::move (columnWidth) };
+        const jam::MarkdownWriter formatter { lineWrap, model->getReflowWidths() };
         static const jam::MarkdownValidator validator;
 
         if (const auto result { validator.isValid (*model) }; not result.wasOk())

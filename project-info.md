@@ -42,7 +42,7 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 | description                 | Codegen Annotated Source of Truth                        | Project description, single line     |
 +-----------------------------+----------------------------------------------------------+--------------------------------------+
 | banner                      | ████████████░░████████████░░████████████░░████████████░░ | Banner artwork, printed at configure |
-|                             | ████░░  ████░░████░░  ████░░████░░  ████░░    ████░░     | time                                 |
+|                             | ████░░  ████░░████░░  ████░░████░░  ████░░    ████░░     |  time                                |
 |                             | ████░░        ████░░  ████░░████░░            ████░░     |                                      |
 |                             | ████░░        ████████████░░████████████░░    ████░░     |                                      |
 |                             | ████░░        ████░░  ████░░        ████░░    ████░░     |                                      |
@@ -58,6 +58,8 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 | cxxStandard                 | 17                                                       | C++ language standard                |
 +-----------------------------+----------------------------------------------------------+--------------------------------------+
 | deploymentTarget            | `11.0`                                                   | Minimum macOS deployment target      |
++-----------------------------+----------------------------------------------------------+--------------------------------------+
+| architecture                | x86_64;arm64                                             | macOS architectures                  |
 +-----------------------------+----------------------------------------------------------+--------------------------------------+
 | msvcRuntime                 | `MultiThreaded$<$<CONFIG:Debug>:Debug>`                  | MSVC runtime library selection       |
 +-----------------------------+----------------------------------------------------------+--------------------------------------+
@@ -111,15 +113,6 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 +-------------------+--------------------------------------------------------------+---------------------------------+
 | notaryProfile     | notary                                                       | Keychain notarization profile   |
 +-------------------+--------------------------------------------------------------+---------------------------------+
-
-## architecture
-
-+--------+
-| value  |
-+========+
-| x86_64 |
-| arm64  |
-+--------+
 
 ## juce module
 
@@ -208,33 +201,33 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 | name                    | mac                            | win            | stage  | comment                                 |
 +=========================+================================+================+========+=========================================+
 | shadow                  | -Wno-shadow                    | /wd4456        |        | Lambda captures / declarations may      |
-|                         |                                |                |        | shadow intentionally                    |
+|                         |                                |                |        |  shadow intentionally                   |
 +-------------------------+--------------------------------+----------------+--------+-----------------------------------------+
 | unusedParameter         | -Wno-unused-parameter          | /wd4100        |        | Debug/template code may not use all     |
-|                         |                                |                |        | parameters                              |
+|                         |                                |                |        |  parameters                             |
 +-------------------------+--------------------------------+----------------+--------+-----------------------------------------+
 | floatEqual              | -Wno-float-equal               |                |        | DSP exact float comparisons for bypass  |
-|                         |                                |                |        | detection                               |
+|                         |                                |                |        |  detection                              |
 +-------------------------+--------------------------------+----------------+--------+-----------------------------------------+
 | signConversion          | -Wno-sign-conversion           |                |        | Array indexing, safe in this context    |
 +-------------------------+--------------------------------+----------------+--------+-----------------------------------------+
 | switchEnum              | -Wno-switch-enum               |                |        | Not every filter type needs every case  |
-|                         |                                |                |        | handled                                 |
+|                         |                                |                |        |  handled                                |
 +-------------------------+--------------------------------+----------------+--------+-----------------------------------------+
 | floatToDoubleConversion | -Wno-implicit-float-conversion | /wd4244        |        | DSP double/float conversions            |
 +-------------------------+--------------------------------+----------------+--------+-----------------------------------------+
 | permissiveMinus         |                                | /permissive-   |        | Standards conformance matching clang —  |
-|                         |                                |                |        | Function::Map identity-cast deduction   |
-|                         |                                |                |        | needs it                                |
+|                         |                                |                |        |  Function::Map identity-cast deduction  |
+|                         |                                |                |        |  needs it                               |
 +-------------------------+--------------------------------+----------------+--------+-----------------------------------------+
 | rvalueCast              |                                | /Zc:rvalueCast |        | Off by default, not implied by /        |
-|                         |                                |                |        | permissive- — needed for correct T      |
-|                         |                                |                |        | deduction                               |
+|                         |                                |                |        |  permissive- — needed for correct T     |
+|                         |                                |                |        |  deduction                              |
 +-------------------------+--------------------------------+----------------+--------+-----------------------------------------+
 | warningLevel4           |                                | /W4            |        | Warning level 4                         |
 +-------------------------+--------------------------------+----------------+--------+-----------------------------------------+
 | fullPathInPdb           |                                | /FC            |        | Full path in PDB, required for debugger |
-|                         |                                |                |        | source-line resolution                  |
+|                         |                                |                |        |  source-line resolution                 |
 +-------------------------+--------------------------------+----------------+--------+-----------------------------------------+
 | optimization            | -O3                            | /O2            |        | Full optimization                       |
 +-------------------------+--------------------------------+----------------+--------+-----------------------------------------+
@@ -253,33 +246,33 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 | name                    | mac                            | win            | stage | comment                                 |
 +=========================+================================+================+=======+=========================================+
 | shadow                  | -Wno-shadow                    | /wd4456        |       | Lambda captures / declarations may      |
-|                         |                                |                |       | shadow intentionally                    |
+|                         |                                |                |       |  shadow intentionally                   |
 +-------------------------+--------------------------------+----------------+-------+-----------------------------------------+
 | unusedParameter         | -Wno-unused-parameter          | /wd4100        |       | Debug/template code may not use all     |
-|                         |                                |                |       | parameters                              |
+|                         |                                |                |       |  parameters                             |
 +-------------------------+--------------------------------+----------------+-------+-----------------------------------------+
 | floatEqual              | -Wno-float-equal               |                |       | DSP exact float comparisons for bypass  |
-|                         |                                |                |       | detection                               |
+|                         |                                |                |       |  detection                              |
 +-------------------------+--------------------------------+----------------+-------+-----------------------------------------+
 | signConversion          | -Wno-sign-conversion           |                |       | Array indexing, safe in this context    |
 +-------------------------+--------------------------------+----------------+-------+-----------------------------------------+
 | switchEnum              | -Wno-switch-enum               |                |       | Not every filter type needs every case  |
-|                         |                                |                |       | handled                                 |
+|                         |                                |                |       |  handled                                |
 +-------------------------+--------------------------------+----------------+-------+-----------------------------------------+
 | floatToDoubleConversion | -Wno-implicit-float-conversion | /wd4244        |       | DSP double/float conversions            |
 +-------------------------+--------------------------------+----------------+-------+-----------------------------------------+
 | permissiveMinus         |                                | /permissive-   |       | Standards conformance matching clang —  |
-|                         |                                |                |       | Function::Map identity-cast deduction   |
-|                         |                                |                |       | needs it                                |
+|                         |                                |                |       |  Function::Map identity-cast deduction  |
+|                         |                                |                |       |  needs it                               |
 +-------------------------+--------------------------------+----------------+-------+-----------------------------------------+
 | rvalueCast              |                                | /Zc:rvalueCast |       | Off by default, not implied by /        |
-|                         |                                |                |       | permissive- — needed for correct T      |
-|                         |                                |                |       | deduction                               |
+|                         |                                |                |       |  permissive- — needed for correct T     |
+|                         |                                |                |       |  deduction                              |
 +-------------------------+--------------------------------+----------------+-------+-----------------------------------------+
 | warningLevel4           |                                | /W4            |       | Warning level 4                         |
 +-------------------------+--------------------------------+----------------+-------+-----------------------------------------+
 | fullPathInPdb           |                                | /FC            |       | Full path in PDB, required for debugger |
-|                         |                                |                |       | source-line resolution                  |
+|                         |                                |                |       |  source-line resolution                 |
 +-------------------------+--------------------------------+----------------+-------+-----------------------------------------+
 | optimization            | -O0                            | /Od            |       | No optimization                         |
 +-------------------------+--------------------------------+----------------+-------+-----------------------------------------+

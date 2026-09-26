@@ -1,5 +1,0 @@
-#include "jam_animation.h"
-#include "logo/jam_AnimationLogo.cpp"
-#include "scrolling_text/jam_AnimationScrollingText.cpp"
-#include "strip/jam_AnimationStrip.cpp"
-#include "scrambled_text/jam_AnimationScrambledText.cpp"

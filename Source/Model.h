@@ -46,6 +46,19 @@ public:
     }
 
     /**
+     * @brief Returns reflowWidths -- every @c ## format row's own resolved
+     *        @c name mapped to its @c width, built once at parse() by
+     *        addReflowWidths().
+     *
+     * @returns reflowWidths, keyed by each reflowed column's own resolved
+     *          identifier.
+     */
+    const jam::HashMap<juce::Identifier, int>& getReflowWidths() const noexcept
+    {
+        return reflowWidths;
+    }
+
+    /**
      * @brief Resolves @p alias against @p file's index, when @p alias is
      *        an @-sigiled identifier.
      *
@@ -803,10 +816,40 @@ private:
     }
 
     /**
+     * @brief Builds @p document's own reflowWidths from every @c ## format
+     *        row -- @c name resolved to a valid ID mapped to @c width's
+     *        own integer value, both read from each cell's raw authored
+     *        text (@c Id::rawText, stamped at parse for every cell) --
+     *        never @c Id::value, so this build never depends on
+     *        addValue()'s own stamping pass having run yet.
+     *
+     * Asserts each @c ## format row's own @c name and @c width cells
+     * exist -- Validator::isFormat() gates a malformed @c ## format table
+     * at both Processor::generate() and Processor::format(), so an absent
+     * cell here is a precondition failure, not a recoverable case.
+     *
+     * @param document The model whose reflowWidths is built.
+     */
+    static void addReflowWidths (Model& document)
+    {
+        for (auto* table : document.getTables (Id::format))
+            for (auto* row : document.getTableRows (*table))
+            {
+                auto* nameCell { document.getTableCell (*row, Id::name) };
+                auto* widthCell { document.getTableCell (*row, Id::width) };
+                jassert (nameCell != nullptr and widthCell != nullptr);
+
+                document.reflowWidths.try_emplace (
+                    juce::Identifier (jam::Format::toValidID (*nameCell->get<juce::String> (Id::rawText))),
+                    widthCell->get<juce::String> (Id::rawText)->getIntValue());
+            }
+    }
+
+    /**
      * @brief Parses @p documentFile as @p document's own manifest,
-     *        splices in every data file its index declares, stamps
-     *        every table's own @c wiring, then stamps every row through
-     *        addRow().
+     *        splices in every data file its index declares, builds
+     *        reflowWidths, stamps every table's own @c wiring, then
+     *        stamps every row through addRow().
      *
      * @param document     The model parsed into.
      * @param documentFile The manifest file to parse.
@@ -824,6 +867,7 @@ private:
 
         parse (document, parent, getTableOrigins (document, manifestOrigin));
         addComments (document);
+        addReflowWidths (document);
 
         for (auto* table : *document.root)
             if (jam::MarkdownDocument::isTable (*table))
@@ -1410,6 +1454,25 @@ private:
     }
 
     /**
+     * @brief Answers whether @p cell owns a fenced block among its own
+     *        direct children -- a code block or mermaid diagram, per
+     *        jam::MarkdownDocument::isFencedBlock() -- the same test the
+     *        writer runs to decide a cell's own fence status, shared here
+     *        so getJoinedValue()'s fence exemption never drifts from it.
+     *
+     * @param cell The cell tested for a fenced direct child.
+     * @returns @c true when @p cell owns a fenced direct child.
+     */
+    bool isFencedCell (const Element& cell) const
+    {
+        for (auto* child : cell)
+            if (isFencedBlock (*child))
+                return true;
+
+        return false;
+    }
+
+    /**
      * @brief Returns @p cell's own authored text -- its literal child,
      *        transformed and formatted for its column kind, its stamped
      *        comment prose, or its own subtext, in that order of
@@ -1446,11 +1509,59 @@ private:
     }
 
     /**
-     * @brief Stamps @p cell with its resolved value -- the authored
-     *        literal or comment prose, transformed by @p cell's own
-     *        @c format cell when present, then resolved through
-     *        getValue() when the result is an @-sigiled reference outside
-     *        the @c alias and @c comment columns.
+     * @brief Returns @p value with every newline removed, when
+     *        @p headerCell names a column reflowWidths declares and
+     *        @p cell owns no fenced direct child (isFencedCell()) --
+     *        undoing jam's row-wrap of a grid-table cell's own one-line
+     *        value. A fence's own newlines are authored lines, kept as
+     *        is.
+     *
+     * Runs on getAuthoredText()'s own raw return, before addValue()'s
+     * own later @c getValue() resolution and @c Transforms::getTransformed()
+     * call. For a literal cell (backtick or fence), getAuthoredText()
+     * already ran @c jam::Format::toLiteral() on its text internally, and
+     * a fenced cell is excluded here, so this call is a no-op on both --
+     * a backtick span's own wrap newline is already folded to nothing by
+     * jam inside the cell, leaving nothing to remove either way. For a
+     * plain, unfenced cell, getAuthoredText() returns raw, unescaped
+     * text, so this is the one point a row-wrapped value's real newlines
+     * are still present to remove -- before a @c toLiteral-named
+     * transform (Transforms.h) could later escape one into the
+     * two-character sequence @c \\n, past this function's own reach.
+     *
+     * @param headerCell @p cell's own header cell, naming its column.
+     * @param cell       @p value's own cell, tested for a fenced direct
+     *                   child.
+     * @param value      @p cell's own authored text, straight from
+     *                   getAuthoredText(), possibly row-wrapped.
+     * @returns @p value with every newline removed when reflowed and
+     *          unfenced, or @p value unchanged otherwise.
+     */
+    juce::String getJoinedValue (const Element& headerCell, const Element& cell, const juce::String& value) const
+    {
+        if (getReflowWidths().contains (headerCell.id) and not isFencedCell (cell))
+            return value.removeCharacters (juce::String::charToString (Chars::newline));
+
+        return value;
+    }
+
+    /**
+     * @brief Stamps @p cell with its resolved value -- its own authored
+     *        literal or comment prose, joined into one line through
+     *        getJoinedValue() first when @p headerCell names a
+     *        reflowWidths column, then resolved through getValue() when
+     *        the joined result is an @-sigiled reference outside the
+     *        @c alias and @c comment columns, then transformed by
+     *        @p cell's own @c format cell when present.
+     *
+     * The join runs first, on getAuthoredText()'s own raw return --
+     * see getJoinedValue() for the per-cell-kind order this depends on:
+     * a literal cell's own text is already toLiteral-escaped inside
+     * getAuthoredText() by the time the join sees it (a no-op there,
+     * fenced or not), while a plain cell's text still carries its real,
+     * row-wrapped newlines at this point -- removed here, before this
+     * function's own @c Transforms::getTransformed() call below could
+     * otherwise escape one away under a @c toLiteral-named transform.
      *
      * A blank cell resolves to an empty string, always -- it renders
      * nothing and elides in templates like an absent trailing value
@@ -1475,7 +1586,8 @@ private:
                                          or cell.getAllSubText().compare (
                                                 literal->getAllSubText()) != 0) };
 
-        auto value { getAuthoredText (cell, literal, isCommentColumn, isCommentProse, transform) };
+        auto value { getJoinedValue (headerCell, cell,
+            getAuthoredText (cell, literal, isCommentColumn, isCommentProse, transform)) };
 
         if (not isCommentColumn and headerCell.id != Id::alias and isAddress (value))
             value = getValue (row, value);
@@ -1575,6 +1687,13 @@ private:
      * against for the manifest-origin exemption.
      */
     juce::String manifestOrigin;
+
+    /**
+     * Every @c ## format row's own resolved @c name mapped to its
+     * @c width, stamped once by addReflowWidths() at parse() -- the one
+     * source getJoinedValue() and Processor::format() both read.
+     */
+    jam::HashMap<juce::Identifier, int> reflowWidths;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Model)

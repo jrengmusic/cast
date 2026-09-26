@@ -22,7 +22,7 @@ option(CAST_SIGN "Run the sign/pkg/notarize/staple chain on a Release build" ON)
 set(CMAKE_OSX_DEPLOYMENT_TARGET :::deploymentTarget::: CACHE STRING "macOS deployment target")
 
 if(APPLE)
-    set(CMAKE_OSX_ARCHITECTURES ":::[list]:::" CACHE STRING "macOS architectures")
+    set(CMAKE_OSX_ARCHITECTURES ":::architecture:::" CACHE STRING "macOS architectures")
 elseif(WIN32)
     set(CMAKE_MSVC_RUNTIME_LIBRARY :::msvcRuntime:::)
     set(CMAKE_RC_FLAGS "/C65001")

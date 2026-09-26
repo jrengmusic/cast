@@ -1,2 +1,0 @@
-kuassa_markdown/document/kuassa_MarkdownWriter.cpp
-kuassa_markdown/document/kuassa_MarkdownWriter.h

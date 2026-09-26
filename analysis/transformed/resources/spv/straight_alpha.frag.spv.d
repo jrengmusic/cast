@@ -1,1 +1,0 @@
-/Users/jreng/Documents/Poems/dev/eve/../jam/resources/spv/straight_alpha.frag.spv: /Users/jreng/Documents/Poems/dev/eve/../jam/resources/shaders/straight_alpha.frag /Users/jreng/Documents/Poems/dev/eve/../jam/resources/shaders/push_constants_shader.glsl

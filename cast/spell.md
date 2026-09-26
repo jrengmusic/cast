@@ -40,7 +40,6 @@
 | - [list]: @project-info:cmake                | - [list]: @semicolon      | @cmake:cmake                                  | @CMakeLists  |
 | - [list]: @project-info:project info         |                           |                                               |              |
 | - [list]: @project-info:signing              |                           |                                               |              |
-| - [list]: @project-info:architecture         | - [list]: @semicolon      | - [list]: @cmake:value                        |              |
 | - [list]: @project-info:release:stage=       | - [list]: @semicolon      | - [list]: @cmake:mac                          |              |
 | - [list]: @project-info:release:stage=linker | - [list]: @semicolon      | - [list]: @cmake:mac                          |              |
 | - [list]: @project-info:debug:stage=         | - [list]: @semicolon      | - [list]: @cmake:mac                          |              |
@@ -248,32 +247,32 @@
 | file          | brief                                                                         | comment                                  |
 +===============+===============================================================================+==========================================+
 | ProjectInfo.h | ```                                                                           | Product name, version, and source        |
-|               | @file ProjectInfo.h                                                           | commit.                                  |
+|               | @file ProjectInfo.h                                                           |  commit.                                 |
 |               | @brief Project metadata — the generated ProjectInfo namespace.                |                                          |
 |               | ```                                                                           |                                          |
 +---------------+-------------------------------------------------------------------------------+------------------------------------------+
 | Identifiers.h | ```                                                                           | Every Id:: name and transform-operation  |
-|               | @file Identifiers.h                                                           | name.                                    |
+|               | @file Identifiers.h                                                           |  name.                                   |
 |               | @brief CAST's identifier and transform-name vocabulary.                       |                                          |
 |               | ```                                                                           |                                          |
 +---------------+-------------------------------------------------------------------------------+------------------------------------------+
 | Text.h        | ```                                                                           | One string per fatal, plus the success   |
-|               | @file Text.h                                                                  | line.                                    |
+|               | @file Text.h                                                                  |  line.                                   |
 |               | @brief Engine message strings — one constant per fatal, one for success.      |                                          |
 |               | ```                                                                           |                                          |
 +---------------+-------------------------------------------------------------------------------+------------------------------------------+
 | Files.h       | ```                                                                           | Names of the documents the engine        |
-|               | @file Files.h                                                                 | embeds.                                  |
+|               | @file Files.h                                                                 |  embeds.                                 |
 |               | @brief CAST's own document file names, referenced by the engine.              |                                          |
 |               | ```                                                                           |                                          |
 +---------------+-------------------------------------------------------------------------------+------------------------------------------+
 | HashMaps.h    | ```                                                                           | Banner palette and per-extension comment |
-|               | @file HashMaps.h                                                              | syntax.                                  |
+|               | @file HashMaps.h                                                              |  syntax.                                 |
 |               | @brief CAST's banner palette and per-extension comment-syntax tables.         |                                          |
 |               | ```                                                                           |                                          |
 +---------------+-------------------------------------------------------------------------------+------------------------------------------+
 | Generated.h   | ```                                                                           | One construction point for every         |
-|               | @file Generated.h                                                             | generated symbol.                        |
+|               | @file Generated.h                                                             |  generated symbol.                       |
 |               | @brief CAST's generated-header umbrella — re-exports every generated concern. |                                          |
 |               |                                                                               |                                          |
 |               | Aggregate of CAST's generated registries. Owns the jam::Generated shared-     |                                          |
