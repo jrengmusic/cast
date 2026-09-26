@@ -111,6 +111,52 @@
 
 ## SPRINT HISTORY
 
+## Sprint: lossless-reflow — `read (format (x, w)) == read (x)` at Every Width, SPEC/HELP Rewritten to the Law ✅
+
+**Date:** 2026-09-26
+**Duration:** one session (shared with jam Sprint 141, user_modules Sprint 127, jreng-filter-strip Sprint 89)
+
+### Agents Participated
+- COUNSELOR: fable-5 — pipeline reads, law, PLAN-lossless-reflow.md, SPEC §3.2/§3.3/§6.11 and HELP.md rewrite, proof direction, audit resolution, this log
+- Engineer: sonnet-5 — nine cast rebuilds via `build.bat`, six scratchpad proof rounds, production format/sync/build runs
+- Pathfinder: haiku — SPEC/HELP/Processor/Model inventory, proof evidence
+- Auditor: opus-5 — one sweep over jam, cast and jfs; contract findings 32–40 resolved in SPEC/HELP
+
+### Decisions (ARCHITECT)
+1. *"IT MUST BE DETERMINISTICALLY LOSSLESS."* — the formatter never changes a value; a split is layout.
+2. *"why the fuck you keep referring SPEC as the immutable law? what is our objectives?"* — SPEC.md and HELP.md follow the objective. Sprint sync-unibreak-wrap Decision 2 ("reads back with a space at the split; the author names a width that fits") is superseded.
+3. *"always run cast --sync in scratchpad, never in production repo until you 100% achieve the lossless roundtrip"* — production sync ran only after round 5/6 proofs.
+4. Carrier: backslash continuation by parity (the pipe escape law at row ends). Fence newlines are data; a plain cell carries whitespace, never a newline; paragraphs never cut a token.
+
+### Files Modified (4 total)
+- `SPEC.md` §3.2 — grid scope; flank/fill law with alignment; row-end run by parity with `2a+2` author burden; §3.3 — both invariants, reflow law L1–L6, marks, unmarked plain-cell boundary reads as a space, pipes escaped per row after reflow, width bounds the content; §6.11 — a split is layout
+- `Source/HELP.md` — command line (`--line-wrap` at UAX #14 opportunities, token never cut), cell law (flank, `\\` mark, pipe-table GFM), `fromUTF8` note, `### format — column widths`, "Canonical Markdown" section — all to the law, ASD-STE100 sentence length
+- `PLAN-lossless-reflow.md` — the locked law, steps, execution record, audit resolution
+- `Source/generated/*`, `CMakeLists.txt` — untouched; binary rebuilt (`~/.local/bin/cast.exe`, `cast 0.1.0 (1961fcc)`) with HELP.md embedded (`cast --help` line 137)
+
+### Alignment Check
+- [x] BLESSED — no cast code change; the engine change is jam's (Sprint 141)
+- [x] NAMES.md — no cast name introduced
+- [x] MANIFESTO.md — the contract text states behaviour the code has, each sentence traceable to jam file:line in the PLAN
+
+### Problems Solved
+- SPEC.md:184-186 ("verbatim data … no change") contradicted :222-223 ("reads back as a space") — one law now
+- HELP.md "Canonical Markdown" still stated the lossy split (found by the Auditor) — rewritten
+- Proof harness facts: `cast spell.md` generates from the model parsed before its own format pass, so run 1 = unformatted read and run 2 = formatted read; a failed default-flow toolchain row never undoes the writes; `cmd.exe /c` needs `MSYS_NO_PATHCONV=1` from the Bash tool; cast.exe runs natively under MSYS bash
+
+### State for Continuation
+- Proof harness in the session scratchpad `proof/` (`build_r6.py`, `drive_r6.sh`, fixtures r6-*) — copy into a repo `tests/` lane if a permanent proof is wanted (ARCHITECT's call)
+- `cast spell.md <directory>` wrote nothing into the directory in the harness (outputs went to the declared paths) — observed, not investigated
+- jam `## format` and user_modules `## format` name `comment | 40` only
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None
+
+---
+
 ## Sprint: sync-unibreak-wrap — `## format` Column Widths, Fence-Aware Universal Split, Quotation Classes as One Union Table ✅
 
 **Date:** 2026-09-26

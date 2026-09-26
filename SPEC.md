@@ -190,15 +190,27 @@ span cannot carry a line break. A fence is how the author writes a multi-line da
 Each line between the delimiters is one line of the cell's value. Line breaks join
 the lines.
 
-Whitespace that a cell carries for alignment is not data. Pipes delimit a cell on
-each line that the cell spans. The reader strips that padding from each line — the
-content lines of a fenced cell included — thus `|this|` and `| this |` are one datum.
-A space at the very start or the very end of a line thus cannot be authored as a
-space. The author writes it as a codepoint token, and an operation decodes it (§9).
+The two laws below apply to grid tables. A pipe table keeps GFM: the reader trims
+each cell on both sides and reads no run.
 
-To put a `|` in a cell, the author writes a backslash before it. The row scanner
-consumes that backslash when it rejoins the split. Thus a datum that must itself
-contain a backslash before the pipe is authored with two backslashes.
+Padding is not data. Pipes delimit a cell on each line that the cell spans. In a
+left-aligned or unaligned column, the first space after the opening pipe is the flank.
+The spaces before the closing pipe are the fill. The reader removes exactly those two,
+inside a fence too. Every other byte is content. A second space after the flank is a
+leading space of the value. Thus `|this|` and `| this |` are one datum, and `|  this |`
+carries one leading space. In a right-aligned or centered column, all leading spaces
+are fill.
+
+A backslash run at the end of a cell line is read by parity. Let `w` be the run's
+length. An odd `w` continues the line. The reader keeps `(w - 1) / 2` backslashes and
+joins the next line with nothing between. An even `w` of two or more ends the line and
+protects its end. The reader keeps `(w - 2) / 2` backslashes. No run ends the line as
+written. Thus a line that must end in a space, a tab, or a backslash ends in `2a + 2`
+backslashes, where `a` is the count of the author's own trailing backslashes. Write
+`trailing \\` for the value `trailing `. Write `C:\dir\\\\` for the value `C:\dir\`. A
+pipe follows the same law: a backslash before it makes it data, and the row scanner
+consumes that backslash. A datum with a backslash before a pipe is authored with two
+backslashes.
 
 ### 3.3 Formatter
 
@@ -209,24 +221,36 @@ CAST rewrites its own declared markdown to canonical form, write-if-different.
 - each line of each cell pads to its column's width, on both sides. A cell that holds
   a fence is not an exception — the right edge is always aligned. `|this|` is a legal
   row, and the formatter rewrites it as `| this |`
-- `format (format (x)) == format (x)`
+- `format (format (x)) == format (x)`, and `format (format (x, w1), w2) == format (x, w2)`
+- `read (format (x, w)) == read (x)` at every width `w` — a split is layout, never a
+  change of value
 - the engine reports a malformed table and never rewrites that file
 
-A line break in a plain cell reads as a newline. A grid-table body cell in a column
-that `## format` names (§6.11) reflows at that width: its authored soft line breaks
-collapse by the paragraph rule, then it splits, break only. A column that `## format`
-does not name keeps its natural width — no split — unless `--max-table-width` is
-positive, in which case the unnamed columns share that width after the named columns
-and the border overhead. The default 0 means no split. A share of zero or less is the
-natural width. A run with no break opportunity that is wider than the width splits at
-the width by character count. A backticked literal splits like any other text, and the
-split reads back as a space inside the literal — the author names a width that fits the
-literal. A fenced cell's lines are content: no line joins another, and a line wider than
-the width splits the same way — the split is a line break in the value (§3.2).
-A grid table whose body has no border between rows never splits: a split line would
-carry an empty first cell, and §3.1 would then read the body by another row law. A
-paragraph reflows at `--line-wrap`, default 100. No wrapped line starts a block. The
-format stays a fixpoint under every rule.
+A grid-table body cell in a column that `## format` names (§6.11) reflows at that
+width. The width bounds the content of a row. The row's backslash run and the
+whitespace it carries stand after the content, so the column can be wider than the
+named width. A plain cell folds its authored soft line breaks to spaces first. Then it
+breaks at UAX #14 opportunities. A run with no opportunity that is wider than the width
+is cut at the width by display width. A backtick span breaks like any other text. A
+fenced cell is verbatim. Each authored line reflows alone at the width, by the same
+rules. Its indentation, its trailing whitespace and its line breaks survive.
+
+The formatter marks every break it makes. A row it continues ends with an odd
+backslash run of `2a + 1`, where `a` is that row's own trailing backslash count. The
+whitespace the break consumed stays in the row before the run. An authored line end
+that ends in whitespace or in a backslash ends with an even run of `2a + 2`. The reader
+inverts the marks (§3.2). An unmarked line break in a plain cell reads as a space, the
+same space the formatter writes in its place. A literal pipe is escaped in each written
+row after the reflow, so a cut never separates the backslash from its pipe.
+
+A column that `## format` does not name keeps its natural width — no split. When
+`--max-table-width` is positive, the unnamed columns share that width after the named
+columns and the border overhead. The default 0 means no split. A share of zero or less
+is the natural width. A grid table whose body has no border between rows never splits.
+A split line would carry an empty first cell, and §3.1 would then read the body by
+another row law. A paragraph reflows at `--line-wrap`, default 100, at UAX #14
+opportunities only. A token wider than the wrap stands whole on its own line, never
+cut. No wrapped line starts a block. The format stays a fixpoint under every rule.
 
 ---
 
@@ -852,12 +876,11 @@ identity column (§5.3), thus a column named two times is the duplicate fatal.
 
 The table drives the formatter (§3.3) and nothing else. A column the table names
 reflows at its width. A column it does not name keeps its natural width. No `## format`
-table means no column reflows — the formatter's default. A split inserts a line break
-into the cell, and a plain cell's line break reads as a newline (§3.3); an inline
-comment's lines join at the output (§5.4). The author sets each named column's width
-for that column's content: a backticked literal wider than the width splits, and its
-value reads back with a space at the split (§3.3). A fenced cell's lines stay lines,
-each split at the width (§3.3). A grid table whose body has no border between rows never splits (§3.3).
+table means no column reflows — the formatter's default. A split is layout: the
+formatter marks each break it makes with a trailing backslash run, and the reader
+inverts the mark, thus a value reads the same at every width (§3.3). A fenced cell's
+authored lines stay lines, each reflowed alone (§3.3). A grid table whose body has no
+border between rows never splits (§3.3).
 
 A header row that declares no `name` or no `width` column is fatal. A `width` cell that
 is not a positive integer is fatal (§10.1). Both checks run during formatting only —

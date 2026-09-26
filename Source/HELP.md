@@ -27,7 +27,8 @@ Arguments select what runs. They never carry generation rules.
   the line; each composes with `--format`, `--no-format` and the manifest argument.
   `--line-wrap` must be a positive integer; `--max-table-width` must be a
   non-negative integer — any other value is fatal. `--line-wrap` defaults to 100,
-  `--max-table-width` to 0
+  `--max-table-width` to 0. `--line-wrap` breaks a paragraph at UAX #14 line-break
+  opportunities only: a token wider than the wrap stands whole on its own line
 
 The default order is format, then generate, then the default-flow toolchain rows. `--format` and `--no-format` exclude each other. Each also excludes an output directory and a `--<word>` toolchain argument. One manifest, one flag, nothing else on the line.
 
@@ -122,9 +123,11 @@ A code span cannot hold a line break. When the datum has one, author the cell as
 
 That cell's value begins with a line break, because the fence's first content line is empty. Write the real characters. `toLiteral` turns them into `\n` for you.
 
-Pipes delimit a cell on each line that the cell spans, and the padding between them is never data — `|this|` and `| this |` are the same datum, and the formatter rewrites the first as the second. That holds inside a fence too.
+Pipes delimit a cell on each line that the cell spans. In a grid table, the first space after the opening pipe is padding. The spaces before the closing pipe are padding. `|this|` and `| this |` are the same datum, and the formatter rewrites the first as the second. Every other byte is data, inside a fence too. A second space after the opening pipe is a leading space of the value. Indentation inside a fence survives. In a right-aligned or centered column, every leading space is padding. A pipe table keeps GFM: both sides of a cell are trimmed.
 
-Thus you cannot write a space at the very start or end of a line as a space — it would look the same as padding. Write it as `U+0020` and put `fromUTF8` in the row's `format` cell:
+A line's end is data when you mark it. Two backslashes at the end of a line end the line and protect what comes before them: a trailing space, a tab, or a backslash of your own. Write `trailing \\` for the value `trailing `. Write `C:\dir\\\\` for the value `C:\dir\` — two, plus two for each backslash of your own. An odd run at a line end means "the next line continues this one". The formatter writes it when it wraps a long value. The reader joins the two lines with nothing between them. Thus a value reads the same at every `## format` width. A line break you leave unmarked in a plain cell reads as one space. The pipe follows the same law: a backslash before a `|` makes it data.
+
+You can also write a space as `U+0020` and put `fromUTF8` in the row's `format` cell:
 
 ```
 +-------------------------------+------------------------------------------+----------+
@@ -497,7 +500,7 @@ The `@` sigil law (a `@`-sigiled value is a reference, never data) separates thi
 
 ### format — column widths
 
-`## format` is an optional table, `| name | width |`, reserved by name — not by file, like `## toolchain`. The table name and the reserved column name `format` do not meet — one names a table, the other a cell. `name` is a column name, and an identity column: a column named two times is the duplicate fatal. `width` is that column's wrap width, a positive integer. Every grid table that carries a column of that name reflows its body cells at that width — the authored soft line breaks collapse first, then the text wraps. A column the table does not name keeps its natural width. No `## format` table means no column reflows. A split puts a line break into the cell, and a plain cell's line break reads as a newline; an inline comment's lines join at the output. The author sets each named column's width for that column's content. A fenced cell's lines stay lines, each split at the width. A grid table whose body has no border between rows never splits.
+`## format` is an optional table, `| name | width |`, reserved by name — not by file, like `## toolchain`. The table name and the reserved column name `format` do not meet. One names a table, the other a cell. `name` is a column name and an identity column: a column named two times is the duplicate fatal. `width` is that column's wrap width, a positive integer. Every grid table that carries a column of that name reflows its body cells at that width. The authored soft line breaks collapse first, then the text wraps. The width bounds the content; the row's backslash mark stands after it. A column the table does not name keeps its natural width. No `## format` table means no column reflows. A split is layout only. The formatter marks each break with a trailing backslash run, and the reader joins the rows back. Thus a value reads the same at every width. A fenced cell's authored lines stay lines, each wrapped alone. Its indentation, trailing whitespace and line breaks survive. A grid table whose body has no border between rows never splits.
 
 ```
 +---------+-------+
@@ -543,7 +546,7 @@ Write the real character, not its escape. A line break in the datum comes out as
 
 An escape that you cannot write as a real character is written as its escape sequence, and `toLiteral` passes it through: a backslash followed by a data-declared escape character is an authored escape and survives verbatim — `\n` authors a line break. A backslash followed by a backslash is one literal backslash, doubled on output — `\\n` authors the two characters backslash-n. Both stay expressible.
 
-`fromUTF8` is the exception, for the one character that you cannot write: a space at the very start or end of a line, which the formatter's padding would swallow. Write `U+0020`, and the operation decodes it back to a space and touches no other byte.
+`fromUTF8` decodes each `U+XXXX` token in the value and touches no other byte. It is one way to write a space at the very start or end of a line; the flank rule and the `\\` mark are the other (see "A cell is one of these forms").
 
 A `format` cell names one operation, never two. The one composition that CAST performs is its own — a backticked or fenced cell is quoted and escaped first, and the cell's operation then applies to that value. That is how `fromUTF8` reaches inside a finished literal.
 
@@ -750,22 +753,26 @@ CAST rewrites each declared markdown file to canonical form, write-if-different.
 - the formatter re-emits borders exactly where you authored them. It neither adds nor removes one
 - columns pad to their widest cell, on each line of each cell, a fence's content lines included — the right edge is always aligned, and `|this|` comes back as `| this |`
 - `format (format (x)) == format (x)` — a canonical file reformats to itself, byte for byte
+- a value reads the same before and after `--format`, at every width — a split is layout, never a change of value
 - a malformed table is reported with its `path:line`, and the file is never rewritten
 
-A line break in a plain cell reads as a newline. A grid-table body cell in a column
-that `## format` names (see format — column widths) reflows at that width: its authored
-soft line breaks collapse by the paragraph rule, then it splits, break only. A column
-that `## format` does not name keeps its natural width — no split — unless
-`--max-table-width` is positive, in which case the unnamed columns share that width
-after the named columns and the border overhead. The default 0 means no split. A share
-of zero or less is the natural width. A run with no break opportunity that is wider
-than the width splits at the width by character count. A backticked literal splits like
-any other text, and the split reads back as a space inside the literal — name a width
-that fits the literal. A fenced cell's lines are content: no line joins another, and a
-line wider than the width splits the same way — the split is a line break in the value. A grid table whose body has no border between rows never splits —
-a split line would carry an empty first cell, and the row law would then read the body
-differently. A paragraph reflows at `--line-wrap`, default 100. No wrapped line starts
-a block. The format stays a fixpoint under every rule.
+A grid-table body cell in a column that `## format` names (see format — column widths)
+reflows at that width. The width bounds a row's content; the row's backslash mark
+stands after it. A plain cell folds its authored soft line breaks to spaces first, then
+breaks at UAX #14 opportunities. A run with no opportunity that is wider than the width
+is cut at the width by display width. A backtick literal breaks like any other text. A
+fenced cell is verbatim: each authored line reflows alone, and its indentation, trailing
+whitespace and line breaks survive. Every break the formatter makes ends its row with
+an odd backslash run, and the reader joins the rows back with nothing between (see "A
+cell is one of these forms"). A column that `## format` does not name keeps its natural
+width — no split — unless `--max-table-width` is positive, in which case the unnamed
+columns share that width after the named columns and the border overhead. The default
+0 means no split. A share of zero or less is the natural width. A grid table whose body
+has no border between rows never splits — a split line would carry an empty first cell,
+and the row law would then read the body differently. A paragraph reflows at
+`--line-wrap`, default 100, at UAX #14 opportunities only; a token wider than the wrap
+stands whole. No wrapped line starts a block. The format stays a fixpoint under every
+rule.
 
 ---
 
