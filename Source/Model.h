@@ -24,6 +24,7 @@ public:
     /** Constructs an empty model with no parsed tables. */
     Model() = default;
 
+    /** Brings the base class's header-row lookup into Model's own scope. */
     using jam::MarkdownDocument::getTableHeaderRow;
 
     /**
@@ -40,22 +41,84 @@ public:
         auto document { std::make_unique<Model>() };
 
         if (documentFile.existsAsFile())
-            parse (*document, documentFile);
+            parse (*document, documentFile.loadFileAsString(),
+                documentFile.getRelativePathFrom (documentFile.getParentDirectory()),
+                documentFile.getParentDirectory());
 
         return document;
     }
 
     /**
-     * @brief Returns reflowWidths -- every @c ## format row's own resolved
-     *        @c name mapped to its @c width, built once at parse() by
-     *        addReflowWidths().
+     * @brief Parses @p text as a manifest sourced from @p origin, under
+     *        @p directory, with @p reflowWidths set on the returned Model
+     *        before parsing.
      *
-     * @returns reflowWidths, keyed by each reflowed column's own resolved
-     *          identifier.
+     * @param text         The manifest source text to parse.
+     * @param origin       @p text's own relative path.
+     * @param directory    @p origin's own parent directory.
+     * @param reflowWidths The column widths set on the returned Model
+     *                     before parsing.
+     * @returns The parsed Model.
      */
-    const jam::HashMap<juce::Identifier, int>& getReflowWidths() const noexcept
+    static std::unique_ptr<Model> parse (const juce::String& text, const juce::String& origin,
+        const juce::File& directory, const jam::HashMap<juce::Identifier, int>& reflowWidths)
     {
-        return reflowWidths;
+        auto document { std::make_unique<Model>() };
+        document->reflowWidths = reflowWidths;
+        parse (*document, text, origin, directory);
+
+        return document;
+    }
+
+    /**
+     * @brief Returns every @c ## format row's own resolved @c name mapped
+     *        to its @c width, excluding the @c line-wrap row.
+     *
+     * @returns Every reflowed column's own identifier mapped to its width.
+     */
+    jam::HashMap<juce::Identifier, int> getReflowWidths() const
+    {
+        jam::HashMap<juce::Identifier, int> newReflowWidths;
+
+        for (auto* table : getTables (Id::format))
+            for (auto* row : getTableRows (*table))
+                if (row->id != Id::lineWrap)
+                {
+                    auto* nameCell { getTableCell (*row, Id::name) };
+
+                    newReflowWidths.try_emplace (
+                        juce::Identifier (jam::Format::toValidID (*nameCell->get<juce::String> (Id::rawText))),
+                        getValue (*row, Id::width).getIntValue());
+                }
+
+        return newReflowWidths;
+    }
+
+    /**
+     * @brief Returns the @c line-wrap row's own resolved @c width, among
+     *        every @c ## format table's own rows.
+     *
+     * @returns The @c line-wrap row's width, or
+     *          jam::MarkdownWriter::defaultLineWrap when no @c ## format
+     *          table declares one.
+     */
+    int getLineWrap() const
+    {
+        for (auto* table : getTables (Id::format))
+            if (auto* row { getTableRow (*table, Id::lineWrap) })
+                return getValue (*row, Id::width).getIntValue();
+
+        return jam::MarkdownWriter::defaultLineWrap;
+    }
+
+    /**
+     * @brief Returns the manifest's own relative path, stamped at parse().
+     *
+     * @returns manifestOrigin.
+     */
+    const juce::String& getManifestOrigin() const noexcept
+    {
+        return manifestOrigin;
     }
 
     /**
@@ -142,9 +205,8 @@ public:
     }
 
     /**
-     * @brief Answers whether @p value is an @-sigiled reference -- the
-     *        sigil law of SPEC §4: a @-sigiled cell is a reference, a bare
-     *        word is data.
+     * @brief Answers whether @p value is an @-sigiled reference -- a
+     *        @-sigiled cell is a reference, a bare word is data.
      *
      * @param value The authored value to test.
      * @returns @c true when @p value starts with the @ sigil.
@@ -158,9 +220,9 @@ public:
      * @brief Returns @p scope's own shape line's resolved template file
      *        path -- the first non-nested paragraph stamped with
      *        @c Id::templatePath, or, absent one, an item-shape list's own
-     *        first item when it carries @c Id::templatePath (SPEC §6.3:
-     *        the first line of the column is the row's own shape, whether
-     *        authored as a bare paragraph or a @c - [list]: item).
+     *        first item when it carries @c Id::templatePath -- the first
+     *        line of the column is the row's own shape, whether authored
+     *        as a bare paragraph or a @c - [list]: item.
      *
      * @param scope The blockquote scope searched for its own shape line.
      * @returns The resolved @c .cast file path, or an empty string when
@@ -202,6 +264,45 @@ public:
     const Element* getSource (const Element& row, int indent, int ordinal) const
     {
         return getPairedListItem (row, Id::list, indent, ordinal);
+    }
+
+    /**
+     * @brief Returns @p row's @p index-th (0-based) consecutive column-
+     *        address source line authored directly after @p sourceOrdinal
+     *        at blockquote depth @p indent.
+     *
+     * The walk stops at the first source line that is absent or not
+     * isColumnAddress() -- every source line up to and including @p index
+     * must itself be a column address for a result to return.
+     *
+     * @param row           The row @p sourceOrdinal's child column
+     *                      addresses are read from.
+     * @param indent        The blockquote nesting depth to search.
+     * @param sourceOrdinal The structure position after which child column
+     *                      addresses are read.
+     * @param index         The 0-based position among the consecutive
+     *                      column-address lines following @p sourceOrdinal.
+     * @returns The addressed column-address source line, or @c nullptr
+     *          when fewer than @p index + 1 consecutive column-address
+     *          lines follow @p sourceOrdinal.
+     */
+    const Element* getColumnAddress (const Element& row, int indent, int sourceOrdinal, int index) const
+    {
+        for (int offset { 0 }; offset <= index; ++offset)
+        {
+            auto* childSourceLine { getSource (row, indent, sourceOrdinal + 1 + offset) };
+
+            if (childSourceLine == nullptr)
+                return nullptr;
+
+            if (not isColumnAddress (row, *childSourceLine->get<juce::String> (Id::value)))
+                return nullptr;
+
+            if (offset == index)
+                return childSourceLine;
+        }
+
+        return nullptr;
     }
 
     /**
@@ -500,8 +601,7 @@ public:
     }
 
     /**
-     * @brief Answers whether @p row declares a @c - [begin]: binding
-     *        (SPEC §6.10).
+     * @brief Answers whether @p row declares a @c - [begin]: binding.
      *
      * @param row The row to test.
      * @returns @c true when @p row carries a @c \[begin\] binding.
@@ -515,8 +615,7 @@ public:
     }
 
     /**
-     * @brief Answers whether @p row declares a @c - [end]: binding (SPEC
-     *        §6.10).
+     * @brief Answers whether @p row declares a @c - [end]: binding.
      *
      * @param row The row to test.
      * @returns @c true when @p row carries an @c \[end\] binding.
@@ -531,7 +630,7 @@ public:
 
     /**
      * @brief Answers whether @p row is a region row -- carrying both its
-     *        own @c \[begin\] and @c \[end\] bindings (SPEC §6.10). This
+     *        own @c \[begin\] and @c \[end\] bindings. This
      *        is the one region-row definition Validator and Writer both
      *        read: Validator::isRegionPaired() catches a row that carries
      *        exactly one binding, which this predicate alone would treat
@@ -816,58 +915,26 @@ private:
     }
 
     /**
-     * @brief Builds @p document's own reflowWidths from every @c ## format
-     *        row -- @c name resolved to a valid ID mapped to @c width's
-     *        own integer value, both read from each cell's raw authored
-     *        text (@c Id::rawText, stamped at parse for every cell) --
-     *        never @c Id::value, so this build never depends on
-     *        addValue()'s own stamping pass having run yet.
-     *
-     * Asserts each @c ## format row's own @c name and @c width cells
-     * exist -- Validator::isFormat() gates a malformed @c ## format table
-     * at both Processor::generate() and Processor::format(), so an absent
-     * cell here is a precondition failure, not a recoverable case.
-     *
-     * @param document The model whose reflowWidths is built.
-     */
-    static void addReflowWidths (Model& document)
-    {
-        for (auto* table : document.getTables (Id::format))
-            for (auto* row : document.getTableRows (*table))
-            {
-                auto* nameCell { document.getTableCell (*row, Id::name) };
-                auto* widthCell { document.getTableCell (*row, Id::width) };
-                jassert (nameCell != nullptr and widthCell != nullptr);
-
-                document.reflowWidths.try_emplace (
-                    juce::Identifier (jam::Format::toValidID (*nameCell->get<juce::String> (Id::rawText))),
-                    widthCell->get<juce::String> (Id::rawText)->getIntValue());
-            }
-    }
-
-    /**
-     * @brief Parses @p documentFile as @p document's own manifest,
-     *        splices in every data file its index declares, builds
-     *        reflowWidths, stamps every table's own @c wiring, then
+     * @brief Parses @p text as @p document's own manifest, sourced from
+     *        @p origin under @p directory, splices in every data file its
+     *        index declares, stamps every table's own @c wiring, then
      *        stamps every row through addRow().
      *
-     * @param document     The model parsed into.
-     * @param documentFile The manifest file to parse.
+     * @param document  The model parsed into.
+     * @param text      The manifest source text to parse.
+     * @param origin    @p text's own relative path.
+     * @param directory @p origin's own parent directory.
      */
-    static void parse (Model& document, const juce::File& documentFile)
+    static void parse (Model& document, const juce::String& text, const juce::String& origin,
+        const juce::File& directory)
     {
-        const auto parent { documentFile.getParentDirectory() };
-        const auto manifestOrigin { documentFile.getRelativePathFrom (parent) };
+        document.directory = directory;
+        document.manifestOrigin = origin;
 
-        document.directory = parent;
-        document.manifestOrigin = manifestOrigin;
+        document.appendChildren (jam::MarkdownDocument::parse (text, origin));
 
-        document.appendChildren (jam::MarkdownDocument::parse (
-            documentFile.loadFileAsString(), manifestOrigin));
-
-        parse (document, parent, getTableOrigins (document, manifestOrigin));
+        parse (document, directory, getTableOrigins (document, origin));
         addComments (document);
-        addReflowWidths (document);
 
         for (auto* table : *document.root)
             if (jam::MarkdownDocument::isTable (*table))
@@ -1088,6 +1155,19 @@ private:
         addBindings (scope, precedingBinding, document, row);
     }
 
+    /**
+     * @brief Stamps every binding item under @p scope with its resolved
+     *        value, @p precedingBinding carrying the running binding name
+     *        across the recursive walk, reset at each shape paragraph.
+     *
+     * @param scope             The blockquote scope whose binding items
+     *                          are stamped.
+     * @param precedingBinding  The running binding name, cleared at each
+     *                          shape paragraph and updated at each
+     *                          binding item.
+     * @param document          The model @p row belongs to.
+     * @param row               The row @p scope belongs to.
+     */
     static void
     addBindings (Element& scope, juce::String& precedingBinding, const Model& document, const Element& row)
     {
@@ -1539,7 +1619,7 @@ private:
      */
     juce::String getJoinedValue (const Element& headerCell, const Element& cell, const juce::String& value) const
     {
-        if (getReflowWidths().contains (headerCell.id) and not isFencedCell (cell))
+        if (reflowWidths.contains (headerCell.id) and not isFencedCell (cell))
             return value.removeCharacters (juce::String::charToString (Chars::newline));
 
         return value;
@@ -1564,8 +1644,8 @@ private:
      * otherwise escape one away under a @c toLiteral-named transform.
      *
      * A blank cell resolves to an empty string, always -- it renders
-     * nothing and elides in templates like an absent trailing value
-     * (SPEC §5.1). There is no inheritance from a preceding cell.
+     * nothing and elides in templates like an absent trailing value.
+     * There is no inheritance from a preceding cell.
      *
      * @param headerCell @p cell's own header cell, naming its column.
      * @param row        The row @p cell belongs to.
@@ -1689,9 +1769,7 @@ private:
     juce::String manifestOrigin;
 
     /**
-     * Every @c ## format row's own resolved @c name mapped to its
-     * @c width, stamped once by addReflowWidths() at parse() -- the one
-     * source getJoinedValue() and Processor::format() both read.
+     * The column widths the reader joins by, set at creation.
      */
     jam::HashMap<juce::Identifier, int> reflowWidths;
 

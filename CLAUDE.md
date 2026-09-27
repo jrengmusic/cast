@@ -10,7 +10,9 @@
 
 ## Current State
 
-**Last Sprint:** sync-unibreak-wrap — `## format` (`name | width`) names any column and the writer reflows it at that width (`Processor::format` → `Validator::isFormat` → `jam::MarkdownWriter` column-width map); reflow is fence-aware and universal (`ReflowDocument::setRows` splits an over-wide segment by codepoint width, then packs; a fenced cell's lines are content, each split at the width); libunibreak's quotation tailoring is one `lineBreakQuotationClasses` union table read by `getLineBreakClass`; `Model::parse` no longer dereferences a missing header row. Windows Release built and installed; jam/cast/jfs three-run fixpoints and jam→KANJUT sync proven ✅ (2026-09-26)
+**Last Sprint:** clang-format-parity — `cast --format` prints canonical text to stdout, `-i` writes in place, `--style=file[:<path>]`, `--assume-filename`, `-` reads stdin; formatter style moved from the manifest's `## format` into `.cast-format` / `_cast-format` (nearest walk; sync reads `<target>/cast`); item shapes fill one column address per slot; jam paragraphs never break inside a backtick span; jam short pipe rows pad; five projects migrated; cast/jam/KANJUT doxygen zero warnings ✅ (2026-09-27)
+
+**Previous Sprint:** sync-unibreak-wrap — `## format` (`name | width`) names any column and the writer reflows it at that width (`Processor::format` → `Validator::isFormat` → `jam::MarkdownWriter` column-width map); reflow is fence-aware and universal (`ReflowDocument::setRows` splits an over-wide segment by codepoint width, then packs; a fenced cell's lines are content, each split at the width); libunibreak's quotation tailoring is one `lineBreakQuotationClasses` union table read by `getLineBreakClass`; `Model::parse` no longer dereferences a missing header row. Windows Release built and installed; jam/cast/jfs three-run fixpoints and jam→KANJUT sync proven ✅ (2026-09-26)
 
 **Active Work:** None — jfs `value | 40` splits `productWebsite` and 16 `## define` values in `project-info.md`; the regenerated literals carry the split (ARCHITECT's data, see carol/SPRINT-LOG.md State for Continuation)
 
@@ -80,7 +82,7 @@
   directly, `jam_core` is no longer the sole includer of the generated umbrella family
 
 **Runtime:**
-- `./cast <manifest>` generates; `--format` runs by default, re-canonicalizing all origin .md files
+- `./cast <manifest>` formats then generates, re-canonicalizing all origin .md files; `cast --format -i <manifest>` formats only, in place; `cast --format <file>` prints canonical text to stdout (clang-format command line); widths live in `cast/.cast-format`
 - `cast_BinaryData` embeds `Source/HELP.md` and `Source/resources/cast-output.md` (`project-info.md` `## binary`)
 
 **Doxygen:**

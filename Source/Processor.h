@@ -19,14 +19,19 @@
 struct Processor
 {
     /**
-     * @brief Parses @p manifestFile into a Model and every @c .cast file
-     *        its index declares into a TemplateDocument, and constructs
-     *        the Writer that renders through them.
+     * @brief Parses @p text into a Model and every @c .cast file its index
+     *        declares into a TemplateDocument, and constructs the Writer
+     *        that renders through them.
      *
-     * @param manifestFile The manifest file to parse.
+     * @param text         The manifest text to parse.
+     * @param origin       The manifest's own origin path.
+     * @param directory    The manifest's own directory, resolving every
+     *                     path the manifest declares.
+     * @param reflowWidths The style's own @c name/@c width pairs, stamped
+     *                     onto the parsed Model at creation.
      */
-    explicit Processor (const juce::File& manifestFile)
-        : model (Model::parse (manifestFile))
+    Processor (const juce::String& text, const juce::String& origin, const juce::File& directory, const jam::HashMap<juce::Identifier, int>& reflowWidths)
+        : model (Model::parse (text, origin, directory, reflowWidths))
         , templateDocument (*model)
         , writer (*model, templateDocument)
     {
@@ -34,11 +39,10 @@ struct Processor
     }
 
     /**
-     * @brief Validates the parsed manifest's own @c ## format shape
-     *        through Validator::isFormat(), then its full structure
-     *        through Validator::isValid(), writes its declared outputs
-     *        through the Writer, then runs every selected @c ## toolchain
-     *        row through run().
+     * @brief Validates the parsed manifest's full structure through
+     *        Validator::isValid(), writes its declared outputs through the
+     *        Writer, then runs every selected @c ## toolchain row through
+     *        run().
      *
      * @param output             A path resolved against the manifest's own
      *                           directory, giving the directory every
@@ -53,9 +57,6 @@ struct Processor
      */
     juce::Result generate (const juce::String& output = {}, const juce::String& toolchainArgument = {})
     {
-        if (const auto formatShape { Validator::isFormat (*model) }; not formatShape.wasOk())
-            return formatShape;
-
         if (const auto validation { Validator::isValid (*model, templateDocument) }; not validation.wasOk())
             return validation;
 
@@ -70,26 +71,14 @@ struct Processor
      *        rewriting each one, in parallel, whose canonical text
      *        differs from what is currently on disk.
      *
-     * Runs Validator::isFormat() first, then constructs the MarkdownWriter
-     * with @p lineWrap and the Model's own reflowWidths (Model::parse's
-     * own single source for every @c ## format row's @c name/@c width
-     * pair -- see Model::getReflowWidths()), before running the jam
-     * structural validator and rewriting each changed origin.
-     *
-     * @param lineWrap The column at which the writer wraps a paragraph's
-     *                 rendered lines.
+     * @param formatter The formatter every changed origin's canonical text
+     *                  is read from.
      * @returns juce::Result::ok() when the manifest's own markdown
      *          validates and every changed file writes successfully, or a
      *          failure naming every file that failed to write.
      */
-    juce::Result format (int lineWrap)
+    juce::Result format (const jam::MarkdownWriter& formatter)
     {
-        if (const auto result { Validator::isFormat (*model) }; not result.wasOk())
-            return result;
-
-        const jam::MarkdownWriter formatter { lineWrap, model->getReflowWidths() };
-        static const jam::MarkdownValidator validator;
-
         if (const auto result { validator.isValid (*model) }; not result.wasOk())
             return result;
 
@@ -104,6 +93,23 @@ struct Processor
             });
 
         return getWriteResult (formatFailures);
+    }
+
+    /**
+     * @brief Returns the manifest origin's own canonical text, paired with
+     *        the manifest's own structural validation result.
+     *
+     * @param formatter The formatter the manifest origin's canonical text
+     *                  is read from.
+     * @returns The manifest's own structural validation result, paired
+     *          with its origin's canonical text.
+     */
+    std::pair<juce::Result, juce::String> getText (const jam::MarkdownWriter& formatter) const
+    {
+        if (const auto result { validator.isValid (*model) }; not result.wasOk())
+            return { result, {} };
+
+        return { juce::Result::ok(), formatter.getText (*model, model->getManifestOrigin()) };
     }
 
 private:
@@ -319,14 +325,15 @@ private:
         return juce::Result::ok();
     }
 
-    juce::ScopedJuceInitialiser_GUI libraryInitialiser;
-    Generated generated;
-    jam::Stamp stamp;
-
     //==============================================================================
+    /** The parsed manifest, spliced into one addressable document. */
     std::unique_ptr<Model> model;
+    /** Every @c .cast template file the manifest's index declares, parsed once. */
     TemplateDocument templateDocument;
+    /** Renders the manifest's declared outputs through model and templateDocument. */
     Writer writer;
+    /** Validates an origin file's own markdown structure during format(). */
+    const jam::MarkdownValidator validator;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Processor)
 };

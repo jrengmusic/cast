@@ -72,7 +72,9 @@ struct Writer : jam::Document::Writer
     }
 
 private:
+    /** The model whose declared outputs are rendered. */
     const Model& model;
+    /** The template document each output row's shapes are read from. */
     const TemplateDocument& templateDocument;
 
     /**
@@ -99,9 +101,9 @@ private:
      * @brief Resolves every output-file group's own file -- each
      *        @p groupStarts' own row's declared @c file, resolved against
      *        @p outputPath. A whole-file group's own file is created when
-     *        absent (SPEC §6.3); a region group's own file is resolved
+     *        absent; a region group's own file is resolved
      *        without creating it -- the row does not create the file it
-     *        patches (SPEC §6.10), and Validator::isRegionFilePresent()
+     *        patches, and Validator::isRegionFilePresent()
      *        has already established that it exists.
      *
      * @param outputPath   The directory output files are resolved against.
@@ -236,7 +238,7 @@ private:
 
     /**
      * @brief Finds @p beginValue's own first matching line and, strictly
-     *        after it, @p endValue's own first matching line (SPEC §6.10).
+     *        after it, @p endValue's own first matching line.
      *
      * Validator::isRegionDelimited() has already established that both
      * delimiters resolve, in order, before the writer ever runs --
@@ -272,7 +274,7 @@ private:
      *        region -- the lines strictly between its @c \[begin\] and
      *        @c \[end\] delimiters -- write-if-different, every line
      *        outside the region kept byte-for-byte. No banner and no file
-     *        documentation render (SPEC §6.10); Validator has already
+     *        documentation render; Validator has already
      *        established the region's pairing, the file's existence, and
      *        the delimiters' own presence and order, so this trusts all
      *        three unconditionally.
@@ -394,7 +396,7 @@ private:
      *        structure-column @c comment binding, paired with its own first
      *        shape line, read as a wired table address when its value is
      *        @-sigiled. A plain-text @c comment binding at that position is
-     *        the item-prose channel (SPEC §6.8), never file documentation,
+     *        the item-prose channel, never file documentation,
      *        and resolves empty here.
      *
      * @pre When @p firstRow's @c comment binding is @-sigiled, it resolves

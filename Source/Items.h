@@ -16,6 +16,7 @@
  */
 struct Items
 {
+    /** Model's own element type, brought into Items's own scope. */
     using Element = Model::Element;
 
     /**
@@ -59,8 +60,7 @@ struct Items
      *        @c file column value equals @p row's own file -- a file
      *        never lists itself -- and, when @p source is a cell-match
      *        filter address, excluding a row whose @p source's own
-     *        filter column value does not equal its filter value (SPEC
-     *        §6.5).
+     *        filter column value does not equal its filter value.
      *
      * @param model       The model @p row and @p sourceTable belong to.
      * @param row         The row whose own file's value is excluded.
@@ -125,7 +125,7 @@ struct Items
      * @brief Collects @p row's own structure wiring's shape-valued
      *        bindings' consumed shape ordinals -- every shape ordinal
      *        transitively consumed by a wrapper, walking each consumed
-     *        source's own arity-bounded chain in turn (SPEC §6.1, §6.4).
+     *        source's own arity-bounded chain in turn.
      *
      * @param model            The model @p row belongs to.
      * @param templateDocument The template document each consumed
@@ -225,7 +225,7 @@ struct Items
      *        structure-wiring binding of that name outside a shape-valued
      *        binding's own private render data, or, absent one, the
      *        row's own column value. An @-sigiled @c comment binding or
-     *        column value is a reference, not prose (SPEC §4), and
+     *        column value is a reference, not prose, and
      *        resolves empty.
      *
      * @param model            The model @p sourceRow belongs to.
@@ -311,10 +311,13 @@ struct Items
     }
 
     /**
-     * @brief Resolves the @c list token's value for one item -- every
-     *        column-address child line authored directly beneath
-     *        @p sourceOrdinal, read from @p sourceRow's own column, joined
-     *        by @p childJoin.
+     * @brief Resolves the @c list token's value for one item -- when
+     *        @p arity is 1, every column-address child line authored
+     *        directly beneath @p sourceOrdinal, read from @p sourceRow's
+     *        own column, joined by @p childJoin; when @p arity is 2 or
+     *        more, @p occurrence's own child column value, the authored
+     *        values filling the trailing slots and any leading slot
+     *        rendering empty.
      *
      * @param model         The model @p row and @p sourceRow belong to.
      * @param row           The structure row @p sourceOrdinal's child
@@ -326,42 +329,54 @@ struct Items
      * @param sourceRow     The item's source row, or @c nullptr when the
      *                      item is a bare column value -- no child value
      *                      resolves.
-     * @param childJoin     The child values' join text.
-     * @returns Every resolved child column value, in authored order,
-     *          joined by @p childJoin.
+     * @param childJoin     The child values' join text, used when @p arity
+     *                      is 1.
+     * @param arity         The item's shape's own @c :::[list]::: occurrence
+     *                      count.
+     * @param occurrence    The @c list token's own occurrence index,
+     *                      consumed when @p arity is 2 or more.
+     * @returns When @p arity is 1, every resolved child column value, in
+     *          authored order, joined by @p childJoin. When @p arity is 2
+     *          or more, @p occurrence's own child column value, or an
+     *          empty string for a leading slot the authored values do not
+     *          reach.
      */
     static juce::String getChildValue (const Model& model, const Element& row, int indent,
                                        int sourceOrdinal, const Element* sourceRow,
-                                       const juce::String& childJoin)
+                                       const juce::String& childJoin, int arity, int occurrence)
     {
         jam::Strings childValues;
 
         if (sourceRow != nullptr)
-            for (int childOrdinal { sourceOrdinal + 1 };; ++childOrdinal)
+            for (int index { 0 };; ++index)
             {
-                auto* childSourceLine { model.getSource (row, indent, childOrdinal) };
+                auto* childSourceLine { model.getColumnAddress (row, indent, sourceOrdinal, index) };
 
                 if (childSourceLine == nullptr)
                     break;
 
                 const auto& value { *childSourceLine->get<juce::String> (Id::value) };
 
-                if (not model.isColumnAddress (row, value))
-                    break;
-
                 if (auto* cell { model.getTableCell (*sourceRow, model.getColumn (row, value)) })
                     childValues.add (*cell->get<juce::String> (Id::value));
             }
 
-        return childValues.joinIntoString (childJoin, 0, -1);
+        if (arity < 2)
+            return childValues.joinIntoString (childJoin, 0, -1);
+
+        return occurrence >= arity - childValues.size()
+                   ? childValues.at (occurrence - (arity - childValues.size()))
+                   : juce::String{};
     }
 
     /**
      * @brief Renders one item's own plain (unpadded) text -- @p line's
      *        own shape with every placeholder token substituted by its
      *        resolved value, the @c list token filled by getChildValue()
-     *        and every other token by getColumnValue(), commenting a
-     *        non-empty @c comment value for @p extension.
+     *        -- once per its own occurrence, in authored order, when
+     *        @p line's own shape's arity is 2 or more -- and every other
+     *        token by getColumnValue(), commenting a non-empty @c comment
+     *        value for @p extension.
      *
      * @param model            The model @p sourceRow and @p row belong
      *                         to.
@@ -405,6 +420,8 @@ struct Items
         const auto& tokens { *templateDocument.getCodeBlock (line)
                                    ->get<jam::Document::Identifiers> (Id::placeholder) };
         auto itemText { *templateDocument.getCodeBlock (line)->get<juce::String> (Id::value) };
+        const auto arity { getArity (templateDocument, line) };
+        int occurrence { 0 };
 
         for (const auto& name : tokens)
         {
@@ -413,14 +430,25 @@ struct Items
             if (marker.isNotEmpty())
             {
                 auto value { name == listMarker
-                                 ? getChildValue (model, row, indent, sourceOrdinal, sourceRow, childJoin)
+                                 ? getChildValue (
+                                       model, row, indent, sourceOrdinal, sourceRow, childJoin, arity, occurrence)
                                  : getColumnValue (
                                        model, templateDocument, sourceRow, sourceValue, sourceKey, name) };
 
                 if (name == commentMarker and value.isNotEmpty())
                     value = Transforms::toComment (value, extension);
 
-                itemText = itemText.replace (marker, value);
+                if (name == listMarker)
+                {
+                    itemText = jam::Format::upTo (itemText, marker, false)
+                             + value
+                             + jam::Format::from (itemText, marker, false);
+                    ++occurrence;
+                }
+                else
+                {
+                    itemText = itemText.replace (marker, value);
+                }
             }
         }
 
@@ -607,7 +635,7 @@ struct Items
      *        shape -- each marker replaced by @p replacements' own value,
      *        fill spaces inserted after each literal's first whitespace
      *        run to align every token but the first against @p columnWidths
-     *        own byte-width high-water mark (SPEC §7.2). A marker absent
+     *        own byte-width high-water mark. A marker absent
      *        from @p replacements is emitted verbatim and takes no part
      *        in the column alignment.
      *

@@ -3,11 +3,13 @@ CompileFlags:
   Remove: [--target=*]
   Add:
     - -TP
-    - -DCAST_COMMIT=\"5ecf4c1\"
+    - -DCAST_COMMIT=\"dada03c\"
+    - -DDEBUG=1
     - -DDONT_SET_USING_JUCE_NAMESPACE=1
     - -DJUCE_DONT_DECLARE_PROJECTINFO=1
     - -DJUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1
     - -DJUCE_MODULE_AVAILABLE_jam_core=1
+    - -DJUCE_MODULE_AVAILABLE_jam_document=1
     - -DJUCE_MODULE_AVAILABLE_jam_markdown=1
     - -DJUCE_MODULE_AVAILABLE_jam_subprocess=1
     - -DJUCE_MODULE_AVAILABLE_juce_core=1
@@ -17,26 +19,26 @@ CompileFlags:
     - -DJUCE_MODULE_AVAILABLE_juce_gui_basics=1
     - -DJUCE_STANDALONE_APPLICATION=1
     - -DJUCE_TARGET_HAS_BINARY_DATA=1
-    - -DNDEBUG=1
     - -D_CONSOLE=1
-    - -D_NDEBUG=1
-    - -IC:\Users\jreng\Documents\Poems\dev\cast\Builds\Release\cast_artefacts\JuceLibraryCode
+    - -D_DEBUG=1
+    - -IC:\Users\jreng\Documents\Poems\dev\cast\Builds\Debug\cast_artefacts\JuceLibraryCode
     - -IC:\Users\jreng\Documents\Poems\dev\cast\..\jam
     - -IC:\Users\jreng\Documents\Poems\dev\cast\Source\generated
     - -IC:\Users\jreng\Documents\Poems\JUCE\modules
-    - -IC:\Users\jreng\Documents\Poems\dev\cast\Builds\Release\juce_binarydata_cast_BinaryData\JuceLibraryCode
+    - -IC:\Users\jreng\Documents\Poems\dev\cast\Builds\Debug\juce_binarydata_cast_BinaryData\JuceLibraryCode
     - /DWIN32
     - -std:c++17
-    - -MT
-    - -flto=thin
+    - -MTd
+    - -Zi
     - -Wno-shadow
     - -Wno-unused-parameter
     - -Wno-float-equal
     - -Wno-sign-conversion
     - -Wno-switch-enum
     - -Wno-implicit-float-conversion
+    - /Z7
     - --
-    - C:\Users\jreng\Documents\Poems\dev\cast\Source\main.cpp
+    - C:\Users\jreng\Documents\Poems\dev\cast\Builds\Debug\CMakeFiles\cast.dir\cmake_pch.cxx
 Diagnostics:
   MissingIncludes: None
   UnusedIncludes: None

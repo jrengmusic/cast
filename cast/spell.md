@@ -1,11 +1,3 @@
-## format
-
-+---------+-------+
-| name    | width |
-+=========+=======+
-| comment | 40    |
-+---------+-------+
-
 ## index
 
 +---------------+----------------------------------------------+
@@ -261,9 +253,9 @@
 |               | @brief Engine message strings — one constant per fatal, one for success.      |                                          |
 |               | ```                                                                           |                                          |
 +---------------+-------------------------------------------------------------------------------+------------------------------------------+
-| Files.h       | ```                                                                           | Names of the documents the engine        |
-|               | @file Files.h                                                                 |  embeds.                                 |
-|               | @brief CAST's own document file names, referenced by the engine.              |                                          |
+| Files.h       | ```                                                                           | File and directory names the engine      |
+|               | @file Files.h                                                                 |  reads and writes.                       |
+|               | @brief CAST's own file and directory names, referenced by the engine.         |                                          |
 |               | ```                                                                           |                                          |
 +---------------+-------------------------------------------------------------------------------+------------------------------------------+
 | HashMaps.h    | ```                                                                           | Banner palette and per-extension comment |
@@ -283,15 +275,16 @@
 
 ## output index
 
-+----------------------+-----------+-----------------------------------+------------+
-| list                 | separator | structure                         | file       |
-+======================+===========+===================================+============+
-| - [list]: @headers   |           | @code:struct                      | @Generated |
-|                      |           | - macro: #pragma once             |            |
-| > - [list]: instance |           | - name: Generated                 |            |
-|                      |           | - type: map::Generated            |            |
-|                      |           | - instance: generated             |            |
-|                      |           | - [comment]: @headers:brief       |            |
-|                      |           | - [list]: @code:include           |            |
-|                      |           | > - [list]: @code:shared-instance |            |
-+----------------------+-----------+-----------------------------------+------------+
++----------------------+-----------+------------------------------------------------------------+------------+
+| list                 | separator | structure                                                  | file       |
++======================+===========+============================================================+============+
+| - [list]: @headers   |           | @code:struct                                               | @Generated |
+|                      |           | - macro: #pragma once                                      |            |
+| > - [list]: instance |           | - name: Generated                                          |            |
+|                      |           | - type: map::Generated                                     |            |
+|                      |           | - instance: generated                                      |            |
+|                      |           | - [comment]: @headers:brief                                |            |
+|                      |           | - [list]: @code:include                                    |            |
+|                      |           | > - [list]: @code:shared-instance                          |            |
+|                      |           | > - [comment]: Every generated registry, constructed once. |            |
++----------------------+-----------+------------------------------------------------------------+------------+

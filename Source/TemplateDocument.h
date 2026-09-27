@@ -13,6 +13,7 @@
  */
 struct TemplateDocument
 {
+    /** Model's own element type, brought into TemplateDocument's own scope. */
     using Element = Model::Element;
 
     /** Constructs an empty template document, holding no parsed files. */
@@ -161,5 +162,6 @@ struct TemplateDocument
     }
 
 private:
+    /** Every parsed @c .cast template file, keyed by its own index symbol. */
     jam::HashMap<juce::String, jam::MarkdownDocument> documents;
 };

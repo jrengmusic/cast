@@ -35,7 +35,7 @@ namespace text
  */
 struct Diagnostics
 {
-    static constexpr const char* const failNotFound           { "not found"                                      };///< Referenced table, column, or symbol does not exist.
+    static constexpr const char* const failNotFound           { "not found"                                      };///< Referenced table, column, symbol, or file does not exist.
     static constexpr const char* const failUnknownTransform   { "unknown transform"                              };///< A format cell named an operation outside §8.
     static constexpr const char* const failTemplateMissing    { "template not found"                             };///< A shape address named a fence that does not exist in its template file.
     static constexpr const char* const failStructureMissing   { "structure not declared"                         };///< An output row declares no structure column entry.
@@ -68,8 +68,11 @@ struct Diagnostics
     static constexpr const char* const failSyncDelete         { "delete failed"                                  };///< A sync mirror-delete could not remove a target file.
     static constexpr const char* const failSyncArguments      { "--sync takes a source root and a target root"   };///< A --sync line did not carry exactly two roots.
     static constexpr const char* const failFlagValue          { "flag value out of range"                        };///< A --line-wrap value below 1, or a value that is not an integer.
-    static constexpr const char* const failFormatColumn       { "format column not declared"                     };///< A ## format table's header row declares no name or width column.
-    static constexpr const char* const failFormatWidth        { "format width must be a positive integer"        };///< A ## format width cell is not a positive integer.
+    static constexpr const char* const failFormatColumn       { "format column not declared"                     };///< A style-file ## format table's header row declares no name or width column.
+    static constexpr const char* const failFormatWidth        { "format width must be a positive integer"        };///< A style-file ## format width cell is not a positive integer.
+    static constexpr const char* const failInPlaceInput       { "cannot use -i when reading from stdin"          };///< A --format line with -i that reads stdin.
+    static constexpr const char* const failFlagUnknown        { "unknown flag"                                   };///< A dash argument on a --format line that is not a format flag word.
+    static constexpr const char* const failStandardInput      { "standard input cannot be read"                  };///< Stdin could not be read.
     static constexpr const char* const done                   { "Fine."                                          };///< Every step of the run succeeded.
 };
 

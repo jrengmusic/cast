@@ -561,8 +561,8 @@ struct Validator : jam::MarkdownValidator
     /**
      * @brief Checks that every output row's structure scope supplies no
      *        more sources than its shapes demand -- each paragraph shape,
-     *        wrapper, and item shape's own arity (SPEC §6.4), and each
-     *        expansion @c list bullet counting as one supplied source.
+     *        wrapper, and item shape's own arity, and each expansion
+     *        @c list bullet counting as one supplied source.
      *
      * @param model            The model whose output tables are checked.
      * @param templateDocument The template document each shape line's
@@ -604,9 +604,60 @@ struct Validator : jam::MarkdownValidator
                                 if (candidate.parent->isTag (Id::ul) and candidate.id != listMarker
                                     and candidate.contains (Id::templatePath))
                                     demanded += Items::getArity (templateDocument, candidate);
+
+                                return true;
                             });
 
                         if (supplied - 1 > demanded)
+                            return juce::Result::fail (getLocation (*table, *row, Id::structure.toString())
+                                                       + Id::diagnosticSeparator
+                                                       + text::Diagnostics::failAmbiguous);
+                    }
+
+        return juce::Result::ok();
+    }
+
+    /**
+     * @brief Checks that no output row's 2-or-more-slot item shape
+     *        supplies more column addresses than its own arity demands.
+     *
+     * @param model            The model whose output tables are checked.
+     * @param templateDocument The template document each shape line's
+     *                         arity is read from.
+     * @returns juce::Result::ok() when every item shape's supplied column
+     *          addresses stay within its own arity, or a failure naming
+     *          the ambiguous row.
+     */
+    static juce::Result isItemSourceCountValid (const Model& model, const TemplateDocument& templateDocument)
+    {
+        static const juce::Identifier listMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+
+        for (auto* table : model.getTables())
+            if (model.isOutputTable (*table))
+                for (auto* row : model.getTableRows (*table))
+                    if (auto* structureScope { model.getTableCell (*row, Id::structure) })
+                    {
+                        const Element* overSuppliedItem { nullptr };
+
+                        structureScope->applyFunctionRecursively (
+                            [&overSuppliedItem, &templateDocument, &model, row] (const Element& candidate) -> bool
+                            {
+                                if (overSuppliedItem == nullptr and candidate.parent->isTag (Id::ul)
+                                    and candidate.id == listMarker and candidate.contains (Id::templatePath))
+                                {
+                                    const auto arity { Items::getArity (templateDocument, candidate) };
+
+                                    if (arity >= 2
+                                        and model.getColumnAddress (*row, *candidate.get<int> (Id::level),
+                                                *candidate.get<int> (Id::line), arity) != nullptr)
+                                        overSuppliedItem = &candidate;
+                                }
+
+                                return overSuppliedItem == nullptr;
+                            });
+
+                        if (overSuppliedItem != nullptr)
                             return juce::Result::fail (getLocation (*table, *row, Id::structure.toString())
                                                        + Id::diagnosticSeparator
                                                        + text::Diagnostics::failAmbiguous);
@@ -624,7 +675,7 @@ struct Validator : jam::MarkdownValidator
      *        resolves through Model::getTable() -- the alias form or,
      *        absent an alias hit, the local form -- or names a code block
      *        carrying documentation. A comment bullet whose value is not
-     *        @-sigiled is plain prose, never a reference (SPEC §4), and is
+     *        @-sigiled is plain prose, never a reference, and is
      *        exempt. Bullets carrying no @c Id::line stamp -- the row join
      *        and map bullets -- are exempt from the pairing check. A
      *        @c structure comment bullet is exempt from this address check
@@ -918,7 +969,7 @@ struct Validator : jam::MarkdownValidator
 
     /**
      * @brief Checks that @p sourceRoot and @p targetRoot resolve to
-     *        different directories (SPEC §2.2).
+     *        different directories.
      *
      * @param sourceRoot The sync source root.
      * @param targetRoot The sync target root.
@@ -935,8 +986,8 @@ struct Validator : jam::MarkdownValidator
     }
 
     /**
-     * @brief Checks that @p infoFile exists (SPEC §2.2's
-     *        @c user-modules-info.md presence fatal).
+     * @brief Checks that @p infoFile exists -- the
+     *        @c user-modules-info.md presence fatal.
      *
      * @param infoFile The sync root's own resolved info file.
      * @returns juce::Result::ok() when @p infoFile exists, or a failure
@@ -954,8 +1005,7 @@ struct Validator : jam::MarkdownValidator
     /**
      * @brief Checks that each of the three composed identity keys --
      *        @c namespace, @c filePrefix, @c macroPrefix -- is present
-     *        in both @p sourceInfo and @p targetInfo (SPEC
-     *        §2.2).
+     *        in both @p sourceInfo and @p targetInfo.
      *
      * @param sourceInfoFile The source's own resolved info file, named in
      *                       a failure when @p sourceInfo is missing the
@@ -992,8 +1042,8 @@ struct Validator : jam::MarkdownValidator
 
     /**
      * @brief Checks that every one of @p kernelNames' own directories
-     *        exists at @p root (SPEC §2.2's kernel-row existence fatal,
-     *        checked at each root).
+     *        exists at @p root -- the kernel-row existence fatal,
+     *        checked at each root.
      *
      * @param root        The sync root @p kernelNames are resolved
      *                    against.
@@ -1013,8 +1063,8 @@ struct Validator : jam::MarkdownValidator
 
     /**
      * @brief Checks that every directory at @p root whose own name starts
-     *        with @p filePrefix is declared in @p declaredNames (SPEC
-     *        §2.2's @c \<filePrefix\>* declaration fatal, checked at each
+     *        with @p filePrefix is declared in @p declaredNames -- the
+     *        @c \<filePrefix\>* declaration fatal, checked at each
      *        root).
      *
      * @param root          The sync root walked for @p filePrefix's own
@@ -1044,8 +1094,7 @@ struct Validator : jam::MarkdownValidator
     /**
      * @brief Checks that @p sourceKernelNames, each name transformed by
      *        the @p sourceFilePrefix-to-@p targetFilePrefix pair,
-     *        corresponds one to one with @p targetKernelNames (SPEC
-     *        §2.2).
+     *        corresponds one to one with @p targetKernelNames.
      *
      * @param sourceRoot        The sync source root, named in a failure.
      * @param targetRoot        The sync target root, named in a failure.
@@ -1083,7 +1132,7 @@ struct Validator : jam::MarkdownValidator
 
     /**
      * @brief Answers whether @p beginValue matches a line in @p lines and
-     *        @p endValue matches a strictly later line (SPEC §6.10).
+     *        @p endValue matches a strictly later line.
      *
      * @param lines      The region file's own content, split into lines.
      * @param beginValue The resolved @c \[begin\] delimiter text.
@@ -1111,8 +1160,8 @@ struct Validator : jam::MarkdownValidator
 
     /**
      * @brief Checks that every output row carries either both the
-     *        @c \[begin\] and @c \[end\] bindings or neither (SPEC
-     *        §6.10) -- Model::isRegionRow() requires both, so a row with
+     *        @c \[begin\] and @c \[end\] bindings or neither --
+     *        Model::isRegionRow() requires both, so a row with
      *        exactly one is otherwise silently treated as a whole-file
      *        row; this catches that case explicitly.
      *
@@ -1134,8 +1183,8 @@ struct Validator : jam::MarkdownValidator
 
     /**
      * @brief Checks that every region row's own declared file exists on
-     *        disk (SPEC §6.10 -- a region row does not create the file it
-     *        patches).
+     *        disk -- a region row does not create the file it
+     *        patches.
      *
      * @param model The model whose output tables are checked.
      * @returns juce::Result::ok() when every region row's own file
@@ -1162,7 +1211,7 @@ struct Validator : jam::MarkdownValidator
     /**
      * @brief Reads @p row's own region file once and checks that its own
      *        resolved @c \[begin\] and @c \[end\] delimiters both match,
-     *        in order (SPEC §6.10), through hasDelimiterOrder().
+     *        in order, through hasDelimiterOrder().
      *
      * @param model            The model @p row belongs to.
      * @param templateDocument The template document @p row's own bindings
@@ -1231,7 +1280,7 @@ struct Validator : jam::MarkdownValidator
 
     /**
      * @brief Checks that no declared @c file is shared between a region
-     *        row and a whole-file row (SPEC §6.10), in one enumeration
+     *        row and a whole-file row, in one enumeration
      *        pass -- each file's own first-seen classification is
      *        recorded, and a later row of the same file that disagrees
      *        with it fails at that row's own location.
@@ -1437,11 +1486,10 @@ struct Validator : jam::MarkdownValidator
     }
 
     /**
-     * @brief Checks every non-index, non-wiring, non-format table for
-     *        column uniqueness, through isUniqueTable() -- a data table
-     *        kept in the manifest is gated like any other; wiring tables
-     *        are exempt (SPEC §5.3), and @c ## format is gated separately
-     *        by isFormat().
+     * @brief Checks every non-index, non-wiring table for column
+     *        uniqueness, through isUniqueTable() -- a data table kept in
+     *        the manifest is gated like any other, @c ## format included;
+     *        wiring tables are exempt.
      *
      * @param model The model whose data tables are checked.
      * @returns juce::Result::ok() when every checked table is unique, or
@@ -1450,7 +1498,7 @@ struct Validator : jam::MarkdownValidator
     static juce::Result isUnique (const Model& model)
     {
         for (auto* table : model.getTables())
-            if (not model.isOutputTable (*table) and not table->isTag (Id::index) and not table->isTag (Id::format))
+            if (not model.isOutputTable (*table) and not table->isTag (Id::index))
                 if (const auto result { isUniqueTable (model, *table) }; not result.wasOk())
                     return result;
 
@@ -1518,7 +1566,7 @@ struct Validator : jam::MarkdownValidator
 
     /**
      * @brief Checks that every declared @c ## toolchain table's header row
-     *        declares both a @c command and a @c flag column (SPEC §6.9) --
+     *        declares both a @c command and a @c flag column --
      *        the invariant Processor::generate() trusts unconditionally
      *        when it reads a row's @c command and @c flag cells.
      *
@@ -1659,6 +1707,9 @@ struct Validator : jam::MarkdownValidator
         if (const auto result { isPlaceholders (model, templateDocument) }; not result.wasOk())
             return result;
 
-        return isSourceCountValid (model, templateDocument);
+        if (const auto result { isSourceCountValid (model, templateDocument) }; not result.wasOk())
+            return result;
+
+        return isItemSourceCountValid (model, templateDocument);
     }
 };

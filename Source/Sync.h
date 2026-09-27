@@ -8,8 +8,8 @@
 
 /**
  * @struct Sync
- * @brief Mirrors one framework's kernel onto another's, per SPEC §2.2 --
- *        parses each root's own @c user-modules-info.md, validates the
+ * @brief Mirrors one framework's kernel onto another's -- parses each
+ *        root's own @c user-modules-info.md, validates the
  *        sync-specific gates through Validator, then walks, transforms,
  *        writes, and mirror-deletes the source's own kernel scopes into
  *        the target root.
@@ -31,10 +31,11 @@ struct Sync
      * @param sourceRoot The framework root sync reads from.
      * @param targetRoot The framework root sync writes and mirror-deletes
      *                   into.
+     * @param formatter  The writer every re-canonicalized .md file renders through.
      * @returns juce::Result::ok() when the sync run succeeds, or the
      *          first failing gate's or step's result.
      */
-    static juce::Result run (const juce::File& sourceRoot, const juce::File& targetRoot)
+    static juce::Result run (const juce::File& sourceRoot, const juce::File& targetRoot, const jam::MarkdownWriter& formatter)
     {
         const auto sourceInfoFile { getInfoFile (sourceRoot) };
         const auto targetInfoFile { getInfoFile (targetRoot) };
@@ -56,7 +57,7 @@ struct Sync
             not result.wasOk())
             return result;
 
-        return runGates (sourceRoot, targetRoot, *sourceInfo, *targetInfo);
+        return runGates (sourceRoot, targetRoot, *sourceInfo, *targetInfo, formatter);
     }
 
 private:
@@ -73,7 +74,7 @@ private:
 
     /**
      * @brief Normalizes @p relativePath's own directory separators to
-     *        @c / (SPEC §2.2: "root-relative paths use / on every host").
+     *        @c / -- root-relative paths use @c / on every host.
      *
      * @param relativePath The root-relative path to normalize.
      * @returns @p relativePath with every backslash replaced by a slash.
@@ -92,11 +93,12 @@ private:
      *                   into.
      * @param sourceInfo @p sourceRoot's own parsed info file.
      * @param targetInfo @p targetRoot's own parsed info file.
+     * @param formatter  The writer every re-canonicalized .md file renders through.
      * @returns juce::Result::ok() when every gate and step succeeds, or
      *          the first failing one's result.
      */
     static juce::Result runGates (const juce::File& sourceRoot, const juce::File& targetRoot,
-        const Model& sourceInfo, const Model& targetInfo)
+        const Model& sourceInfo, const Model& targetInfo, const jam::MarkdownWriter& formatter)
     {
         static const auto filePrefixKeyText { Id::filePrefix.toString() };
         const auto sourceFilePrefix { getIdentityValue (sourceInfo, filePrefixKeyText) };
@@ -113,7 +115,7 @@ private:
             return result;
 
         return runWalk (sourceRoot, targetRoot, sourceInfo, targetInfo, sourceFilePrefix, targetFilePrefix,
-            sourceKernelNames, targetKernelNames);
+            sourceKernelNames, targetKernelNames, formatter);
     }
 
     /**
@@ -179,13 +181,14 @@ private:
      *                          module names.
      * @param targetKernelNames @p targetRoot's own @c kernel-classed
      *                          module names.
+     * @param formatter         The writer every re-canonicalized .md file renders through.
      * @returns juce::Result::ok() when the walk, contamination check, and
      *          transform all succeed, or the first failure's result.
      */
     static juce::Result runWalk (const juce::File& sourceRoot, const juce::File& targetRoot,
         const Model& sourceInfo, const Model& targetInfo, const juce::String& sourceFilePrefix,
         const juce::String& targetFilePrefix, const jam::HashSet<juce::String>& sourceKernelNames,
-        const jam::HashSet<juce::String>& targetKernelNames)
+        const jam::HashSet<juce::String>& targetKernelNames, const jam::MarkdownWriter& formatter)
     {
         const auto identityRows { getIdentityRows (sourceInfo, targetInfo) };
         const auto namespaceValues { getIdentityValues (sourceInfo, targetInfo, Id::tokenNamespace.toString()) };
@@ -201,15 +204,15 @@ private:
             return result;
 
         return runTransform (sourceFiles, sourceRoot, targetRoot, sourceFilePrefix, targetFilePrefix, sourceInfo,
-            targetInfo, identityRows, namespaceSpacePair, namespaceColonPair, targetKernelNames);
+            targetInfo, identityRows, namespaceSpacePair, namespaceColonPair, targetKernelNames, formatter);
     }
 
     /**
      * @brief Runs getContaminationCheck() over every one of @p sourceFiles,
      *        one juce::ThreadPool job per file, reading each file solely
      *        for the check and discarding its content -- the first pass
-     *        of Sync's own two-pass walk (SPEC §2.2's contamination fatal
-     *        must stop the run before any write, never after).
+     *        of Sync's own two-pass walk. The contamination fatal
+     *        must stop the run before any write, never after.
      *
      * @param sourceFiles         The source's own walked, ignore-filtered
      *                            files.
@@ -273,6 +276,7 @@ private:
      *                           @c "namespace <target>" pair.
      * @param namespaceColonPair The @c "<source>::" to @c "<target>::"
      *                           pair.
+     * @param formatter          The writer every re-canonicalized .md file renders through.
      * @returns Each file's own getSyncOutcome() result, in @p sourceFiles'
      *          own order.
      */
@@ -280,18 +284,18 @@ private:
         const juce::File& sourceRoot, const juce::File& targetRoot, const juce::String& sourceFilePrefix,
         const juce::String& targetFilePrefix, const Model& sourceInfo, const Model& targetInfo,
         const jam::Array<const Model::Element*>& identityRows, const std::pair<juce::String, juce::String>& namespaceSpacePair,
-        const std::pair<juce::String, juce::String>& namespaceColonPair)
+        const std::pair<juce::String, juce::String>& namespaceColonPair, const jam::MarkdownWriter& formatter)
     {
         jam::Array<std::pair<juce::String, juce::String>> syncResults;
         syncResults.resize (sourceFiles.size());
 
         Jobs::run (sourceFiles.size(),
             [&sourceFiles, &sourceRoot, &targetRoot, &sourceFilePrefix, &targetFilePrefix, &sourceInfo, &targetInfo,
-                &identityRows, &namespaceSpacePair, &namespaceColonPair, &syncResults] (int index)
+                &identityRows, &namespaceSpacePair, &namespaceColonPair, &formatter, &syncResults] (int index)
             {
                 syncResults.at (index) = getSyncOutcome (sourceFiles.at (index), sourceRoot, targetRoot,
                     sourceFilePrefix, targetFilePrefix, sourceInfo, targetInfo, identityRows, namespaceSpacePair,
-                    namespaceColonPair);
+                    namespaceColonPair, formatter);
             });
 
         return syncResults;
@@ -321,6 +325,7 @@ private:
      *                           pair.
      * @param targetKernelNames  The target's own @c kernel-classed module
      *                           names, passed through to runReport().
+     * @param formatter          The writer every re-canonicalized .md file renders through.
      * @returns juce::Result::ok() when every file writes successfully and
      *          runReport() succeeds, or the first failure's result.
      */
@@ -329,10 +334,11 @@ private:
         const Model& sourceInfo, const Model& targetInfo, const jam::Array<const Model::Element*>& identityRows,
         const std::pair<juce::String, juce::String>& namespaceSpacePair,
         const std::pair<juce::String, juce::String>& namespaceColonPair,
-        const jam::HashSet<juce::String>& targetKernelNames)
+        const jam::HashSet<juce::String>& targetKernelNames, const jam::MarkdownWriter& formatter)
     {
         const auto syncResults { getSyncResults (sourceFiles, sourceRoot, targetRoot, sourceFilePrefix,
-            targetFilePrefix, sourceInfo, targetInfo, identityRows, namespaceSpacePair, namespaceColonPair) };
+            targetFilePrefix, sourceInfo, targetInfo, identityRows, namespaceSpacePair, namespaceColonPair,
+            formatter) };
 
         jam::Array<juce::String> writtenPaths;
 
@@ -426,7 +432,7 @@ private:
 
     /**
      * @brief Builds the @c "namespace <source>" to @c "namespace <target>"
-     *        composed pair (SPEC §2.2).
+     *        composed pair.
      *
      * @param sourceValue The source's own @c namespace identity value.
      * @param targetValue The target's own @c namespace identity value.
@@ -443,8 +449,7 @@ private:
     }
 
     /**
-     * @brief Builds the @c "<source>::" to @c "<target>::" composed pair
-     *        (SPEC §2.2).
+     * @brief Builds the @c "<source>::" to @c "<target>::" composed pair.
      *
      * @param sourceValue The source's own @c namespace identity value.
      * @param targetValue The target's own @c namespace identity value.
@@ -460,10 +465,10 @@ private:
     /**
      * @brief Returns every identity row present in both @p sourceInfo and
      *        @p targetInfo, the @c namespace row excluded (it contributes
-     *        no plain pair, SPEC §2.2), sorted longest-source-first, ties
+     *        no plain pair), sorted longest-source-first, ties
      *        broken by source text descending.
      *
-     * The parsed @p sourceInfo Model is the store (SPEC §11.1) -- this
+     * The parsed @p sourceInfo Model is the store -- this
      * returns pointers into its own identity table, never a copy of the
      * cell values themselves; getRowPair() and isRowWordBoundary() read
      * those cells at application time.
@@ -537,7 +542,7 @@ private:
 
     /**
      * @brief Answers whether @p row's own @c boundary cell is @c word --
-     *        the row matches whole words only (SPEC §2.2).
+     *        the row matches whole words only.
      *
      * @param sourceInfo The parsed info file @p row belongs to.
      * @param row        The identity row to test.
@@ -608,8 +613,8 @@ private:
     /**
      * @brief Walks @p identityRows and the two composed namespace pairs
      *        as one merged, longest-source-first sequence, invoking
-     *        @p visit once per pair in that order -- SPEC §2.2's "one
-     *        ordered replacement list, longest source first," ties broken
+     *        @p visit once per pair in that order -- one
+     *        ordered replacement list, longest source first, ties broken
      *        by source text descending.
      *
      * @tparam Visitor Callable invoked as
@@ -694,7 +699,7 @@ private:
 
     /**
      * @brief Returns the first pair's own target value that @p text
-     *        already contains -- SPEC §2.2's contamination check, word
+     *        already contains -- the contamination check, word
      *        pairs tested through Transforms::containsWholeWord(), every
      *        other pair through plain containment.
      *
@@ -748,8 +753,8 @@ private:
 
     /**
      * @brief Returns every module row's own name whose @c class cell is
-     *        @c kernel -- every other class value is provision (SPEC
-     *        §2.2) and is never walked.
+     *        @c kernel -- every other class value is provision
+     *        and is never walked.
      *
      * @param info The parsed info file whose module table is read.
      * @returns @p info's own @c kernel-classed module names.
@@ -784,8 +789,8 @@ private:
     }
 
     /**
-     * @brief Answers whether @p relativePath matches any of @p patterns
-     *        (SPEC §2.2's @c * wildcard ignore match).
+     * @brief Answers whether @p relativePath matches any of @p patterns,
+     *        each tested as a @c * wildcard ignore match.
      *
      * @param relativePath The root-relative, @c /-normalized path to
      *                     test.
@@ -848,7 +853,7 @@ private:
     }
 
     /**
-     * @brief Normalizes @p text's own line endings to LF (SPEC §10).
+     * @brief Normalizes @p text's own line endings to LF.
      *
      * @param text The text to normalize.
      * @returns @p text with every CRLF pair replaced by a bare LF.
@@ -864,25 +869,24 @@ private:
 
     /**
      * @brief Parses @p text fresh and renders it back through the
-     *        markdown formatter (SPEC §3.3) -- the re-canonicalization a
+     *        markdown formatter -- the re-canonicalization a
      *        prefix-less @c .md kernel scope's own files receive after
      *        the transform.
      *
-     * @param text The already-transformed markdown text to canonicalize.
+     * @param text      The already-transformed markdown text to canonicalize.
+     * @param formatter The writer every re-canonicalized .md file renders through.
      * @returns @p text's own canonical rendering.
      */
-    static juce::String getCanonicalMarkdown (const juce::String& text)
+    static juce::String getCanonicalMarkdown (const juce::String& text, const jam::MarkdownWriter& formatter)
     {
-        static const jam::MarkdownWriter formatter;
-
         const auto document { jam::MarkdownDocument::parse (text) };
         return formatter.getText (document);
     }
 
     /**
      * @brief Replaces @p sourceFilePrefix with @p targetFilePrefix in
-     *        every segment of @p relativePath (SPEC §2.2: @c filePrefix
-     *        "transforms every path segment -- directory names and file
+     *        every segment of @p relativePath -- @c filePrefix
+     *        transforms every path segment -- directory names and file
      *        names alike").
      *
      * @param relativePath      The root-relative path to transform.
@@ -901,8 +905,7 @@ private:
 
     /**
      * @brief Returns @p relativePath's own leading path segment -- the
-     *        kernel scope's own name the re-canonicalization gate (SPEC
-     *        §2.2) reads.
+     *        kernel scope's own name the re-canonicalization gate reads.
      *
      * @param relativePath The root-relative path whose own kernel scope
      *                     is read.
@@ -918,7 +921,7 @@ private:
 
     /**
      * @brief Answers whether @p data carries a NUL byte in its first 8000
-     *        bytes (SPEC §2.2's binary-file test).
+     *        bytes -- the binary-file test.
      *
      * @param data The raw file bytes to scan.
      * @returns @c true when a NUL byte appears within @p data's own first
@@ -999,7 +1002,7 @@ private:
     /**
      * @brief Renames @p targetFile's own case-differing sibling, if any,
      *        onto @p targetFile -- a case-sensitive host's own reconciler
-     *        for a case-insensitive-authored path (SPEC §2.2).
+     *        for a case-insensitive-authored path.
      *
      * @param targetFile The output file whose parent directory is
      *                   scanned for a case-differing sibling.
@@ -1129,6 +1132,7 @@ private:
      *                           @c "namespace <target>" pair.
      * @param namespaceColonPair The @c "<source>::" to @c "<target>::"
      *                           pair.
+     * @param formatter          The writer every re-canonicalized .md file renders through.
      * @returns getWriteOutcome()'s own result, or an empty string paired
      *          with a read-failure diagnostic naming @p sourceFile when it
      *          cannot be read.
@@ -1137,7 +1141,7 @@ private:
         const juce::File& sourceRoot, const juce::File& targetRoot, const juce::String& sourceFilePrefix,
         const juce::String& targetFilePrefix, const Model& sourceInfo, const Model& targetInfo,
         const jam::Array<const Model::Element*>& identityRows, const std::pair<juce::String, juce::String>& namespaceSpacePair,
-        const std::pair<juce::String, juce::String>& namespaceColonPair)
+        const std::pair<juce::String, juce::String>& namespaceColonPair, const jam::MarkdownWriter& formatter)
     {
         const auto rootRelativePath { getNormalizedPath (sourceFile.getRelativePathFrom (sourceRoot)) };
         const auto targetRelativePath { getTransformedPath (rootRelativePath, sourceFilePrefix, targetFilePrefix) };
@@ -1158,7 +1162,7 @@ private:
         const auto kernelScopeName { getKernelScopeName (rootRelativePath) };
 
         if (sourceFile.hasFileExtension (Extensions::md) and not kernelScopeName.startsWith (sourceFilePrefix))
-            transformed = getCanonicalMarkdown (transformed);
+            transformed = getCanonicalMarkdown (transformed, formatter);
 
         return getWriteOutcome (targetFile, targetRelativePath, false, transformed, juce::MemoryBlock {});
     }
@@ -1166,8 +1170,8 @@ private:
     /**
      * @brief Deletes every file under @p targetKernelNames' own
      *        directories at @p targetRoot with no matching entry in
-     *        @p expectedTargetPaths and no @p targetIgnorePatterns match
-     *        (SPEC §2.2's mirror-delete).
+     *        @p expectedTargetPaths and no @p targetIgnorePatterns match --
+     *        the mirror-delete.
      *
      * @param targetRoot           The framework root mirror-delete walks.
      * @param targetKernelNames    @p targetRoot's own @c kernel-classed
@@ -1207,7 +1211,7 @@ private:
 
     /**
      * @brief Returns @p paths' own non-empty entries, sorted ascending --
-     *        the report's own deterministic line order (SPEC §2.2).
+     *        the report's own deterministic line order.
      *
      * @param paths The candidate paths, some possibly empty.
      * @returns @p paths' own non-empty entries, sorted.
@@ -1227,7 +1231,7 @@ private:
     /**
      * @brief Prints @p writtenPaths then @p deletedPaths to stdout, each
      *        sorted through getReportLines(), one path per line -- the
-     *        run's own report (SPEC §2.2). Zero lines means the roots
+     *        run's own report. Zero lines means the roots
      *        are already in sync.
      *
      * @param writtenPaths The paths the run actually wrote.

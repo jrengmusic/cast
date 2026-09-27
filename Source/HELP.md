@@ -17,7 +17,7 @@ Arguments select what runs. They never carry generation rules.
 - `cast` — find `spell.md` here, format each declared markdown file, regenerate each declared output, then run the default-flow `## toolchain` rows
 - `cast <path>/spell.md` — the same, with a specific manifest
 - `cast spell.md <directory>` — write each declared output under that directory in place of the declared paths
-- `cast spell.md --format` or `cast --format spell.md` — format only, no generation; the flag reads before or after the manifest
+- `cast --format -i spell.md` — format only, in place: the manifest and each markdown file that its index declares; no generation
 - `cast spell.md --no-format` or `cast --no-format spell.md` — generate only, no formatting
 - `cast spell.md --<word>` — after format and generate, run only the `## toolchain`
   rows whose `argument` cell equals `word`; the default-flow rows do not run
@@ -25,17 +25,40 @@ Arguments select what runs. They never carry generation rules.
 - `cast --help` — this guide
 - `--line-wrap n` — a value pair, in any position on the line; it composes with
   `--format`, `--no-format` and the manifest argument. It must be a positive integer —
-  any other value is fatal — and defaults to 100. It breaks a paragraph at UAX #14
-  line-break opportunities only: a token wider than the wrap stands whole on its own
-  line. Grid cells wrap only where `## format` names a column
+  any other value is fatal. It overrides the style file's `line-wrap` row, and the
+  default is 100. It breaks a paragraph at UAX #14 line-break opportunities only: a
+  token wider than the wrap stands whole on its own line. Grid cells wrap only where
+  the style file's `## format` names a column
 
-The default order is format, then generate, then the default-flow toolchain rows. `--format` and `--no-format` exclude each other. Each also excludes an output directory and a `--<word>` toolchain argument. One manifest, one flag, nothing else on the line.
+The default order is format, then generate, then the default-flow toolchain rows. A manifest run finds its style file before it reads anything, with or without `--no-format` (see Style File). `--format` and `--no-format` exclude each other. `--no-format` takes one manifest, one flag, nothing else on the line.
+
+### --format — a markdown formatter
+
+`cast --format` formats any markdown file with the command line of clang-format:
+
+```
+cast --format [-i] [--style=file:<path>] [--assume-filename=<path>] [--line-wrap n] [<file> ...]
+```
+
+- `cast --format a.md` — write the canonical text of `a.md` to stdout; the file does not change
+- `cast --format -i a.md b.md` — write each file in place, write-if-different; stdout stays empty
+- `cast --format` or `cast --format -` — read stdin, write stdout
+- `--style=file:<path>` — use this style file, any name; `--style=file` searches, the default
+- `--assume-filename=<path>` — the stdin input only (no file argument, or `-`): start the style search at this path; a diagnostic names its file
+
+Flag words match exactly: `--line-wrap=40` or `--format=x` is an unknown flag.
+
+A manifest with `-i` formats the manifest and each markdown file that its index declares. A manifest without `-i` prints the manifest file only. A file argument wins over stdin. The flags read in any position.
+
+On success the exit is 0 and stdout holds only the canonical text, LF line ends, UTF-8 — no success line, no screen clear. On failure the exit is non-zero, stdout is empty, and stderr holds the diagnostic; for stdin without `--assume-filename`, the file part is `<stdin>`. `-i` with stdin is fatal. Any other dash argument is an unknown flag, and is fatal.
 
 ---
 
 ## Sync
 
-`cast --sync <source-root> <target-root>` mirrors one framework's kernel onto another's. It composes with nothing else on the line — no manifest, no other flag — and a `--sync` line without exactly its two roots is fatal.
+`cast --sync [--style=file:<path>] <source-root> <target-root>` mirrors one framework's kernel onto another's. It composes with nothing else on the line — no manifest, no other flag except `--style=file:<path>` — and a `--sync` line without exactly its two roots is fatal.
+
+Sync writes the target, thus the target's style file formats each re-canonicalized `.md` file: `--style=file:<path>` first, then `.cast-format` or `_cast-format` in `<target-root>/cast/`, else none (no column reflows, wrap 100). Sync does no directory search. A style file in the source root has no effect.
 
 Each root carries a `user-modules-info.md` file at its top level: `## identity` (`key | value | boundary`), `## module` (`name | class`, plus data columns manifest wiring reads, never sync), and `## ignore` (`value`). The two roots must differ. Sync reads exactly these three tables — any other table in the file belongs to the manifest and is never read by sync.
 
@@ -100,7 +123,7 @@ A cell is one of these forms:
 
 | Cell           | Meaning                                                                       |
 | -------------- | ----------------------------------------------------------------------------- |
-| plain text     | that text, verbatim                                                           |
+| plain text     | that text, after markdown backslash escapes                                   |
 | `` `text` ``   | `toLiteral` of those bytes — quoted and escaped, ready to drop into a literal |
 | a fenced block | the same, over a datum that spans lines                                       |
 | empty          | nothing — an empty string                                                     |
@@ -124,7 +147,9 @@ That cell's value begins with a line break, because the fence's first content li
 
 Pipes delimit a cell on each line that the cell spans. In a grid table, the first space after the opening pipe is padding. The spaces before the closing pipe are padding. `|this|` and `| this |` are the same datum, and the formatter rewrites the first as the second. Every other byte is data, inside a fence too. A second space after the opening pipe is a leading space of the value. Indentation inside a fence survives. A pipe table keeps GFM: both sides of a cell are trimmed.
 
-A cell in a column that `## format` names is one line of value. When the formatter wraps it, the rows are layout. A break at a space moves that space to the start of the next row. A cut inside a long token moves nothing. The reader joins the rows with nothing between. Thus the value reads the same at every width, and the formatter never adds a character. Such a value has no line break of its own; write a newline inside it as the two characters `\n`. A cell in any other column keeps your lines as lines, and the formatter never rewraps it. A fence keeps your lines in every column. The pipe is the one escape: `\|` is a data pipe.
+A plain cell reads through the markdown inline parse. A backslash before an ASCII punctuation character is an escape: CAST keeps the character and drops the backslash. Thus `x\\y` reads `x\y`, and `\<x\>` reads `<x>`. A backtick span or a fence has no such escapes — its bytes are the value.
+
+A cell in a column that the style file's `## format` names is one line of value. When the formatter wraps it, the rows are layout. A break at a space moves that space to the start of the next row. A cut inside a long token moves nothing. The reader joins the rows with nothing between. Thus the value reads the same at every width, and the formatter never adds a character. Such a value has no line break of its own; write a newline inside it as the two characters `\n`. A cell in any other column keeps your lines as lines, and the formatter never rewraps it. A fence keeps your lines in every column. The row scanner has one escape, the pipe: `\|` is a data pipe.
 
 You can also write a space as `U+0020` and put `fromUTF8` in the row's `format` cell:
 
@@ -319,7 +344,7 @@ A wiring table is any manifest table with a `structure` column — `## output` a
 `- [list]: <source>` lines. Each one paired with a structure `- [list]:` line is an expansion, and the source says what feeds it:
 
 - an address — `- [list]: @xml:XmlTokenType` iterates that table's rows. When the addressed table carries a `file` column, the row that matches the writing row's own file is excluded — a file never lists itself, the same as the column-name form below
-- a column address — `- [list]: @colours:colours:key` names one column of the enclosing expansion's table. It feeds an **inline** `:::[list]:::`, never a column-0 one
+- a column address — `- [list]: @colours:colours:key` names one column of the enclosing expansion's table. It feeds an **inline** `:::[list]:::`, never a column-0 one. With one inline slot, every column address fills it, joined by the separator line: `{ :::[list]::: },` with `key` and `alt` and a `comma` separator whose text is `,` gives `{ foo,bar },`. With two or more slots, slot k takes the k-th column address: `{ :::[list]::: = :::[list]::: },` gives `{ foo = bar },`. Fewer addresses fill the trailing slots, and the leading slots render empty; more addresses than slots is fatal
 - a cell-match filter — `- [list]: @file:table:column=value` iterates only that table's rows whose `column` cell equals `value`, byte for byte (see Filtering rows by a cell)
 - a column name — `- [list]: file` iterates the unique values of that column, in first-appearance order, and excludes the value that belongs to the writing row's own file: a file never lists itself
 - a binding name — `- [list]: instance` selects the rows that declare a binding of that name, blank or valued. It walks the wiring tables in manifest order and each table's rows in authored order
@@ -330,7 +355,7 @@ A `- [list]:` line with no structure partner at its `>` count is a **map** for t
 
 ### structure — what shape
 
-Two lines name a shape. `@code:namespace` renders it one time. `- [list]: @code:<id>` renders it one time per item of the line's source. Both are sources: each fills one `:::[list]:::` of the shape above it. A named bullet binds one token of the nearest shape line above it: `- name: jam` fills its `:::name:::`.
+Two lines name a shape. `@code:namespace` renders it one time. `- [list]: @code:<id>` renders it one time per item of the line's source. Both are sources: each fills one `:::[list]:::` of the shape above it. A named bullet binds one token of the nearest bare shape line above it at its `>` count: `- name: jam` fills its `:::name:::`. A named bullet never binds an item shape (`- [list]: @code:<id>`). An item shape takes each token from a map or from the column of that name in its source row, so put per-row values in row columns.
 
 A named bullet whose value is a shape address is a **wrapper** — a third way that a shape enters, through a named token in place of a `:::[list]:::` slot. See Wrappers below.
 
@@ -497,19 +522,31 @@ The `@` sigil law (a `@`-sigiled value is a reference, never data) separates thi
 
 `cast spell.md` configures and builds `Builds/Ninja` in Release. `cast spell.md --debug` configures and builds `Builds/Debug` in Debug — the two default-flow rows do not run.
 
-### format — column widths
+### Style File — column widths and line wrap
 
-`## format` is an optional table, `| name | width |`, reserved by name — not by file, like `## toolchain`. The table name and the reserved column name `format` do not meet. One names a table, the other a cell. `name` is a column name and an identity column: a column named two times is the duplicate fatal. `width` is that column's wrap width, a positive integer. Every grid table that carries a column of that name reflows its body cells at that width. A named cell is one line of value: its soft line breaks collapse first, then the text wraps, and each break moves the space it consumed to the start of the next row. A column the table does not name keeps its natural width and its lines. No `## format` table means no column reflows. A split is layout only. The reader joins a named cell's rows with nothing between, so the value reads the same at every width. Nothing is added. A fenced cell is verbatim and never rewraps. The table is data the reader depends on: to unname a column whose cells are wrapped, first format at a width that holds every value on one row, then remove the row — otherwise the wrapped rows read as your lines. A grid table whose body has no border between rows never splits.
+The formatter configuration lives in a style file, like `.clang-format` — never in the manifest. The search finds two names, `.cast-format` and `_cast-format`; when one directory holds both, `.cast-format` wins. `--style=file:<path>` takes any name.
+
+The first match wins:
+
+1. `--style=file:<path>` on the line.
+2. For a manifest run (`cast spell.md`, `cast --format -i spell.md`): the style file beside the manifest.
+3. The directory of the formatted file, then each parent directory. For stdin: the `--assume-filename` path, else the working directory.
+4. None: no column reflows, and the wrap is 100 or `--line-wrap n`.
+
+Each input uses one style file, or none; two style files never merge. A manifest run is one input — its style covers every file its index declares. Several files on one `--format` line each find their own.
+
+The style file holds one `## format` table, `| name | width |`. A `## format` table in any other file is an ordinary data table: no formatter meaning, no error. One reserved row, `line-wrap`, sets the paragraph wrap; `--line-wrap n` overrides it. It is not a column. `name` is a column name and an identity column: a column named two times is the duplicate fatal. `width` is that column's wrap width, a positive integer. Every grid table that carries a column of that name reflows its body cells at that width. A named cell is one line of value: its rows join with nothing first, then the text wraps, and each break moves the space it consumed to the start of the next row. A column the table does not name keeps its natural width and its lines. No style file means no column reflows. A split is layout only. The reader joins a named cell's rows with nothing between, so the value reads the same at every width. Nothing is added. A fenced cell is verbatim and never rewraps. The table is data the reader depends on: to unname a column whose cells are wrapped, first format at a width that holds every value on one row, then remove the row — otherwise the wrapped rows read as your lines. A grid table whose body has no border between rows never splits.
 
 ```
-+---------+-------+
-| name    | width |
-+=========+=======+
-| comment | 40    |
-+---------+-------+
++-----------+-------+
+| name      | width |
++===========+=======+
+| comment   | 40    |
+| line-wrap | 100   |
++-----------+-------+
 ```
 
-A header row without `name` or `width`, or a `width` cell that is not a positive integer, is fatal — during formatting only.
+A style-file header row without `name` or `width`, or a `width` cell that is not a positive integer, is fatal. CAST checks the style file before it reads any input.
 
 ### Regions — patching an existing file
 
@@ -746,16 +783,16 @@ omitted row.
 
 ## Canonical Markdown
 
-CAST rewrites each declared markdown file to canonical form, write-if-different.
+CAST rewrites each declared markdown file to canonical form, write-if-different, and prints the canonical form of each file or stdin text on a `--format` line.
 
-- layout only — cell content, row order and authored borders all survive; a column that `## format` names reflows at its width, backtick literals included; a fenced cell is never rewrapped
+- layout only — cell content, row order and authored borders all survive; a column that the style file's `## format` names reflows at its width, backtick literals included; a fenced cell is never rewrapped
 - the formatter re-emits borders exactly where you authored them. It neither adds nor removes one
 - columns pad to their widest cell, on each line of each cell, a fence's content lines included — the right edge is always aligned, and `|this|` comes back as `| this |`
 - `format (format (x)) == format (x)` — a canonical file reformats to itself, byte for byte
 - a value reads the same before and after `--format`, at every width — a split is layout, never a change of value
 - a malformed table is reported with its `path:line`, and the file is never rewritten
 
-A grid-table body cell in a column that `## format` names (see format — column widths)
+A grid-table body cell in a column that the style file's `## format` names (see Style File)
 reflows at that width. A named cell is one line of value. Its rows join with nothing
 first, then the text breaks at UAX #14 opportunities, and each break moves the space it
 consumed to the start of the next row. A run with no opportunity that is wider than the
@@ -763,12 +800,12 @@ width is cut at the width by display width. A backtick literal breaks like any o
 text. Every row boundary is proven against the reader — the rows must read back as the
 value — and moves one character earlier until it does. The reader joins the rows with
 nothing between (see "A cell is one of these forms"). A fenced cell is verbatim: the
-formatter never rewraps its lines. A column that `## format` does not name keeps its
+formatter never rewraps its lines. A column that the style file does not name keeps its
 natural width — no split. A grid table whose body has no border between rows never
 splits — a split line would carry an empty first cell, and the row law would then read
-the body differently. A paragraph reflows at
-`--line-wrap`, default 100, at UAX #14 opportunities only; a token wider than the wrap
-stands whole. No wrapped line starts a block. The format stays a fixpoint under every
+the body differently. A paragraph reflows at the line wrap —
+`--line-wrap`, else the style file's `line-wrap` row, else 100 — at UAX #14 opportunities only; a token wider than the wrap
+stands whole. A paragraph never breaks inside a backtick span, at any depth — a line ending there would read as a space. No wrapped line starts a block. The format stays a fixpoint under every
 rule.
 
 ---

@@ -34,6 +34,7 @@ namespace Id
  */
 
 inline const juce::Identifier argument         { juce::String::fromUTF8 ("argument")           };///< Toolchain table argument column.
+inline const juce::Identifier assumeFilename   { juce::String::fromUTF8 ("assume-filename")    };///< --assume-filename CLI flag word — stdin style search start.
 inline const juce::Identifier banner           { juce::String::fromUTF8 ("banner")             };///< Banner artwork key.
 inline const juce::Identifier blockLine        { juce::String::fromUTF8 ("blockLine")          };///< Block-comment continuation-line glyph key.
 inline const juce::Identifier syncBoundary     { juce::String::fromUTF8 ("boundary")           };///< Sync identity-row boundary column key.
@@ -45,6 +46,7 @@ inline const juce::String     fromCodepoint    { juce::String::fromUTF8 ("from c
 inline const juce::String     fromUTF8         { juce::String::fromUTF8 ("from UTF8")          };///< UTF-8 decode operation.
 inline const juce::Identifier identity         { juce::String::fromUTF8 ("identity")           };///< Sync info-file identity table name.
 inline const juce::Identifier ignore           { juce::String::fromUTF8 ("ignore")             };///< Sync info-file ignore table name.
+inline const juce::Identifier inPlace          { juce::String::fromUTF8 ("i")                  };///< -i CLI flag word — format in place.
 inline const juce::String     join             { juce::String::fromUTF8 ("join")               };///< Join text operation.
 inline const juce::Identifier kernel           { juce::String::fromUTF8 ("kernel")             };///< Sync module-row class keyword — a walked directory.
 inline const juce::Identifier lineWrap         { juce::String::fromUTF8 ("line-wrap")          };///< Prose reflow width CLI flag word.

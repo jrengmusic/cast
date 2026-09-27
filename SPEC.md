@@ -24,6 +24,11 @@ The engine hardcodes these items and no other items:
 - the reserved column names `format`, `comment`, `brief`, and `value` (map payload, §6.5)
 - the identity column names `name`, `key`, `alias`, `file` (§5.3)
 - the toolchain table name and its columns
+- the style file names `.cast-format` and `_cast-format`, its `## format` table name, its
+  columns `name` and `width`, the reserved row name `line-wrap`, and the sync style
+  directory `cast` (§6.11, §2.2)
+- the `--format` flag words `-i`, `--style=file`, `--style=file:`, `--assume-filename=`,
+  the stdin argument `-`, and the stdin file name `<stdin>` (§2.1)
 - the manifest-syntax table name (§5.4)
 - the operation keywords
 - the sync file name `user-modules-info.md`, its table names `identity`, `module`,
@@ -66,6 +71,9 @@ Three kinds of artifact exist, all flat in one data directory:
 The manifest's index declares each input file exactly one time. CAST parses the files
 that the index declares. CAST does not scan a directory and does not glob.
 
+The style search (§6.11) is the one exception. It checks two fixed names in a directory,
+`.cast-format` and `_cast-format`. It is not a glob, and it reads no other file.
+
 Generated outputs are build artifacts. Do not edit a generated output by hand.
 
 ### 2.1 Invocation
@@ -73,8 +81,9 @@ Generated outputs are build artifacts. Do not edit a generated output by hand.
 The command line selects what runs. The command line never carries a generation rule.
 
 ```
-cast [<manifest>] [<directory> | --format | --no-format | --<word>] [--line-wrap n]
-cast --sync <source-root> <target-root>
+cast --format [-i] [--style=file:<path>] [--assume-filename=<path>] [--line-wrap n] [<file> ...]
+cast [<manifest>] [<directory> | --no-format | --<word>] [--line-wrap n]
+cast --sync [--style=file:<path>] <source-root> <target-root>
 cast --version
 cast --help
 ```
@@ -82,29 +91,63 @@ cast --help
 - No arguments: the manifest is `spell.md` in the working directory.
 - `<manifest>`: a manifest path. The flag reads before or after it.
 - `--line-wrap n`: a value pair, in any position on the line. It composes with
-  `--format`, `--no-format` and the manifest argument. §3.3 governs its effect.
+  `--format`, `--no-format` and the manifest argument. It overrides the `line-wrap` row
+  of the resolved style file (§6.11). §3.3 governs its effect.
 - `--line-wrap` must be a positive integer — any other value is fatal (§10.1). Grid
-  cells wrap only where `## format` names a column (§6.11); there is no other width lane.
+  cells wrap only where the style file's `## format` names a column (§6.11); there is no
+  other width lane.
 - `<directory>`: each declared output writes under this directory, in place of the
   declared paths' default root. The engine resolves the directory against the
   manifest's own directory.
 - The default order is format, then generate, then the default-flow toolchain rows
-  (§6.9).
-- `--format`: format only. The engine re-canonicalizes each declared markdown file
-  (§3.3), write-if-different. No generation and no toolchain occur.
+  (§6.9). The run resolves its style file before the parse (§6.11), with or without
+  `--no-format`.
 - `--no-format`: generate only. No format occurs.
 - `--<word>`: after format and generate, the engine runs only the `## toolchain` rows
   whose `argument` cell equals `word` (§6.9). The default-flow rows do not run.
 - `--sync`: no manifest — the two arguments are framework root directories, and the
-  run follows §2.2 alone. It composes with nothing else on the line, and a `--sync`
-  line without exactly two roots is fatal (§10.1).
+  run follows §2.2 alone. It composes with nothing else on the line except
+  `--style=file:<path>`. A `--sync` line without exactly two roots is fatal (§10.1).
 - `--version`: the version and the source commit — the same stamp that the banners
   embed.
 - `--help`: the guide. HELP.md is derived from this specification and has no
   authority of its own (§1).
 
-`--format` and `--no-format` exclude each other. Each also excludes `<directory>` and
-`--<word>`. One manifest, one flag, nothing else on the line.
+**The `--format` line** is a markdown formatter with the command line of clang-format. The
+flags read in any position. The flag words are clang-format's words:
+
+| Flag                       | Meaning                                                     |
+| -------------------------- | ----------------------------------------------------------- |
+| `-i`                       | Write the canonical text back to each file, in place.       |
+| `--style=file:<path>`      | Use this style file. Any file name.                         |
+| `--style=file`             | Search for the style file (§6.11). The default.             |
+| `--assume-filename=<path>` | Stdin only: the path where the style search starts.         |
+
+1. No file argument: the engine reads stdin and writes the canonical text to stdout. A
+   file argument `-` also reads stdin.
+2. File arguments, no `-i`: the engine writes the canonical text of each file to stdout,
+   in argument order. The files on disk do not change.
+3. File arguments and `-i`: the engine writes each file in place, write-if-different.
+   Stdout stays empty.
+4. A manifest with `-i`: the engine formats the manifest and each markdown file that its
+   index declares, in place (§3.3).
+5. A manifest without `-i`: the engine writes the canonical text of the manifest file only
+   to stdout, the same as any other file.
+6. Stdin and a file argument together: the engine reads the file argument. It reads stdin
+   only when no file argument exists.
+7. Success: exit 0. Stdout holds only the canonical text. There is no success line and no
+   screen clear in `--format` mode, on a pipe or on a terminal.
+8. Failure: a non-zero exit. Stdout is empty. Stderr holds the diagnostic (§10). For stdin
+   input, the file part is the `--assume-filename` file name, or `<stdin>` when that flag
+   is absent.
+
+Stdout carries LF line ends only, on every host. Input and output are UTF-8.
+
+`--format` and `--no-format` exclude each other. `--format` also excludes `<directory>`
+and `--<word>`: on a `--format` line, a dash argument that the table above does not name,
+other than `--line-wrap`, is an unknown flag (§10.1). A flag word matches exactly:
+`--line-wrap=40` and `--format=x` are unknown flags. `--assume-filename=<path>` applies to
+the stdin input only — no argument, or the argument `-`. The `--no-format` line takes one manifest, one flag, nothing else.
 
 ### 2.2 Sync
 
@@ -147,6 +190,17 @@ write or delete that fails is fatal (§10.1). Before a write, a target file whos
 on-disk name differs from the transformed path only by case is renamed to the
 transformed path, so mirror-delete compares exact names on every host; a rename
 that fails is fatal as an output that cannot be written (§10).
+
+**The style.** A sync root is a framework root, and a framework root is a project. The
+re-canonicalization uses one style file (§6.11), the first match of:
+
+1. `--style=file:<path>` on the `--sync` line.
+2. `.cast-format`, then `_cast-format`, in `<target-root>/cast/`.
+3. None: no column reflows, and the line wrap is 100.
+
+Sync writes the target, thus the target's style applies, and the sync output matches the
+target's own `cast --format -i` run. Sync does no directory search. A style file in the
+source root has no effect.
 
 **Contamination.** A source text file that already contains a pair's target value
 is fatal, and the diagnostic names the file and the token (§10.1) — the transform
@@ -199,7 +253,7 @@ content. A second space after the flank is a leading space of the value. Thus `|
 and `| this |` are one datum, and `|  this |` carries one leading space. Trailing
 spaces before the fill cannot be authored; the author writes `U+0020` (§9).
 
-A cell in a column that `## format` names (§6.11) holds one line of value. Its rows in
+A cell in a column that the style file's `## format` names (§6.11) holds one line of value. Its rows in
 the file are the formatter's wrapping, never the author's lines. The reader joins them
 with nothing between. A break the formatter made at whitespace carries that whitespace
 at the head of the next row. A cut inside a token carries nothing. Such a value holds
@@ -209,6 +263,11 @@ lines. The reader keeps each row as one line, and the formatter never rewraps it
 fenced cell — ```` ``` ```` or ```` ```mermaid ```` — holds the author's lines in every
 column, and the formatter never rewraps it.
 
+A plain cell — no backtick span, no fence — reads through the markdown inline parse. A
+backslash before an ASCII punctuation character is an escape: the reader keeps the
+punctuation character and drops the backslash. Thus `x\\y` reads `x\y`, and `\<x\>` reads
+`<x>`. A backtick span has no escapes (above).
+
 To put a `|` in a cell, the author writes `\|`. The row scanner reads the backslash run
 before a pipe by parity: an odd run escapes the pipe and the run is halved, an even run
 leaves a delimiter. Thus a datum that is a backslash followed by a pipe is authored
@@ -216,7 +275,8 @@ leaves a delimiter. Thus a datum that is a backslash followed by a pipe is autho
 
 ### 3.3 Formatter
 
-CAST rewrites its own declared markdown to canonical form, write-if-different.
+CAST rewrites markdown to canonical form: its own declared markdown, write-if-different,
+and each file or stdin text on a `--format` line (§2.1).
 
 - layout only: cell content, row order and authored borders survive
 - the formatter re-emits borders exactly where the author put them
@@ -228,11 +288,12 @@ CAST rewrites its own declared markdown to canonical form, write-if-different.
   change of value
 - the engine reports a malformed table and never rewrites that file
 
-A grid-table body cell in a column that `## format` names (§6.11) reflows at that
+A grid-table body cell in a column that the style file's `## format` names (§6.11) reflows at that
 width. The formatter joins the cell's rows with nothing first — they are its own earlier
 wrapping. Then it breaks at UAX #14 opportunities, and each break moves the whitespace it
 consumed to the head of the next row. A run with no opportunity that is wider than the
-width is cut at the width by display width. A backtick span breaks like any other text.
+width is cut at the width by display width. In a named cell, a backtick span breaks like
+any other text.
 Every row boundary is then proven against the reader: the rows, trimmed and joined as
 the reader joins them, must read back as the value. Where they do not — a row ending on
 whitespace or a backslash, a row that would open a block, a cut inside a link or an
@@ -248,9 +309,11 @@ with nothing, every other row is a line.
 A column that `## format` does not name keeps its natural width — no split, under any
 flag. A grid table whose body has no border between rows never splits.
 A split line would carry an empty first cell, and §3.1 would then read the body by
-another row law. A paragraph reflows at `--line-wrap`, default 100, at UAX #14
+another row law. A paragraph reflows at the line wrap — `--line-wrap`, else the style
+file's `line-wrap` row (§6.11), else 100 — at UAX #14
 opportunities only. A token wider than the wrap stands whole on its own line, never
-cut. No wrapped line starts a block. The format stays a fixpoint under every rule.
+cut. A paragraph never breaks inside a backtick span, at any inline depth: a line ending
+inside a span reads as a space, thus the span stands whole like a token. No wrapped line starts a block. The format stays a fixpoint under every rule.
 
 ---
 
@@ -542,6 +605,11 @@ feeds the template token of that name, paired **by name**. The value is an addre
 a data symbol or a shape (§4.2) — or plain text. The engine resolves it the same way
 everywhere it reads a bullet value.
 
+A binding binds a token of the nearest bare shape line above it at its `>` count. It
+never binds an item shape, `- [list]: @template:fence`. An item shape takes each token in
+the order of §6.5: the source row's own binding, the maps, then the column of that name in
+the source row.
+
 A binding whose value is a shape address is a **wrapper**: that shape's rendering
 replaces the token of the binding's name. The wrapper is a shape line at its authored
 position in the structure column. It consumes the source lines that follow it,
@@ -592,7 +660,8 @@ its address (§4.2):
 Both are **sources**: each fills one `:::[list]:::` occurrence of the shape above it.
 The first line of the column is the row's own shape.
 
-A named bullet binds one token of the nearest shape line above it (§6.1). A wrapper
+A named bullet binds one token of the nearest bare shape line above it at its `>` count,
+never an item shape (§6.1). A wrapper
 (§6.1) is a shape line in this reading order: the bullets after it bind its tokens,
 and the source lines after it are its own to consume.
 
@@ -605,6 +674,12 @@ supply **more** sources than the row's shapes demand is fatal (§10.1). To suppl
 fewer is legal: the authored sources fill a shape's **trailing** slots, and the
 leading unfilled slots render empty and elide (§6.5). An under-supplied shape is the
 authored way to use part of a template.
+
+Column addresses under an item source (§6.5) feed that item shape's inline slots. An item
+shape with one `:::[list]:::` receives every column value, joined by its separator line.
+An item shape with two or more slots gives slot _k_ the _k_-th column value. Fewer values
+fill the trailing slots, and the leading slots render empty. More values than slots is the
+over-supply fatal above.
 
 A wrapper (§6.1) counts like a shape line, not like a source. It adds its own arity
 to the row's demand and supplies nothing — it fills a named token, never a
@@ -703,8 +778,9 @@ selectors on one row feed two slots by ordinal, like any two sources.
 An inline `:::[list]:::`'s sources are the column-address lines that follow the item
 shape's own source line. They sit at the **same** `>` count, at consecutive ordinals,
 in authored order — one line per column, and each line names its column. The current
-row's value of each addressed column fills the marker, joined by the within-line join
-(§6.6). No implicit column set exists: each consumed column is named.
+row's value of each addressed column fills the markers by the item-shape rule of §6.4: one
+marker takes every value, joined by the within-line join (§6.6); two or more markers take
+one value each, in order. No implicit column set exists: each consumed column is named.
 
 A list-column line with no structure partner is a map line (above). A structure
 `- [list]:` line, or a separator line past the row join, with no list-column line of
@@ -859,12 +935,16 @@ value that matches no line, or an `[end]` value whose first match is at or befor
 shared between a region row and a whole-file row is fatal (§10.1). Same-file region
 rows merge by the §6.7 law inside the one region.
 
-### 6.11 Format
+### 6.11 Style File
 
-`## format` is a reserved table name, and it is optional. The reservation is by name,
-not by file, exactly as `## toolchain` (§6.9): the engine looks the table up across the
-whole spliced document. The table name and the reserved column name `format` (§5.2)
-do not meet — one names a table, the other a cell.
+The formatter configuration lives in a style file, like `.clang-format`. It never lives in
+the manifest.
+
+**Names.** The style search finds two fixed names: `.cast-format` and `_cast-format`. When
+one directory holds both, `.cast-format` wins — the clang-format order. `--style=file:<path>`
+takes any file name.
+
+**Content.** Markdown with one `## format` table:
 
 ```
 | name | width |
@@ -874,9 +954,29 @@ do not meet — one names a table, the other a cell.
 that name, in every grid table the run formats, a positive integer. `name` is an
 identity column (§5.3), thus a column named two times is the duplicate fatal.
 
-The table drives the formatter (§3.3) and nothing else. A column the table names
-reflows at its width. A column it does not name keeps its natural width. No `## format`
-table means no column reflows — the formatter's default. A split is layout: a named
+**Line wrap.** One reserved row: `name` is `line-wrap`, `width` is the paragraph wrap
+(§3.3). The word is the word of the `--line-wrap` flag. `--line-wrap n` overrides the row.
+With no row and no flag, the wrap is 100. The `line-wrap` row is not a column: it reflows
+no column named `line-wrap`.
+
+**Precedence.** The first match wins:
+
+1. `--style=file:<path>` on the line.
+2. The manifest directory, for a manifest run (`cast <manifest>`, `cast --format -i
+   <manifest>`): `.cast-format` or `_cast-format` beside the manifest.
+3. The directory search: the directory of the formatted file, then each parent directory.
+   For stdin input, the search starts at the `--assume-filename` path; without that flag,
+   at the working directory.
+4. None: no column reflows, and the line wrap is 100 or `--line-wrap n`.
+
+Each input file uses exactly one style file, or none. A manifest run is one input: its
+style applies to the manifest and to every file its index declares. Several files on one
+`--format` line resolve their style file each by itself. The engine never merges two style
+files. `--sync` has its own precedence (§2.2).
+
+The table drives the formatter (§3.3) and the reader (§3.2), nothing else. A column the
+table names reflows at its width. A column it does not name keeps its natural width. No
+style file means no column reflows — the formatter's default. A split is layout: a named
 column's cell is one line of value, its rows join with nothing, and a break carries its
 whitespace at the head of the next row, thus the value reads the same at every width
 (§3.2, §3.3). A fenced cell is verbatim (§3.3). A grid table whose body has no border
@@ -886,9 +986,14 @@ The table is data the reader depends on. To remove a column from `## format` aft
 cells were wrapped, first format at a width that holds every value on one row, then
 remove the row; otherwise the wrapped rows become the author's lines.
 
-A header row that declares no `name` or no `width` column is fatal. A `width` cell that
-is not a positive integer is fatal (§10.1). Both checks run during formatting only —
-the table drives the formatter and nothing else.
+**Outside the style file.** A `## format` table in any other file is an ordinary data table.
+It has no formatter meaning. The engine does not read widths from it and does not reject
+it. The table name and the reserved column name `format` (§5.2) do not meet — one names a
+table, the other a cell.
+
+A style-file header row that declares no `name` or no `width` column is fatal. A `width`
+cell that is not a positive integer is fatal, the `line-wrap` row included (§10.1). The
+engine checks the style file before it reads any input.
 
 ---
 
@@ -1111,13 +1216,16 @@ These, and nothing else:
 | kernel sets not corresponding one to one after the path transform                                                 | §2.2       |
 | a source text file containing a pair's target value — names the file and the token                                | §2.2       |
 | sync source root equals target root                                                                               | §2.2       |
-| a `--sync` line without exactly two roots                                                                         | §2.1       |
+| a `--sync` line without exactly two roots, with or without one `--style=file:<path>`                              | §2.1       |
 | a sync source file that cannot be read                                                                            | §2.2       |
 | a sync delete that fails                                                                                          | §2.2       |
-| the manifest file does not exist                                                                                  | §2.1       |
+| the manifest file, a `--format` file argument, or a `--style=file:<path>` file does not exist                     | §2.1       |
 | a `--line-wrap` value below 1, or a flag value that is not an integer                                             | §2.1       |
-| a `## format` header row declaring no `name` or no `width` column, during formatting only                         | §6.11      |
-| a `## format` `width` cell that is not a positive integer, during formatting only                                 | §6.11      |
+| `-i` on a `--format` line that reads stdin                                                                        | §2.1       |
+| a dash argument on a `--format` line that §2.1 does not name                                                      | §2.1       |
+| stdin that cannot be read                                                                                         | §2.1       |
+| a style-file `## format` header row declaring no `name` or no `width` column                                      | §6.11      |
+| a style-file `## format` `width` cell that is not a positive integer                                              | §6.11      |
 
 Any check that the engine performs and that is not in this table is a defect in the
 engine.

@@ -111,6 +111,100 @@
 
 ## SPRINT HISTORY
 
+## Sprint: clang-format-parity — `cast --format` Prints to Stdout, `-i` In Place, Style in `.cast-format` ✅
+
+**Date:** 2026-09-27
+**Duration:** one session, continued across two context compactions (shared with jam, kuassa/user_modules, whatdbg, jreng-filter-strip)
+
+### Agents Participated
+- COUNSELOR: opus — PLAN-clang-format-parity.md (Steps 0–16), SPEC.md and HELP.md text, per-step contract validation, Engineer course corrections, this log
+- Engineer: sonnet-5 — data tables, Model/Processor/Sync/main/Items/Validator changes, jam MarkdownWriter code-span glue and MarkdownBlockParser row fix, builds via `build.bat`, migration of five projects, acceptance proofs, jam→KANJUT sync, doxygen passes
+- Pathfinder: haiku — pipeline and `## format` inventory, verification reads
+- Librarian: haiku — clang-format command-line behaviour (ClangFormat.cpp release/20.x)
+- Auditor: opus-5 — one sweep (Step 15); every finding resolved in this sprint
+- whatdbg — RFC §12.3 fault trace (jam `addTableRow`), static-initialisation crash trace (`styleNames`)
+
+### Decisions (ARCHITECT)
+1. `/goplan @RFC-clang-format-parity.md` — plan approved and locked.
+2. *"Per file"* — several `--format` files resolve their style one file at a time.
+3. *"@RFC-clang-format-parity.md 12 fold into plan"* — RFC §12.1, §12.2 (HELP gaps) and §12.3 (crash) become Steps 11–12.
+4. *"if it's true fix it, fold into plan"* — the code-span paragraph break (Step 13) and the two-inline-feeds claim (Step 14).
+5. *"Per slot, keep 1-slot join"* — an item shape with two or more `:::[list]:::` slots takes one column address per slot; a one-slot item keeps the separator join; over-supply is fatal.
+6. *"dont forget comprehensive doxygen pass before you /log"* — Step 16 covers this sprint's files and the last three sprints' files.
+7. *"for generated? add to table then"* — the `generated` member comment comes from cast/spell.md.
+8. *"complete the plan until /log NO GATE"*.
+
+### Files Modified
+**cast**
+- `SPEC.md` — §1 hardcoded list; §2 style-search exception; §2.1 grammar, flag table, `--format` behaviours 1–8, exact flag words; §2.2 sync style; §3.2 plain-cell backslash escapes; §3.3 style references, backtick span never breaks; §6.1/§6.3 a binding never binds an item shape; §6.4 per-slot item rule; §6.5; §6.11 "Style File"; §10.1 new and widened rows
+- `Source/HELP.md` — command line, `### --format — a markdown formatter`, sync `--style=file:<path>`, column-address per-slot rule, named bullet vs item shape, plain-cell escapes, `### Style File — column widths and line wrap`, canonical markdown code-span rule
+- `CLAUDE.md:83` — `-i` and `.cast-format`
+- `Source/Model.h` — text parse overload with `reflowWidths` set at creation; `addReflowWidths` deleted; `getReflowWidths() const` and `getLineWrap()` read the style file's `## format` (row key `getTableRow (*table, Id::lineWrap)`); `getManifestOrigin()`; `getColumnAddress (row, indent, sourceOrdinal, index)`
+- `Source/Processor.h` — constructor takes text, origin, directory, widths; `format (formatter)`; `getText (formatter) const` validates first; one `jam::MarkdownValidator` member
+- `Source/Sync.h` — `run (source, target, formatter)` threaded to `getCanonicalMarkdown`; static writer removed
+- `Source/Items.h` — `getChildValue` per slot via `Model::getColumnAddress`; `getItem` fills list tokens by first occurrence
+- `Source/Validator.h` — `isItemSourceCountValid` (over-supply → `failAmbiguous`); `isUnique` no longer exempts `Id::format`
+- `Source/main.cpp` — format line (`-i`, `--style`, `--assume-filename`, `-`), exact flag words, style search (`getStyleFile`, `getNearestStyleFile`), binary stdin/stdout, `runStyled`, `runFormat*`, sync `--style=file:`, no screen clear in format mode
+- `Source/Shapes.h`, `Source/Transforms.h`, `Source/Writer.h`, `Source/TemplateDocument.h` — doxygen only
+- `cast/identifiers.md`, `cast/files.md`, `cast/text.md` — new rows (`inPlace`, `assumeFilename`, `castDirectory`, `castFormat`, `castFormatAlternate`, `standardInput`, `failInPlaceInput`, `failFlagUnknown`, `failStandardInput`); comment text
+- `cast/spell.md` — `## format` moved out; Files.h headers text; `> - [comment]: Every generated registry, constructed once.` in `## output index` (spell.md:289)
+- `cast/.cast-format` — new, `comment | 40`
+- `Source/generated/Identifiers.h`, `Files.h`, `Text.h`, `Generated.h` — regenerated; `Generated.h:37` carries `///< Every generated registry, constructed once.`
+- `PLAN-clang-format-parity.md` — locked plan with execution record
+- `docs/xml`, `docs/tagfile.xml` — regenerated
+
+**jam**
+- `jam_markdown/document/jam_MarkdownWriter.{h,cpp}` — `getCodeSpans`, `getCodeSpanRow`, `getGlueRow`; a paragraph never breaks inside a backtick span at any inline depth
+- `jam_markdown/document/jam_MarkdownBlockParser.cpp:1718-1725` — `addTableRow` builds one span list per header column (short pipe row → empty cells; was `std::out_of_range`, fast-fail)
+- `jam_markdown/document/jam_MarkdownDocument.h`, `jam_core/document/jam_Document.h` — doxygen
+- `cast/spell.md` — `## format` moved to `cast/.cast-format`
+
+**kuassa/user_modules**
+- `kuassa_markdown/document/*` (Writer, BlockParser, MarkdownDocument), `kuassa_core/document/kuassa_Document.h` — synced from jam; umbrella headers rewritten by sync
+- `cast/spell.md` → `cast/.cast-format`; `docs/` regenerated
+
+**whatdbg, jreng-filter-strip**
+- `## format` moved into `cast/.cast-format` (jfs: `comment | 60`, `value | 60` from `project-info.md`)
+
+### Alignment Check
+- [x] BLESSED — S: one style file feeds reader and writer (`reflowWidths` set at Model creation); E: every input in the signature, no static writer; D: stdout, `-i`, manifest run and sync give the same bytes; B: main owns style Model and writer, Processor/Sync take them by const reference
+- [x] NAMES.md — plan names ratified at approval; execution names recorded in the PLAN "Names added in execution" paragraph (Rule 5 families)
+- [x] MANIFESTO.md — Validator establishes the style and item arity once, before the Writer
+
+### Problems Solved
+- `## format` lived in the manifest and was read before its gate — now the style file, validated first
+- `cast --format` could not print to stdout — clang-format command line
+- Paragraph reflow broke inside backtick spans (Step 13)
+- Pipe row shorter than its header crashed the jam parser (RFC §12.3)
+- Item shape filled every slot with one joined string (Step 14)
+- `cast --version` segfaulted before main — file-scope `styleNames` copied `files::` strings before construction; moved to a function-local static
+- `line-wrap` row missed by `toValidID` compare — row key read through `getTableRow`
+- Doxygen: jam 0 warnings, KANJUT 0 warnings, cast 0 warnings with `EXTRACT_ALL = NO`
+
+### Proof
+- RFC §11 items 1–15 and audit probes a–m pass (session scratchpad)
+- cast: two `cast cast/spell.md --no-sign` runs, 13 files byte-identical on run 2; `cast --format cast/spell.md` equals the file; `-i` twice unchanged; `cast --version` → `cast 0.1.0 (dada03c)`; `~/.local/bin/cast.exe` equals the Builds/Release binary
+- jam, kuassa fixpoints; jam→KANJUT sync: scratch and production identical, second sync touches only the six umbrella headers
+
+### Violations Disclosed
+- Step 2 Engineer ran `git status`; doxygen Engineer ran `git diff` (no ARCHITECT instruction)
+- Doxygen written before the audit in two passes
+- Locals outside the prompt name lists (`rendered` in jam `getCodeSpans`; `itemResult`, removed)
+- A placement Engineer ran `cast.exe` on a scratch manifest with the real project root as cwd. The `## toolchain` default rows (project-info.md:179-183) ran: a real jam generation with its toolchain (jam docs/html regenerated), cmake reconfigure of Builds/Release with `CAST_SIGN=ON`, ninja link failed (binary in use). My delegation prompt did not neutralise the toolchain. The final build reconfigured and rebuilt afterward
+
+### State for Continuation
+- RFC §11 item 16 (macOS): ARCHITECT builds and runs on macOS
+- RFC §11 item 13 terminal case rests on the code guard in main.cpp (no screen clear in format mode) — verify on a real terminal
+- `cast/spell.md:289` relies on the `[list]` line resetting the duplicate-binding set (Validator.h:275-276) and the deepest binding winning the item read (Items.h:252-258); the file doc reads the first binding (Model.h:545-556)
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None
+
+---
+
 ## Sprint: no-marks-reflow — `## format` Is Data the Reader Depends On, Model Joins by Nothing, `--max-table-width` Removed ✅
 
 **Date:** 2026-09-26

@@ -12,7 +12,7 @@ shaped entries pair with the offender's own text.
 +------------------------+--------------------------------------------------+--------------------------------------------------------------------------------+
 | name                   | value                                            | comment                                                                        |
 +========================+==================================================+================================================================================+
-| failNotFound           | `not found`                                      | Referenced table, column, or symbol does not exist.                            |
+| failNotFound           | `not found`                                      | Referenced table, column, symbol, or file does not exist.                      |
 | failUnknownTransform   | `unknown transform`                              | A format cell named an operation outside §8.                                   |
 | failTemplateMissing    | `template not found`                             | A shape address named a fence that does not exist in its template file.        |
 | failStructureMissing   | `structure not declared`                         | An output row declares no structure column entry.                              |
@@ -45,7 +45,10 @@ shaped entries pair with the offender's own text.
 | failSyncDelete         | `delete failed`                                  | A sync mirror-delete could not remove a target file.                           |
 | failSyncArguments      | `--sync takes a source root and a target root`   | A --sync line did not carry exactly two roots.                                 |
 | failFlagValue          | `flag value out of range`                        | A --line-wrap value below 1, or a value that is not an integer.                |
-| failFormatColumn       | `format column not declared`                     | A ## format table's header row declares no name or width column.               |
-| failFormatWidth        | `format width must be a positive integer`        | A ## format width cell is not a positive integer.                              |
+| failFormatColumn       | `format column not declared`                     | A style-file ## format table's header row declares no name or width column.    |
+| failFormatWidth        | `format width must be a positive integer`        | A style-file ## format width cell is not a positive integer.                   |
+| failInPlaceInput       | `cannot use -i when reading from stdin`          | A --format line with -i that reads stdin.                                      |
+| failFlagUnknown        | `unknown flag`                                   | A dash argument on a --format line that is not a format flag word.             |
+| failStandardInput      | `standard input cannot be read`                  | Stdin could not be read.                                                       |
 | done                   | `Fine.`                                          | Every step of the run succeeded.                                               |
 +------------------------+--------------------------------------------------+--------------------------------------------------------------------------------+

@@ -214,7 +214,7 @@ struct Transforms
 
     /**
      * @brief Answers whether @p character sits outside a word --
-     *        Sync's own whole-word matching law (SPEC §2.2): the
+     *        Sync's own whole-word matching law: the
      *        characters before and after a match are absent or outside
      *        @c [A-Za-z0-9_].
      *
@@ -289,7 +289,7 @@ struct Transforms
     /**
      * @brief Answers whether @p text contains @p word as a whole word --
      *        Sync's own contamination check for a @c word-boundary
-     *        identity pair (SPEC §2.2).
+     *        identity pair.
      *
      * @param text The text to search.
      * @param word The word to search for.

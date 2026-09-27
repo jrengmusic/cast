@@ -20,6 +20,7 @@
  */
 struct Shapes
 {
+    /** Model's own element type, brought into Shapes's own scope. */
     using Element = Model::Element;
 
     /** The number of spaces one structure depth indents. */
@@ -191,16 +192,15 @@ struct Shapes
      * @brief Returns @p line's own item-shape source row -- the filtered
      *        or plain table row @p line's own paired list source
      *        addresses, the same resolution Items::getItem() reads for a
-     *        nested item-shape (SPEC §6.5 rung 3, "for an item shape, on
-     *        the source row").
+     *        nested item-shape -- for an item shape, on
+     *        the source row.
      *
      * @param model The model @p row and @p line belong to.
      * @param row   The row @p line's own list source is addressed against.
      * @param line  The item-shape list bullet whose source row is resolved.
      * @returns @p line's own resolved source row, or @c nullptr when its
      *          own paired list source addresses no table row -- an
-     *          under-supplied filter elides rather than failing (SPEC
-     *          §6.4, §6.5).
+     *          under-supplied filter elides rather than failing.
      */
     static const Element* getItemSourceRow (const Model& model, const Element& row, const Element& line)
     {
@@ -213,9 +213,9 @@ struct Shapes
     }
 
     /**
-     * @brief Resolves @p name's value for @p line, in the order SPEC
-     *        §6.5 declares: for the name @c comment, @p commentTable's own
-     *        documentation (SPEC §5.4's shape-level channel -- a list-column
+     * @brief Resolves @p name's value for @p line, in a declared order:
+     *        for the name @c comment, @p commentTable's own
+     *        documentation -- the shape-level channel -- a list-column
      *        comment reference or table documentation, never a
      *        structure-column binding), short-circuiting before any other
      *        rung; for every other name, in order, a binding of that
@@ -248,7 +248,7 @@ struct Shapes
      * @returns @p name's resolved value, or an empty string when none of
      *          the rungs names it -- including when @p line is an item
      *          shape whose own paired list source elides for
-     *          under-supply, addressing no row (SPEC §6.4, §6.5).
+     *          under-supply, addressing no row.
      */
     static juce::String getTokenValue (const Model& model, const TemplateDocument& templateDocument,
         const jam::Array<const Element*>& tables, const Element& row, const Element& line, const Element* commentTable,
