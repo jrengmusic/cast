@@ -808,6 +808,14 @@ the body differently. A paragraph reflows at the line wrap —
 stands whole. A paragraph never breaks inside a backtick span, at any depth — a line ending there would read as a space. No wrapped line starts a block. The format stays a fixpoint under every
 rule.
 
+A metadata block (pandoc `yaml_metadata_block`) passes through byte for byte. It opens
+with a `---` line at the top level of the document, the next line is not blank, and it
+closes at the first `---` or `...` line; spaces or tabs can follow a delimiter. Without a
+closing line the lines are ordinary markdown. A `---` under a paragraph is a setext
+underline, not an opening line. Inside a blockquote, a list item, or a table cell there
+is no metadata block. CAST does not parse the block as YAML, does not validate it, and
+reads no table from it. One blank line separates it from the next block.
+
 ---
 
 ## Determinism and Failure

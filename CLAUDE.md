@@ -10,7 +10,9 @@
 
 ## Current State
 
-**Last Sprint:** clang-format-parity — `cast --format` prints canonical text to stdout, `-i` writes in place, `--style=file[:<path>]`, `--assume-filename`, `-` reads stdin; formatter style moved from the manifest's `## format` into `.cast-format` / `_cast-format` (nearest walk; sync reads `<target>/cast`); item shapes fill one column address per slot; jam paragraphs never break inside a backtick span; jam short pipe rows pad; five projects migrated; cast/jam/KANJUT doxygen zero warnings ✅ (2026-09-27)
+**Last Sprint:** metadata-block — pandoc `yaml_metadata_block` in the JAM markdown parser: a top-level `---` opener (next line not blank) closed by `---` or `...` is an opaque `metadataBlock` leaf, written byte for byte; frontmatter survives `cast --format`; `closeLeaf` dispatches through `leafClosing`; SPEC §3/§3.4, HELP; jam→KANJUT synced; fixpoints and doxygen zero warnings ✅ (2026-09-27)
+
+**Sprint before:** clang-format-parity — `cast --format` prints canonical text to stdout, `-i` writes in place, `--style=file[:<path>]`, `--assume-filename`, `-` reads stdin; formatter style moved from the manifest's `## format` into `.cast-format` / `_cast-format` (nearest walk; sync reads `<target>/cast`); item shapes fill one column address per slot; jam paragraphs never break inside a backtick span; jam short pipe rows pad; five projects migrated; cast/jam/KANJUT doxygen zero warnings ✅ (2026-09-27)
 
 **Previous Sprint:** sync-unibreak-wrap — `## format` (`name | width`) names any column and the writer reflows it at that width (`Processor::format` → `Validator::isFormat` → `jam::MarkdownWriter` column-width map); reflow is fence-aware and universal (`ReflowDocument::setRows` splits an over-wide segment by codepoint width, then packs; a fenced cell's lines are content, each split at the width); libunibreak's quotation tailoring is one `lineBreakQuotationClasses` union table read by `getLineBreakClass`; `Model::parse` no longer dereferences a missing header row. Windows Release built and installed; jam/cast/jfs three-run fixpoints and jam→KANJUT sync proven ✅ (2026-09-26)
 

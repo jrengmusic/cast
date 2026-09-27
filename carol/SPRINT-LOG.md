@@ -111,6 +111,85 @@
 
 ## SPRINT HISTORY
 
+## Sprint: metadata-block — Pandoc Metadata Block in the JAM Markdown Parser, Frontmatter Passes Through `cast --format` ✅
+
+**Date:** 2026-09-27
+**Duration:** one session
+
+### Agents Participated
+- COUNSELOR: opus — RFC verification, research synthesis, PLAN-metadata-block.md, per-step validation, three course corrections, audit triage, SPEC.md §3/§3.4 and HELP.md text, this log
+- Pathfinder: haiku — parse/render path map; RFC-frontmatter.md claim verification (code, cast runs, exposure files, nvim wiring)
+- Librarian: haiku — frontmatter specs and parsers; markdown formatters; Claude Code frontmatter; pandoc `yamlMetaBlock`/`stopLine` source grammar
+- Engineer: sonnet-5 — jam tables and regeneration, BlockParser/InlineParser/Writer changes, builds, probes, fixpoints, KANJUT sync, doxygen pass
+- Auditor: opus-5 — one sweep; 16 findings
+
+### Decisions (ARCHITECT)
+1. *"our SPEC is cmark+gfm+pandoc"* — the rule lives in the JAM parser, beside the pandoc grid table.
+2. *"don't just blindly take RFC as the binding law. it's a fucking recommendations"* — the rule follows pandoc, not the RFC. Consequence: RFC case 5 (`---` after a blank line) is a metadata block.
+3. *"metadata then"* — the block is `metadataBlock` (htmlBlock family).
+4. *"follow the established pattern verbatim. no reinvention, no new pattern, use framework API to its fullest extent. no handroll anything. no magic strings, no manual string parsing"*.
+5. `/go`, then plan approved (ExitPlanMode); *"i give you permission to build, validate, verify, DESIGN BY CONTRACT. OBEY THE PROTOCOL. no gate until /log"*.
+
+### Files Modified
+**jam**
+- `cast/bimaps.md:248` — `BlockType` `metadataBlock | 15`; `:489` `OpenBlock` `metadataBlock | 6`; `:1119` `BlockTag` `meta | BlockType::metadataBlock`; BlockType and OpenBlock briefs name the metadata block
+- `cast/chars.md:284-285` — `tripleDash` `---`, `tripleDot` `...` (family `doubleDash`, `doubleDot`)
+- `generated/jam_Bimaps.h`, `generated/jam_Chars.h` — regenerated
+- `jam_markdown/document/jam_MarkdownBlockParser.cpp:204-253` — `closeLeaf` dispatches through the `leafClosing` `Function::Map<int, void>` (was a 4-arm chain, MANIFESTO L); htmlBlock and metadataBlock share one closer
+- `jam_markdown/document/jam_MarkdownBlockParser.cpp:~1145-1191` — `isMetadataBlockEnd` (`---`/`...` + blank rest), `isMetadataBlock` (opener, next line not blank, a later closer — pandoc rules 1–4), `addMetadataBlockLine`, `addMetadataBlock` (parent type `BlockType::document` only — excludes blockquote, list item, table cell)
+- `jam_markdown/document/jam_MarkdownBlockParser.cpp` `addLeaf` — metadataBlock first in `leafBlocks` and in the `or` chain; `addLine` — `addMetadataBlockLine` after `addFencedCodeLine`
+- `jam_markdown/document/jam_MarkdownInlineParser.cpp:29-32` — metadataBlock is a raw-text leaf
+- `jam_markdown/document/jam_MarkdownWriter.cpp:1041-1042` — metadataBlock emits through `getHtmlBlockText` (verbatim)
+- `jam_markdown/document/jam_MarkdownDocument.h:855-905` — four declarations with doxygen; `closeLeaf` and `addLeafText` doxygen updated
+- `docs/` — regenerated, 0 warnings
+
+**kuassa/user_modules**
+- `kuassa_markdown/document/*` (BlockParser, Document.h, InlineParser, Writer), `cast/bimaps.md`, `cast/chars.md`, six umbrella headers — synced from jam; `generated/kuassa_Bimaps.h`, `kuassa_Chars.h` regenerated; docs 0 warnings
+
+**cast**
+- `SPEC.md:221` — *"CAST reads CommonMark, GFM, and two pandoc extensions: grid tables and metadata blocks."*; new `### 3.4 Metadata Block` (rules 1–6, opaque content, byte-for-byte output, fixpoint argument)
+- `Source/HELP.md` "Canonical Markdown" — metadata-block paragraph
+- `PLAN-metadata-block.md` — locked plan with execution record
+- `Source/` C++ — no change; docs 0 warnings
+
+### Alignment Check
+- [x] BLESSED — S: one rule at the parser, cast's parse and render sites inherit it; L: `closeLeaf` chain replaced by a lookup; E: delimiters are `Chars::` constants; D: recognition is a pure function of the bytes, output verbatim, fixpoints proven
+- [x] NAMES.md — `metadataBlock` ratified; members follow the htmlBlock family; `tripleDash`/`tripleDot` follow `doubleDash`/`doubleDot`; `leafClosing` follows Rule 8 (`treeConstruction`, `inlineConstruction`)
+- [x] MANIFESTO.md — the parser owns the invariant; no cast-side split, no restamp
+
+### Problems Solved
+- `cast --format` turned a leading `---` block into a thematic break and an ATX heading and lost the closer; a second format joined the lines (RFC cases 1–4, 6)
+- Pathfinder reproduced RFC §2.3 cases 1–5 on `dada03c`; §2.4 exposure is 32 files, all intact
+
+### Proof
+- Probes on `cast 0.1.0 (55e7259)`: p1, p3, p4, p5, p6, p11 keep the block verbatim and idempotent; p7 (unclosed), p8 (blank after opener), p9 (unclosed then `***`), p10 (blockquote) equal the pre-change output; c1 (pipe cell), c2 (grid cell), c3 (blockquote), c4 (list item) equal the pre-fix output and are idempotent; p12 malformed grid table after a block → `p12:8 (columns)`, the real line
+- 32 frontmatter files (`~/.carol/agents`, `commands`, `output-styles.md`, `skills/doxygen-protocol`, `~/.claude/skills/synced`): leading block byte-identical, exit 0 (stdout only)
+- cast `cast/spell.md --no-sign` ×2, jam ×2, KANJUT ×2: second run writes nothing; KANJUT sync scratch report == production report, second sync empty
+- `cast --help` carries the new paragraph
+
+### Audit (16 findings)
+- Resolved: 1 (table-cell parsers admitted the block — `containerDepth == 0` replaced by parent type `document`), 8 (`closeLeaf` 4 branches → `leafClosing`), 11–14 (SPEC/HELP wording), 16 (PLAN SSOT line, execution record)
+- Rejected with the read: 2 (lazy continuation — `---` after `> q` begins a block and closes the quote; PLAN rule 5 concerns an open paragraph, not violated), 3 (the two marker terms appear twice; MANIFESTO S threshold is "more than twice"; the opener's extra `startsWith` excludes `...`), 4 (the in-loop first-line test keeps the loop bound as the only range protection at source end), 5 (`return false` carries the answer — MANIFESTO E result return; code is now positive-nested anyway), 6 (out-parameter is the `AddFunction` family signature; ARCHITECT: *"follow the established pattern verbatim"*), 7 (`meta` in the approved PLAN), 9 (the fixpoint depends on the blank line after a written break, `jam_MarkdownWriter.cpp:33-37`, not on marker equality), 10 (no column limit in CODING.md), 15 (SPEC §10 and §3.4 state LF)
+
+### Violations Disclosed
+- Step 1 Engineer ran `git status --porcelain` against an explicit prohibition
+- COUNSELOR: the Step 2.2 loop in the PLAN returned false on any blank line, not only the line after the opener (pandoc rule 2); the probes caught it (p4, three agent files); corrected
+- COUNSELOR: the first Steps 2–3 prompt left room for the unratified local `markerEnd` and a shared marker length; corrected
+
+### State for Continuation
+- macOS build and probes not run — verify on macOS
+- ARCHITECT runs the Claude Code agent load test after a format (RFC §7.4)
+- Four body-content fixpoint defects, not metadata-related (they reproduce with the block removed), found by the 32-file second pass: (a) nested bullets or a fenced block inside an ordered-list item detach and the list renumbers on the second format (`~/.carol/commands/goplan.md`, `pay.md`); (b) `\*` inside bold: the first format writes a bare `*`, the second drops it (`import-memory/SKILL.md`, `/preferences/*.` → `/preferences/.`); (c) a paragraph after a fenced block inside an ordered-list item detaches and the next marker joins the prose (`skill-creator/SKILL.md`). Code: `jam_MarkdownWriter.cpp` list/inline rendering, `jam_MarkdownInlineParser.cpp` emphasis — not read this sprint
+- `RFC-frontmatter.md` is at the project root, untracked
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None
+
+---
+
 ## Sprint: clang-format-parity — `cast --format` Prints to Stdout, `-i` In Place, Style in `.cast-format` ✅
 
 **Date:** 2026-09-27

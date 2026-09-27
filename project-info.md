@@ -120,7 +120,6 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 | name      | value           |
 +===========+=================+
 | core      | juce_core       |
-+-----------+-----------------+
 | guiBasics | juce_gui_basics |
 +-----------+-----------------+
 

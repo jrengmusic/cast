@@ -218,7 +218,7 @@ carried — the target regenerates them by running cast against its own manifest
 
 ## 3. Markdown Substrate
 
-CAST reads CommonMark plus the pandoc grid-table extension.
+CAST reads CommonMark, GFM, and two pandoc extensions: grid tables and metadata blocks.
 
 ### 3.1 Row Law
 
@@ -314,6 +314,31 @@ file's `line-wrap` row (§6.11), else 100 — at UAX #14
 opportunities only. A token wider than the wrap stands whole on its own line, never
 cut. A paragraph never breaks inside a backtick span, at any inline depth: a line ending
 inside a span reads as a space, thus the span stands whole like a token. No wrapped line starts a block. The format stays a fixpoint under every rule.
+
+### 3.4 Metadata Block
+
+A metadata block is the pandoc `yaml_metadata_block` extension. The reader finds it by
+these rules:
+
+1. The opening line is `---` at the start of the line. Only spaces or tabs follow it.
+2. The line after the opening line is not blank.
+3. The block closes at the first later line that is `---` or `...`. Only spaces or tabs
+   follow the delimiter.
+4. When no closing line exists, no block exists. The lines read as ordinary markdown.
+5. The block starts at a block position. A `---` line under an open paragraph is a setext
+   underline. Thus a block that does not start the document follows a blank line or the
+   end of another block.
+6. The block exists only at the top level of the document. Inside a blockquote, a list
+   item, or a table cell, the lines read as ordinary markdown.
+
+The content is opaque. CAST does not parse it as YAML, does not validate it, and reads no
+table, heading, or index row from it. The formatter writes the block byte for byte: the
+opening line, each content line, and the closing line. One blank line separates the block
+from the next block.
+
+A thematic break that the formatter writes is `---`. A blank line or the end of the file
+follows it. Thus it never opens a metadata block (rule 2). The format stays a fixpoint, and
+`read (format (x)) == read (x)`.
 
 ---
 
