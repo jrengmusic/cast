@@ -111,6 +111,48 @@
 
 ## SPRINT HISTORY
 
+## Sprint: build-sh — One Cross-Platform `build.sh`, `build.bat` Deleted, Stale macOS Binary Diagnosed ✅
+
+**Date:** 2026-09-28
+**Duration:** one session
+
+### Agents Participated
+- COUNSELOR: fable-5 — root cause of the Generated.h compile errors (stale macOS binary), build.sh content, jam include-case diagnosis, this log
+- Pathfinder: haiku — installed binary version and file mtimes (`cast 0.1.0 (bad4055)`, built 17 Sep; Model.h, .cast-format, spell.md, Generated.h touched 28 Sep 09:38–09:39)
+- Engineer: sonnet-5 — wrote `build.sh`, `rm build.bat`, joined Generated.h:28-32, case-renamed `jam_core/xml/jam_XML.h` → `jam_Xml.h` on disk
+
+### Decisions (ARCHITECT)
+1. *"i want build.sh, crossplatform works as is, always deterministically build for mac and windows. delete build.bat. always release always signing."*
+
+### Files Modified (4 total)
+- `build.sh` — new; macOS runs cmake + ninja directly, MSYS2 enters the vcvarsall x64 environment through `cmd.exe` and prepends the VS-bundled ninja (the `build.bat:23-26` escape translated); Release only; no `CAST_SIGN` override, so the sign/pkg/notarize/staple chain (CMakeLists.txt:234-267) and the `post-build` install to `~/.local/bin` (CMakeLists.txt:270-281) run as CMake declares them
+- `build.bat` — deleted
+- `Source/generated/Generated.h:28-32` — the five wrapped `///<` include comments joined back onto one line so the build compiles; the rebuilt cast overwrites this file on the next `./cast cast/spell.md`
+- `../jam/jam_core/xml/jam_Xml.h` — case-only rename on disk from `jam_XML.h` (jam SPRINT-LOG.md:296 did the rename on Windows; the macOS tree kept the old case; `jam_core.h:125` spells `Xml`; clang `-Wnonportable-include-path`)
+
+### Alignment Check
+- [x] BLESSED — S: one build script, one install path owned by CMake; E: no silent `CAST_SIGN=OFF`, Release is stated, not defaulted
+- [x] NAMES.md — no new code names
+- [x] MANIFESTO.md — nothing added to the engine; the defect was the binary, not the code
+
+### Problems Solved
+- Generated.h:29-37 held bare prose (`commit.`, `name.`, …) → 15 compile errors. Cause: the installed macOS `cast` was `bad4055` (17 Sep), before sync-unibreak-wrap added the `## format`-column join (Model.h:1620-1626) and clang-format-parity moved widths to `.cast-format` (Model.h:63-71, main.cpp:744-747). `cast/.cast-format` names `comment | 40`; the old binary wrapped the `## headers` `comment` column at 40 and wrote the row break into the `///<` comments. Windows, built current, was unaffected.
+- `-Wnonportable-include-path` at jam_core.h:125 — file on disk was `jam_XML.h`; renamed.
+
+### State for Continuation
+- ARCHITECT runs `./build.sh` on macOS, then `./cast cast/spell.md` twice; verify Generated.h:28-32 stay one line each and the second run writes nothing
+- `cast/spell.md:241-267` — `## headers` `comment` column wrapped at 40 (`.cast-format:6`); the current writer wraps it the same (main.cpp:744-745, :786) and joins it at read (Model.h:1620-1626), so the wrapped form is canonical; spell.md and Generated.h share mtime 09:39 and are the two files one `cast cast/spell.md` run writes (main.cpp:783-788); the diff against HEAD was not read (no git) — verify the new binary's format of it is a fixpoint
+- `build.sh` Windows branch not yet run on a Windows machine — verify vcvarsall import (`cmd.exe //c "call … && set"`) under MSYS2 zsh/bash
+- The jam rename is a working-tree change in `~/Documents/Poems/dev/jam` — commit there
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None
+
+---
+
 ## Sprint: metadata-block — Pandoc Metadata Block in the JAM Markdown Parser, Frontmatter Passes Through `cast --format` ✅
 
 **Date:** 2026-09-27

@@ -25,12 +25,11 @@
 
 #pragma once
 
-#include "ProjectInfo.h" ///< Product name, version, and source commit.
-#include "Identifiers.h" ///< Every Id:: name and transform-operation name.
-#include "Text.h"        ///< One string per fatal, plus the success line.
-#include "Files.h"       ///< File and directory names the engine reads and writes.
-#include "HashMaps.h"    ///< Banner palette and per-extension comment syntax.
-#include "Generated.h"   ///< One construction point for every generated symbol.
+#include "ProjectInfo.h" ///< Product name, version, and sourcecommit.
+#include "Identifiers.h" ///< Every Id:: name and transform-operationname.
+#include "Text.h"        ///< One string per fatal, plus the successline.
+#include "Files.h"       ///< File and directory names the enginereads and writes.
+#include "HashMaps.h"    ///< Banner palette and per-extension commentsyntax.
 
 struct Generated
 {
