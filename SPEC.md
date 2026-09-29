@@ -1092,7 +1092,7 @@ settings are the values that Finder writes for a new icon view: grid spacing 100
 size 12, labels on the bottom, icon previews on and item information off. Without
 `--background`, the background is white. With `--background`, the background is the
 image: `icvp` records the background type 2 and an alias record to `/.background.<ext>`
-on the volume `<name>`. The engine builds the alias before `hdiutil` runs, from the
+on the volume `<name>`, and keeps the white color components. The engine builds the alias before `hdiutil` runs, from the
 names alone. The parent node identifier is 2, the HFS+ root folder. The file node
 identifier is unknown, and the dates are zero. A background file
 that does not exist is fatal (§10.1).

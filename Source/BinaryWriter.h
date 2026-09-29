@@ -167,19 +167,24 @@ private:
      * @param volumeName     The volume name, for the alias.
      * @param backgroundName The file name of the background image in the
      *                       stage. An empty name selects the white color.
-     * @returns The alias and the image type, or the white color components
-     *          and the color type.
+     * @returns The white color components and the color type. With a
+     *          background name, also the alias, and the image type in place
+     *          of the color type.
      */
     static juce::NamedValueSet getBackgroundSettings (const juce::String& volumeName, const juce::String& backgroundName)
     {
-        if (backgroundName.isNotEmpty())
-            return { { "backgroundImageAlias", juce::var (AliasWriter::getAlias (volumeName, backgroundName)) },
-                     { backgroundTypeKey, backgroundImageType } };
+        juce::NamedValueSet settings { { "backgroundColorBlue", whiteColorComponent },
+                                       { "backgroundColorGreen", whiteColorComponent },
+                                       { "backgroundColorRed", whiteColorComponent },
+                                       { backgroundTypeKey, colorBackgroundType } };
 
-        return { { "backgroundColorBlue", whiteColorComponent },
-                 { "backgroundColorGreen", whiteColorComponent },
-                 { "backgroundColorRed", whiteColorComponent },
-                 { backgroundTypeKey, colorBackgroundType } };
+        if (backgroundName.isNotEmpty())
+        {
+            settings.set ("backgroundImageAlias", juce::var (AliasWriter::getAlias (volumeName, backgroundName)));
+            settings.set (backgroundTypeKey, backgroundImageType);
+        }
+
+        return settings;
     }
 
     /**
