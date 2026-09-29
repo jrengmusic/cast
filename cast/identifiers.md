@@ -20,9 +20,10 @@ transform operations a format cell may declare (§8).
 +---------+------------------+----------------------+-------------------------------------------------------------+
 | type    | name             | value                | comment                                                     |
 +=========+==================+======================+=============================================================+
-| @id     | archive          | `archive`            | Pack table archive column.                                  |
 | @id     | argument         | `argument`           | Toolchain table argument column.                            |
 | @id     | assumeFilename   | `assume-filename`    | --assume-filename CLI flag word — stdin style search start. |
+| @id     | background       | `background`         | --pack background option word.                              |
+| @string | backgroundPrefix | `.background`        | Dmg background image file-name prefix.                      |
 | @id     | banner           | `banner`             | Banner artwork key.                                         |
 | @id     | bannerClose      | `bannerClose`        |                                                             |
 | @id     | bannerOpen       | `bannerOpen`         |                                                             |
@@ -30,26 +31,19 @@ transform operations a format cell may declare (§8).
 | @id     | blockClose       | `blockClose`         |                                                             |
 | @id     | blockLine        | `blockLine`          | Block-comment continuation-line glyph key.                  |
 | @id     | blockOpen        | `blockOpen`          |                                                             |
-| @id     | bundleColumn     | `bundleColumn`       | Pack layout key — item x position.                          |
+| @id     | bundleColumn     | `bundle-column`      | --pack layout option word.                                  |
 | @id     | comment          | `comment`            |                                                             |
 | @string | dmg              | `dmg`                | Dmg archive extension.                                      |
 | @id     | doubleDash       | `--`                 | Double-dash delimiter.                                      |
 | @string | dsStore          | `.DS_Store`          | Finder layout file name.                                    |
-| @id     | firstRow         | `firstRow`           | Pack layout key — first row y position.                     |
+| @id     | firstRow         | `first-row`          | --pack layout option word.                                  |
 | @string | hdiutil          | `hdiutil`            | Dmg image tool command.                                     |
 | @id     | help             | `help`               |                                                             |
-| @id     | host             | `host`               | Toolchain and pack table host column.                       |
-| @id     | iconSize         | `iconSize`           | Pack layout key — icon size.                                |
-| @id     | item             | `item`               | Pack table item column.                                     |
-| @id     | link             | `link`               | Pack table link target column.                              |
-| @id     | linkColumn       | `linkColumn`         | Pack layout key — link x position.                          |
-| @id     | linkName         | `linkName`           | Pack table link name column.                                |
-| @id     | linux            | `linux`              | Host word — Linux.                                          |
-| @id     | mac              | `mac`                | Host word — macOS.                                          |
+| @id     | iconSize         | `icon-size`          | --pack layout option word.                                  |
+| @id     | linkColumn       | `link-column`        | --pack layout option word.                                  |
 | @id     | p                | `p`                  |                                                             |
-| @id     | pack             | `pack`               | Reserved pack table and toolchain command word.             |
-| @id     | packLayout       | `pack_layout`        | Reserved pack layout table id, parsed from `pack layout`.   |
-| @id     | rowSpacing       | `rowSpacing`         | Pack layout key — row pitch.                                |
+| @id     | pack             | `pack`               | --pack CLI flag word.                                       |
+| @id     | rowSpacing       | `row-spacing`        | --pack layout option word.                                  |
 | @id     | syncBoundary     | `boundary`           | Sync identity-row boundary column key.                      |
 | @id     | brief            | `brief`              | Brief documentation key.                                    |
 | @id     | command          | `command`            | Toolchain table command column.                             |
@@ -89,9 +83,8 @@ transform operations a format cell may declare (§8).
 | @string | toTitle          | `to title`           | Title Case operation.                                       |
 | @string | toUpper          | `to upper`           | UPPERCASE operation.                                        |
 | @string | toUTF8           | `to UTF8`            | UTF-8 encode operation.                                     |
-| @id     | win              | `win`                | Host word — Windows.                                        |
-| @id     | windowLeft       | `windowLeft`         | Pack layout key — window left edge.                         |
-| @id     | windowTop        | `windowTop`          | Pack layout key — window top edge.                          |
+| @id     | windowLeft       | `window-left`        | --pack layout option word.                                  |
+| @id     | windowTop        | `window-top`         | --pack layout option word.                                  |
 | @id     | wiring           | `wiring`             | Manifest wiring-table classification.                       |
 | @id     | word             | `word`               | Sync identity-row boundary keyword — whole-word matching.   |
 | @string | zip              | `zip`                | Zip archive extension.                                      |

@@ -29,9 +29,10 @@ namespace Id
  * transform operations a format cell may declare (§8).
  */
 
-    const juce::Identifier archive          { juce::String::fromUTF8 ("archive") };
     const juce::Identifier argument         { juce::String::fromUTF8 ("argument") };
     const juce::Identifier assumeFilename   { juce::String::fromUTF8 ("assume-filename") };
+    const juce::Identifier background       { juce::String::fromUTF8 ("background") };
+    const juce::String     backgroundPrefix { juce::String::fromUTF8 (".background") };
     const juce::Identifier banner           { juce::String::fromUTF8 ("banner") };
     const juce::Identifier bannerClose      { juce::String::fromUTF8 ("bannerClose") };
     const juce::Identifier bannerOpen       { juce::String::fromUTF8 ("bannerOpen") };
@@ -39,26 +40,19 @@ namespace Id
     const juce::Identifier blockClose       { juce::String::fromUTF8 ("blockClose") };
     const juce::Identifier blockLine        { juce::String::fromUTF8 ("blockLine") };
     const juce::Identifier blockOpen        { juce::String::fromUTF8 ("blockOpen") };
-    const juce::Identifier bundleColumn     { juce::String::fromUTF8 ("bundleColumn") };
+    const juce::Identifier bundleColumn     { juce::String::fromUTF8 ("bundle-column") };
     const juce::Identifier comment          { juce::String::fromUTF8 ("comment") };
     const juce::String     dmg              { juce::String::fromUTF8 ("dmg") };
     const juce::Identifier doubleDash       { juce::String::fromUTF8 ("--") };
     const juce::String     dsStore          { juce::String::fromUTF8 (".DS_Store") };
-    const juce::Identifier firstRow         { juce::String::fromUTF8 ("firstRow") };
+    const juce::Identifier firstRow         { juce::String::fromUTF8 ("first-row") };
     const juce::String     hdiutil          { juce::String::fromUTF8 ("hdiutil") };
     const juce::Identifier help             { juce::String::fromUTF8 ("help") };
-    const juce::Identifier host             { juce::String::fromUTF8 ("host") };
-    const juce::Identifier iconSize         { juce::String::fromUTF8 ("iconSize") };
-    const juce::Identifier item             { juce::String::fromUTF8 ("item") };
-    const juce::Identifier link             { juce::String::fromUTF8 ("link") };
-    const juce::Identifier linkColumn       { juce::String::fromUTF8 ("linkColumn") };
-    const juce::Identifier linkName         { juce::String::fromUTF8 ("linkName") };
-    const juce::Identifier linux            { juce::String::fromUTF8 ("linux") };
-    const juce::Identifier mac              { juce::String::fromUTF8 ("mac") };
+    const juce::Identifier iconSize         { juce::String::fromUTF8 ("icon-size") };
+    const juce::Identifier linkColumn       { juce::String::fromUTF8 ("link-column") };
     const juce::Identifier p                { juce::String::fromUTF8 ("p") };
     const juce::Identifier pack             { juce::String::fromUTF8 ("pack") };
-    const juce::Identifier packLayout       { juce::String::fromUTF8 ("pack_layout") };
-    const juce::Identifier rowSpacing       { juce::String::fromUTF8 ("rowSpacing") };
+    const juce::Identifier rowSpacing       { juce::String::fromUTF8 ("row-spacing") };
     const juce::Identifier syncBoundary     { juce::String::fromUTF8 ("boundary") };
     const juce::Identifier brief            { juce::String::fromUTF8 ("brief") };
     const juce::Identifier command          { juce::String::fromUTF8 ("command") };
@@ -98,9 +92,8 @@ namespace Id
     const juce::String     toTitle          { juce::String::fromUTF8 ("to title") };
     const juce::String     toUpper          { juce::String::fromUTF8 ("to upper") };
     const juce::String     toUTF8           { juce::String::fromUTF8 ("to UTF8") };
-    const juce::Identifier win              { juce::String::fromUTF8 ("win") };
-    const juce::Identifier windowLeft       { juce::String::fromUTF8 ("windowLeft") };
-    const juce::Identifier windowTop        { juce::String::fromUTF8 ("windowTop") };
+    const juce::Identifier windowLeft       { juce::String::fromUTF8 ("window-left") };
+    const juce::Identifier windowTop        { juce::String::fromUTF8 ("window-top") };
     const juce::Identifier wiring           { juce::String::fromUTF8 ("wiring") };
     const juce::Identifier word             { juce::String::fromUTF8 ("word") };
     const juce::String     zip              { juce::String::fromUTF8 ("zip") };

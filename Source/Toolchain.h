@@ -1,92 +1,37 @@
 #pragma once
 #include <JuceHeader.h>
 #include "generated/Generated.h"
-#include "Model.h"
 
 /**
  * @struct Toolchain
- * @brief Selects @c ## toolchain and @c ## pack rows by host and by CLI
- *        argument, and runs child processes for them.
+ * @brief Tokenizes the cells of a @c ## toolchain row into an argv array
+ *        and runs child processes.
  *
- * Toolchain keeps no state. Its selection functions read only the model
- * and the compile-time host.
+ * Toolchain keeps no state.
  */
 struct Toolchain
 {
     /**
-     * @brief Returns the host this binary was built for.
-     *
-     * @returns @c Id::mac, @c Id::win, or @c Id::linux.
-     */
-    static const juce::Identifier& getHost() noexcept
-    {
-       #if JUCE_MAC
-        return Id::mac;
-       #elif JUCE_WINDOWS
-        return Id::win;
-       #else
-        return Id::linux;
-       #endif
-    }
-
-    /**
-     * @brief Answers whether @p row runs on this host.
-     *
-     * @param model The model @p row belongs to.
-     * @param row   The @c ## toolchain or @c ## pack row.
-     * @returns @c true when the @c host cell is empty or names the host
-     *          that getHost() returns.
-     */
-    static bool isHostSelected (const Model& model, const Model::Element& row)
-    {
-        const auto host { model.getColumnValue (row, Id::host) };
-
-        return host.isEmpty() or juce::Identifier (host) == getHost();
-    }
-
-    /**
-     * @brief Answers whether @p row is selected by both the CLI argument
-     *        and the host.
-     *
-     * @param model             The model @p row belongs to.
-     * @param row               The @c ## toolchain or @c ## pack row.
-     * @param toolchainArgument The CLI-selected toolchain group. Empty
-     *                          selects the rows with a blank @c argument
-     *                          cell.
-     * @returns @c true when the @c argument cell equals
-     *          @p toolchainArgument and isHostSelected() holds.
-     */
-    static bool isRowSelected (const Model& model, const Model::Element& row, const juce::String& toolchainArgument)
-    {
-        return model.getColumnValue (row, Id::argument).compare (toolchainArgument) == 0 and isHostSelected (model, row);
-    }
-
-    /**
-     * @brief Resolves @p path against the current working directory.
-     *
-     * @param path A relative or absolute path.
-     * @returns The file @p path names, relative to the current working
-     *          directory when @p path is relative.
-     */
-    static juce::File getWorkingFile (const juce::String& path)
-    {
-        return juce::File::getCurrentWorkingDirectory().getChildFile (path);
-    }
-
-    /**
      * @brief Tokenizes @p command and @p flag into one argv array.
+     *
+     * The @p flag text splits on white space. A span in double quotes stays
+     * one argument. The function removes the quote marks and drops empty
+     * tokens. The @p command text is not split.
      *
      * @param command The toolchain row's own @c command, placed at
      *                argument index zero.
      * @param flag    The toolchain row's own @c flag, tokenized after
      *                @p command.
-     * @returns @p command followed by @p flag's own whitespace-tokenized
-     *          arguments.
+     * @returns @p command followed by the arguments of @p flag.
      */
     static juce::StringArray getToolchainArguments (const juce::String& command, const juce::String& flag)
     {
         juce::StringArray arguments { command };
         arguments.addTokens (flag, true);
+        arguments.removeEmptyStrings();
+
+        for (auto& argument : arguments)
+            argument = argument.removeCharacters (juce::String::charToString (Chars::doubleQuote));
 
         return arguments;
     }

@@ -1,7 +1,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include "generated/Generated.h"
-#include "Model.h"
+#include "AliasWriter.h"
 #include "PropertyListWriter.h"
 
 /**
@@ -19,27 +19,28 @@ struct BinaryWriter
     /**
      * @brief Builds the @c .DS_Store image.
      *
-     * @param model     The model that holds the layout table.
-     * @param layout    The @c ## pack layout table. Its @c value cells give
-     *                  the icon size, the two columns, the first row, the
-     *                  row spacing, and the window origin.
-     * @param itemNames The item file names, one per row, in row order.
-     * @param linkNames The link names, one per row, in row order. An empty
-     *                  name means the row has no link.
+     * @param arguments      The command line, for the layout options.
+     * @param itemNames      The item file names, one per row, in row order.
+     * @param linkNames      The link names, one per row, in row order. An
+     *                       empty name means the row has no link.
+     * @param volumeName     The volume name, for the background alias.
+     * @param backgroundName The file name of the background image in the
+     *                       stage. An empty name means a white background.
      * @returns The image, or @c std::nullopt when the record node does not
      *          fit in one block.
      */
-    static std::optional<juce::MemoryBlock> getStore (const Model& model,
-                                                      const Model::Element& layout,
+    static std::optional<juce::MemoryBlock> getStore (const juce::ArgumentList& arguments,
                                                       const juce::StringArray& itemNames,
-                                                      const juce::StringArray& linkNames)
+                                                      const juce::StringArray& linkNames,
+                                                      const juce::String& volumeName,
+                                                      const juce::String& backgroundName)
     {
         constexpr int folderRecordCount { 3 };
         jassert (itemNames.size() == linkNames.size());
 
         const auto names { getNames (itemNames, linkNames) };
         const auto recordCount { names.size() - 1 + folderRecordCount };
-        const auto node { getNode (model, layout, itemNames, linkNames, names, recordCount) };
+        const auto node { getNode (arguments, itemNames, linkNames, volumeName, backgroundName, names, recordCount) };
 
         if (node.getSize() <= static_cast<size_t> (blockSize))
         {
@@ -59,40 +60,96 @@ struct BinaryWriter
         return std::nullopt;
     }
 
+    /**
+     * @brief Answers whether each layout option on the command line is an
+     *        integer.
+     *
+     * @param arguments The command line.
+     * @returns True when each layout option that is present has an integer
+     *          value.
+     */
+    static bool isLayoutValid (const juce::ArgumentList& arguments)
+    {
+        for (const auto& key : getLayoutKeys())
+        {
+            const auto flag { Id::doubleDash + key.toString() };
+
+            if (arguments.containsOption (flag))
+            {
+                const auto value { arguments.getValueForOption (flag) };
+
+                if (juce::String (value.getIntValue()).compare (value) != 0)
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @brief Answers whether the command line has a layout option.
+     *
+     * @param arguments The command line.
+     * @returns True when at least one layout option is present.
+     */
+    static bool hasLayout (const juce::ArgumentList& arguments)
+    {
+        for (const auto& key : getLayoutKeys())
+            if (arguments.containsOption (Id::doubleDash + key.toString())) return true;
+
+        return false;
+    }
+
 private:
     /**
-     * @brief Returns the integer @c value cell of the @p key row of
-     *        @p layout.
+     * @brief Returns the seven layout option keys.
      *
-     * @param model  The model that holds @p layout.
-     * @param layout The @c ## pack layout table.
-     * @param key    The layout key.
-     * @returns The integer value of the @p key row.
+     * @returns The keys, without the leading dashes.
      */
-    static int getLayoutValue (const Model& model, const Model::Element& layout, const juce::Identifier& key)
+    static const std::array<juce::Identifier, 7>& getLayoutKeys()
     {
-        return model.getValue (*model.getTableRow (layout, key), Id::value).getIntValue();
+        static const std::array<juce::Identifier, 7> layoutKeys { Id::iconSize,
+                                                                   Id::bundleColumn,
+                                                                   Id::linkColumn,
+                                                                   Id::firstRow,
+                                                                   Id::rowSpacing,
+                                                                   Id::windowLeft,
+                                                                   Id::windowTop };
+        return layoutKeys;
+    }
+
+    /**
+     * @brief Returns the value of one layout option.
+     *
+     * @param arguments    The command line.
+     * @param key          The layout option key.
+     * @param defaultValue The value when the option is absent.
+     * @returns The integer value of the option, or @p defaultValue.
+     */
+    static int getLayoutValue (const juce::ArgumentList& arguments, const juce::Identifier& key, int defaultValue)
+    {
+        const auto flag { Id::doubleDash + key.toString() };
+        return arguments.containsOption (flag) ? arguments.getValueForOption (flag).getIntValue() : defaultValue;
     }
 
     /**
      * @brief Returns the window settings of the folder record.
      *
-     * @param model    The model that holds @p layout.
-     * @param layout   The @c ## pack layout table.
-     * @param rowCount The number of item rows, which sets the window
-     *                 height.
+     * @param arguments The command line, for the layout options.
+     * @param rowCount  The number of item rows, which sets the window
+     *                  height.
      * @returns The settings, with the sidebar, status bar, tab view, and
      *          toolbar hidden and the window bounds set.
      */
-    static juce::NamedValueSet getWindowSettings (const Model& model, const Model::Element& layout, int rowCount)
+    static juce::NamedValueSet getWindowSettings (const juce::ArgumentList& arguments, int rowCount)
     {
-        const auto width { getLayoutValue (model, layout, Id::bundleColumn)
-                           + getLayoutValue (model, layout, Id::linkColumn) };
-        const auto height { getLayoutValue (model, layout, Id::firstRow)
-                            + rowCount * getLayoutValue (model, layout, Id::rowSpacing) };
+        const auto width { getLayoutValue (arguments, Id::bundleColumn, defaultBundleColumn)
+                           + getLayoutValue (arguments, Id::linkColumn, defaultLinkColumn) };
+        const auto height { getLayoutValue (arguments, Id::firstRow, defaultFirstRow)
+                            + rowCount * getLayoutValue (arguments, Id::rowSpacing, defaultRowSpacing) };
         const auto bounds { juce::String::formatted ("{{%d, %d}, {%d, %d}}",
-                                                     getLayoutValue (model, layout, Id::windowLeft),
-                                                     getLayoutValue (model, layout, Id::windowTop),
+                                                     getLayoutValue (arguments, Id::windowLeft, defaultWindowLeft),
+                                                     getLayoutValue (arguments, Id::windowTop, defaultWindowTop),
                                                      width,
                                                      height) };
 
@@ -105,29 +162,59 @@ private:
     }
 
     /**
+     * @brief Returns the background settings of the icon view.
+     *
+     * @param volumeName     The volume name, for the alias.
+     * @param backgroundName The file name of the background image in the
+     *                       stage. An empty name selects the white color.
+     * @returns The alias and the image type, or the white color components
+     *          and the color type.
+     */
+    static juce::NamedValueSet getBackgroundSettings (const juce::String& volumeName, const juce::String& backgroundName)
+    {
+        if (backgroundName.isNotEmpty())
+            return { { "backgroundImageAlias", juce::var (AliasWriter::getAlias (volumeName, backgroundName)) },
+                     { backgroundTypeKey, backgroundImageType } };
+
+        return { { "backgroundColorBlue", whiteColorComponent },
+                 { "backgroundColorGreen", whiteColorComponent },
+                 { "backgroundColorRed", whiteColorComponent },
+                 { backgroundTypeKey, colorBackgroundType } };
+    }
+
+    /**
      * @brief Returns the icon-view settings of the folder record.
      *
-     * @param model  The model that holds @p layout.
-     * @param layout The @c ## pack layout table, which gives the icon
-     *               size.
-     * @returns The settings, with free arrangement and a white background.
+     * @param arguments      The command line, for the icon size.
+     * @param volumeName     The volume name, for the background alias.
+     * @param backgroundName The file name of the background image in the
+     *                       stage. An empty name selects the white color.
+     * @returns The settings, with free arrangement and the icon size. The
+     *          background is white, or the image when @p backgroundName is
+     *          not empty.
      */
-    static juce::NamedValueSet getIconSettings (const Model& model, const Model::Element& layout)
+    static juce::NamedValueSet getIconSettings (const juce::ArgumentList& arguments,
+                                                const juce::String& volumeName,
+                                                const juce::String& backgroundName)
     {
-        return { { "arrangeBy", "none" },
-                 { "backgroundColorBlue", 1.0 },
-                 { "backgroundColorGreen", 1.0 },
-                 { "backgroundColorRed", 1.0 },
-                 { "backgroundType", 0 },
-                 { "gridOffsetX", 0.0 },
-                 { "gridOffsetY", 0.0 },
-                 { "gridSpacing", 100.0 },
-                 { "iconSize", static_cast<double> (getLayoutValue (model, layout, Id::iconSize)) },
-                 { "labelOnBottom", true },
-                 { "showIconPreview", true },
-                 { "showItemInfo", false },
-                 { "textSize", 12.0 },
-                 { "viewOptionsVersion", 1 } };
+        const juce::NamedValueSet viewSettings { { "gridOffsetX", 0.0 },
+                                                 { "gridOffsetY", 0.0 },
+                                                 { "gridSpacing", gridSpacing },
+                                                 { "iconSize", static_cast<double> (getLayoutValue (arguments, Id::iconSize, defaultIconSize)) },
+                                                 { "labelOnBottom", true },
+                                                 { "showIconPreview", true },
+                                                 { "showItemInfo", false },
+                                                 { "textSize", textSize },
+                                                 { "viewOptionsVersion", 1 } };
+        juce::NamedValueSet settings { { "arrangeBy", "none" } };
+
+        for (const auto& setting : getBackgroundSettings (volumeName, backgroundName))
+            settings.set (setting.name, setting.value);
+
+        for (const auto& setting : viewSettings)
+            settings.set (setting.name, setting.value);
+
+        return settings;
     }
 
     /**
@@ -162,17 +249,11 @@ private:
                                         const char* type,
                                         const juce::MemoryBlock& value)
     {
-        const auto units { name.toUTF16() };
-        const auto unitCount { juce::CharPointer_UTF16::getBytesRequiredFor (name.getCharPointer())
-                               / sizeof (juce::CharPointer_UTF16::CharType) };
-        const juce::Span<const juce::CharPointer_UTF16::CharType> nameUnits { units.getAddress(), unitCount };
+        const auto units { AliasWriter::getUnicodeUnits (name) };
 
         juce::MemoryOutputStream record;
-        record.writeIntBigEndian (static_cast<int> (unitCount));
-
-        for (const auto unit : nameUnits)
-            record.writeShortBigEndian (static_cast<short> (unit));
-
+        record.writeIntBigEndian (static_cast<int> (units.getSize() / sizeof (juce::CharPointer_UTF16::CharType)));
+        record << units;
         record << code << type;
 
         record << value;
@@ -209,7 +290,7 @@ private:
         for (const auto& link : linkNames)
             if (link.isNotEmpty()) names.add (link);
 
-        std::sort (names.begin(), names.end(), [] (const juce::String& first, const juce::String& second)
+        std::stable_sort (names.begin(), names.end(), [] (const juce::String& first, const juce::String& second)
         {
             return first.toLowerCase().compare (second.toLowerCase()) < 0;
         });
@@ -221,18 +302,23 @@ private:
      * @brief Returns the three records of the folder itself: window
      *        settings, icon-view settings, and the store revision.
      *
-     * @param model    The model that holds @p layout.
-     * @param layout   The @c ## pack layout table.
-     * @param rowCount The number of item rows.
+     * @param arguments      The command line, for the layout options.
+     * @param rowCount       The number of item rows.
+     * @param volumeName     The volume name, for the background alias.
+     * @param backgroundName The file name of the background image in the
+     *                       stage. An empty name selects the white color.
      * @returns The encoded records.
      */
-    static juce::MemoryBlock getFolderRecords (const Model& model, const Model::Element& layout, int rowCount)
+    static juce::MemoryBlock getFolderRecords (const juce::ArgumentList& arguments,
+                                               int rowCount,
+                                               const juce::String& volumeName,
+                                               const juce::String& backgroundName)
     {
         juce::MemoryOutputStream revision;
         revision.writeIntBigEndian (storeVersion);
 
-        const auto windowList { PropertyListWriter::getPropertyList (getWindowSettings (model, layout, rowCount)) };
-        const auto iconList { PropertyListWriter::getPropertyList (getIconSettings (model, layout)) };
+        const auto windowList { PropertyListWriter::getPropertyList (getWindowSettings (arguments, rowCount)) };
+        const auto iconList { PropertyListWriter::getPropertyList (getIconSettings (arguments, volumeName, backgroundName)) };
 
         juce::MemoryOutputStream records;
         records << getRecord (folderName, windowCode, blobType, getBlob (windowList));
@@ -247,15 +333,13 @@ private:
      * An item sits in the bundle column at its own item row. A link sits
      * in the link column at its own link row.
      *
-     * @param model     The model that holds @p layout.
-     * @param layout    The @c ## pack layout table.
+     * @param arguments The command line, for the layout options.
      * @param name      The item or link name.
      * @param itemNames The item file names, in row order.
      * @param linkNames The link names, in row order.
      * @returns The encoded record.
      */
-    static juce::MemoryBlock getLocationRecord (const Model& model,
-                                                const Model::Element& layout,
+    static juce::MemoryBlock getLocationRecord (const juce::ArgumentList& arguments,
                                                 const juce::String& name,
                                                 const juce::StringArray& itemNames,
                                                 const juce::StringArray& linkNames)
@@ -263,9 +347,10 @@ private:
         const auto itemRow { itemNames.indexOf (name) };
         const auto isItem { itemRow >= 0 };
         const auto row { isItem ? itemRow : linkNames.indexOf (name) };
-        const auto x { getLayoutValue (model, layout, isItem ? Id::bundleColumn : Id::linkColumn) };
-        const auto y { getLayoutValue (model, layout, Id::firstRow)
-                       + row * getLayoutValue (model, layout, Id::rowSpacing) };
+        const auto x { isItem ? getLayoutValue (arguments, Id::bundleColumn, defaultBundleColumn)
+                              : getLayoutValue (arguments, Id::linkColumn, defaultLinkColumn) };
+        const auto y { getLayoutValue (arguments, Id::firstRow, defaultFirstRow)
+                       + row * getLayoutValue (arguments, Id::rowSpacing, defaultRowSpacing) };
 
         return getRecord (name, locationCode, blobType, getBlob (getLocation (x, y)));
     }
@@ -273,18 +358,21 @@ private:
     /**
      * @brief Returns the B-tree node that holds every record.
      *
-     * @param model       The model that holds @p layout.
-     * @param layout      The @c ## pack layout table.
-     * @param itemNames   The item file names, in row order.
-     * @param linkNames   The link names, in row order.
-     * @param names       The sorted names from getNames().
-     * @param recordCount The number of records in the node.
+     * @param arguments      The command line, for the layout options.
+     * @param itemNames      The item file names, in row order.
+     * @param linkNames      The link names, in row order.
+     * @param volumeName     The volume name, for the background alias.
+     * @param backgroundName The file name of the background image in the
+     *                       stage. An empty name selects the white color.
+     * @param names          The sorted names from getNames().
+     * @param recordCount    The number of records in the node.
      * @returns The node header followed by the records in @p names order.
      */
-    static juce::MemoryBlock getNode (const Model& model,
-                                      const Model::Element& layout,
+    static juce::MemoryBlock getNode (const juce::ArgumentList& arguments,
                                       const juce::StringArray& itemNames,
                                       const juce::StringArray& linkNames,
+                                      const juce::String& volumeName,
+                                      const juce::String& backgroundName,
                                       const juce::StringArray& names,
                                       int recordCount)
     {
@@ -293,9 +381,9 @@ private:
         for (const auto& name : names)
         {
             if (name.compare (folderName) == 0)
-                records << getFolderRecords (model, layout, itemNames.size());
+                records << getFolderRecords (arguments, itemNames.size(), volumeName, backgroundName);
             else
-                records << getLocationRecord (model, layout, name, itemNames, linkNames);
+                records << getLocationRecord (arguments, name, itemNames, linkNames);
         }
 
         juce::MemoryOutputStream node;
@@ -406,6 +494,33 @@ private:
         master.writeIntBigEndian (pageSize);
         return master.getMemoryBlock();
     }
+
+    /** Default icon size, in points. */
+    static constexpr int defaultIconSize { 64 };
+    /** Default x position of the item column. */
+    static constexpr int defaultBundleColumn { 150 };
+    /** Default x position of the link column. */
+    static constexpr int defaultLinkColumn { 450 };
+    /** Default y position of row 0. */
+    static constexpr int defaultFirstRow { 80 };
+    /** Default distance between two rows. */
+    static constexpr int defaultRowSpacing { 120 };
+    /** Default x position of the window. */
+    static constexpr int defaultWindowLeft { 100 };
+    /** Default y position of the window. */
+    static constexpr int defaultWindowTop { 100 };
+    /** Background type value of an image background. */
+    static constexpr int backgroundImageType { 2 };
+    /** Grid spacing of the icon view. */
+    static constexpr double gridSpacing { 100.0 };
+    /** Label text size of the icon view. */
+    static constexpr double textSize { 12.0 };
+    /** Value of each color component of a white background. */
+    static constexpr double whiteColorComponent { 1.0 };
+    /** Background type value of a color background. */
+    static constexpr int colorBackgroundType { 0 };
+    /** Key of the background type in the icon-view settings. */
+    static constexpr const char* backgroundTypeKey { "backgroundType" };
 
     /** Total size of the image in bytes. */
     static constexpr int storeSize { 8196 };

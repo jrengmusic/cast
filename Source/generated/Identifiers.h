@@ -33,9 +33,10 @@ namespace Id
  * transform operations a format cell may declare (§8).
  */
 
-extern const juce::Identifier archive;         ///< Pack table archive column.
 extern const juce::Identifier argument;        ///< Toolchain table argument column.
 extern const juce::Identifier assumeFilename;  ///< --assume-filename CLI flag word — stdin style search start.
+extern const juce::Identifier background;      ///< --pack background option word.
+extern const juce::String     backgroundPrefix;///< Dmg background image file-name prefix.
 extern const juce::Identifier banner;          ///< Banner artwork key.
 extern const juce::Identifier bannerClose;
 extern const juce::Identifier bannerOpen;
@@ -43,26 +44,19 @@ extern const juce::Identifier begin;
 extern const juce::Identifier blockClose;
 extern const juce::Identifier blockLine;       ///< Block-comment continuation-line glyph key.
 extern const juce::Identifier blockOpen;
-extern const juce::Identifier bundleColumn;    ///< Pack layout key — item x position.
+extern const juce::Identifier bundleColumn;    ///< --pack layout option word.
 extern const juce::Identifier comment;
 extern const juce::String     dmg;             ///< Dmg archive extension.
 extern const juce::Identifier doubleDash;      ///< Double-dash delimiter.
 extern const juce::String     dsStore;         ///< Finder layout file name.
-extern const juce::Identifier firstRow;        ///< Pack layout key — first row y position.
+extern const juce::Identifier firstRow;        ///< --pack layout option word.
 extern const juce::String     hdiutil;         ///< Dmg image tool command.
 extern const juce::Identifier help;
-extern const juce::Identifier host;            ///< Toolchain and pack table host column.
-extern const juce::Identifier iconSize;        ///< Pack layout key — icon size.
-extern const juce::Identifier item;            ///< Pack table item column.
-extern const juce::Identifier link;            ///< Pack table link target column.
-extern const juce::Identifier linkColumn;      ///< Pack layout key — link x position.
-extern const juce::Identifier linkName;        ///< Pack table link name column.
-extern const juce::Identifier linux;           ///< Host word — Linux.
-extern const juce::Identifier mac;             ///< Host word — macOS.
+extern const juce::Identifier iconSize;        ///< --pack layout option word.
+extern const juce::Identifier linkColumn;      ///< --pack layout option word.
 extern const juce::Identifier p;
-extern const juce::Identifier pack;            ///< Reserved pack table and toolchain command word.
-extern const juce::Identifier packLayout;      ///< Reserved pack layout table id, parsed from `pack layout`.
-extern const juce::Identifier rowSpacing;      ///< Pack layout key — row pitch.
+extern const juce::Identifier pack;            ///< --pack CLI flag word.
+extern const juce::Identifier rowSpacing;      ///< --pack layout option word.
 extern const juce::Identifier syncBoundary;    ///< Sync identity-row boundary column key.
 extern const juce::Identifier brief;           ///< Brief documentation key.
 extern const juce::Identifier command;         ///< Toolchain table command column.
@@ -102,9 +96,8 @@ extern const juce::String     toSnake;         ///< snake_case operation.
 extern const juce::String     toTitle;         ///< Title Case operation.
 extern const juce::String     toUpper;         ///< UPPERCASE operation.
 extern const juce::String     toUTF8;          ///< UTF-8 encode operation.
-extern const juce::Identifier win;             ///< Host word — Windows.
-extern const juce::Identifier windowLeft;      ///< Pack layout key — window left edge.
-extern const juce::Identifier windowTop;       ///< Pack layout key — window top edge.
+extern const juce::Identifier windowLeft;      ///< --pack layout option word.
+extern const juce::Identifier windowTop;       ///< --pack layout option word.
 extern const juce::Identifier wiring;          ///< Manifest wiring-table classification.
 extern const juce::Identifier word;            ///< Sync identity-row boundary keyword — whole-word matching.
 extern const juce::String     zip;             ///< Zip archive extension.

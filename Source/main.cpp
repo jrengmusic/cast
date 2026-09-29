@@ -6,6 +6,7 @@
 #include <JuceHeader.h>
 #include "Processor.h"
 #include "Sync.h"
+#include "Pack.h"
 #include "Help.h"
 
 #ifdef _WIN32
@@ -101,6 +102,16 @@ static const juce::String& getSyncFlag()
 {
     static const juce::String syncFlag { Id::doubleDash + Id::sync.toString() };
     return syncFlag;
+}
+
+/**
+ * @brief The `--pack` flag word.
+ * @returns The `--pack` flag text.
+ */
+static const juce::String& getPackFlag()
+{
+    static const juce::String packFlag { Id::doubleDash + Id::pack.toString() };
+    return packFlag;
 }
 
 /**
@@ -331,7 +342,7 @@ static juce::String getManifestArgument (int argc, char* argv[])
  */
 static bool isToolchainArgument (const juce::String& manifestArgument)
 {
-    static const jam::Strings reservedFlags { getFormatFlag(), getNoFormatFlag(), getVersionFlag(), getHelpFlag(), getSyncFlag() };
+    static const jam::Strings reservedFlags { getFormatFlag(), getNoFormatFlag(), getVersionFlag(), getHelpFlag(), getSyncFlag(), getPackFlag() };
 
     return manifestArgument.startsWith (Id::doubleDash.toString())
            and not reservedFlags.contains (manifestArgument, false);
@@ -826,6 +837,18 @@ static bool isSyncFlag (int argc, char* argv[])
 }
 
 /**
+ * @brief Answers whether @p argv requests @c --pack at the flag position.
+ *
+ * @param argc The CLI argument count.
+ * @param argv The CLI argument vector.
+ * @returns @c true when @p argv declares @c --pack.
+ */
+static bool isPackFlag (int argc, char* argv[])
+{
+    return getFlagArgument (argc, argv).compare (getPackFlag()) == 0;
+}
+
+/**
  * @brief Validates every one of @p files against its own resolved style,
  *        without writing -- the first pass of an in-place run.
  *
@@ -1153,6 +1176,91 @@ static int runSyncArguments (int argc, char* argv[], int lineWrap)
 }
 
 /**
+ * @brief Returns the arguments of @p argv that are not options, in
+ *        authored order.
+ *
+ * The first path is the archive. Each path after it belongs to a row.
+ *
+ * @param argc The CLI argument count.
+ * @param argv The CLI argument vector.
+ * @returns The arguments without a leading dash, program name excluded.
+ */
+static juce::StringArray getPackPaths (int argc, char* argv[])
+{
+    juce::StringArray paths;
+
+    for (const auto& text : juce::StringArray (argv + 1, argc - 1))
+        if (not juce::ArgumentList::Argument { text }.isOption())
+            paths.add (text);
+
+    return paths;
+}
+
+/**
+ * @brief Runs Pack::toArchive() under a scoped JUCE GUI initialiser and
+ *        the framework's shared-instance stamp, and prints the resulting
+ *        error to stderr on failure.
+ *
+ * @param arguments The parsed command-line arguments.
+ * @param archive   The archive to write.
+ * @param triples   The rows, flat: item, link name, link target for each
+ *                  row.
+ * @returns @c 0 when the pack succeeds, or @c 1 after printing the
+ *          failure's error message.
+ */
+static int runPack (const juce::ArgumentList& arguments, const juce::File& archive, const juce::StringArray& triples)
+{
+    juce::ScopedJuceInitialiser_GUI libraryInitialiser;
+    jam::Stamp stamp;
+
+    const auto result { Pack::toArchive (arguments, archive, triples) };
+
+    if (result.wasOk())
+    {
+        printDone();
+        return 0;
+    }
+
+    printError (result.getErrorMessage());
+    return 1;
+}
+
+/**
+ * @brief Answers @c --pack's own arity requirement -- one archive path and
+ *        complete triples -- and its layout options requirement -- an
+ *        integer value for each -- then dispatches to runPack(), or reports
+ *        the failure on stderr.
+ *
+ * @param argc The CLI argument count.
+ * @param argv The CLI argument vector.
+ * @returns @c 0 when the pack succeeds, or @c 1 after printing the arity
+ *          fatal, the layout value fatal, or the pack's own failure.
+ */
+static int runPackArguments (int argc, char* argv[])
+{
+    const juce::ArgumentList arguments { argc, argv };
+    const auto paths { getPackPaths (argc, argv) };
+
+    if (paths.size() > 1 and (paths.size() - 1) % Pack::tripleSize == 0)
+    {
+        if (BinaryWriter::isLayoutValid (arguments))
+        {
+            const auto archive { juce::File::getCurrentWorkingDirectory().getChildFile (paths[0]) };
+            juce::StringArray triples;
+
+            triples.addArray (paths, 1);
+            return runPack (arguments, archive, triples);
+        }
+
+        printError (getPackFlag() + Id::diagnosticSeparator + text::Diagnostics::failFlagValue);
+        return 1;
+    }
+
+    printError (getPackFlag() + Id::diagnosticSeparator + text::Diagnostics::failPackArguments);
+    return 1;
+}
+
+/**
  * @brief Dispatches @p argv's own version, help, format, or document
  *        request.
  *
@@ -1190,12 +1298,15 @@ static int runCommandLine (int argc, char* argv[], int lineWrap)
 
 /**
  * @brief `cast`'s own entry point -- sets up UTF-8 console output, clears
- *        the terminal outside a `--format` run, then dispatches @p argv
- *        through runCommandLine().
+ *        the terminal outside a `--format` or `--pack` run, then
+ *        dispatches @p argv to runPackArguments() for `--pack`, to
+ *        runSyncArguments() for `--sync`, and to runCommandLine()
+ *        otherwise.
  *
  * @param argc The argument count.
  * @param argv The argument vector.
- * @returns runCommandLine()'s own result.
+ * @returns The dispatched function's own result, or @c 1 after printing
+ *          the failure when the `--line-wrap` value is invalid.
  */
 int main (int argc, char* argv[])
 {
@@ -1203,7 +1314,7 @@ int main (int argc, char* argv[])
     SetConsoleOutputCP (CP_UTF8);
 #endif
 
-    if (isTerminalOutput() and not isFormatOnly (argc, argv))
+    if (isTerminalOutput() and not isFormatOnly (argc, argv) and not isPackFlag (argc, argv))
     {
 #ifdef _WIN32
         std::system ("cls");
@@ -1213,6 +1324,9 @@ int main (int argc, char* argv[])
     }
 
     const auto lineWrap { getFlagValue (argc, argv, getLineWrapFlag(), absentFlagValue) };
+
+    if (isPackFlag (argc, argv))
+        return runPackArguments (argc, argv);
 
     if (isSyncFlag (argc, argv))
         return runSyncArguments (argc, argv, lineWrap);

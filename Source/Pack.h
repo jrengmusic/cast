@@ -4,193 +4,265 @@
 #include <copyfile.h>
 #endif
 #include "generated/Generated.h"
-#include "Model.h"
 #include "Toolchain.h"
 #include "BinaryWriter.h"
 #include "ZipWriter.h"
 
 /**
  * @struct Pack
- * @brief Builds the archives that the selected @c ## pack rows declare
- *        (SPEC §6.12).
+ * @brief Packs one archive from the @c --pack command line.
  *
- * Pack keeps no state. Rows whose @c archive paths resolve to one file
- * make one archive. The @c archive extension picks the format: @c zip writes
- * through ZipWriter, and @c dmg stages the items in a folder and runs
- * @c hdiutil on macOS. Any other host fails a @c dmg archive.
+ * The extension of the archive selects the format. A @c zip archive goes
+ * through ZipWriter. A @c dmg archive goes through a stage folder beside the
+ * archive, a @c .DS_Store file written by BinaryWriter, and one @c hdiutil
+ * process on macOS. Pack keeps no state.
  */
 struct Pack
 {
+    /** Number of command line values in one row: item, link name, link target. */
+    static constexpr int tripleSize { 3 };
+
     /**
-     * @brief Builds every archive that a selected @c ## pack row names,
-     *        once per archive.
+     * @brief Returns the @c --background flag text.
      *
-     * @param model             The model that holds the @c ## pack tables.
-     * @param toolchainArgument The CLI-selected toolchain group. Only rows
-     *                          that Toolchain::isRowSelected() accepts take
-     *                          part.
-     * @returns juce::Result::ok() when every archive is built, or the
-     *          first failure.
+     * @returns The flag that names the background image.
      */
-    static juce::Result toArchives (const Model& model, const juce::String& toolchainArgument)
+    static const juce::String& getBackgroundFlag()
     {
-        for (auto* table : model.getTables (Id::pack))
-            for (auto* row : model.getTableRows (*table))
-                if (Toolchain::isRowSelected (model, *row, toolchainArgument)
-                    and isFirstArchiveRow (model, *row, toolchainArgument))
-                    if (const auto result { toArchive (model, Toolchain::getWorkingFile (model.getValue (*row, Id::archive)), toolchainArgument) };
-                        not result.wasOk())
-                        return result;
-
-        return juce::Result::ok();
-    }
-
-private:
-    /**
-     * @brief Calls @p function for every selected row of @p archiveFile.
-     *
-     * @param model             The model that holds the @c ## pack tables.
-     * @param archiveFile       The archive whose rows are visited.
-     * @param toolchainArgument The CLI-selected toolchain group.
-     * @param function          Callable invoked as @c function(row),
-     *                          returning a juce::Result.
-     * @returns juce::Result::ok() when @p function succeeds for every
-     *          row, or the first failing result.
-     */
-    template <typename Function>
-    static juce::Result forEachArchiveRow (const Model& model, const juce::File& archiveFile, const juce::String& toolchainArgument, Function&& function)
-    {
-        for (auto* table : model.getTables (Id::pack))
-            for (auto* row : model.getTableRows (*table))
-                if (Toolchain::isRowSelected (model, *row, toolchainArgument)
-                    and Toolchain::getWorkingFile (model.getValue (*row, Id::archive)) == archiveFile)
-                    if (const auto result { function (*row) }; not result.wasOk())
-                        return result;
-
-        return juce::Result::ok();
+        static const juce::String backgroundFlag { Id::doubleDash + Id::background.toString() };
+        return backgroundFlag;
     }
 
     /**
-     * @brief Answers whether @p row is the first selected row of its
-     *        archive.
+     * @brief Packs one archive.
      *
-     * @param model             The model that holds the @c ## pack tables.
-     * @param row               The row to test.
-     * @param toolchainArgument The CLI-selected toolchain group.
-     * @returns @c true when no earlier selected row names the same
-     *          archive.
-     */
-    static bool isFirstArchiveRow (const Model& model, const Model::Element& row, const juce::String& toolchainArgument)
-    {
-        const auto archiveFile { Toolchain::getWorkingFile (model.getValue (row, Id::archive)) };
-
-        for (auto* table : model.getTables (Id::pack))
-            for (auto* candidate : model.getTableRows (*table))
-                if (Toolchain::isRowSelected (model, *candidate, toolchainArgument)
-                    and Toolchain::getWorkingFile (model.getValue (*candidate, Id::archive)) == archiveFile)
-                    return candidate == &row;
-
-        return false;
-    }
-
-    /**
-     * @brief Builds one archive, after it checks that every item of its
-     *        rows exists.
+     * Fails when the extension of @p archive is not a known format, when an
+     * item or the background image does not exist, or when two rows give the
+     * archive root one name.
      *
-     * @param model             The model that holds the @c ## pack tables.
-     * @param archiveFile       The archive to build. Its extension picks
-     *                          the format.
-     * @param toolchainArgument The CLI-selected toolchain group.
-     * @returns juce::Result::ok() when the archive is built, or a failure
-     *          naming the missing item or the failed step.
+     * @param arguments The command line, for the layout options and
+     *                  @c --background.
+     * @param archive   The archive to write. Its extension selects the format.
+     * @param triples   The rows, flat: item path, link name, link target for
+     *                  each row. The size is a multiple of tripleSize.
+     * @returns Ok, or the failure with the path and the reason.
      */
-    static juce::Result toArchive (const Model& model, const juce::File& archiveFile, const juce::String& toolchainArgument)
+    static juce::Result toArchive (const juce::ArgumentList& arguments, const juce::File& archive, const juce::StringArray& triples)
     {
+        jassert (triples.size() > 0 and triples.size() % tripleSize == 0);
+
         static const jam::Function::Map<juce::String, juce::Result> archiveFormats {
             []()
             {
-                jam::Function::Map<juce::String, juce::Result> map;
+                jam::Function::Map<juce::String, juce::Result> formats;
 
-                map.add<const Model&, const juce::File&, const juce::String&> (Id::zip, &Pack::toZip);
-                map.add<const Model&, const juce::File&, const juce::String&> (Id::dmg, &Pack::toDmg);
+                formats.add<const juce::ArgumentList&, const juce::File&, const juce::Array<juce::File>&, const juce::StringArray&> (Id::zip, &Pack::toZip);
+                formats.add<const juce::ArgumentList&, const juce::File&, const juce::Array<juce::File>&, const juce::StringArray&> (Id::dmg, &Pack::toDmg);
 
-                return map;
+                return formats;
             }()
         };
 
-        const auto found { forEachArchiveRow (model, archiveFile, toolchainArgument,
-            [&model] (const Model::Element& row)
-            {
-                const auto item { Toolchain::getWorkingFile (model.getValue (row, Id::item)) };
+        const auto extension { archive.getFileExtension().substring (1) };
 
-                return item.exists()
-                           ? juce::Result::ok()
-                           : juce::Result::fail (item.getFullPathName() + Id::diagnosticSeparator
-                                                 + text::Diagnostics::failNotFound);
-            }) };
+        if (not archiveFormats.contains (extension))
+            return juce::Result::fail (archive.getFullPathName() + Id::diagnosticSeparator
+                                       + text::Diagnostics::failArchiveExtension);
 
-        return found.wasOk()
-                   ? archiveFormats.get (archiveFile.getFileExtension().substring (1), model, archiveFile, toolchainArgument)
-                   : found;
+        const auto items { getItems (triples) };
+        const auto found { isFound (arguments, items) };
+        const auto unique { found.wasOk() ? isUnique (archive, items, triples) : found };
+
+        return unique.wasOk()
+                   ? archiveFormats.get (extension, arguments, archive, items, triples)
+                   : unique;
     }
 
+private:
+    /** Position of the link name in a row. */
+    static constexpr int linkNameOffset { 1 };
+    /** Position of the link target in a row. */
+    static constexpr int linkTargetOffset { 2 };
+
     /**
-     * @brief Writes @p archiveFile as a ZIP through ZipWriter.
+     * @brief Returns the item files, in row order.
      *
-     * Each row adds its item. A row with a @c link also adds a symbolic
-     * link entry named by its @c linkName.
-     *
-     * @param model             The model that holds the @c ## pack tables.
-     * @param archiveFile       The archive to write.
-     * @param toolchainArgument The CLI-selected toolchain group.
-     * @returns The result of ZipWriter::toFile().
+     * @param triples The rows, flat.
+     * @returns One file per row, resolved against the working directory.
      */
-    static juce::Result toZip (const Model& model, const juce::File& archiveFile, const juce::String& toolchainArgument)
+    static juce::Array<juce::File> getItems (const juce::StringArray& triples)
     {
         juce::Array<juce::File> items;
-        juce::StringPairArray links { false };
 
-        const auto collected { forEachArchiveRow (model, archiveFile, toolchainArgument,
-            [&model, &items, &links] (const Model::Element& row)
-            {
-                items.add (Toolchain::getWorkingFile (model.getValue (row, Id::item)));
+        for (int row { 0 }; row < triples.size() / tripleSize; ++row)
+            items.add (juce::File::getCurrentWorkingDirectory().getChildFile (triples[row * tripleSize]));
 
-                if (const auto link { model.getColumnValue (row, Id::link) }; link.isNotEmpty())
-                    links.set (model.getColumnValue (row, Id::linkName), link);
-
-                return juce::Result::ok();
-            }) };
-
-        return collected.wasOk() ? ZipWriter::toFile (archiveFile, items, links) : collected;
+        return items;
     }
 
     /**
-     * @brief Writes @p archiveFile as a disk image.
+     * @brief Returns the background image file.
      *
-     * On macOS it copies the items and links into a stage folder beside
-     * the archive, writes the @c .DS_Store, runs @c hdiutil, and deletes
-     * the stage. On other hosts it fails.
-     *
-     * @param model             The model that holds the @c ## pack tables.
-     * @param archiveFile       The disk image to write.
-     * @param toolchainArgument The CLI-selected toolchain group.
-     * @returns juce::Result::ok() when the image is built and the stage is
-     *          removed, or a failure naming the stage, the archive, or the
-     *          @c hdiutil command line.
+     * @param arguments The command line, with @c --background.
+     * @returns The file, resolved against the working directory.
      */
-    static juce::Result toDmg (const Model& model, const juce::File& archiveFile, const juce::String& toolchainArgument)
+    static juce::File getBackground (const juce::ArgumentList& arguments)
+    {
+        return juce::File::getCurrentWorkingDirectory().getChildFile (arguments.getValueForOption (getBackgroundFlag()));
+    }
+
+    /**
+     * @brief Returns the link name of a row.
+     *
+     * @param triples The rows, flat.
+     * @param row     The row index.
+     * @returns The link name. It is empty when the row has no link.
+     */
+    static juce::String getLinkName (const juce::StringArray& triples, int row)
+    {
+        return triples[row * tripleSize + linkNameOffset];
+    }
+
+    /**
+     * @brief Returns the link target of a row.
+     *
+     * @param triples The rows, flat.
+     * @param row     The row index.
+     * @returns The link target text. It is empty when the row has no link.
+     */
+    static juce::String getLinkTarget (const juce::StringArray& triples, int row)
+    {
+        return triples[row * tripleSize + linkTargetOffset];
+    }
+
+    /**
+     * @brief Answers whether a row has a link.
+     *
+     * @param triples The rows, flat.
+     * @param row     The row index.
+     * @returns True when the link name and the link target are not empty.
+     */
+    static bool hasLink (const juce::StringArray& triples, int row)
+    {
+        return getLinkName (triples, row).isNotEmpty() and getLinkTarget (triples, row).isNotEmpty();
+    }
+
+    /**
+     * @brief Answers whether each input file exists.
+     *
+     * @param arguments The command line. When it has @c --background, the
+     *                  background image must exist as a file.
+     * @param items     The item files.
+     * @returns Ok, or the failure that names the first missing path.
+     */
+    static juce::Result isFound (const juce::ArgumentList& arguments, const juce::Array<juce::File>& items)
+    {
+        for (const auto& item : items)
+            if (not item.exists())
+                return juce::Result::fail (item.getFullPathName() + Id::diagnosticSeparator
+                                           + text::Diagnostics::failNotFound);
+
+        if (arguments.containsOption (getBackgroundFlag()))
+        {
+            const auto background { getBackground (arguments) };
+
+            return background.existsAsFile()
+                       ? juce::Result::ok()
+                       : juce::Result::fail (background.getFullPathName() + Id::diagnosticSeparator
+                                             + text::Diagnostics::failNotFound);
+        }
+
+        return juce::Result::ok();
+    }
+
+    /**
+     * @brief Answers whether each name at the archive root is unique.
+     *
+     * The names are the item file names and the link names.
+     *
+     * @param archive The archive, named in the failure.
+     * @param items   The item files.
+     * @param triples The rows, flat.
+     * @returns Ok, or the failure that names the first repeated name.
+     */
+    static juce::Result isUnique (const juce::File& archive, const juce::Array<juce::File>& items, const juce::StringArray& triples)
+    {
+        juce::StringArray rootNames;
+
+        for (int row { 0 }; row < items.size(); ++row)
+        {
+            rootNames.add (items.getReference (row).getFileName());
+
+            if (hasLink (triples, row))
+                rootNames.add (getLinkName (triples, row));
+        }
+
+        for (int index { 0 }; index < rootNames.size(); ++index)
+            if (rootNames.indexOf (rootNames[index]) != index)
+                return juce::Result::fail (archive.getFullPathName()
+                                           + Id::diagnosticSeparator
+                                           + text::Diagnostics::failDuplicate + rootNames[index]
+                                           + Chars::doubleQuote);
+
+        return juce::Result::ok();
+    }
+
+    /**
+     * @brief Writes a zip archive through ZipWriter.
+     *
+     * Fails when the command line has a layout option or @c --background.
+     * Those options apply to a @c dmg archive only.
+     *
+     * @param arguments The command line.
+     * @param archive   The zip file to write.
+     * @param items     The item files.
+     * @param triples   The rows, flat. Each row with a link adds one
+     *                  symbolic link entry.
+     * @returns Ok, or the failure.
+     */
+    static juce::Result toZip (const juce::ArgumentList& arguments, const juce::File& archive, const juce::Array<juce::File>& items, const juce::StringArray& triples)
+    {
+        if (BinaryWriter::hasLayout (arguments) or arguments.containsOption (getBackgroundFlag()))
+            return juce::Result::fail (archive.getFullPathName() + Id::diagnosticSeparator
+                                       + text::Diagnostics::failPackOption);
+
+        juce::StringPairArray links { false };
+
+        for (int row { 0 }; row < items.size(); ++row)
+            if (hasLink (triples, row))
+                links.set (getLinkName (triples, row), getLinkTarget (triples, row));
+
+        return ZipWriter::toFile (archive, items, links);
+    }
+
+    /**
+     * @brief Writes a disk image.
+     *
+     * On macOS, the function makes a new stage folder beside @p archive,
+     * fills it, runs @c hdiutil, and deletes the stage. On another host, it
+     * fails.
+     *
+     * @param arguments The command line, for the layout options and
+     *                  @c --background.
+     * @param archive   The disk image to write.
+     * @param items     The item files.
+     * @param triples   The rows, flat.
+     * @returns Ok, or the failure. A stage that cannot be deleted is a
+     *          failure.
+     */
+    static juce::Result toDmg (const juce::ArgumentList& arguments, const juce::File& archive, const juce::Array<juce::File>& items, const juce::StringArray& triples)
     {
        #if JUCE_MAC
-        const auto stage { archiveFile.getSiblingFile (archiveFile.getFileNameWithoutExtension()).getNonexistentSibling (false) };
+        const auto stage { archive.getSiblingFile (archive.getFileNameWithoutExtension()).getNonexistentSibling (false) };
         const auto stageFailure { juce::Result::fail (stage.getFullPathName() + Id::diagnosticSeparator
                                                       + text::Diagnostics::failOutputWrite) };
 
         if (stage.createDirectory().wasOk())
         {
-            const auto arguments { getImageArguments (stage, archiveFile) };
-            const auto staged { addStage (model, stage, archiveFile, toolchainArgument) };
+            const auto imageArguments { getImageArguments (stage, archive) };
+            const auto staged { addStage (arguments, stage, archive, items, triples) };
             const auto created { staged.wasOk()
-                                     ? Toolchain::runProcess (arguments, arguments.joinIntoString (juce::String::charToString (Chars::space)))
+                                     ? Toolchain::runProcess (imageArguments, imageArguments.joinIntoString (juce::String::charToString (Chars::space)))
                                      : staged };
             const auto removed { stage.deleteRecursively() };
 
@@ -199,9 +271,9 @@ private:
 
         return stageFailure;
        #else
-        juce::ignoreUnused (model, toolchainArgument);
+        juce::ignoreUnused (arguments, items, triples);
 
-        return juce::Result::fail (archiveFile.getFullPathName() + Id::diagnosticSeparator
+        return juce::Result::fail (archive.getFullPathName() + Id::diagnosticSeparator
                                    + text::Diagnostics::failArchiveHost);
        #endif
     }
@@ -209,7 +281,10 @@ private:
    #if JUCE_MAC
     /**
      * @brief Returns the @c hdiutil command line that creates a
-     *        compressed image.
+     *        compressed image with the file system HFS+.
+     *
+     * The command line has @c -ov, @c -srcfolder, @c -volname,
+     * @c -fs @c HFS+, and @c -format @c UDZO.
      *
      * @param stage       The folder that the image is built from.
      * @param archiveFile The disk image to create. Its name without
@@ -222,106 +297,145 @@ private:
         static constexpr const char* overwriteFlag { "-ov" };
         static constexpr const char* sourceFolderFlag { "-srcfolder" };
         static constexpr const char* volumeNameFlag { "-volname" };
+        static constexpr const char* fileSystemFlag { "-fs" };
+        static constexpr const char* fileSystem { "HFS+" };
         static constexpr const char* formatFlag { "-format" };
         static constexpr const char* compressedFormat { "UDZO" };
 
         return juce::StringArray { Id::hdiutil, createVerb, overwriteFlag, sourceFolderFlag, stage.getFullPathName(),
                                    volumeNameFlag, archiveFile.getFileNameWithoutExtension(),
+                                   fileSystemFlag, fileSystem,
                                    formatFlag, compressedFormat, archiveFile.getFullPathName() };
     }
 
     /**
-     * @brief Fills @p stage with the items and the layout.
+     * @brief Fills the stage folder: the items and links, the background
+     *        image, and the @c .DS_Store file.
      *
-     * @param model             The model that holds the @c ## pack tables.
-     * @param stage             The stage folder.
-     * @param archiveFile       The archive the stage is for.
-     * @param toolchainArgument The CLI-selected toolchain group.
-     * @returns The first failure of addStageItems() or addStageLayout(),
-     *          or juce::Result::ok().
+     * @param arguments The command line.
+     * @param stage     The stage folder.
+     * @param archive   The disk image. Its name without extension is the
+     *                  volume name.
+     * @param items     The item files.
+     * @param triples   The rows, flat.
+     * @returns Ok, or the first failure.
      */
-    static juce::Result addStage (const Model& model, const juce::File& stage, const juce::File& archiveFile, const juce::String& toolchainArgument)
+    static juce::Result addStage (const juce::ArgumentList& arguments, const juce::File& stage, const juce::File& archive, const juce::Array<juce::File>& items, const juce::StringArray& triples)
     {
-        if (const auto result { addStageItems (model, stage, archiveFile, toolchainArgument) }; not result.wasOk())
+        if (const auto result { addStageItems (stage, items, triples) }; not result.wasOk())
             return result;
 
-        return addStageLayout (model, stage, archiveFile, toolchainArgument);
+        if (const auto result { addStageBackground (arguments, stage) }; not result.wasOk())
+            return result;
+
+        return addStageLayout (arguments, stage, archive, items, triples);
     }
 
     /**
-     * @brief Clones every item of @p archiveFile into @p stage and creates
-     *        its symbolic link when the row declares one.
+     * @brief Clones each item into the stage and adds each link.
      *
-     * @param model             The model that holds the @c ## pack tables.
-     * @param stage             The stage folder.
-     * @param archiveFile       The archive the stage is for.
-     * @param toolchainArgument The CLI-selected toolchain group.
-     * @returns juce::Result::ok() when every copy and link succeeds, or a
-     *          failure naming the path that failed.
+     * A folder item keeps its full hierarchy. A link is a symbolic link
+     * with the target text unchanged.
+     *
+     * @param stage   The stage folder.
+     * @param items   The item files.
+     * @param triples The rows, flat.
+     * @returns Ok, or the failure that names the path that did not write.
      */
-    static juce::Result addStageItems (const Model& model, const juce::File& stage, const juce::File& archiveFile, const juce::String& toolchainArgument)
+    static juce::Result addStageItems (const juce::File& stage, const juce::Array<juce::File>& items, const juce::StringArray& triples)
     {
-        return forEachArchiveRow (model, archiveFile, toolchainArgument,
-            [&model, &stage] (const Model::Element& row)
+        for (int row { 0 }; row < items.size(); ++row)
+        {
+            const auto& item { items.getReference (row) };
+            const auto copy { stage.getChildFile (item.getFileName()) };
+
+            if (copyfile (item.getFullPathName().toRawUTF8(), copy.getFullPathName().toRawUTF8(), nullptr,
+                          COPYFILE_CLONE | COPYFILE_RECURSIVE) != 0)
+                return juce::Result::fail (copy.getFullPathName() + Id::diagnosticSeparator
+                                           + text::Diagnostics::failOutputWrite);
+
+            if (hasLink (triples, row))
             {
-                const auto item { Toolchain::getWorkingFile (model.getValue (row, Id::item)) };
-                const auto copy { stage.getChildFile (item.getFileName()) };
-                const auto link { model.getColumnValue (row, Id::link) };
-                const auto linkFile { stage.getChildFile (model.getColumnValue (row, Id::linkName)) };
+                const auto linkFile { stage.getChildFile (getLinkName (triples, row)) };
 
-                if (copyfile (item.getFullPathName().toRawUTF8(), copy.getFullPathName().toRawUTF8(), nullptr,
-                              COPYFILE_CLONE | COPYFILE_RECURSIVE) != 0)
-                    return juce::Result::fail (copy.getFullPathName() + Id::diagnosticSeparator
-                                               + text::Diagnostics::failOutputWrite);
-
-                if (link.isNotEmpty() and not juce::File::createSymbolicLink (linkFile, link, true))
+                if (not juce::File::createSymbolicLink (linkFile, getLinkTarget (triples, row), true))
                     return juce::Result::fail (linkFile.getFullPathName() + Id::diagnosticSeparator
                                                + text::Diagnostics::failOutputWrite);
-
-                return juce::Result::ok();
-            });
-    }
-
-    /**
-     * @brief Writes the @c .DS_Store of @p stage through
-     *        BinaryWriter::getStore() when a @c ## pack layout table is
-     *        declared.
-     *
-     * @param model             The model that holds the @c ## pack tables.
-     * @param stage             The stage folder.
-     * @param archiveFile       The archive the stage is for.
-     * @param toolchainArgument The CLI-selected toolchain group.
-     * @returns juce::Result::ok() when no layout is declared or the file
-     *          is written, or a failure naming the @c .DS_Store path.
-     */
-    static juce::Result addStageLayout (const Model& model, const juce::File& stage, const juce::File& archiveFile, const juce::String& toolchainArgument)
-    {
-        const auto layoutTables { model.getTables (Id::packLayout) };
-        const auto dsStore { stage.getChildFile (Id::dsStore) };
-
-        if (layoutTables.size() > 0)
-        {
-            juce::StringArray itemNames;
-            juce::StringArray linkNames;
-
-            [[maybe_unused]] const auto collected { forEachArchiveRow (model, archiveFile, toolchainArgument,
-                [&model, &itemNames, &linkNames] (const Model::Element& row)
-                {
-                    itemNames.add (Toolchain::getWorkingFile (model.getValue (row, Id::item)).getFileName());
-                    linkNames.add (model.getColumnValue (row, Id::linkName));
-
-                    return juce::Result::ok();
-                }) };
-
-            const auto store { BinaryWriter::getStore (model, *layoutTables.at (0), itemNames, linkNames) };
-
-            return store.has_value() and dsStore.replaceWithData (store->getData(), store->getSize())
-                       ? juce::Result::ok()
-                       : juce::Result::fail (dsStore.getFullPathName() + Id::diagnosticSeparator
-                                             + text::Diagnostics::failOutputWrite);
+            }
         }
 
         return juce::Result::ok();
+    }
+
+    /**
+     * @brief Returns the file name of the background image in the stage.
+     *
+     * @param arguments The command line.
+     * @returns The background prefix with the extension of the image. It is
+     *          empty when the command line has no @c --background.
+     */
+    static juce::String getBackgroundName (const juce::ArgumentList& arguments)
+    {
+        return arguments.containsOption (getBackgroundFlag())
+                   ? Id::backgroundPrefix + getBackground (arguments).getFileExtension()
+                   : juce::String();
+    }
+
+    /**
+     * @brief Clones the background image into the stage.
+     *
+     * The function does nothing when the command line has no
+     * @c --background.
+     *
+     * @param arguments The command line.
+     * @param stage     The stage folder.
+     * @returns Ok, or the failure that names the path that did not write.
+     */
+    static juce::Result addStageBackground (const juce::ArgumentList& arguments, const juce::File& stage)
+    {
+        if (arguments.containsOption (getBackgroundFlag()))
+        {
+            const auto background { getBackground (arguments) };
+            const auto backgroundCopy { stage.getChildFile (getBackgroundName (arguments)) };
+
+            if (copyfile (background.getFullPathName().toRawUTF8(), backgroundCopy.getFullPathName().toRawUTF8(), nullptr, COPYFILE_CLONE) != 0)
+                return juce::Result::fail (backgroundCopy.getFullPathName() + Id::diagnosticSeparator
+                                           + text::Diagnostics::failOutputWrite);
+        }
+
+        return juce::Result::ok();
+    }
+
+    /**
+     * @brief Writes the @c .DS_Store file of the stage through BinaryWriter.
+     *
+     * @param arguments The command line, for the layout options.
+     * @param stage     The stage folder.
+     * @param archive   The disk image. Its name without extension is the
+     *                  volume name.
+     * @param items     The item files.
+     * @param triples   The rows, flat.
+     * @returns Ok, or the failure when the records do not fit or the file
+     *          does not write.
+     */
+    static juce::Result addStageLayout (const juce::ArgumentList& arguments, const juce::File& stage, const juce::File& archive, const juce::Array<juce::File>& items, const juce::StringArray& triples)
+    {
+        const auto dsStore { stage.getChildFile (Id::dsStore) };
+        juce::StringArray itemNames;
+        juce::StringArray linkNames;
+
+        for (int row { 0 }; row < items.size(); ++row)
+        {
+            itemNames.add (items.getReference (row).getFileName());
+            linkNames.add (hasLink (triples, row) ? getLinkName (triples, row) : juce::String());
+        }
+
+        const auto store { BinaryWriter::getStore (arguments, itemNames, linkNames, archive.getFileNameWithoutExtension(), getBackgroundName (arguments)) };
+
+        return store.has_value() and dsStore.replaceWithData (store->getData(), store->getSize())
+                   ? juce::Result::ok()
+                   : juce::Result::fail (dsStore.getFullPathName() + Id::diagnosticSeparator
+                                         + text::Diagnostics::failOutputWrite);
     }
    #endif
 

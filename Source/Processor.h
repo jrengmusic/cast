@@ -4,7 +4,6 @@
 #include "Model.h"
 #include "Validator.h"
 #include "Toolchain.h"
-#include "Pack.h"
 #include "Writer.h"
 
 /**
@@ -17,8 +16,7 @@
  * construction. generate() then validates the manifest and writes its
  * declared outputs; format() re-canonicalizes every origin file the
  * manifest declares, in parallel, write-if-different. The toolchain rows
- * run through Toolchain, and the @c pack command builds its archives
- * through Pack.
+ * run through Toolchain.
  */
 struct Processor
 {
@@ -118,15 +116,13 @@ struct Processor
 
 private:
     /**
-     * @brief Runs every @c ## toolchain row whose @c argument column
-     *        equals @p toolchainArgument and whose host matches, starting
-     *        each one's own @c command, followed by its @c flag when it
+     * @brief Runs every @c ## toolchain row whose @c argument cell
+     *        equals @p toolchainArgument, in row order, starting each
+     *        one's own @c command, followed by its @c flag when it
      *        declares one, and waiting for it to exit.
      *
-     * Host selection uses Toolchain::isHostSelected(): a row runs when its
-     * @c host cell is empty or names this host. A row that host selection
-     * removes still counts as a match for a non-empty
-     * @p toolchainArgument.
+     * The run stops at the first row that fails. A non-empty
+     * @p toolchainArgument that matches no row is a failure.
      *
      * @param toolchainArgument The CLI-selected toolchain group -- runs
      *                          only the @c ## toolchain rows whose
@@ -151,9 +147,8 @@ private:
                 {
                     hasMatchedToolchainRow = true;
 
-                    if (Toolchain::isHostSelected (*model, *row))
-                        if (const auto result { runToolchainRow (*row, toolchainArgument) }; not result.wasOk())
-                            return result;
+                    if (const auto result { runToolchainRow (*row) }; not result.wasOk())
+                        return result;
                 }
             }
         }
@@ -245,24 +240,17 @@ private:
      * @brief Runs @p row's own @c command, followed by its @c flag when it
      *        declares one, through Toolchain::runProcess().
      *
-     * The command word @c pack is not started as a process. It dispatches
-     * to Pack::toArchives() with @p toolchainArgument.
+     * The command line in a failure is the @c command, followed by the
+     * @c flag when the row declares one.
      *
-     * @param row               The @c ## toolchain row whose @c command and
-     *                          @c flag are run.
-     * @param toolchainArgument The CLI-selected toolchain group, passed
-     *                          through to Pack::toArchives() when the
-     *                          command is @c pack.
-     * @returns juce::Result::ok() when @p row's own process starts and
-     *          exits zero, or the archives are built, or a failure naming
-     *          its own command line or the failed archive.
+     * @param row The @c ## toolchain row whose @c command and @c flag are
+     *            run.
+     * @returns juce::Result::ok() when the process of @p row starts and
+     *          exits zero, or a failure naming its command line.
      */
-    juce::Result runToolchainRow (const Model::Element& row, const juce::String& toolchainArgument)
+    juce::Result runToolchainRow (const Model::Element& row)
     {
         const auto& command { model->getValue (row, Id::command) };
-
-        if (command.compare (Id::pack.toString()) == 0)
-            return Pack::toArchives (*model, toolchainArgument);
 
         const auto flag { model->getValue (row, Id::flag) };
         const auto arguments { Toolchain::getToolchainArguments (command, flag) };
