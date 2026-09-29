@@ -3,6 +3,8 @@
 #include "generated/Generated.h"
 #include "Model.h"
 #include "Validator.h"
+#include "Toolchain.h"
+#include "Pack.h"
 #include "Writer.h"
 
 /**
@@ -14,7 +16,9 @@
  * Processor parses the manifest and its declared template files once at
  * construction. generate() then validates the manifest and writes its
  * declared outputs; format() re-canonicalizes every origin file the
- * manifest declares, in parallel, write-if-different.
+ * manifest declares, in parallel, write-if-different. The toolchain rows
+ * run through Toolchain, and the @c pack command builds its archives
+ * through Pack.
  */
 struct Processor
 {
@@ -115,9 +119,14 @@ struct Processor
 private:
     /**
      * @brief Runs every @c ## toolchain row whose @c argument column
-     *        equals @p toolchainArgument, starting each one's own
-     *        @c command, followed by its @c flag when it declares one,
-     *        and waiting for it to exit.
+     *        equals @p toolchainArgument and whose host matches, starting
+     *        each one's own @c command, followed by its @c flag when it
+     *        declares one, and waiting for it to exit.
+     *
+     * Host selection uses Toolchain::isHostSelected(): a row runs when its
+     * @c host cell is empty or names this host. A row that host selection
+     * removes still counts as a match for a non-empty
+     * @p toolchainArgument.
      *
      * @param toolchainArgument The CLI-selected toolchain group -- runs
      *                          only the @c ## toolchain rows whose
@@ -136,14 +145,15 @@ private:
         {
             for (auto* row : model->getTableRows (*table))
             {
-                const auto argument { getColumnValue (*row, Id::argument) };
+                const auto argument { model->getColumnValue (*row, Id::argument) };
 
                 if (argument.compare (toolchainArgument) == 0)
                 {
                     hasMatchedToolchainRow = true;
 
-                    if (const auto result { runToolchainRow (*row) }; not result.wasOk())
-                        return result;
+                    if (Toolchain::isHostSelected (*model, *row))
+                        if (const auto result { runToolchainRow (*row, toolchainArgument) }; not result.wasOk())
+                            return result;
                 }
             }
         }
@@ -153,22 +163,6 @@ private:
                                        + text::Diagnostics::failToolchainArgument);
 
         return juce::Result::ok();
-    }
-
-    /**
-     * @brief Returns @p row's resolved value for @p column, or an empty
-     *        string when @p row declares no such column.
-     *
-     * @param row    The row @p column's cell is read from.
-     * @param column The column whose cell value is read.
-     * @returns @p row's resolved value for @p column, or an empty string
-     *          when @p row carries no cell for @p column.
-     */
-    juce::String getColumnValue (const Model::Element& row, const juce::Identifier& column) const
-    {
-        auto* cell { model->getTableCell (row, column) };
-
-        return cell != nullptr ? *cell->get<juce::String> (Id::value) : juce::String {};
     }
 
     /**
@@ -249,80 +243,34 @@ private:
 
     /**
      * @brief Runs @p row's own @c command, followed by its @c flag when it
-     *        declares one, through runProcess().
+     *        declares one, through Toolchain::runProcess().
      *
-     * @param row The @c ## toolchain row whose @c command and @c flag are
-     *            run.
+     * The command word @c pack is not started as a process. It dispatches
+     * to Pack::toArchives() with @p toolchainArgument.
+     *
+     * @param row               The @c ## toolchain row whose @c command and
+     *                          @c flag are run.
+     * @param toolchainArgument The CLI-selected toolchain group, passed
+     *                          through to Pack::toArchives() when the
+     *                          command is @c pack.
      * @returns juce::Result::ok() when @p row's own process starts and
-     *          exits zero, or a failure naming its own command line.
+     *          exits zero, or the archives are built, or a failure naming
+     *          its own command line or the failed archive.
      */
-    juce::Result runToolchainRow (const Model::Element& row)
+    juce::Result runToolchainRow (const Model::Element& row, const juce::String& toolchainArgument)
     {
         const auto& command { model->getValue (row, Id::command) };
-        const auto flag { getColumnValue (row, Id::flag) };
-        const auto arguments { getToolchainArguments (command, flag) };
+
+        if (command.compare (Id::pack.toString()) == 0)
+            return Pack::toArchives (*model, toolchainArgument);
+
+        const auto flag { model->getValue (row, Id::flag) };
+        const auto arguments { Toolchain::getToolchainArguments (command, flag) };
         const auto diagnosticLine { flag.isNotEmpty()
                                         ? command + Chars::space + flag
                                         : command };
 
-        return runProcess (arguments, diagnosticLine);
-    }
-
-    /**
-     * @brief Tokenizes @p command and @p flag into one argv array.
-     *
-     * @param command The toolchain row's own @c command, placed at
-     *                argument index zero.
-     * @param flag    The toolchain row's own @c flag, tokenized after
-     *                @p command.
-     * @returns @p command followed by @p flag's own whitespace-tokenized
-     *          arguments.
-     */
-    juce::StringArray getToolchainArguments (const juce::String& command, const juce::String& flag) const
-    {
-        juce::StringArray arguments { command };
-        arguments.addTokens (flag, true);
-
-        return arguments;
-    }
-
-    /**
-     * @brief Runs @p arguments as a child process in the current working
-     *        directory, streaming its output to stdout and blocking until
-     *        it exits.
-     *
-     * @param arguments      The process argv, index zero the executable.
-     * @param diagnosticLine The command line named in a failure, when the
-     *                       process exits non-zero.
-     * @returns juce::Result::ok() when the process exits zero, or a
-     *          failure naming @p diagnosticLine.
-     */
-    juce::Result runProcess (const juce::StringArray& arguments, const juce::String& diagnosticLine)
-    {
-        juce::WaitableEvent finished;
-        auto exitCode { -1 };
-
-        jam::Subprocess subprocess;
-        subprocess.launch (arguments,
-                           juce::File::getCurrentWorkingDirectory(),
-                           [&finished, &exitCode] (int processExitCode, const std::string&)
-                           {
-                               exitCode = processExitCode;
-                               finished.signal();
-                           },
-                           [] (std::string_view chunk, bool)
-                           {
-                               fwrite (chunk.data(), 1, chunk.size(), stdout);
-                               fflush (stdout);
-                           });
-
-        finished.wait();
-
-        if (exitCode != 0)
-            return juce::Result::fail (
-                diagnosticLine + Id::diagnosticSeparator + text::Diagnostics::failToolchain);
-
-        return juce::Result::ok();
+        return Toolchain::runProcess (arguments, diagnosticLine);
     }
 
     //==============================================================================

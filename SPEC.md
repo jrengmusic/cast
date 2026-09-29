@@ -23,7 +23,11 @@ The engine hardcodes these items and no other items:
 - the index table name and its columns
 - the reserved column names `format`, `comment`, `brief`, and `value` (map payload, §6.5)
 - the identity column names `name`, `key`, `alias`, `file` (§5.3)
-- the toolchain table name and its columns
+- the toolchain table name and its columns, the toolchain command word `pack`, and the
+  host words `mac`, `win` and `linux` (§6.9)
+- the pack table name `pack` and its columns, the pack layout table name `pack layout`
+  and its keys, the archive extensions `.zip` and `.dmg`, the `hdiutil` command, the file
+  name `.DS_Store` and its record set (§6.12)
 - the style file names `.cast-format` and `_cast-format`, its `## format` table name, its
   columns `name` and `width`, the reserved row name `line-wrap`, and the sync style
   directory `cast` (§6.11, §2.2)
@@ -904,7 +908,7 @@ live in the manifest itself or in any declared data file. A project that separat
 its codegen manifest from its toolchain data keeps `## toolchain` in the latter.
 
 ```
-| argument | command | flag |
+| argument | host | command | flag |
 ```
 
 `argument` is optional. A table declared without it is `| command | flag |`. The
@@ -927,6 +931,16 @@ only the rows whose `argument` cell equals `word`, byte-exactly, run. The
 default-flow rows do not run. A `--<word>` that matches no row's `argument` cell,
 across each declared `## toolchain` table, is fatal (§10.1), and the diagnostic names
 `word`.
+
+`host` is optional. Its words are `mac`, `win` and `linux`, and the engine knows the host
+that it runs on. A row whose `host` cell names another host does not run. A blank `host`
+cell runs on each host. Any other word is fatal (§10.1). The `host` selection applies
+after the `argument` selection, and a row that the `host` selection removes still counts
+as a match for `word`.
+
+A row whose `command` cell is `pack` starts no child process. It packs the `## pack` rows
+that the same `argument` and `host` selection picks, at that point of the run (§6.12).
+The rows after it run after the pack is complete.
 
 The command resolves through the caller's environment. PATH, the working directory,
 and everything else that the process inherits are the caller's responsibility. The
@@ -1019,6 +1033,82 @@ table, the other a cell.
 A style-file header row that declares no `name` or no `width` column is fatal. A `width`
 cell that is not a positive integer is fatal, the `line-wrap` row included (§10.1). The
 engine checks the style file before it reads any input.
+
+### 6.12 Pack
+
+`## pack` is a reserved table name, and it is optional. The reservation is by name, not
+by file. The engine looks up each `## pack` table across the whole spliced document, the
+same as `## toolchain` (§6.9).
+
+```
+| argument | host | archive | item | link | linkName |
+```
+
+`argument` and `host` select rows by the toolchain law (§6.9). A `pack` toolchain row packs
+the rows that its own selection picks. A row that no run selects is never packed. A
+project that declares no `## pack` table packs nothing.
+
+Each `archive` and `item` path resolves against the working directory, the same as the
+toolchain rows (§6.9). `archive` is the path of the archive that the row adds to. The rows
+whose `archive` paths resolve to the same file make one archive, in authored row order.
+The extension of the archive selects its format: `zip` or `dmg`, compared with case. Any
+other extension is fatal (§10.1). A blank `archive` or `item` cell is fatal (§10.1).
+
+`item` is the path of one file or folder. It enters the root of the archive under its
+own file name. A folder enters with its full hierarchy. An item that does not exist is
+fatal (§10.1).
+
+`link` and `linkName` are optional. When the `link` cell is not blank, the root of the
+archive also gets a symbolic link. Its name is `linkName`, and its target is the `link`
+text, verbatim. The engine does not resolve it. The link is the drag-and-drop install
+target of the item on the same row. A `link` cell with a blank `linkName` cell is fatal
+(§10.1). Two rows of one archive that give the root one name, as an item file name or a
+`linkName`, are fatal (§10.1).
+
+**Zip.** The engine writes the zip itself, on each host. Each entry records the Unix host
+in its version-made-by field and the Unix mode of its file, folder or symbolic link. On a
+host with no Unix mode, a file records 0644, and a folder and a symbolic link record
+0755. A `link` entry records 0755 on each host. A symbolic link entry holds its target
+text and is stored. Each other file is deflated. Each entry records the time 1980-01-01
+00:00, the first value of the zip time field. The engine walks each folder in the order
+of the entry names, compared by code point with case. Thus the same inputs give the same
+zip bytes on each host. An archive with more than 65535 entries or more than 4 GiB of
+bytes cannot be written (§10.1). The write is write-if-different.
+
+**Dmg.** A `.dmg` archive is valid on the `mac` host only. On each other host it is fatal
+(§10.1). The engine makes a new stage folder beside the archive. The stage never replaces
+a folder that already exists. It clones each item into the stage, adds each link, and
+writes the `.DS_Store` of the stage when a `## pack layout` table is declared. Then it
+runs one child process by the toolchain law (§6.9):
+
+```
+hdiutil create -ov -srcfolder <stage> -volname <name> -format UDZO <archive>
+```
+
+`<name>` is the file name of the archive without its extension. The engine removes the
+stage folder when the process ends. A stage folder that cannot be removed is fatal
+(§10.1). The engine mounts no image.
+
+`## pack layout` is a reserved table name, and it is optional. A project declares one
+table at most. A second table is fatal (§10.1). It is a `key | value` map.
+Its keys are `iconSize`, `bundleColumn`, `linkColumn`, `firstRow`, `rowSpacing`,
+`windowLeft` and `windowTop`, each a number of points. The item of row i of an archive
+is at x `bundleColumn`, and its link is at x `linkColumn`. Both are at y `firstRow` +
+i × `rowSpacing`, where the first row is row 0. The window opens at `windowLeft`,
+`windowTop`. Its width is `bundleColumn` + `linkColumn`. Its height is `firstRow` + the
+row count × `rowSpacing`. The view shows icons of `iconSize` points, with no toolbar, no
+status bar, no sidebar, no tab view and no sort order. The other view settings are the
+values that Finder writes for a new icon view: a white background, grid spacing 100,
+text size 12, labels on the bottom, icon previews on and item information off.
+
+The `.DS_Store` record set is `bwsp`, `icvp` and `vSrn` on the folder, and one `Iloc` for
+each item and each link. A `## pack layout` table that does not declare each of its keys
+as an integer is fatal (§10.1). The records sort by name, folded to lower case, then by
+record code. The records fill one node of 2048 bytes. Records that do not fit are fatal
+(§10.1).
+
+The pack signs nothing. A project signs, notarizes and staples its archive with the
+toolchain rows that come after its `pack` row.
 
 ---
 
@@ -1190,7 +1280,10 @@ The author writes the datum. CAST makes it legal.
 ## 10. Determinism and Failure
 
 The tables, the templates, the manifest, and the binary determine the output bytes.
-No timestamps, no paths, no host state. Files use LF.
+No timestamps, no paths, no host state. Files use LF. The `host` selection (§6.9) picks
+rows and never changes the bytes of an output. A zip archive is an output (§6.12). A
+dmg archive is the product of `hdiutil`, the same as each other toolchain product, and
+this section does not govern its bytes.
 
 Write-if-different. A second run produces an empty diff.
 
@@ -1219,7 +1312,15 @@ These, and nothing else:
 | a map line with no shape paragraph at its `>` count                                                               | §6.5       |
 | a map table with no `value` column                                                                                | §6.5       |
 | an output file that cannot be written                                                                             | §10        |
-| a toolchain row whose process cannot start or exits nonzero                                                       | §6.9       |
+| a toolchain row whose process cannot start or exits nonzero, the `hdiutil` process of a pack included             | §6.9       |
+| a `host` cell naming neither `mac`, `win` nor `linux`                                                             | §6.9       |
+| a `## pack` archive whose extension is neither `.zip` nor `.dmg`                                                  | §6.12      |
+| a `.dmg` archive on a host other than `mac`                                                                       | §6.12      |
+| a `## pack` item that does not exist                                                                              | §6.12      |
+| a `## pack` row with a blank `archive` or `item` cell, or a `link` cell with a blank `linkName` cell              | §6.12      |
+| two rows of one archive that give its root one name                                                               | §6.12      |
+| a `## pack layout` table that does not declare each of its keys as an integer, or a second such table             | §6.12      |
+| an archive or its stage folder that cannot be written or removed, or `.DS_Store` records that exceed one node     | §6.12      |
 | a `--<word>` CLI argument matching no toolchain row's `argument` cell                                             | §6.9       |
 | malformed table, during formatting only                                                                           | §3.3       |
 | index `symbol` cell empty                                                                                         | §4.1       |

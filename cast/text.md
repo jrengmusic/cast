@@ -30,6 +30,10 @@ shaped entries pair with the offender's own text.
 | failToolchain          | `toolchain command failed`                       | A toolchain row's process could not start or exited nonzero.                   |
 | failToolchainArgument  | `toolchain argument not declared`                | A --\<word\> CLI argument matched no toolchain row's argument column.          |
 | failToolchainColumn    | `toolchain column not declared`                  | A ## toolchain table's header row declares no command or flag column.          |
+| failHost               | `unknown host`                                   | A host cell names neither mac, win nor linux.                                  |
+| failArchiveExtension   | `unknown archive extension`                      | A ## pack archive extension is neither .zip nor .dmg.                          |
+| failArchiveHost        | `dmg archive needs the mac host`                 | A .dmg archive on a host other than mac.                                       |
+| failPackLayout         | `pack layout key missing or not an integer`      | A ## pack layout table does not declare one of its keys as an integer.         |
 | failFencePrefix        | `unknown fence prefix`                           | A fence's bracket word is not a comment-syntax extension or no-banner.         |
 | failRegionFile         | `region file not found`                          | A region row's file does not exist.                                            |
 | failRegionPair         | `[begin] and [end] must be declared together`    | A region row declared one delimiter binding without the other.                 |

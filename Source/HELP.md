@@ -397,15 +397,14 @@ The namespace names `:::[list]:::` one time, thus it takes the next source — t
 
 ### Wrappers — a shape in a named token
 
-Sometimes a slot needs a name. A fence whose slots are three anonymous `:::[list]:::` says nothing about which one is the guard. Give the slot its own token and fill it with a **wrapper** — a binding whose value is a shape address:
+Sometimes a slot needs a name. A fence whose slots are all anonymous `:::[list]:::` says nothing about which one is the guard. Give the slot its own token and fill it with a **wrapper** — a binding whose value is a shape address:
 
 ````markdown
-```generated
-struct Generated
-{
+```line
+:::macro:::
+
 :::[list]:::
 :::macro-guard:::
-};
 ```
 
 ```macro-guard
@@ -416,26 +415,24 @@ struct Generated
 ````
 
 ```
-+----------------------+-----------------------------------+----------------+
-| list                 | structure                         | file           |
-+======================+===================================+================+
-| - [list]: file       | @code:generated                   | @jam_Generated |
-| > - [list]: instance | - macro: #pragma once             |                |
-|                      | - [list]: @code:include           |                |
-|                      | > - [list]: @code:shared-instance |                |
-|                      |                                   |                |
-|                      | - macro-guard: @code:macro-guard  |                |
-|                      | - macro: @guiBasics               |                |
-|                      |                                   |                |
-|                      | > @code:shared-instance           |                |
-|                      | > - type: ColourId                |                |
-|                      | > - instance: colourId            |                |
-+----------------------+-----------------------------------+----------------+
++--------------------+----------------------------------+------------+
+| list               | structure                        | file       |
++====================+==================================+============+
+| - [list]: @headers | @code:line                       | @Generated |
+|                    | - macro: #pragma once            |            |
+|                    |                                  |            |
+|                    | - [list]: @code:include          |            |
+|                    | - macro-guard: @code:macro-guard |            |
+|                    | - macro: @guiBasics              |            |
+|                    |                                  |            |
+|                    | > @code:include                  |            |
+|                    | > - file: ColourId.h             |            |
++--------------------+----------------------------------+------------+
 ```
 
-`- macro-guard: @code:macro-guard` fills `:::macro-guard:::` with the guard shape's rendering. From that line on, the wrapper reads like any shape line: the bullets after it bind **its** tokens (`- macro: @guiBasics` fills the guard's `:::macro:::`, not generated's — each shape reads its own), and it consumes the next source lines up to its own arity — here the bare `shared-instance`, indented one tab, named by its own bindings. Same arity, same scope, same indent law as each other wrapper. The guard's one `:::[list]:::` collapses a whole group when you feed it an expansion in place of a bare line.
+`- macro-guard: @code:macro-guard` fills `:::macro-guard:::` with the guard shape's rendering. From that line on, the wrapper reads like any shape line: the bullets after it bind **its** tokens (`- macro: @guiBasics` fills the guard's `:::macro:::`, not the line shape's — each shape reads its own), and it consumes the next source lines up to its own arity — here the bare `include`, indented one tab, named by its own bindings. Same arity, same scope, same indent law as each other wrapper. The guard's one `:::[list]:::` collapses a whole group when you feed it an expansion in place of a bare line.
 
-Everything that the wrapper consumes is its private render data. Its bindings select nothing — `- instance: colourId` above names the guarded member and never enters the `- [list]: instance` member list.
+Everything that the wrapper consumes is its private render data. Its bindings select nothing — `- file: ColourId.h` above names the guarded include and never enters the `- [list]: @headers` include list.
 
 ### Maps — straight replacement
 
@@ -502,25 +499,128 @@ The `@` sigil law (a `@`-sigiled value is a reference, never data) separates thi
 
 ### toolchain — commands after the write
 
-`## toolchain` is an optional table, `| argument | command | flag |`, reserved by name — not by file. CAST looks it up across each file that the manifest's index declares. Thus a project that keeps its codegen manifest and its toolchain data apart declares `## toolchain` in the data file, not `spell.md` itself. Its rows run after each output has written, in authored order, one child process per row. A failed row fails the run — never the writes already on disk.
+`## toolchain` is an optional table, `| argument | host | command | flag |`, reserved by name — not by file. CAST looks it up across each file that the manifest's index declares. Thus a project that keeps its codegen manifest and its toolchain data apart declares `## toolchain` in the data file, not `spell.md` itself. Its rows run after each output has written, in authored order, one child process per row. A failed row fails the run — never the writes already on disk.
 
 `argument` is optional and, when declared, selects which rows run. A blank `argument` cell marks a default-flow row. `cast spell.md`, with no trailing flag, runs only those. `cast spell.md --<word>` runs only the rows whose `argument` cell equals `word` — a `word` that matches no row is fatal.
 
+`host` is optional. Its words are `mac`, `win` and `linux`, and CAST knows the host that it runs on. A row whose `host` cell names another host does not run. A blank `host` cell runs on each host. Any other word is fatal. The `host` selection applies after the `argument` selection, and a row that the `host` selection removes still counts as a match for `--<word>`.
+
 ```
-+----------+---------+----------------------------------------------------------+
-| argument | command | flag                                                     |
-+==========+=========+==========================================================+
-|          | cmake   | -S . -B Builds/Ninja -G Ninja -DCMAKE_BUILD_TYPE=Release |
-+----------+---------+----------------------------------------------------------+
-|          | cmake   | --build Builds/Ninja                                     |
-+----------+---------+----------------------------------------------------------+
-| debug    | cmake   | -S . -B Builds/Debug -G Ninja -DCMAKE_BUILD_TYPE=Debug   |
-+----------+---------+----------------------------------------------------------+
-| debug    | cmake   | --build Builds/Debug                                     |
-+----------+---------+----------------------------------------------------------+
++----------+------+---------+----------------------------------------------------------+
+| argument | host | command | flag                                                     |
++==========+======+=========+==========================================================+
+|          |      | cmake   | -S . -B Builds/Ninja -G Ninja -DCMAKE_BUILD_TYPE=Release |
++----------+------+---------+----------------------------------------------------------+
+|          |      | cmake   | --build Builds/Ninja                                     |
++----------+------+---------+----------------------------------------------------------+
+| debug    |      | cmake   | -S . -B Builds/Debug -G Ninja -DCMAKE_BUILD_TYPE=Debug   |
++----------+------+---------+----------------------------------------------------------+
+| debug    |      | cmake   | --build Builds/Debug                                     |
++----------+------+---------+----------------------------------------------------------+
 ```
 
 `cast spell.md` configures and builds `Builds/Ninja` in Release. `cast spell.md --debug` configures and builds `Builds/Debug` in Debug — the two default-flow rows do not run.
+
+A row whose `command` cell is `pack` starts no process. It packs the `## pack` rows that the same `argument` and `host` selection picks, at that point of the run. The rows after it run after the pack is complete.
+
+### pack — archives after the build
+
+`## pack` is an optional table, reserved by name — not by file. CAST looks it up across each file that the manifest's index declares, the same as `## toolchain`. A project that declares no `## pack` table packs nothing.
+
+```
+| argument | host | archive | item | link | linkName |
+```
+
+`argument` and `host` select rows by the toolchain law. A `pack` toolchain row packs the rows that its own selection picks. A row that no run selects is never packed.
+
+Each `archive` and `item` path resolves against the working directory, the same as the toolchain rows. `archive` is the path of the archive that the row adds to. The rows whose `archive` paths resolve to the same file make one archive, in authored row order. The extension of the archive selects its format: `zip` or `dmg`, compared with case. Any other extension is fatal. A blank `archive` or `item` cell is fatal.
+
+`item` is the path of one file or folder. It enters the root of the archive under its own file name. A folder enters with its full hierarchy. An item that does not exist is fatal.
+
+`link` and `linkName` are optional. When the `link` cell is not blank, the root of the archive also gets a symbolic link. Its name is `linkName`, and its target is the `link` text, verbatim. CAST does not resolve it. The link is the drag-and-drop install target of the item on the same row. A `link` cell with a blank `linkName` cell is fatal. Two rows of one archive that give the root one name, as an item file name or a `linkName`, are fatal.
+
+**Zip.** CAST writes the zip itself, on each host.
+
+- Each entry records the Unix host in its version-made-by field and the Unix mode of its file, folder or symbolic link.
+- On a host with no Unix mode, a file records 0644, and a folder and a symbolic link record 0755.
+- A `link` entry records 0755 on each host.
+- A symbolic link entry holds its target text and is stored. Each other file is deflated.
+- Each entry records the time 1980-01-01 00:00, the first value of the zip time field.
+- CAST walks each folder in the order of the entry names, compared by code point with case.
+
+Thus the same inputs give the same zip bytes on each host. An archive with more than 65535 entries or more than 4 GiB of bytes cannot be written, and that is fatal. The write is write-if-different.
+
+**Dmg.** A `.dmg` archive is valid on the `mac` host only. On each other host it is fatal. CAST makes a new stage folder beside the archive. The stage never replaces a folder that already exists. CAST clones each item into the stage, adds each link, and writes the `.DS_Store` of the stage when a `## pack layout` table is declared. Then it runs one child process by the toolchain law:
+
+```
+hdiutil create -ov -srcfolder <stage> -volname <name> -format UDZO <archive>
+```
+
+`<name>` is the file name of the archive without its extension. CAST removes the stage folder when the process ends. A stage folder that cannot be removed is fatal. CAST mounts no image.
+
+**Layout.** `## pack layout` is an optional table, reserved by name. A project declares one table at most. A second table is fatal. It is a `key | value` map. Its keys are `iconSize`, `bundleColumn`, `linkColumn`, `firstRow`, `rowSpacing`, `windowLeft` and `windowTop`, each a number of points. A `## pack layout` table that does not declare each of its keys as an integer is fatal.
+
+The item of row i of an archive is at x `bundleColumn`, and its link is at x `linkColumn`. Both are at y `firstRow` + i × `rowSpacing`, where the first row is row 0. The window opens at `windowLeft`, `windowTop`. Its width is `bundleColumn` + `linkColumn`. Its height is `firstRow` + the row count × `rowSpacing`.
+
+The view shows icons of `iconSize` points, with no toolbar, no status bar, no sidebar, no tab view and no sort order. The other view settings are the values that Finder writes for a new icon view: a white background, grid spacing 100, text size 12, labels on the bottom, icon previews on and item information off.
+
+The `.DS_Store` record set is `bwsp`, `icvp` and `vSrn` on the folder, and one `Iloc` for each item and each link. The records sort by name, folded to lower case, then by record code. The records fill one node of 2048 bytes. Records that do not fit are fatal.
+
+**The pack signs nothing.** A project signs, notarizes and staples its archive with the toolchain rows that come after its `pack` row.
+
+Example — one dmg archive of two rows on the `mac` host, and one zip archive on the `win` host:
+
+```
+## pack
+
++----------+------+----------------+--------------------+------------------------------+--------------+
+| argument | host | archive        | item               | link                         | linkName     |
++==========+======+================+====================+==============================+==============+
+|          | mac  | ../Release.dmg | Builds/App.app     | /Applications                | Applications |
++----------+------+----------------+--------------------+------------------------------+--------------+
+|          | mac  | ../Release.dmg | Builds/Plugin.vst3 | /Library/Audio/Plug-Ins/VST3 | VST3         |
++----------+------+----------------+--------------------+------------------------------+--------------+
+|          | win  | ../Release.zip | Builds/Plugin.vst3 |                              |              |
++----------+------+----------------+--------------------+------------------------------+--------------+
+
+## pack layout
+
++--------------+-------+
+| key          | value |
++==============+=======+
+| iconSize     | 64    |
++--------------+-------+
+| bundleColumn | 150   |
++--------------+-------+
+| linkColumn   | 450   |
++--------------+-------+
+| firstRow     | 80    |
++--------------+-------+
+| rowSpacing   | 120   |
++--------------+-------+
+| windowLeft   | 100   |
++--------------+-------+
+| windowTop    | 100   |
++--------------+-------+
+
+## toolchain
+
++----------+------+----------+-----------------------------------------------------------------------+
+| argument | host | command  | flag                                                                  |
++==========+======+==========+=======================================================================+
+|          |      | cmake    | --build Builds                                                        |
++----------+------+----------+-----------------------------------------------------------------------+
+|          |      | pack     |                                                                       |
++----------+------+----------+-----------------------------------------------------------------------+
+|          | mac  | codesign | --sign "<identity>" ../Release.dmg                                    |
++----------+------+----------+-----------------------------------------------------------------------+
+|          | mac  | xcrun    | notarytool submit ../Release.dmg --keychain-profile <profile> --wait  |
++----------+------+----------+-----------------------------------------------------------------------+
+|          | mac  | xcrun    | stapler staple ../Release.dmg                                         |
++----------+------+----------+-----------------------------------------------------------------------+
+```
+
+`cast spell.md` builds, then packs the rows that the running host picks. On the `mac` host that is the two dmg rows, and the three `mac` rows then sign, notarize and staple the one dmg. On the `win` host it is the zip row, and the `mac` rows do not run. The dmg window is 600 points wide (150 + 450) and 320 points high (80 + 2 × 120). The app is at 150, 80 with its link at 450, 80. The plugin is at 150, 200 with its link at 450, 200.
 
 ### Style File — column widths and line wrap
 
@@ -680,20 +780,19 @@ The namespace names `:::[list]:::` one time, thus it takes the next source — t
 
 ### Guarding one member of an expansion
 
-The Wrappers section's example, end to end, is the pattern for "everything in this list, plus one that only exists behind a macro": the plain members come through the `- [list]: instance` selector, the guarded one comes through the `:::macro-guard:::` wrapper with its own bindings, and the output is
+The Wrappers section's example, end to end, is the pattern for "everything in this list, plus one that only exists behind a macro": the plain includes come through the `- [list]: @headers` selector, the guarded include comes through the `:::macro-guard:::` wrapper with its own bindings, and the output is
 
 ```cpp
-struct Generated
-{
-    jam::SharedInstance<Screen> screen { std::in_place };
-    ...
+#pragma once
+
+#include "ProjectInfo.h"
+...
 #if JUCE_MODULE_AVAILABLE_juce_gui_basics
-    jam::SharedInstance<ColourId> colourId { std::in_place };
+#include "ColourId.h"
 #endif // JUCE_MODULE_AVAILABLE_juce_gui_basics
-};
 ```
 
-One guard, one member — and because the wrapper's slot is an ordinary slot, to feed it `> - [list]: <selector>` in place of a bare line collapses any number of same-macro members into the one region.
+One guard, one include — and because the wrapper's slot is an ordinary slot, to feed it `> - [list]: <selector>` in place of a bare line collapses any number of same-macro members into the one region.
 
 ### Declared membership instead of a derived sweep
 
@@ -822,6 +921,8 @@ reads no table from it. One blank line separates it from the next block.
 
 Your tables, your templates, your manifest, and the binary determine the output bytes. No timestamps, no paths, no host state. Files use LF.
 
+The `host` selection picks rows and never changes the bytes of an output. A zip archive is an output. A dmg archive is the product of `hdiutil`, the same as each other toolchain product, and the byte guarantee does not cover it.
+
 Write-if-different: a second run produces an empty diff.
 
 No warnings exist. Every failure is fatal, exits non-zero, and writes no output file. Diagnostics name the true physical line in the file, not the row's ordinal position:
@@ -831,6 +932,19 @@ identifiers.md:412 (name): duplicate "circleCross"
 spell.md:133 (structure): template not found: namespace
 spell.md:36 (structure): nested shape has more than one candidate
 ```
+
+These failures belong to the toolchain and the pack. Each one is fatal:
+
+- a `host` cell that names neither `mac`, `win` nor `linux`
+- a toolchain row whose process cannot start or exits nonzero — the `hdiutil` process of a pack included
+- a `## pack` archive whose extension is neither `.zip` nor `.dmg`
+- a `.dmg` archive on a host other than `mac`
+- a `## pack` item that does not exist
+- a `## pack` row with a blank `archive` or `item` cell, or a `link` cell with a blank `linkName` cell
+- two rows of one archive that give its root one name
+- a `## pack layout` table that does not declare each of its keys as an integer, or a second such table
+- an archive or its stage folder that cannot be written or removed, or `.DS_Store` records that exceed one node
+- a `--<word>` argument that matches no toolchain row's `argument` cell
 
 Because CAST runs during the configure phase, a failure stops your build before compilation starts.
 

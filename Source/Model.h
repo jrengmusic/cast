@@ -188,6 +188,22 @@ public:
     }
 
     /**
+     * @brief Returns @p row's resolved value for @p column, or an empty
+     *        string when @p row declares no such column.
+     *
+     * @param row    The row @p column's cell is read from.
+     * @param column The column whose cell value is read.
+     * @returns @p row's resolved value for @p column, or an empty string
+     *          when @p row carries no cell for @p column.
+     */
+    juce::String getColumnValue (const Element& row, const juce::Identifier& column) const
+    {
+        auto* cell { getTableCell (row, column) };
+
+        return cell != nullptr ? *cell->get<juce::String> (Id::value) : juce::String {};
+    }
+
+    /**
      * @brief Answers whether @p value is a shape address -- @-sigiled,
      *        and resolving through @p row's own file's index to a symbol
      *        naming a @c .cast file.

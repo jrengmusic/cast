@@ -33,48 +33,81 @@ namespace Id
  * transform operations a format cell may declare (§8).
  */
 
-inline const juce::Identifier argument         { juce::String::fromUTF8 ("argument")           };///< Toolchain table argument column.
-inline const juce::Identifier assumeFilename   { juce::String::fromUTF8 ("assume-filename")    };///< --assume-filename CLI flag word — stdin style search start.
-inline const juce::Identifier banner           { juce::String::fromUTF8 ("banner")             };///< Banner artwork key.
-inline const juce::Identifier blockLine        { juce::String::fromUTF8 ("blockLine")          };///< Block-comment continuation-line glyph key.
-inline const juce::Identifier syncBoundary     { juce::String::fromUTF8 ("boundary")           };///< Sync identity-row boundary column key.
-inline const juce::Identifier brief            { juce::String::fromUTF8 ("brief")              };///< Brief documentation key.
-inline const juce::Identifier command          { juce::String::fromUTF8 ("command")            };///< Toolchain table command column.
-inline const juce::Identifier filePrefix       { juce::String::fromUTF8 ("filePrefix")         };///< Sync composed identity key — file-name prefix.
-inline const juce::Identifier flag             { juce::String::fromUTF8 ("flag")               };///< Toolchain table flag column.
-inline const juce::String     fromCodepoint    { juce::String::fromUTF8 ("from codepoint")     };///< Codepoint decode operation.
-inline const juce::String     fromUTF8         { juce::String::fromUTF8 ("from UTF8")          };///< UTF-8 decode operation.
-inline const juce::Identifier identity         { juce::String::fromUTF8 ("identity")           };///< Sync info-file identity table name.
-inline const juce::Identifier ignore           { juce::String::fromUTF8 ("ignore")             };///< Sync info-file ignore table name.
-inline const juce::Identifier inPlace          { juce::String::fromUTF8 ("i")                  };///< -i CLI flag word — format in place.
-inline const juce::String     join             { juce::String::fromUTF8 ("join")               };///< Join text operation.
-inline const juce::Identifier kernel           { juce::String::fromUTF8 ("kernel")             };///< Sync module-row class keyword — a walked directory.
-inline const juce::Identifier lineWrap         { juce::String::fromUTF8 ("line-wrap")          };///< Prose reflow width CLI flag word.
-inline const juce::Identifier list             { juce::String::fromUTF8 ("list")               };///< Reserved expansion token name.
-inline const juce::Identifier macroPrefix      { juce::String::fromUTF8 ("macroPrefix")        };///< Sync composed identity key — macro-name prefix.
-inline const juce::Identifier noBanner         { juce::String::fromUTF8 ("no-banner")          };///< Banner-suppressing fence-prefix marker.
-inline const juce::Identifier noFormat         { juce::String::fromUTF8 ("no-format")          };///< Formatless-column marker.
-inline const juce::Identifier placeholder      { juce::String::fromUTF8 ("placeholder")        };///< Placeholder token name.
-inline const juce::Identifier separator        { juce::String::fromUTF8 ("separator")          };///< Separator column key.
-inline const juce::Identifier structure        { juce::String::fromUTF8 ("structure")          };///< Structure column key.
-inline const juce::Identifier symbol           { juce::String::fromUTF8 ("symbol")             };///< Index symbol column key.
-inline const juce::Identifier sync             { juce::String::fromUTF8 ("sync")               };///< --sync CLI flag word.
-inline const juce::Identifier templatePath     { juce::String::fromUTF8 ("template")           };///< Template file path stamp.
-inline const juce::String     toCamel          { juce::String::fromUTF8 ("to camel")           };///< camelCase operation.
-inline const juce::String     toCodepoint      { juce::String::fromUTF8 ("to codepoint")       };///< Codepoint encode operation.
-inline const juce::String     toFileName       { juce::String::fromUTF8 ("to file name")       };///< File-name transform operation.
-inline const juce::String     toHex            { juce::String::fromUTF8 ("to hex")             };///< Hex encode operation.
-inline const juce::String     toKebab          { juce::String::fromUTF8 ("to kebab")           };///< kebab-case operation.
-inline const juce::String     toLiteral        { juce::String::fromUTF8 ("to literal")         };///< Literal delimiting/escaping operation.
-inline const juce::Identifier toolchain        { juce::String::fromUTF8 ("toolchain")          };///< Reserved toolchain manifest table.
-inline const juce::String     toPascal         { juce::String::fromUTF8 ("to pascal")          };///< PascalCase operation.
-inline const juce::String     toScreamingSnake { juce::String::fromUTF8 ("to screaming snake") };///< SCREAMING_SNAKE_CASE operation.
-inline const juce::String     toSnake          { juce::String::fromUTF8 ("to snake")           };///< snake_case operation.
-inline const juce::String     toTitle          { juce::String::fromUTF8 ("to title")           };///< Title Case operation.
-inline const juce::String     toUpper          { juce::String::fromUTF8 ("to upper")           };///< UPPERCASE operation.
-inline const juce::String     toUTF8           { juce::String::fromUTF8 ("to UTF8")            };///< UTF-8 encode operation.
-inline const juce::Identifier wiring           { juce::String::fromUTF8 ("wiring")             };///< Manifest wiring-table classification.
-inline const juce::Identifier word             { juce::String::fromUTF8 ("word")               };///< Sync identity-row boundary keyword — whole-word matching.
+extern const juce::Identifier archive;         ///< Pack table archive column.
+extern const juce::Identifier argument;        ///< Toolchain table argument column.
+extern const juce::Identifier assumeFilename;  ///< --assume-filename CLI flag word — stdin style search start.
+extern const juce::Identifier banner;          ///< Banner artwork key.
+extern const juce::Identifier bannerClose;
+extern const juce::Identifier bannerOpen;
+extern const juce::Identifier begin;
+extern const juce::Identifier blockClose;
+extern const juce::Identifier blockLine;       ///< Block-comment continuation-line glyph key.
+extern const juce::Identifier blockOpen;
+extern const juce::Identifier bundleColumn;    ///< Pack layout key — item x position.
+extern const juce::Identifier comment;
+extern const juce::String     dmg;             ///< Dmg archive extension.
+extern const juce::Identifier doubleDash;      ///< Double-dash delimiter.
+extern const juce::String     dsStore;         ///< Finder layout file name.
+extern const juce::Identifier firstRow;        ///< Pack layout key — first row y position.
+extern const juce::String     hdiutil;         ///< Dmg image tool command.
+extern const juce::Identifier help;
+extern const juce::Identifier host;            ///< Toolchain and pack table host column.
+extern const juce::Identifier iconSize;        ///< Pack layout key — icon size.
+extern const juce::Identifier item;            ///< Pack table item column.
+extern const juce::Identifier link;            ///< Pack table link target column.
+extern const juce::Identifier linkColumn;      ///< Pack layout key — link x position.
+extern const juce::Identifier linkName;        ///< Pack table link name column.
+extern const juce::Identifier linux;           ///< Host word — Linux.
+extern const juce::Identifier mac;             ///< Host word — macOS.
+extern const juce::Identifier p;
+extern const juce::Identifier pack;            ///< Reserved pack table and toolchain command word.
+extern const juce::Identifier packLayout;      ///< Reserved pack layout table id, parsed from `pack layout`.
+extern const juce::Identifier rowSpacing;      ///< Pack layout key — row pitch.
+extern const juce::Identifier syncBoundary;    ///< Sync identity-row boundary column key.
+extern const juce::Identifier brief;           ///< Brief documentation key.
+extern const juce::Identifier command;         ///< Toolchain table command column.
+extern const juce::Identifier filePrefix;      ///< Sync composed identity key — file-name prefix.
+extern const juce::Identifier flag;            ///< Toolchain table flag column.
+extern const juce::String     fromCodepoint;   ///< Codepoint decode operation.
+extern const juce::String     fromUTF8;        ///< UTF-8 decode operation.
+extern const juce::Identifier identity;        ///< Sync info-file identity table name.
+extern const juce::Identifier ignore;          ///< Sync info-file ignore table name.
+extern const juce::Identifier inPlace;         ///< -i CLI flag word — format in place.
+extern const juce::String     join;            ///< Join text operation.
+extern const juce::Identifier kernel;          ///< Sync module-row class keyword — a walked directory.
+extern const juce::Identifier lineWrap;        ///< Prose reflow width CLI flag word.
+extern const juce::Identifier list;            ///< Reserved expansion token name.
+extern const juce::Identifier macroPrefix;     ///< Sync composed identity key — macro-name prefix.
+extern const juce::Identifier noBanner;        ///< Banner-suppressing fence-prefix marker.
+extern const juce::Identifier noFormat;        ///< Formatless-column marker.
+extern const juce::Identifier placeholder;     ///< Placeholder token name.
+extern const juce::Identifier separator;       ///< Separator column key.
+extern const juce::Identifier structure;       ///< Structure column key.
+extern const juce::Identifier symbol;          ///< Index symbol column key.
+extern const juce::Identifier sync;            ///< --sync CLI flag word.
+extern const juce::Identifier templatePath;    ///< Template file path stamp.
+extern const juce::String     toCamel;         ///< camelCase operation.
+extern const juce::String     toCodepoint;     ///< Codepoint encode operation.
+extern const juce::Identifier toComment;
+extern const juce::Identifier toCommentBlock;
+extern const juce::String     toFileName;      ///< File-name transform operation.
+extern const juce::String     toHex;           ///< Hex encode operation.
+extern const juce::String     toKebab;         ///< kebab-case operation.
+extern const juce::Identifier tokenModule;
+extern const juce::String     toLiteral;       ///< Literal delimiting/escaping operation.
+extern const juce::Identifier toolchain;       ///< Reserved toolchain manifest table.
+extern const juce::String     toPascal;        ///< PascalCase operation.
+extern const juce::String     toScreamingSnake;///< SCREAMING_SNAKE_CASE operation.
+extern const juce::String     toSnake;         ///< snake_case operation.
+extern const juce::String     toTitle;         ///< Title Case operation.
+extern const juce::String     toUpper;         ///< UPPERCASE operation.
+extern const juce::String     toUTF8;          ///< UTF-8 encode operation.
+extern const juce::Identifier win;             ///< Host word — Windows.
+extern const juce::Identifier windowLeft;      ///< Pack layout key — window left edge.
+extern const juce::Identifier windowTop;       ///< Pack layout key — window top edge.
+extern const juce::Identifier wiring;          ///< Manifest wiring-table classification.
+extern const juce::Identifier word;            ///< Sync identity-row boundary keyword — whole-word matching.
+extern const juce::String     zip;             ///< Zip archive extension.
 
 /**______________________________END OF NAMESPACE______________________________*/
 }// namespace Id

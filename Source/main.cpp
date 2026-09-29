@@ -720,7 +720,7 @@ static juce::Result isFound (const jam::Strings& names)
  *        the reflow widths and writer it declares, then invokes
  *        @p function with them.
  *
- * @pre The JUCE GUI initialiser, Generated, and jam::Stamp scope is open.
+ * @pre The JUCE GUI initialiser and jam::Stamp scope is open.
  *
  * @tparam Function A callable invoked as
  *                  @c function(formatter,reflowWidths), returning a
@@ -769,7 +769,6 @@ static int runDocument (int lineWrap, const juce::File& documentFile, bool skipF
     const juce::String& outputDirectory, const juce::String& toolchainArgument)
 {
     juce::ScopedJuceInitialiser_GUI libraryInitialiser;
-    Generated generated;
     jam::Stamp stamp;
 
     const auto result { runStyled (lineWrap, getNearestStyleFile (documentFile.getParentDirectory()),
@@ -913,7 +912,6 @@ static juce::Result runFormatWrite (int lineWrap, const juce::String& stylePath,
 static int runFormatInPlace (int lineWrap, const juce::ArgumentList& arguments, const jam::Strings& files)
 {
     juce::ScopedJuceInitialiser_GUI libraryInitialiser;
-    Generated generated;
     jam::Stamp stamp;
 
     const auto stylePath { getStylePath (arguments) };
@@ -1016,7 +1014,6 @@ static void writeTexts (const jam::Strings& texts)
 static int runFormatOutput (int lineWrap, const juce::ArgumentList& arguments, const jam::Strings& files)
 {
     juce::ScopedJuceInitialiser_GUI libraryInitialiser;
-    Generated generated;
     jam::Stamp stamp;
 
     const auto stylePath { getStylePath (arguments) };
@@ -1100,7 +1097,6 @@ static int runFormat (int argc, char* argv[], int lineWrap)
 static int runSync (int lineWrap, const juce::File& sourceRoot, const juce::File& targetRoot, const juce::String& stylePath)
 {
     juce::ScopedJuceInitialiser_GUI libraryInitialiser;
-    Generated generated;
     jam::Stamp stamp;
 
     const auto styleFile { getStyleFile (stylePath, getStyleFile (targetRoot.getChildFile (files::castDirectory))) };
