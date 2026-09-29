@@ -7,9 +7,10 @@
  * @brief Builds a version-2 Mac alias record to a file at the root of a
  *        volume that is not mounted yet.
  *
- * The record holds the volume name and the file name. The node identifiers
- * are unknown, so they are the value 0xffffffff. The dates are zero. The file
- * system is HFS+. AliasWriter keeps no state.
+ * The record holds the volume name and the file name. The parent node
+ * identifier is 2, the HFS+ root folder. The file node identifier is unknown,
+ * so it is the value 0xffffffff. The dates are zero. The file system is HFS+.
+ * AliasWriter keeps no state.
  */
 struct AliasWriter
 {
@@ -74,7 +75,7 @@ private:
         record.writeIntBigEndian (noDate);
         record << fileSystemType;
         record.writeShortBigEndian (fixedDiskType);
-        record.writeIntBigEndian (static_cast<int> (noNodeId));
+        record.writeIntBigEndian (static_cast<int> (rootFolderId));
         record << getPascalString (fileName, fileNameSize);
         record.writeIntBigEndian (static_cast<int> (noNodeId));
         record.writeIntBigEndian (noDate);
@@ -206,6 +207,8 @@ private:
     static constexpr short noLevel { -1 };
     /** Node identifier value of an unknown node. */
     static constexpr juce::uint32 noNodeId { 0xffffffff };
+    /** Node identifier of the HFS+ root folder, the parent of the file. */
+    static constexpr juce::uint32 rootFolderId { 2 };
     /** Size of the volume name field, with the length byte. */
     static constexpr int volumeNameSize { 28 };
     /** Size of the file name field, with the length byte. */
