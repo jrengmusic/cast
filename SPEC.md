@@ -1055,22 +1055,40 @@ it. The link is the drag-and-drop install target of the item on the same row. Tw
 triples that give the root one name, as an item file name or a link name, are fatal
 (§10.1).
 
+**Icon.** Each bundle shows its own icon after the archive is extracted. The engine names
+no format. On Windows, the build puts the icon on the bundle: `desktop.ini`, `Plugin.ico`
+and the System attribute on the folder. The zip records them. On macOS, the engine packs
+both formats from a stage. It clones each item into the stage. When the clone has an XML
+`Contents/Info.plist` with a `CFBundleIconFile` key, the engine writes a custom Finder icon
+on the clone. The file `Icon\r` in the bundle root gets an empty data fork and a resource
+fork with one `icns` resource, ID -16455. That resource holds the bytes of
+`Contents/Resources/<CFBundleIconFile>` unchanged. The Finder information of `Icon\r`
+records the invisible flag, 0x4000. The Finder information of the bundle folder records
+the custom-icon flag, 0x0400. A bundle icon that its `Info.plist` names and that does not
+exist is fatal (§10.1). The build artefacts stay unchanged.
+
 **Zip.** The engine writes the zip itself, on each host. Each entry records the Unix host
 in its version-made-by field and the Unix mode of its file, folder or symbolic link. On a
 host with no Unix mode, a file records 0644, and a folder and a symbolic link record
-0755. A `link` entry records 0755 on each host. A symbolic link entry holds its target
-text and is stored. Each other file is deflated. Each entry records the time 1980-01-01
-00:00, the first value of the zip time field. The engine walks each folder in the order
-of the entry names, compared by code point with case. Thus the same inputs give the same
-zip bytes on each host. An archive with more than 65535 entries or more than 4 GiB of
-bytes cannot be written (§10.1). The write is write-if-different.
+0755. A `link` entry records 0755 on each host. On Windows, the low byte of the external
+attributes of each entry records its ReadOnly, Hidden, System and Directory attribute
+bits. On macOS, each entry with Finder information or a resource fork adds one AppleDouble
+entry, `__MACOSX/<parent>/._<name>`, after the entries of its item. The AppleDouble is
+version 2, with the Finder information entry and the resource fork entry, and an `ATTR`
+header with no extended attribute. An AppleDouble entry records 0644. A symbolic link
+entry holds its target text and is stored. Each other file is deflated. Each entry
+records the time 1980-01-01 00:00, the first value of the zip time field. The engine
+walks each folder in the order of the entry names, compared by code point with case.
+Thus the same inputs, with the same attributes, give the same zip bytes. An archive with
+more than 65535 entries or more than 4 GiB of bytes cannot be written (§10.1). The write
+is write-if-different.
 
 **Dmg.** A `.dmg` archive is valid on macOS only. On each other host it is fatal
 (§10.1). The engine makes a new stage folder beside the archive. The stage never replaces
-a folder that already exists. It clones each item into the stage, adds each link, clones
-the background image to `.background.<ext>` in the stage when `--background` is given,
-and writes the `.DS_Store` of the stage. Then it runs one child process by the toolchain
-law (§6.9):
+a folder that already exists. It clones each item into the stage, writes the icon of each
+clone, adds each link, clones the background image to `.background.<ext>` in the stage
+when `--background` is given, and writes the `.DS_Store` of the stage. Then it runs one
+child process by the toolchain law (§6.9):
 
 ```
 hdiutil create -ov -srcfolder <stage> -volname <name> -fs HFS+ -format UDZO <archive>
@@ -1275,7 +1293,8 @@ The author writes the datum. CAST makes it legal.
 ## 10. Determinism and Failure
 
 The tables, the templates, the manifest, and the binary determine the output bytes.
-No timestamps, no paths, no host state. Files use LF. A zip archive is an output (§6.12). A
+No timestamps, no paths, no host state. Files use LF. A zip archive is an output (§6.12);
+it also records the attributes of its inputs, and those attributes are inputs. A
 dmg archive is the product of `hdiutil`, the same as each other toolchain product, and
 this section does not govern its bytes.
 
@@ -1312,6 +1331,7 @@ These, and nothing else:
 | a `--pack` archive whose extension is neither `zip` nor `dmg`                                                     | §6.12      |
 | a `.dmg` archive on a host other than macOS                                                                       | §6.12      |
 | a `--pack` item or background file that does not exist                                                            | §6.12      |
+| a bundle icon that its `Info.plist` names and that does not exist                                                 | §6.12      |
 | two triples of one archive that give its root one name                                                            | §6.12      |
 | an archive or its stage folder that cannot be written or removed, or `.DS_Store` records that exceed one node     | §6.12      |
 | a `--<word>` CLI argument matching no toolchain row's `argument` cell                                             | §6.9       |

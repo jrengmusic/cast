@@ -552,18 +552,31 @@ The view shows icons of `icon-size` points, with no toolbar, no status bar, no s
 
 **Background.** `--background=<path>` names the background image. Without it, the background is white. A background file that does not exist is fatal. A layout option or `--background` with a `.zip` archive is fatal.
 
+**Icon.** Each bundle shows its own icon after the archive is extracted. No format is named.
+
+- On Windows, the build puts the icon on the bundle: `desktop.ini`, `Plugin.ico` and the System attribute on the folder. The zip records them.
+- On macOS, CAST packs both formats from a stage. CAST clones each item into the stage. When the clone has an XML `Contents/Info.plist` with a `CFBundleIconFile` key, CAST writes a custom Finder icon on the clone:
+  1. The file `Icon\r` in the bundle root, with an empty data fork.
+  2. Its resource fork: one `icns` resource, ID -16455, that holds the bytes of `Contents/Resources/<CFBundleIconFile>` unchanged.
+  3. Its Finder information: the invisible flag.
+  4. The Finder information of the bundle folder: the custom-icon flag.
+- A bundle icon that its `Info.plist` names and that does not exist is fatal.
+- The build artefacts stay unchanged. Only the clones in the stage get the icon.
+
 **Zip.** CAST writes the zip itself, on each host.
 
 - Each entry records the Unix host in its version-made-by field and the Unix mode of its file, folder or symbolic link.
 - On a host with no Unix mode, a file records 0644, and a folder and a symbolic link record 0755.
 - A link entry records 0755 on each host.
+- On Windows, the low byte of the external attributes of each entry records its ReadOnly, Hidden, System and Directory attribute bits.
+- On macOS, each entry with Finder information or a resource fork adds one AppleDouble entry, `__MACOSX/<parent>/._<name>`, after the entries of its item. The AppleDouble holds the Finder information and the resource fork, with no other extended attribute. An AppleDouble entry records 0644.
 - A symbolic link entry holds its target text and is stored. Each other file is deflated.
 - Each entry records the time 1980-01-01 00:00, the first value of the zip time field.
 - CAST walks each folder in the order of the entry names, compared by code point with case.
 
-Thus the same inputs give the same zip bytes on each host. An archive with more than 65535 entries or more than 4 GiB of bytes cannot be written, and that is fatal. The write is write-if-different.
+Thus the same inputs, with the same attributes, give the same zip bytes. An archive with more than 65535 entries or more than 4 GiB of bytes cannot be written, and that is fatal. The write is write-if-different.
 
-**Dmg.** A `.dmg` archive is valid on macOS only. On each other host it is fatal. CAST makes a new stage folder beside the archive. The stage never replaces a folder that already exists. CAST clones each item into the stage, adds each link, clones the background image to `.background.<ext>` in the stage when `--background` is given, and writes the `.DS_Store` of the stage. Then it runs one child process by the toolchain law:
+**Dmg.** A `.dmg` archive is valid on macOS only. On each other host it is fatal. CAST makes a new stage folder beside the archive. The stage never replaces a folder that already exists. CAST clones each item into the stage, writes the icon of each clone, adds each link, clones the background image to `.background.<ext>` in the stage when `--background` is given, and writes the `.DS_Store` of the stage. Then it runs one child process by the toolchain law:
 
 ```
 hdiutil create -ov -srcfolder <stage> -volname <name> -fs HFS+ -format UDZO <archive>
@@ -908,6 +921,7 @@ These failures belong to the toolchain and to `--pack`. Each one is fatal:
 - a `--pack` archive whose extension is neither `zip` nor `dmg`
 - a `.dmg` archive on a host other than macOS
 - a `--pack` item or background file that does not exist
+- a bundle icon that its `Info.plist` names and that does not exist
 - two triples of one archive that give its root one name
 - an archive or its stage folder that cannot be written or removed, or `.DS_Store` records that exceed one node
 - a `--<word>` argument that matches no toolchain row's `argument` cell

@@ -1,10 +1,12 @@
 #pragma once
 #include <JuceHeader.h>
 #if JUCE_WINDOWS
+#include <windows.h>
 #else
 #include <sys/stat.h>
 #endif
 #include "generated/Generated.h"
+#include "AppleDoubleWriter.h"
 
 /**
  * @struct ZipWriter
@@ -12,8 +14,10 @@
  *        and writes it to disk, write-if-different.
  *
  * ZipWriter keeps no state. It stores symbolic links and folders without
- * compression and deflates regular files. Entry timestamps are fixed, so
- * the same inputs always give the same archive bytes.
+ * compression and deflates regular files. On macOS, each entry with Finder
+ * information or a resource fork adds an AppleDouble entry. On Windows, each
+ * entry records its DOS attribute bits. Entry timestamps are fixed, so the
+ * same inputs always give the same archive bytes.
  */
 struct ZipWriter
 {
@@ -73,16 +77,28 @@ private:
     static constexpr int compressionLevel { 9 };
     /** Reflected CRC-32 polynomial. */
     static constexpr juce::uint32 checksumPolynomial { 0xedb88320 };
-    /** Unix mode of a regular file on Windows hosts. */
+    /** Unix mode of a regular file on Windows hosts, and of an AppleDouble entry on every host. */
     static constexpr juce::uint32 fileMode { 0100644 };
     /** Unix mode of a folder on Windows hosts. */
     static constexpr juce::uint32 folderMode { 0040755 };
     /** Unix mode of a symbolic-link entry. */
     static constexpr juce::uint32 linkMode { 0120755 };
+    /** Bit position of the Unix mode in the external attributes. */
+    static constexpr int modeShift { 16 };
+   #if JUCE_WINDOWS
+    /** Windows file attribute bits that the low byte of the external attributes records. */
+    static constexpr juce::uint32 dosAttributeMask { FILE_ATTRIBUTE_READONLY | FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM | FILE_ATTRIBUTE_DIRECTORY };
+   #endif
+   #if JUCE_MAC
+    /** Root folder of the AppleDouble entries. */
+    static constexpr const char* appleDoubleFolder { "__MACOSX/" };
+    /** Prefix of the file name of an AppleDouble entry. */
+    static constexpr const char* appleDoublePrefix { "._" };
+   #endif
     /** Largest entry count the end record can hold. */
-    static constexpr int maxEntryCount { std::numeric_limits<juce::uint16>::max() };
+    static constexpr int maxEntryCount { (std::numeric_limits<juce::uint16>::max)() };
     /** Largest archive size the 32-bit offsets can address. */
-    static constexpr juce::uint64 maxArchiveSize { std::numeric_limits<juce::uint32>::max() };
+    static constexpr juce::uint64 maxArchiveSize { (std::numeric_limits<juce::uint32>::max)() };
 
     /**
      * @brief Builds the 256-entry CRC-32 lookup table at compile time.
@@ -144,6 +160,39 @@ private:
         jassert (result == 0);
         return static_cast<juce::uint32> (status.st_mode);
        #endif
+    }
+
+    /**
+     * @brief Returns the DOS attribute bits of @p entry.
+     *
+     * On Windows the bits are the ReadOnly, Hidden, System, and Directory
+     * attributes. On other hosts the result is zero.
+     *
+     * @param entry The file, folder, or symbolic link to read.
+     * @returns The bits for the low byte of the external attributes.
+     */
+    static juce::uint32 getDosAttributes (const juce::File& entry)
+    {
+       #if JUCE_WINDOWS
+        const auto fileAttributes { GetFileAttributesW (entry.getFullPathName().toWideCharPointer()) };
+        jassert (fileAttributes != INVALID_FILE_ATTRIBUTES);
+        return fileAttributes & dosAttributeMask;
+       #else
+        juce::ignoreUnused (entry);
+        return 0;
+       #endif
+    }
+
+    /**
+     * @brief Returns the external attributes of @p entry.
+     *
+     * @param entry The file, folder, or symbolic link to read.
+     * @returns The Unix mode in the high 16 bits and the DOS attribute bits
+     *          in the low byte.
+     */
+    static juce::uint32 getAttributes (const juce::File& entry)
+    {
+        return getMode (entry) << modeShift | getDosAttributes (entry);
     }
 
     /**
@@ -285,11 +334,12 @@ private:
      * @param entryName  The entry name.
      * @param content    The uncompressed bytes.
      * @param isDeflated @c true to deflate @p content.
-     * @param mode       The Unix mode stored in the external attributes.
+     * @param attributes The external attributes: the Unix mode in the high
+     *                   16 bits and the DOS attribute bits in the low byte.
      */
     static void addEntry (juce::MemoryOutputStream& archive, juce::MemoryOutputStream& directory,
                           const juce::String& entryName, const juce::MemoryBlock& content,
-                          bool isDeflated, juce::uint32 mode)
+                          bool isDeflated, juce::uint32 attributes)
     {
         const auto payload { getPayload (content, isDeflated) };
         const auto fields { getEntryFields (isDeflated ? methodDeflated : methodStored, getChecksum (content),
@@ -301,7 +351,7 @@ private:
         directory.writeShort (0);
         directory.writeShort (0);
         directory.writeShort (0);
-        directory.writeInt (static_cast<int> (mode << 16));
+        directory.writeInt (static_cast<int> (attributes));
         directory.writeInt (static_cast<int> (archive.getDataSize()));
         directory.write (entryName.toRawUTF8(), entryName.getNumBytesAsUTF8());
 
@@ -324,7 +374,81 @@ private:
                               const juce::File& entry, const juce::File& item)
     {
         addEntry (archive, directory, getEntryName (entry, item), getContent (entry),
-                  entry.existsAsFile() and not entry.isSymbolicLink(), getMode (entry));
+                  entry.existsAsFile() and not entry.isSymbolicLink(), getAttributes (entry));
+    }
+
+   #if JUCE_MAC
+    /**
+     * @brief Returns the name of the AppleDouble entry of an entry.
+     *
+     * @param entryName The archive name of the entry.
+     * @returns The name under the AppleDouble root folder, with the prefix
+     *          on the last path segment. A trailing slash is dropped.
+     */
+    static juce::String getAppleDoubleName (const juce::String& entryName)
+    {
+        const auto trimmedName { entryName.endsWithChar (Chars::slash) ? entryName.dropLastCharacters (1) : entryName };
+        const auto slashIndex { trimmedName.lastIndexOfChar (Chars::slash) };
+        return appleDoubleFolder + trimmedName.substring (0, slashIndex + 1) + appleDoublePrefix
+               + trimmedName.substring (slashIndex + 1);
+    }
+
+    /**
+     * @brief Appends the AppleDouble entry of each entry that has one.
+     *
+     * Each AppleDouble entry is deflated and records the mode of a regular
+     * file.
+     *
+     * @param archive   The stream that receives the entries.
+     * @param directory The stream that receives the directory records.
+     * @param entries   The entries of @p item.
+     * @param item      The item that @p entries belong to.
+     * @returns The number of AppleDouble entries appended.
+     */
+    static int addAppleDoubleEntries (juce::MemoryOutputStream& archive, juce::MemoryOutputStream& directory,
+                                      const juce::Array<juce::File>& entries, const juce::File& item)
+    {
+        int added { 0 };
+
+        for (const auto& entry : entries)
+        {
+            if (const auto appleDouble { AppleDoubleWriter::getAppleDouble (entry) })
+            {
+                addEntry (archive, directory, getAppleDoubleName (getEntryName (entry, item)), *appleDouble, true,
+                          fileMode << modeShift);
+                ++added;
+            }
+        }
+
+        return added;
+    }
+   #endif
+
+    /**
+     * @brief Appends all entries of @p item.
+     *
+     * The entries of the item come first. On macOS, their AppleDouble
+     * entries follow.
+     *
+     * @param archive   The stream that receives the entries.
+     * @param directory The stream that receives the directory records.
+     * @param item      The file, folder, or symbolic link to store.
+     * @returns The number of entries appended, AppleDouble entries
+     *          included.
+     */
+    static int addItemEntries (juce::MemoryOutputStream& archive, juce::MemoryOutputStream& directory, const juce::File& item)
+    {
+        const auto entries { getEntries (item) };
+        int added { entries.size() };
+
+        for (const auto& entry : entries)
+            addFileEntry (archive, directory, entry, item);
+
+       #if JUCE_MAC
+        added += addAppleDoubleEntries (archive, directory, entries, item);
+       #endif
+
+        return added;
     }
 
     /**
@@ -355,7 +479,8 @@ private:
      * @param items The files, folders, and symbolic links to store.
      * @param links The extra symbolic-link entries.
      * @returns The archive bytes, or @c std::nullopt when the entry count
-     *          or the size exceeds the format limit.
+     *          or the size exceeds the format limit. The entry count
+     *          includes the AppleDouble entries.
      */
     static std::optional<juce::MemoryBlock> getArchive (const juce::Array<juce::File>& items, const juce::StringPairArray& links)
     {
@@ -365,17 +490,13 @@ private:
 
         for (const auto& item : items)
         {
-            const auto entries { getEntries (item) };
-            count += entries.size();
-
-            for (const auto& entry : entries)
-                addFileEntry (archive, directory, entry, item);
+            count += addItemEntries (archive, directory, item);
         }
 
         for (const auto& linkName : links.getAllKeys())
         {
             const auto target { links[linkName].replaceCharacter (Chars::backslash, Chars::slash) };
-            addEntry (archive, directory, linkName, juce::MemoryBlock (target.toRawUTF8(), target.getNumBytesAsUTF8()), false, linkMode);
+            addEntry (archive, directory, linkName, juce::MemoryBlock (target.toRawUTF8(), target.getNumBytesAsUTF8()), false, linkMode << modeShift);
         }
 
         if (count <= maxEntryCount and archive.getDataSize() + directory.getDataSize() <= maxArchiveSize)

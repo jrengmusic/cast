@@ -6,6 +6,7 @@
 #include "generated/Generated.h"
 #include "Toolchain.h"
 #include "BinaryWriter.h"
+#include "IconWriter.h"
 #include "ZipWriter.h"
 
 /**
@@ -15,7 +16,8 @@
  * The extension of the archive selects the format. A @c zip archive goes
  * through ZipWriter. A @c dmg archive goes through a stage folder beside the
  * archive, a @c .DS_Store file written by BinaryWriter, and one @c hdiutil
- * process on macOS. Pack keeps no state.
+ * process on macOS. On macOS, both formats pack from a stage, and each staged
+ * bundle gets its icon from IconWriter. Pack keeps no state.
  */
 struct Pack
 {
@@ -211,7 +213,8 @@ private:
      * @brief Writes a zip archive through ZipWriter.
      *
      * Fails when the command line has a layout option or @c --background.
-     * Those options apply to a @c dmg archive only.
+     * Those options apply to a @c dmg archive only. On macOS, the items are
+     * cloned into a stage and ZipWriter packs the staged items.
      *
      * @param arguments The command line.
      * @param archive   The zip file to write.
@@ -232,15 +235,22 @@ private:
             if (hasLink (triples, row))
                 links.set (getLinkName (triples, row), getLinkTarget (triples, row));
 
+       #if JUCE_MAC
+        return toStage (archive, items, [&archive, &links] (const juce::File&, const juce::Array<juce::File>& stagedItems)
+        {
+            return ZipWriter::toFile (archive, stagedItems, links);
+        });
+       #else
         return ZipWriter::toFile (archive, items, links);
+       #endif
     }
 
     /**
      * @brief Writes a disk image.
      *
      * On macOS, the function makes a new stage folder beside @p archive,
-     * fills it, runs @c hdiutil, and deletes the stage. On another host, it
-     * fails.
+     * fills it, runs @c hdiutil, and deletes the stage. The items come from
+     * toStage(). On another host, it fails.
      *
      * @param arguments The command line, for the layout options and
      *                  @c --background.
@@ -253,23 +263,15 @@ private:
     static juce::Result toDmg (const juce::ArgumentList& arguments, const juce::File& archive, const juce::Array<juce::File>& items, const juce::StringArray& triples)
     {
        #if JUCE_MAC
-        const auto stage { archive.getSiblingFile (archive.getFileNameWithoutExtension()).getNonexistentSibling (false) };
-        const auto stageFailure { juce::Result::fail (stage.getFullPathName() + Id::diagnosticSeparator
-                                                      + text::Diagnostics::failOutputWrite) };
-
-        if (stage.createDirectory().wasOk())
+        return toStage (archive, items, [&arguments, &archive, &items, &triples] (const juce::File& stage, const juce::Array<juce::File>&)
         {
             const auto imageArguments { getImageArguments (stage, archive) };
             const auto staged { addStage (arguments, stage, archive, items, triples) };
-            const auto created { staged.wasOk()
-                                     ? Toolchain::runProcess (imageArguments, imageArguments.joinIntoString (juce::String::charToString (Chars::space)))
-                                     : staged };
-            const auto removed { stage.deleteRecursively() };
 
-            return created.wasOk() ? (removed ? juce::Result::ok() : stageFailure) : created;
-        }
-
-        return stageFailure;
+            return staged.wasOk()
+                       ? Toolchain::runProcess (imageArguments, imageArguments.joinIntoString (juce::String::charToString (Chars::space)))
+                       : staged;
+        });
        #else
         juce::ignoreUnused (arguments, items, triples);
 
@@ -279,6 +281,41 @@ private:
     }
 
    #if JUCE_MAC
+    /**
+     * @brief Makes a stage, clones the items into it, and runs a callable on
+     *        the stage.
+     *
+     * The stage is a new folder beside @p archive. Each staged item gets its
+     * icon. The function deletes the stage after the callable returns.
+     *
+     * @tparam ArchiveStage The callable type. It takes the stage folder and
+     *                      the staged items, and returns a juce::Result.
+     * @param archive      The archive. The stage folder is named after it.
+     * @param items        The item files.
+     * @param archiveStage The callable that packs the stage.
+     * @returns The result of @p archiveStage, or the failure when the stage
+     *          cannot be made, filled, or deleted.
+     */
+    template <typename ArchiveStage>
+    static juce::Result toStage (const juce::File& archive, const juce::Array<juce::File>& items, ArchiveStage&& archiveStage)
+    {
+        const auto stage { archive.getSiblingFile (archive.getFileNameWithoutExtension()).getNonexistentSibling (false) };
+        const auto stageFailure { juce::Result::fail (stage.getFullPathName() + Id::diagnosticSeparator
+                                                      + text::Diagnostics::failOutputWrite) };
+
+        if (stage.createDirectory().wasOk())
+        {
+            const auto stagedItems { getStagedItems (stage, items) };
+            const auto staged { addStageItems (items, stagedItems) };
+            const auto created { staged.wasOk() ? archiveStage (stage, stagedItems) : staged };
+            const auto removed { stage.deleteRecursively() };
+
+            return created.wasOk() ? (removed ? juce::Result::ok() : stageFailure) : created;
+        }
+
+        return stageFailure;
+    }
+
     /**
      * @brief Returns the @c hdiutil command line that creates a
      *        compressed image with the file system HFS+.
@@ -309,8 +346,10 @@ private:
     }
 
     /**
-     * @brief Fills the stage folder: the items and links, the background
-     *        image, and the @c .DS_Store file.
+     * @brief Fills the stage folder: the links, the background image, and
+     *        the @c .DS_Store file.
+     *
+     * The items are already cloned into the stage.
      *
      * @param arguments The command line.
      * @param stage     The stage folder.
@@ -322,7 +361,7 @@ private:
      */
     static juce::Result addStage (const juce::ArgumentList& arguments, const juce::File& stage, const juce::File& archive, const juce::Array<juce::File>& items, const juce::StringArray& triples)
     {
-        if (const auto result { addStageItems (stage, items, triples) }; not result.wasOk())
+        if (const auto result { addStageLinks (stage, triples, items.size()) }; not result.wasOk())
             return result;
 
         if (const auto result { addStageBackground (arguments, stage) }; not result.wasOk())
@@ -332,28 +371,45 @@ private:
     }
 
     /**
-     * @brief Clones each item into the stage and adds each link.
+     * @brief Clones each item into the stage and writes its icon.
      *
-     * A folder item keeps its full hierarchy. A link is a symbolic link
-     * with the target text unchanged.
-     *
-     * @param stage   The stage folder.
-     * @param items   The item files.
-     * @param triples The rows, flat.
-     * @returns Ok, or the failure that names the path that did not write.
+     * @param items       The item files.
+     * @param stagedItems The clone target of each item, in the order of
+     *                    @p items.
+     * @returns Ok, or the first failure.
      */
-    static juce::Result addStageItems (const juce::File& stage, const juce::Array<juce::File>& items, const juce::StringArray& triples)
+    static juce::Result addStageItems (const juce::Array<juce::File>& items, const juce::Array<juce::File>& stagedItems)
     {
-        for (int row { 0 }; row < items.size(); ++row)
+        for (int index { 0 }; index < items.size(); ++index)
         {
-            const auto& item { items.getReference (row) };
-            const auto copy { stage.getChildFile (item.getFileName()) };
+            const auto& item { items.getReference (index) };
+            const auto& copy { stagedItems.getReference (index) };
 
             if (copyfile (item.getFullPathName().toRawUTF8(), copy.getFullPathName().toRawUTF8(), nullptr,
                           COPYFILE_CLONE | COPYFILE_RECURSIVE) != 0)
                 return juce::Result::fail (copy.getFullPathName() + Id::diagnosticSeparator
                                            + text::Diagnostics::failOutputWrite);
 
+            if (const auto result { IconWriter::toBundle (copy) }; not result.wasOk())
+                return result;
+        }
+
+        return juce::Result::ok();
+    }
+
+    /**
+     * @brief Adds one symbolic link to the stage for each row that has a
+     *        link.
+     *
+     * @param stage    The stage folder.
+     * @param triples  The rows, flat.
+     * @param rowCount The number of rows.
+     * @returns Ok, or the failure that names the link that did not write.
+     */
+    static juce::Result addStageLinks (const juce::File& stage, const juce::StringArray& triples, int rowCount)
+    {
+        for (int row { 0 }; row < rowCount; ++row)
+        {
             if (hasLink (triples, row))
             {
                 const auto linkFile { stage.getChildFile (getLinkName (triples, row)) };
@@ -365,6 +421,23 @@ private:
         }
 
         return juce::Result::ok();
+    }
+
+    /**
+     * @brief Returns the stage path of each item.
+     *
+     * @param stage The stage folder.
+     * @param items The item files.
+     * @returns One file per item, named like the item, in @p stage.
+     */
+    static juce::Array<juce::File> getStagedItems (const juce::File& stage, const juce::Array<juce::File>& items)
+    {
+        juce::Array<juce::File> stagedItems;
+
+        for (const auto& item : items)
+            stagedItems.add (stage.getChildFile (item.getFileName()));
+
+        return stagedItems;
     }
 
     /**
