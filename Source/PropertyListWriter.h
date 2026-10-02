@@ -131,7 +131,8 @@ private:
     {
         constexpr int stringMarker { 0x50 };
 
-        jassert (text.isAscii() and text.length() < twoByteLimit);
+        jassert (juce::CharPointer_ASCII::isValidString (text.toRawUTF8(), static_cast<int> (text.getNumBytesAsUTF8()))
+                 and text.length() < twoByteLimit);
 
         juce::MemoryOutputStream string;
         string << getMarker (stringMarker, text.length());

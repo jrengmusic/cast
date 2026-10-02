@@ -42,6 +42,7 @@ namespace Id
     const juce::Identifier blockOpen        { juce::String::fromUTF8 ("blockOpen") };
     const juce::Identifier bundleColumn     { juce::String::fromUTF8 ("bundle-column") };
     const juce::Identifier comment          { juce::String::fromUTF8 ("comment") };
+    const juce::Identifier date             { juce::String::fromUTF8 ("date") };
     const juce::String     dmg              { juce::String::fromUTF8 ("dmg") };
     const juce::Identifier doubleDash       { juce::String::fromUTF8 ("--") };
     const juce::String     dsStore          { juce::String::fromUTF8 (".DS_Store") };

@@ -21,18 +21,14 @@ struct TemplateDocument
 
     /**
      * @brief Parses every @c .cast file @p model's index declares,
-     *        keyed by its own symbol, and stamps each code block with
-     *        its own text and the @c :::token::: names it places,
-     *        excluding the @c :::\[banner\]::: marker from that list.
+     *        keyed by its own symbol, and stamps each of its code blocks
+     *        through addStamps().
      *
      * @param model The model whose index declares the template files to
      *              parse.
      */
     explicit TemplateDocument (const Model& model)
     {
-        static const juce::Identifier bannerMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::banner.toString(), Chars::openBracket)) };
-
         for (auto* indexRow : model.getTableRows (Id::index))
         {
             const auto symbol { model.getTableValue (*indexRow, Id::symbol) };
@@ -45,21 +41,7 @@ struct TemplateDocument
                 for (auto* block : *documents.at (symbol).getRoot())
                     if (block->contains (Id::type)
                         and *block->get<int> (Id::type) == map::BlockType::codeBlock)
-                    {
-                        const auto blockText { block->getAllSubText() };
-                        block->add<juce::String> (Id::value, blockText);
-                        jam::Document::Identifiers names;
-
-                        for (const auto& interior : getMarkers (blockText))
-                        {
-                            const auto markerName { juce::Identifier (jam::Format::toValidID (interior)) };
-
-                            if (markerName != bannerMarker)
-                                names.add (markerName);
-                        }
-
-                        block->add<jam::Document::Identifiers> (Id::placeholder, std::move (names));
-                    }
+                        addStamps (*block);
             }
         }
     }
@@ -162,6 +144,148 @@ struct TemplateDocument
     }
 
 private:
+    /**
+     * @brief Stamps @p block with its own text, in which each date token
+     *        is already rendered through getDatedText() with getDate(),
+     *        under @c Id::value, and with the normalized names of the
+     *        markers that text places, excluding the @c :::\[banner\]:::
+     *        marker, under @c Id::placeholder. A date token therefore
+     *        never appears among the placeholder names.
+     *
+     * @param block The code block stamped.
+     */
+    static void addStamps (Element& block)
+    {
+        static const juce::Identifier bannerMarker { jam::Format::toValidID (
+            jam::Format::withEnclosure (Id::banner.toString(), Chars::openBracket)) };
+
+        const auto blockText { getDatedText (block.getAllSubText(), getDate()) };
+        block.add<juce::String> (Id::value, blockText);
+        jam::Document::Identifiers names;
+
+        for (const auto& interior : getMarkers (blockText))
+        {
+            const auto markerName { juce::Identifier (jam::Format::toValidID (interior)) };
+
+            if (markerName != bannerMarker)
+                names.add (markerName);
+        }
+
+        block.add<jam::Document::Identifiers> (Id::placeholder, std::move (names));
+    }
+
+    /**
+     * @brief Returns the UTC calendar date, read from the clock one time
+     *        for the process; every date token of the run renders from it.
+     *
+     * @returns The process's own UTC calendar date.
+     */
+    static const std::tm& getDate() noexcept
+    {
+        static const std::tm date { [] () noexcept
+        {
+            const auto now { std::time (nullptr) };
+            const auto* utc { std::gmtime (&now) };
+
+            jassert (utc != nullptr);
+
+            return *utc;
+        }() };
+
+        return date;
+    }
+
+    /**
+     * @brief Returns the text that opens a date token's interior -- the
+     *        open bracket, the reserved word, the colon.
+     *
+     * @returns The date token interior's own opening text.
+     */
+    static const juce::String& getDatePrefix()
+    {
+        static const juce::String datePrefix { juce::String::charToString (Chars::openBracket)
+                                               + Id::date.toString()
+                                               + juce::String::charToString (Chars::colon) };
+
+        return datePrefix;
+    }
+
+    /**
+     * @brief Returns true when @p interior opens with getDatePrefix() and
+     *        closes with the close bracket.
+     *
+     * @param interior A marker's own interior text.
+     * @returns True when @p interior is a date token's interior.
+     */
+    static bool isDateMarker (const juce::String& interior)
+    {
+        return interior.startsWith (getDatePrefix()) and interior.endsWithChar (Chars::closeBracket);
+    }
+
+    /**
+     * @brief Returns the digits that @c std::strftime writes for one
+     *        conversion word.
+     *
+     * @param date       The calendar date written.
+     * @param conversion The @c std::strftime conversion word.
+     * @returns The digits @p conversion writes for @p date.
+     */
+    static juce::String getDateField (const std::tm& date, const char* conversion)
+    {
+        static constexpr int fieldCapacity { 8 };
+
+        std::array<char, fieldCapacity> field {};
+        std::strftime (field.data(), field.size(), conversion, &date);
+
+        return juce::String (field.data());
+    }
+
+    /**
+     * @brief Returns the format between the prefix and the last close
+     *        bracket of @p interior, with each pattern of the date pattern
+     *        table replaced by its date field, in table order (@c yyyy
+     *        before @c yy), every other character unchanged. An empty
+     *        format gives an empty value.
+     *
+     * @param interior A date token's own interior text.
+     * @param date     The calendar date the patterns render.
+     * @returns @p interior's own format, rendered from @p date.
+     */
+    static juce::String getDateValue (const juce::String& interior, const std::tm& date)
+    {
+        static constexpr std::array datePatterns { std::pair { "yyyy", "%Y" },
+                                                   std::pair { "yy", "%y" },
+                                                   std::pair { "mm", "%m" },
+                                                   std::pair { "dd", "%d" } };
+
+        auto value { interior.fromFirstOccurrenceOf (getDatePrefix(), false, false)
+                         .upToLastOccurrenceOf (juce::String::charToString (Chars::closeBracket), false, false) };
+
+        for (const auto& [pattern, conversion] : datePatterns)
+            value = value.replace (pattern, getDateField (date, conversion));
+
+        return value;
+    }
+
+    /**
+     * @brief Returns @p text with every date token replaced by its date
+     *        value. Text with no date token is returned unchanged.
+     *
+     * @param text The text whose date tokens are replaced.
+     * @param date The calendar date the date tokens render.
+     * @returns @p text with its own date tokens rendered from @p date.
+     */
+    static juce::String getDatedText (const juce::String& text, const std::tm& date)
+    {
+        auto datedText { text };
+
+        for (const auto& interior : getMarkers (text))
+            if (isDateMarker (interior))
+                datedText = jam::Format::replaceholder (datedText, interior, getDateValue (interior, date));
+
+        return datedText;
+    }
+
     /** Every parsed @c .cast template file, keyed by its own index symbol. */
     jam::HashMap<juce::String, jam::MarkdownDocument> documents;
 };

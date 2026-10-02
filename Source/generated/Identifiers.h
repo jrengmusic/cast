@@ -46,6 +46,7 @@ extern const juce::Identifier blockLine;       ///< Block-comment continuation-l
 extern const juce::Identifier blockOpen;
 extern const juce::Identifier bundleColumn;    ///< --pack layout option word.
 extern const juce::Identifier comment;
+extern const juce::Identifier date;            ///< Reserved date token name.
 extern const juce::String     dmg;             ///< Dmg archive extension.
 extern const juce::Identifier doubleDash;      ///< Double-dash delimiter.
 extern const juce::String     dsStore;         ///< Finder layout file name.

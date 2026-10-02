@@ -222,6 +222,21 @@ A language with no block comment — shell, TOML, YAML — gets its single-line 
 
 CAST writes an output whose extension names no comment syntax — or which has no extension — in C syntax. CAST does not refuse it.
 
+### The date
+
+Write `:::[date:format]:::` in a template and CAST puts the date there. You always state the format, inside the brackets, after the colon. No default format exists. `:::[date]:::`, and `[date:` with no closing bracket, are not the date token: each is an ordinary named token.
+
+| Pattern | Replacement                                    |
+| ------- | ---------------------------------------------- |
+| `yyyy`  | the year, four digits                          |
+| `yy`    | the last two digits of the year                |
+| `mm`    | the month, two digits, `01` to `12`            |
+| `dd`    | the day of the month, two digits, `01` to `31` |
+
+CAST reads the format from left to right and takes the longest pattern at each position. Each other character is literal. The patterns are lower case. On 2 October 2026, `:::[date:yyyy]:::` renders `2026`, and `:::[date:mm-dd-yy]:::` renders `10-02-26`. An empty format renders empty.
+
+The date is the UTC date. CAST reads the clock one time in each run, thus each date token of one run shows the same date. Every format is legal: the date token stops no run.
+
 ### Uniqueness
 
 Within one table, each identity column's entries — `name`, `key`, `alias`, `file` — must be unique, compared byte for byte. `circleCross` and `CircleCross` are two different entries. Each other column is payload — `value`, `type`, `format`, `comment` — and payload repeats by design: many rows can map to the same payload. The manifest's wiring tables are exempt — wiring repeats templates, separators and files by design.
@@ -302,7 +317,7 @@ inline const :::type::: :::name::: { juce::String::fromUTF8 (:::value:::) };
 
 A block is the literal text of the output. Braces, keywords, punctuation — all authored, all verbatim. No conditionals, no loops, and no formatting exist. Target-language directives (`#if`, `#endif`) are literal text like everything else — CAST never reads them, and slots inside such an arm take sources by the ordinary arity law. Comment frames are the one exception: CAST renders them itself, from the comment-syntax table (see Documentation) — never author one in a template.
 
-Square brackets mark a name that CAST reserves — `:::[list]:::`, `:::[comment]:::`, `:::[banner]:::`, and the bullets `- [list]:`, `- [comment]:`, `- [begin]:` and `- [end]:`. Everything without brackets is yours, thus `:::list:::` and `- comment:` are ordinary names of your own. Column names are the exception: a table already scopes its columns, thus reserved column names carry no brackets.
+Square brackets mark a name that CAST reserves — `:::[list]:::`, `:::[comment]:::`, `:::[banner]:::`, `:::[date:format]:::`, and the bullets `- [list]:`, `- [comment]:`, `- [begin]:` and `- [end]:`. Everything without brackets is yours, thus `:::list:::` and `- comment:` are ordinary names of your own. Column names are the exception: a table already scopes its columns, thus reserved column names carry no brackets.
 
 Token names are yours — free text, matched exactly as you wrote them. `:::macro-guard:::` pairs with `- macro-guard:`, and `:::keyType:::` pairs with a `keyType` column. You never reshape a name to please the engine. Two fences can use the same token name — each shape's own suppliers feed its own occurrences, thus an outer shape's binding never leaks into a wrapper's token of the same name.
 
@@ -899,11 +914,11 @@ reads no table from it. One blank line separates it from the next block.
 
 ## Determinism and Failure
 
-Your tables, your templates, your manifest, and the binary determine the output bytes. No timestamps, no paths, no host state. Files use LF.
+Your tables, your templates, your manifest, and the binary determine the output bytes. No timestamps, no paths, no host state. The date token is the one exception: it renders the UTC date of the run. Files use LF.
 
 A zip archive is an output. A dmg archive is the product of `hdiutil`, the same as each other toolchain product, and the byte guarantee does not cover it.
 
-Write-if-different: a second run produces an empty diff.
+Write-if-different: a second run produces an empty diff, except for a file that carries a date token: that file changes when its rendered date changes, and at no other time.
 
 No warnings exist. Every failure is fatal, exits non-zero, and writes no output file. Diagnostics name the true physical line in the file, not the row's ordinal position:
 

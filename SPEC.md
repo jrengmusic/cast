@@ -19,6 +19,7 @@ The engine hardcodes these items and no other items:
 - the manifest column names
 - the reserved bullet names `[list]` (source, §6.5), `[comment]` (documentation reference, §5.4), and `[begin]` / `[end]` (region delimiters, §6.10)
 - the reserved token names `[list]` (expansion, §6.5), `[comment]` (documentation, §5.4) and `[banner]` (§5.5)
+- the reserved date token `[date:format]` and its format patterns `yyyy`, `yy`, `mm` and `dd` (§7.4)
 - the reserved fence prefix `[no-banner]` (§7.3)
 - the index table name and its columns
 - the reserved column names `format`, `comment`, `brief`, and `value` (map payload, §6.5)
@@ -48,7 +49,7 @@ Every other name in every file is data.
 **Square brackets mark a reserved name.** Each name that the engine reserves is
 written in brackets — `:::[list]:::`, `- [comment]:`, the `[sh]` prefix of a fence.
 A name without brackets always belongs to the author. The bare words `list`,
-`comment` and `banner` are ordinary token names and binding names. Column names are
+`comment`, `banner` and `date` are ordinary token names and binding names. Column names are
 the one exception: a table gives each of its columns a scope (§6), thus reserved
 column names have no brackets.
 
@@ -1153,8 +1154,9 @@ Marker position is the only axis. No axis vocabulary and no second mechanism exi
 Any other `:::token:::` is a named token. The binding, map row, or column of that
 name replaces it (§6.5). Any symbol delimited by `:::` is a valid placeholder, and
 the interior is its name **verbatim** — the engine never splits the interior, and
-`:::name:operation:::` is not a form. The interior is free text (§4.3). The engine
-matches the marker in the block exactly as authored, and pairing with bindings, maps,
+`:::name:operation:::` is not a form. The date token is the one exception (§7.4). The
+interior is free text (§4.3). The engine matches the marker in the block exactly as
+authored, and pairing with bindings, maps,
 and columns keys it as each other name is keyed — identically at both ends. An author
 never shapes a token name for the engine. `:::macro-guard:::` and `:::macroGuard:::`
 are each legal, and each pairs with the bullet spelled its own way. A template never
@@ -1225,14 +1227,47 @@ An extension word answers for the whole output file, thus one fence answers: the
 first shape line of the group's first row (§6.7). A prefix on a later fence of the
 same file states nothing new and is not read.
 
+### 7.4 Date Token
+
+`:::[date:format]:::` is the date token. Its interior opens with `[date:` and closes
+with `]`. The text between them is the format. The author always states the format. No
+default format exists. An interior that opens with `[date:` and has no closing `]`, and
+the interior `[date]`, are not the date token. Each is a named token (§7).
+
+The engine replaces the token with its format, and in that format it replaces each of
+these patterns:
+
+| Pattern | Replacement                                    |
+| ------- | ---------------------------------------------- |
+| `yyyy`  | the year, four digits                          |
+| `yy`    | the last two digits of the year                |
+| `mm`    | the month, two digits, `01` to `12`            |
+| `dd`    | the day of the month, two digits, `01` to `31` |
+
+The engine reads the format from left to right. At each position, it takes the longest
+pattern that matches there. Each other character is literal and passes with no change.
+The patterns are lower case: `YYYY` is four literal characters. On 2 October 2026,
+`:::[date:yyyy]:::` renders `2026`, and `:::[date:mm-dd-yy]:::` renders `10-02-26`. An
+empty format renders empty.
+
+The date is the UTC date. The engine reads the clock one time in each run. Each date
+token of that run renders from that one reading (§10).
+
+The format is not an operation (§8). An operation transforms a datum's own characters,
+and the date token has no datum. Thus the format lives in the token, and the rule that
+a template never names an operation (§7) does not govern it. The interior of the date
+token is the one interior that the engine reads in parts.
+
+Every format is legal. The date token adds no fatal (§10.1).
+
 ---
 
 ## 8. Operations
 
 Operations are optional. A table can carry finished text and use none.
 
-The operation keywords are the only vocabulary that the engine hardcodes. They
-transform a datum's own characters:
+The operation keywords are the only vocabulary that the engine hardcodes for a datum.
+They transform a datum's own characters:
 
 - **case** — `toUpper`, `toTitle`, `toPascal`, `toCamel`, `toKebab`, `toSnake`, `toScreamingSnake`
 - **encoding** — `toLiteral`, `toUTF8`, `fromUTF8`, `toHex`, `toCodepoint`, `fromCodepoint`
@@ -1295,12 +1330,14 @@ The author writes the datum. CAST makes it legal.
 ## 10. Determinism and Failure
 
 The tables, the templates, the manifest, and the binary determine the output bytes.
-No timestamps, no paths, no host state. Files use LF. A zip archive is an output (§6.12);
+No timestamps, no paths, no host state. The date token is the one exception: it renders
+the UTC date of the run (§7.4). Files use LF. A zip archive is an output (§6.12);
 it also records the attributes of its inputs, and those attributes are inputs. A
 dmg archive is the product of `hdiutil`, the same as each other toolchain product, and
 this section does not govern its bytes.
 
-Write-if-different. A second run produces an empty diff.
+Write-if-different. A second run produces an empty diff, except for a file that carries
+a date token: that file changes when its rendered date changes, and at no other time.
 
 No warnings exist. Every failure is fatal, exits non-zero, and writes no output file.
 A diagnostic names the true physical line:

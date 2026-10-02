@@ -33,6 +33,7 @@ transform operations a format cell may declare (§8).
 | @id     | blockOpen        | `blockOpen`          |                                                             |
 | @id     | bundleColumn     | `bundle-column`      | --pack layout option word.                                  |
 | @id     | comment          | `comment`            |                                                             |
+| @id     | date             | `date`               | Reserved date token name.                                   |
 | @string | dmg              | `dmg`                | Dmg archive extension.                                      |
 | @id     | doubleDash       | `--`                 | Double-dash delimiter.                                      |
 | @string | dsStore          | `.DS_Store`          | Finder layout file name.                                    |
