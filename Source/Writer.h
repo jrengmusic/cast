@@ -439,7 +439,7 @@ private:
                     auto* fileCell { model.getTableCell (*headerRow, Id::file) };
 
                     if (fileCell != nullptr
-                        and jam::Format::toFileName (*fileCell->get<juce::String> (Id::value))
+                        and model.getFileName (*fileCell->get<juce::String> (Id::value))
                                 .compare (fileName)
                             == 0)
                         if (auto* headerCommentCell { model.getTableCell (*headerRow, column) })

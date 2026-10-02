@@ -461,6 +461,15 @@ public:
         return item != nullptr ? getTable (row, *item->get<juce::String> (Id::value)) : nullptr;
     }
 
+    const Element* getMapCell (const Element& row, const Element& line, const juce::Identifier& name) const
+    {
+        for (int occurrence { 0 }; auto* map { getMap (row, line, occurrence) }; ++occurrence)
+            if (auto* cell { getTableCell (*map, Id::value, name) })
+                return cell;
+
+        return nullptr;
+    }
+
     /**
      * @brief Returns @p line's own next structure line, skipping past
      *        every source @p line's own arity, read through @p arityOf,
@@ -671,6 +680,11 @@ public:
     juce::File getFile (juce::StringRef relativePath) const
     {
         return directory.getChildFile (relativePath);
+    }
+
+    juce::String getFileName (juce::StringRef path) const
+    {
+        return path.isNotEmpty() ? getFile (path).getFileName() : juce::String{};
     }
 
     /**

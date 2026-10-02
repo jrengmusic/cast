@@ -36,7 +36,7 @@ struct Items
                                                 const jam::Array<const Element*>& tables,
                                                 const juce::Identifier& source)
     {
-        const auto currentFile { jam::Format::toFileName (model.getValue (row, Id::file)) };
+        const auto currentFile { model.getFileName (model.getValue (row, Id::file)) };
         jam::Strings sourceValues;
 
         for (auto* table : tables)
@@ -44,7 +44,7 @@ struct Items
                 for (auto* candidate : model.getTableRows (*table))
                     if (auto* cell { model.getTableCell (*candidate, source) })
                     {
-                        const auto value { jam::Format::toFileName (
+                        const auto value { model.getFileName (
                             *cell->get<juce::String> (Id::value)) };
 
                         if (value.isNotEmpty() and value.compare (currentFile) != 0
@@ -77,7 +77,7 @@ struct Items
                                                      const Element& sourceTable,
                                                      const juce::String& source)
     {
-        const auto currentFile { jam::Format::toFileName (model.getValue (row, Id::file)) };
+        const auto currentFile { model.getFileName (model.getValue (row, Id::file)) };
         const auto isFiltered { model.isFilteredAddress (row, source) };
         const auto filterColumn { isFiltered ? model.getFilterColumn (row, source) : juce::Identifier{} };
         const auto filterValue { isFiltered ? model.getFilterValue (row, source) : juce::String{} };
@@ -87,7 +87,7 @@ struct Items
         {
             auto* fileCell { model.getTableCell (*candidate, Id::file) };
             const auto candidateFile { fileCell != nullptr
-                                           ? jam::Format::toFileName (
+                                           ? model.getFileName (
                                                  *fileCell->get<juce::String> (Id::value))
                                            : juce::String{} };
             const auto matchesFilter { not isFiltered
@@ -239,7 +239,7 @@ struct Items
      *          reference.
      */
     static juce::String getSourceValue (const Model& model, const TemplateDocument& templateDocument,
-        const Element& sourceRow, const juce::Identifier& name)
+        const Element& row, const Element& shapeLine, const Element& sourceRow, const juce::Identifier& name)
     {
         static const juce::Identifier listMarker { jam::Format::toValidID (
             jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
@@ -266,6 +266,10 @@ struct Items
         if (deepestValue.isNotEmpty())
             return deepestValue;
 
+        if (name != commentMarker)
+            if (auto* cell { model.getMapCell (row, shapeLine, name) })
+                return *cell->get<juce::String> (Id::value);
+
         juce::String columnValue;
 
         if (auto* cell { model.getTableCell (sourceRow, name == commentMarker ? Id::comment : name) })
@@ -274,7 +278,7 @@ struct Items
         if (name == commentMarker and Model::isAddress (columnValue))
             return {};
 
-        return name == Id::file ? jam::Format::toFileName (columnValue) : columnValue;
+        return name == Id::file ? model.getFileName (columnValue) : columnValue;
     }
 
     /**
@@ -299,15 +303,23 @@ struct Items
      */
     static juce::String getColumnValue (const Model& model,
                                         const TemplateDocument& templateDocument,
+                                        const Element& row,
+                                        const Element& shapeLine,
                                         const Element* sourceRow,
                                         const juce::String& sourceValue,
                                         const juce::Identifier& sourceKey,
                                         const juce::Identifier& name)
     {
         if (sourceRow != nullptr)
-            return getSourceValue (model, templateDocument, *sourceRow, name);
+            return getSourceValue (model, templateDocument, row, shapeLine, *sourceRow, name);
 
-        return name == sourceKey ? sourceValue : juce::String{};
+        if (name == sourceKey)
+            return sourceValue;
+
+        if (auto* cell { model.getMapCell (row, shapeLine, name) })
+            return *cell->get<juce::String> (Id::value);
+
+        return {};
     }
 
     /**
@@ -407,6 +419,7 @@ struct Items
                                  const juce::Identifier& sourceKey,
                                  const Element& line,
                                  const Element& row,
+                                 const Element& shapeLine,
                                  int indent,
                                  int sourceOrdinal,
                                  const juce::String& childJoin,
@@ -433,7 +446,8 @@ struct Items
                                  ? getChildValue (
                                        model, row, indent, sourceOrdinal, sourceRow, childJoin, arity, occurrence)
                                  : getColumnValue (
-                                       model, templateDocument, sourceRow, sourceValue, sourceKey, name) };
+                                       model, templateDocument, row, shapeLine, sourceRow, sourceValue,
+                                       sourceKey, name) };
 
                 if (name == commentMarker and value.isNotEmpty())
                     value = Transforms::toComment (value, extension);
@@ -489,8 +503,8 @@ struct Items
      * @returns @p tokens' own name-to-value map for this item.
      */
     static jam::HashMap<juce::Identifier, juce::String> getItemReplacement (const Model& model,
-        const TemplateDocument& templateDocument, const jam::Document::Identifiers& tokens,
-        const Element* sourceRow, const juce::String& sourceValue, const juce::Identifier& sourceKey,
+        const TemplateDocument& templateDocument, const Element& row, const Element& shapeLine,
+        const jam::Document::Identifiers& tokens, const Element* sourceRow, const juce::String& sourceValue, const juce::Identifier& sourceKey,
         const juce::String& extension)
     {
         static const juce::Identifier commentMarker { jam::Format::toValidID (
@@ -501,7 +515,7 @@ struct Items
         for (const auto& name : tokens)
         {
             auto value {
-                getColumnValue (model, templateDocument, sourceRow, sourceValue, sourceKey, name)
+                getColumnValue (model, templateDocument, row, shapeLine, sourceRow, sourceValue, sourceKey, name)
             };
 
             if (name == commentMarker and value.isNotEmpty())
@@ -537,6 +551,8 @@ struct Items
     static jam::Array<jam::HashMap<juce::Identifier, juce::String>> getItemReplacements (
         const Model& model,
         const TemplateDocument& templateDocument,
+        const Element& row,
+        const Element& shapeLine,
         const jam::Array<const Element*>& sourceRows,
         const jam::Strings& sourceValues,
         const juce::Identifier& sourceKey,
@@ -549,11 +565,13 @@ struct Items
 
         for (auto* sourceRow : sourceRows)
             itemReplacements.add (
-                getItemReplacement (model, templateDocument, tokens, sourceRow, {}, sourceKey, extension));
+                getItemReplacement (
+                    model, templateDocument, row, shapeLine, tokens, sourceRow, {}, sourceKey, extension));
 
         for (const auto& value : sourceValues)
             itemReplacements.add (
-                getItemReplacement (model, templateDocument, tokens, nullptr, value, sourceKey, extension));
+                getItemReplacement (
+                    model, templateDocument, row, shapeLine, tokens, nullptr, value, sourceKey, extension));
 
         return itemReplacements;
     }
@@ -713,6 +731,8 @@ struct Items
      */
     static jam::Strings getPaddedItemTexts (const Model& model,
                                             const TemplateDocument& templateDocument,
+                                            const Element& row,
+                                            const Element& shapeLine,
                                             const jam::Array<const Element*>& sourceRows,
                                             const jam::Strings& sourceValues,
                                             const juce::Identifier& sourceKey,
@@ -722,7 +742,8 @@ struct Items
         jam::Strings texts;
 
         const auto itemReplacements { getItemReplacements (
-            model, templateDocument, sourceRows, sourceValues, sourceKey, line, extension) };
+            model, templateDocument, row, shapeLine, sourceRows, sourceValues, sourceKey, line,
+            extension) };
         jam::HashMap<juce::Identifier, size_t> columnWidths;
 
         for (const auto& replacements : itemReplacements)
@@ -782,6 +803,7 @@ struct Items
                                            const juce::Identifier& sourceKey,
                                            const Element& line,
                                            const Element& row,
+                                           const Element& shapeLine,
                                            int indent,
                                            int sourceOrdinal,
                                            const juce::String& childJoin,
@@ -789,12 +811,12 @@ struct Items
     {
         jam::Strings texts;
 
-        const auto renderItem = [&model, &templateDocument, &sourceKey, &line, &row, indent,
+        const auto renderItem = [&model, &templateDocument, &sourceKey, &line, &row, &shapeLine, indent,
                                  sourceOrdinal, &childJoin, &extension, &texts] (
             const Element* sourceRow, const juce::String& sourceValue)
         {
             const auto itemText { getItem (model, templateDocument, sourceRow, sourceValue,
-                sourceKey, line, row, indent, sourceOrdinal, childJoin, extension) };
+                sourceKey, line, row, shapeLine, indent, sourceOrdinal, childJoin, extension) };
 
             if (itemText.isNotEmpty())
                 texts.add (itemText);
@@ -843,6 +865,7 @@ struct Items
                                       const jam::Strings& sourceValues,
                                       const juce::Identifier& sourceKey,
                                       const Element& line,
+                                      const Element& shapeLine,
                                       const Element& row,
                                       int indent,
                                       int sourceOrdinal,
@@ -858,11 +881,11 @@ struct Items
                                  and getMarker (shapeText, listMarker).isEmpty() };
 
         if (usePadding)
-            return getPaddedItemTexts (
-                model, templateDocument, sourceRows, sourceValues, sourceKey, line, extension);
+            return getPaddedItemTexts (model, templateDocument, row, shapeLine, sourceRows, sourceValues,
+                sourceKey, line, extension);
 
         return getPlainItemTexts (model, templateDocument, sourceRows, sourceValues, sourceKey,
-            line, row, indent, sourceOrdinal, childJoin, extension);
+            line, row, shapeLine, indent, sourceOrdinal, childJoin, extension);
     }
 
     /**
@@ -919,6 +942,7 @@ struct Items
                                   const Element& row,
                                   const juce::String& source,
                                   const Element& line,
+                                  const Element& shapeLine,
                                   int indent,
                                   int sourceOrdinal,
                                   const juce::String& childJoin,
@@ -947,7 +971,7 @@ struct Items
         }
 
         return getItemTexts (model, templateDocument, sourceRows, sourceValues, sourceKey, line,
-            row, indent, sourceOrdinal, childJoin, extension);
+            shapeLine, row, indent, sourceOrdinal, childJoin, extension);
     }
 
     /**
@@ -978,6 +1002,7 @@ struct Items
                                         const Element& row,
                                         const juce::String& source,
                                         const Element& line,
+                                        const Element& shapeLine,
                                         const juce::String& separator,
                                         int indent,
                                         int sourceOrdinal,
@@ -985,7 +1010,8 @@ struct Items
                                         const juce::String& extension)
     {
         const auto texts { getItems (
-            model, templateDocument, tables, row, source, line, indent, sourceOrdinal, childJoin, extension) };
+            model, templateDocument, tables, row, source, line, shapeLine, indent, sourceOrdinal, childJoin,
+            extension) };
 
         return texts.joinIntoString (separator, 0, -1);
     }

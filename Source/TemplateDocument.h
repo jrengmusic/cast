@@ -185,11 +185,17 @@ private:
         static const std::tm date { [] () noexcept
         {
             const auto now { std::time (nullptr) };
-            const auto* utc { std::gmtime (&now) };
+            std::tm utc {};
 
-            jassert (utc != nullptr);
+           #if JUCE_WINDOWS
+            [[maybe_unused]] const auto isConverted { gmtime_s (&utc, &now) == 0 };
+           #else
+            [[maybe_unused]] const auto isConverted { gmtime_r (&now, &utc) != nullptr };
+           #endif
 
-            return *utc;
+            jassert (isConverted);
+
+            return utc;
         }() };
 
         return date;
