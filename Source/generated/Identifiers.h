@@ -53,6 +53,7 @@ extern const juce::Identifier firstRow;        ///< --pack layout option word.
 extern const juce::String     hdiutil;         ///< Dmg image tool command.
 extern const juce::Identifier help;
 extern const juce::Identifier iconSize;        ///< --pack layout option word.
+extern const juce::Identifier link;            ///< --pack link option word.
 extern const juce::Identifier linkColumn;      ///< --pack layout option word.
 extern const juce::Identifier p;
 extern const juce::Identifier pack;            ///< --pack CLI flag word.

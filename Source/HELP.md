@@ -21,7 +21,7 @@ Arguments select what runs. They never carry generation rules.
 - `cast spell.md --no-format` or `cast --no-format spell.md` — generate only, no formatting
 - `cast spell.md --<word>` — after format and generate, run only the `## toolchain`
   rows whose `argument` cell equals `word`; the default-flow rows do not run
-- `cast --pack <archive> … <item> <linkName> <linkTarget> …` — write one archive, `zip` or `dmg`, from the items on the line; no manifest (see pack)
+- `cast --pack <archive> … <item> [--link=<name>=<target>] …` — write one archive, `zip` or `dmg`, from the items on the line; no manifest (see pack)
 - `cast --version` — the version and the source commit, the same stamp that the generated banners embed
 - `cast --help` — this guide
 - `--line-wrap n` — a value pair, in any position on the line; it composes with
@@ -525,14 +525,14 @@ The `@` sigil law (a `@`-sigiled value is a reference, never data) separates thi
 `cast --pack` packs one archive. It reads no manifest and no table. The build system knows each value and passes it on the command line. CAST is the tool that packs; the build system decides what to pack and when.
 
 ```
-cast --pack <archive> [--<layout-key>=<n> ...] [--background=<path>] <item> <linkName> <linkTarget> [...]
+cast --pack <archive> [--<layout-key>=<n> ...] [--background=<path>] <item> [--link=<name>=<target>] [...]
 ```
 
-The first argument that is not an option is the archive path. The arguments after it are triples, one for each root entry, in row order: the item path, the link name and the link target. An empty link name and an empty link target mean that the row has no link. Each path resolves against the working directory. A line whose remaining arguments are not one archive and one or more complete triples is fatal.
+The first argument that is not an option is the archive path. Each argument after it that is not an option is an item path: one row for each root entry, in row order. `--link=<name>=<target>` gives a link to the nearest item before it. A link is optional: an item with no `--link` has no link. The value splits at its first `=`: the text before it is the link name, and the text after it is the link target. Each path resolves against the working directory. These lines are fatal: a line with no archive or no item; a `--link` before the first item; a second `--link` on one item; a `--link` whose name or target is empty.
 
 The extension of the archive selects its format: `zip` or `dmg`, compared with case. Any other extension is fatal.
 
-Each triple is one row. The item is the path of one file or folder. It enters the root of the archive under its own file name. A folder enters with its full hierarchy. An item that does not exist is fatal. When the link name and the link target are not empty, the root of the archive also gets a symbolic link. Its name is the link name, and its target is the link target text, verbatim. CAST does not resolve it. The link is the drag-and-drop install target of the item on the same row. Two triples that give the root one name, as an item file name or a link name, are fatal.
+Each item is one row. The item is the path of one file or folder. It enters the root of the archive under its own file name. A folder enters with its full hierarchy. An item that does not exist is fatal. When the item has a `--link`, the root of the archive also gets a symbolic link. Its name is the link name, and its target is the link target text, verbatim. CAST does not resolve it. The link is the drag-and-drop install target of the item on the same row. Two rows that give the root one name, as an item file name or a link name, are fatal.
 
 **Layout options.** The layout options are numbers of points, each in the form `--<key>=<n>` with an integer `n`. An absent option takes its default:
 
@@ -598,7 +598,7 @@ add_custom_command(TARGET post-build POST_BUILD
     USES_TERMINAL)
 ```
 
-`CAST_PACK_ITEMS` holds one triple for each plugin format. On macOS a triple is the bundle, the format name and the install folder. On Windows it is the bundle and two empty strings. The quoted list with `COMMAND_EXPAND_LISTS` gives each empty string as an argument. An unquoted list drops them. `CAST_PACK_LAYOUT` holds the layout options and `--background`, on macOS only.
+`CAST_PACK_ITEMS` holds one item for each plugin format. On macOS, `--link=<format>=<install folder>` follows each bundle. On Windows, the list holds the items only. `CAST_PACK_LAYOUT` holds the layout options and `--background`, on macOS only.
 
 With the defaults and five rows, the dmg window is 600 points wide (150 + 450) and 680 points high (80 + 5 × 120). Row 0 is at y 80, and each next row is 120 points lower.
 
@@ -916,13 +916,13 @@ spell.md:36 (structure): nested shape has more than one candidate
 These failures belong to the toolchain and to `--pack`. Each one is fatal:
 
 - a toolchain row whose process cannot start or exits nonzero — the `hdiutil` process of a pack included
-- a `--pack` line that is not one archive and one or more complete triples
+- a `--pack` line with no archive or no item, or a `--link` before the first item, a second `--link` on one item, or a `--link` whose name or target is empty
 - a `--pack` layout value that is not an integer, or a layout option or `--background` with a `.zip` archive
 - a `--pack` archive whose extension is neither `zip` nor `dmg`
 - a `.dmg` archive on a host other than macOS
 - a `--pack` item or background file that does not exist
 - a bundle icon that its `Info.plist` names and that does not exist
-- two triples of one archive that give its root one name
+- two rows of one archive that give its root one name
 - an archive or its stage folder that cannot be written or removed, or `.DS_Store` records that exceed one node
 - a `--<word>` argument that matches no toolchain row's `argument` cell
 

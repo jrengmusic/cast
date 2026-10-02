@@ -40,6 +40,7 @@ transform operations a format cell may declare (§8).
 | @string | hdiutil          | `hdiutil`            | Dmg image tool command.                                     |
 | @id     | help             | `help`               |                                                             |
 | @id     | iconSize         | `icon-size`          | --pack layout option word.                                  |
+| @id     | link             | `link`               | --pack link option word.                                    |
 | @id     | linkColumn       | `link-column`        | --pack layout option word.                                  |
 | @id     | p                | `p`                  |                                                             |
 | @id     | pack             | `pack`               | --pack CLI flag word.                                       |

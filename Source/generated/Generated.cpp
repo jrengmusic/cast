@@ -49,6 +49,7 @@ namespace Id
     const juce::String     hdiutil          { juce::String::fromUTF8 ("hdiutil") };
     const juce::Identifier help             { juce::String::fromUTF8 ("help") };
     const juce::Identifier iconSize         { juce::String::fromUTF8 ("icon-size") };
+    const juce::Identifier link             { juce::String::fromUTF8 ("link") };
     const juce::Identifier linkColumn       { juce::String::fromUTF8 ("link-column") };
     const juce::Identifier p                { juce::String::fromUTF8 ("p") };
     const juce::Identifier pack             { juce::String::fromUTF8 ("pack") };

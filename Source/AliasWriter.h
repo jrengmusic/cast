@@ -103,7 +103,7 @@ private:
         {
             return juce::MemoryBlock (text.toRawUTF8(), text.getNumBytesAsUTF8());
         };
-        const juce::MemoryBlock zeroDate (dateSize, true);
+        const juce::MemoryBlock zeroDate { dateSize, true };
 
         juce::MemoryOutputStream tags;
         tags << getTag (tagFolderName, getBytes (getCarbonName (volumeName)));
@@ -130,12 +130,12 @@ private:
     static juce::MemoryBlock getPascalString (const juce::String& text, int size)
     {
         const auto carbonName { getCarbonName (text) };
-        const auto length { juce::jmin (carbonName.getNumBytesAsUTF8(), static_cast<size_t> (size - 1)) };
+        const auto length { juce::jmin (carbonName.getNumBytesAsUTF8(), static_cast<size_t> (size - lengthByteSize)) };
         const auto lengthByte { static_cast<char> (length) };
 
-        juce::MemoryBlock pascalString (static_cast<size_t> (size), true);
+        juce::MemoryBlock pascalString { static_cast<size_t> (size), true };
         pascalString.copyFrom (&lengthByte, 0, sizeof (lengthByte));
-        pascalString.copyFrom (carbonName.toRawUTF8(), 1, length);
+        pascalString.copyFrom (carbonName.toRawUTF8(), lengthByteSize, length);
         return pascalString;
     }
 
@@ -223,6 +223,8 @@ private:
     static constexpr size_t reservedSize { 10 };
     /** Size of a date tag content, in bytes. */
     static constexpr size_t dateSize { 8 };
+    /** Size of the length byte at the start of a Pascal string. */
+    static constexpr int lengthByteSize { 1 };
     /** Tag number of the folder name. */
     static constexpr int tagFolderName { 0 };
     /** Tag number of the Carbon path. */

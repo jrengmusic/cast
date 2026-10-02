@@ -88,7 +88,7 @@ The command line selects what runs. The command line never carries a generation 
 cast --format [-i] [--style=file:<path>] [--assume-filename=<path>] [--line-wrap n] [<file> ...]
 cast [<manifest>] [<directory> | --no-format | --<word>] [--line-wrap n]
 cast --sync [--style=file:<path>] <source-root> <target-root>
-cast --pack <archive> [--<layout-key>=<n> ...] [--background=<path>] <item> <linkName> <linkTarget> [...]
+cast --pack <archive> [--<layout-key>=<n> ...] [--background=<path>] <item> [--link=<name>=<target>] [...]
 cast --version
 cast --help
 ```
@@ -115,14 +115,17 @@ cast --help
   `--style=file:<path>`. A `--sync` line without exactly two roots is fatal (§10.1).
 - `--pack`: no manifest. The run packs one archive (§6.12) and follows §6.12 alone. The
   build system calls it, with the values that the build system knows. The first
-  argument that is not an option is the archive path. The arguments after it are
-  triples, one for each root entry, in row order: the item path, the link name and the
-  link target. An empty link name and an empty link target mean that the row has no
-  link. The layout options are `--icon-size`, `--bundle-column`, `--link-column`,
+  argument that is not an option is the archive path. Each argument after it that is
+  not an option is an item path: one row for each root entry, in row order.
+  `--link=<name>=<target>` gives a link to the nearest item before it. A link is
+  optional: an item with no `--link` has no link. The value splits at its first `=`: the
+  text before it is the link name, and the text after it is the link target. The layout
+  options are `--icon-size`, `--bundle-column`, `--link-column`,
   `--first-row`, `--row-spacing`, `--window-left` and `--window-top`, each in the form
   `--<key>=<n>` with an integer `n`. `--background=<path>` names the background image.
-  Each path resolves against the working directory. A `--pack` line whose remaining
-  arguments are not one archive and one or more complete triples is fatal (§10.1). A
+  Each path resolves against the working directory. These `--pack` lines are fatal
+  (§10.1): a line with no archive or no item; a `--link` before the first item; a second
+  `--link` on one item; a `--link` whose name or target is empty. A
   layout value that is not an integer is fatal (§10.1). A layout option or
   `--background` with a `.zip` archive is fatal (§10.1).
 - `--version`: the version and the source commit — the same stamp that the banners
@@ -1046,14 +1049,13 @@ packs; the build system decides what to pack and when.
 The extension of the archive selects its format: `zip` or `dmg`, compared with case. Any
 other extension is fatal (§10.1).
 
-Each triple is one row, in row order. The item is the path of one file or folder. It
+Each item is one row, in row order. The item is the path of one file or folder. It
 enters the root of the archive under its own file name. A folder enters with its full
-hierarchy. An item that does not exist is fatal (§10.1). When the link name and the link
-target are not empty, the root of the archive also gets a symbolic link. Its name is the
-link name, and its target is the link target text, verbatim. The engine does not resolve
-it. The link is the drag-and-drop install target of the item on the same row. Two
-triples that give the root one name, as an item file name or a link name, are fatal
-(§10.1).
+hierarchy. An item that does not exist is fatal (§10.1). When the item has a `--link`,
+the root of the archive also gets a symbolic link. Its name is the link name, and its
+target is the link target text, verbatim. The engine does not resolve it. The link is
+the drag-and-drop install target of the item on the same row. Two rows that give the
+root one name, as an item file name or a link name, are fatal (§10.1).
 
 **Icon.** Each bundle shows its own icon after the archive is extracted. The engine names
 no format. On Windows, the build puts the icon on the bundle: `desktop.ini`, `Plugin.ico`
@@ -1326,13 +1328,13 @@ These, and nothing else:
 | a map table with no `value` column                                                                                | §6.5       |
 | an output file that cannot be written                                                                             | §10        |
 | a toolchain row whose process cannot start or exits nonzero, the `hdiutil` process of a pack included             | §6.9       |
-| a `--pack` line that is not one archive and one or more complete triples                                          | §2.1       |
+| a `--pack` line with no archive or no item, a `--link` before the first item or second on one item, or a `--link` whose name or target is empty | §2.1       |
 | a `--pack` layout value that is not an integer, or a layout option or `--background` with a `.zip` archive        | §2.1       |
 | a `--pack` archive whose extension is neither `zip` nor `dmg`                                                     | §6.12      |
 | a `.dmg` archive on a host other than macOS                                                                       | §6.12      |
 | a `--pack` item or background file that does not exist                                                            | §6.12      |
 | a bundle icon that its `Info.plist` names and that does not exist                                                 | §6.12      |
-| two triples of one archive that give its root one name                                                            | §6.12      |
+| two rows of one archive that give its root one name                                                               | §6.12      |
 | an archive or its stage folder that cannot be written or removed, or `.DS_Store` records that exceed one node     | §6.12      |
 | a `--<word>` CLI argument matching no toolchain row's `argument` cell                                             | §6.9       |
 | malformed table, during formatting only                                                                           | §3.3       |

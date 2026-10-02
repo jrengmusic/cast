@@ -21,8 +21,12 @@
  */
 struct Pack
 {
-    /** Number of command line values in one row: item, link name, link target. */
+    /** Number of values in one row of the flat row array: item path, link name, link target. */
     static constexpr int tripleSize { 3 };
+    /** Position of the link name in a row. */
+    static constexpr int linkNameOffset { 1 };
+    /** Position of the link target in a row. */
+    static constexpr int linkTargetOffset { 2 };
 
     /**
      * @brief Returns the @c --background flag text.
@@ -81,11 +85,6 @@ struct Pack
     }
 
 private:
-    /** Position of the link name in a row. */
-    static constexpr int linkNameOffset { 1 };
-    /** Position of the link target in a row. */
-    static constexpr int linkTargetOffset { 2 };
-
     /**
      * @brief Returns the item files, in row order.
      *

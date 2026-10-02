@@ -115,6 +115,16 @@ static const juce::String& getPackFlag()
 }
 
 /**
+ * @brief The `--link` flag word, without its `=\<name\>=\<target\>` value.
+ * @returns The `--link` flag text.
+ */
+static const juce::String& getLinkFlag()
+{
+    static const juce::String linkFlag { Id::doubleDash + Id::link.toString() };
+    return linkFlag;
+}
+
+/**
  * @brief The `--line-wrap` flag word.
  * @returns The `--line-wrap` flag text.
  */
@@ -1175,25 +1185,109 @@ static int runSyncArguments (int argc, char* argv[], int lineWrap)
     return 1;
 }
 
+static constexpr int packArchiveCount { 1 };///< The number of leading positional paths a `--pack` invocation uses for the archive.
+
 /**
- * @brief Returns the arguments of @p argv that are not options, in
+ * @brief Returns the arguments of @p arguments that are not options, in
  *        authored order.
  *
  * The first path is the archive. Each path after it belongs to a row.
  *
- * @param argc The CLI argument count.
- * @param argv The CLI argument vector.
+ * @param arguments The parsed command-line arguments.
  * @returns The arguments without a leading dash, program name excluded.
  */
-static juce::StringArray getPackPaths (int argc, char* argv[])
+static juce::StringArray getPackPaths (const juce::ArgumentList& arguments)
 {
     juce::StringArray paths;
 
-    for (const auto& text : juce::StringArray (argv + 1, argc - 1))
-        if (not juce::ArgumentList::Argument { text }.isOption())
-            paths.add (text);
+    for (const auto& argument : arguments.arguments)
+        if (not argument.isOption())
+            paths.add (argument.text);
 
     return paths;
+}
+
+/**
+ * @brief Answers whether every @c --link of @p arguments is well formed.
+ *
+ * A @c --link is well formed when it follows an item path, is the only
+ * @c --link of that item, and has a non-empty name and a non-empty target
+ * in its @c \<name\>=\<target\> value.
+ *
+ * @param arguments The parsed command-line arguments.
+ * @returns @c true when every @c --link is well formed.
+ */
+static bool isLinkValid (const juce::ArgumentList& arguments)
+{
+    const auto linkSeparator { juce::String::charToString (Chars::equals) };
+    int pathCount { 0 };
+    bool isRowLinked { false };
+
+    for (const auto& argument : arguments.arguments)
+    {
+        if (not argument.isOption())
+        {
+            ++pathCount;
+            isRowLinked = false;
+        }
+        else if (argument.isLongOption (getLinkFlag()))
+        {
+            const auto value { argument.getLongOptionValue() };
+
+            if (pathCount <= packArchiveCount or isRowLinked
+                or value.upToFirstOccurrenceOf (linkSeparator, false, false).isEmpty()
+                or value.fromFirstOccurrenceOf (linkSeparator, false, false).isEmpty()) return false;
+
+            isRowLinked = true;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * @brief Returns the rows of @p arguments, flat.
+ *
+ * Each path after the archive adds one row of Pack::tripleSize values: the
+ * item path, the link name, and the link target. The link name and the link
+ * target are empty when the item has no @c --link.
+ *
+ * @param arguments The parsed command-line arguments. Every @c --link is
+ *                  well formed.
+ * @returns The rows, flat.
+ */
+static juce::StringArray getPackRows (const juce::ArgumentList& arguments)
+{
+    jassert (isLinkValid (arguments));
+
+    const auto linkSeparator { juce::String::charToString (Chars::equals) };
+    juce::StringArray rows;
+    int pathCount { 0 };
+
+    for (const auto& argument : arguments.arguments)
+    {
+        if (not argument.isOption())
+        {
+            ++pathCount;
+
+            if (pathCount > packArchiveCount)
+            {
+                rows.add (argument.text);
+                rows.add (juce::String());
+                rows.add (juce::String());
+            }
+        }
+        else if (argument.isLongOption (getLinkFlag()))
+        {
+            const auto value { argument.getLongOptionValue() };
+            const auto rowStart { (rows.size() / Pack::tripleSize - 1) * Pack::tripleSize };
+
+            rows.set (rowStart + Pack::linkNameOffset, value.upToFirstOccurrenceOf (linkSeparator, false, false));
+            rows.set (rowStart + Pack::linkTargetOffset, value.fromFirstOccurrenceOf (linkSeparator, false, false));
+        }
+    }
+
+    return rows;
 }
 
 /**
@@ -1203,8 +1297,8 @@ static juce::StringArray getPackPaths (int argc, char* argv[])
  *
  * @param arguments The parsed command-line arguments.
  * @param archive   The archive to write.
- * @param triples   The rows, flat: item, link name, link target for each
- *                  row.
+ * @param triples   The rows, flat: item path, link name, link target for
+ *                  each row.
  * @returns @c 0 when the pack succeeds, or @c 1 after printing the
  *          failure's error message.
  */
@@ -1227,9 +1321,14 @@ static int runPack (const juce::ArgumentList& arguments, const juce::File& archi
 
 /**
  * @brief Answers @c --pack's own arity requirement -- one archive path and
- *        complete triples -- and its layout options requirement -- an
- *        integer value for each -- then dispatches to runPack(), or reports
- *        the failure on stderr.
+ *        at least one item, each item with at most one well-formed
+ *        @c --link=\<name\>=\<target\> -- and its layout options requirement
+ *        -- an integer value for each -- then dispatches to runPack(), or
+ *        reports the failure on stderr.
+ *
+ * The arity fails when no archive or no item is given, when a @c --link
+ * precedes the first item, when one item has a second @c --link, or when a
+ * @c --link has an empty name or an empty target.
  *
  * @param argc The CLI argument count.
  * @param argv The CLI argument vector.
@@ -1239,17 +1338,15 @@ static int runPack (const juce::ArgumentList& arguments, const juce::File& archi
 static int runPackArguments (int argc, char* argv[])
 {
     const juce::ArgumentList arguments { argc, argv };
-    const auto paths { getPackPaths (argc, argv) };
+    const auto paths { getPackPaths (arguments) };
 
-    if (paths.size() > 1 and (paths.size() - 1) % Pack::tripleSize == 0)
+    if (paths.size() > packArchiveCount and isLinkValid (arguments))
     {
         if (BinaryWriter::isLayoutValid (arguments))
         {
             const auto archive { juce::File::getCurrentWorkingDirectory().getChildFile (paths[0]) };
-            juce::StringArray triples;
 
-            triples.addArray (paths, 1);
-            return runPack (arguments, archive, triples);
+            return runPack (arguments, archive, getPackRows (arguments));
         }
 
         printError (getPackFlag() + Id::diagnosticSeparator + text::Diagnostics::failFlagValue);
