@@ -141,7 +141,7 @@ private:
      *        the @c \[begin\] and @c \[end\] bindings (Model::isRegionRow())
      *        -- to toRegionFile(); otherwise renders and writes the
      *        group's own rows through apply(), framed by its own banner
-     *        and file-header comment, write-if-different. The group's own
+     *        and file-header description, write-if-different. The group's own
      *        comment-syntax key is read from its own first shape line's
      *        fence prefix when one is authored -- @c \[no-banner\]
      *        excepted -- or resolved through
@@ -178,10 +178,8 @@ private:
         const auto& outputFile { outputFiles.at (index) };
         const auto groupEnd { index + 1 < groupStarts.size() ? groupStarts.at (index + 1) : rows.size() };
 
-        static const juce::Identifier beginMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::begin.toString(), Chars::openBracket)) };
-        static const juce::Identifier endMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::end.toString(), Chars::openBracket)) };
+        static const auto beginMarker { Model::getReservedName (Id::begin) };
+        static const auto endMarker { Model::getReservedName (Id::end) };
 
         auto* firstLine { Shapes::getFirstLine (model, *rows.at (start)) };
         const auto fencePrefix { Transforms::getFencePrefix (*firstLine->get<juce::String> (Id::info)) };
@@ -197,28 +195,28 @@ private:
             return toRegionFile (rows, tables, start, groupEnd, outputFile, *rows.at (start),
                 extension, beginBinding, endBinding);
 
-        auto comment { getFileComment (*rows.at (start), outputFile.getFileName()) };
+        auto description { getFileDescription (*rows.at (start), outputFile.getFileName()) };
 
-        if (comment.isNotEmpty())
-            comment = Transforms::toCommentBlock (comment, extension);
+        if (description.isNotEmpty())
+            description = Transforms::toCommentBlock (description, extension);
 
         const Model::Element* noBannerLine { nullptr };
 
         for (int rowIndex { start }; rowIndex < groupEnd and noBannerLine == nullptr; ++rowIndex)
             for (const auto& column : { Id::structure, Id::separator, Id::list })
-            if (auto* structureScope { model.getTableCell (*rows.at (rowIndex), column) })
-                structureScope->applyFunctionRecursively (
-                    [&noBannerLine, &noBanner] (const Model::Element& candidate) -> bool
-                    {
-                        if (noBannerLine == nullptr and candidate.contains (Id::templatePath)
-                            and Transforms::getFencePrefix (*candidate.get<juce::String> (Id::info))
-                                    .compare (noBanner) == 0)
-                            noBannerLine = &candidate;
+                if (auto* structureScope { model.getTableCell (*rows.at (rowIndex), column) })
+                    structureScope->applyFunctionRecursively (
+                        [&noBannerLine, &noBanner] (const Model::Element& candidate) -> bool
+                        {
+                            if (noBannerLine == nullptr and candidate.contains (Id::templatePath)
+                                and Transforms::getFencePrefix (*candidate.get<juce::String> (Id::info))
+                                        .compare (noBanner) == 0)
+                                noBannerLine = &candidate;
 
-                        return noBannerLine == nullptr;
-                    });
+                            return noBannerLine == nullptr;
+                        });
 
-        const auto banner { noBannerLine != nullptr ? juce::String{} : getBanner (extension, comment) };
+        const auto banner { noBannerLine != nullptr ? juce::String{} : getBanner (extension, description) };
 
         jam::MarkdownDocument rendered;
         apply (rendered, tables, rows, start, groupEnd, extension);
@@ -392,47 +390,46 @@ private:
     }
 
     /**
-     * @brief Resolves @p firstRow's own file-header comment -- @p firstRow's
-     *        structure-column @c comment binding, paired with its own first
+     * @brief Resolves @p firstRow's own file-header description -- @p firstRow's
+     *        structure-column @c description binding, paired with its own first
      *        shape line, read as a wired table address when its value is
-     *        @-sigiled. A plain-text @c comment binding at that position is
+     *        @-sigiled. A plain-text @c description binding at that position is
      *        the item-prose channel, never file documentation,
      *        and resolves empty here.
      *
-     * @pre When @p firstRow's @c comment binding is @-sigiled, it resolves
+     * @pre When @p firstRow's @c description binding is @-sigiled, it resolves
      *      to a table -- established once by Validator::isReference()
      *      before the writer ever runs.
      *
      * @param firstRow The output-file group's own first row, whose
-     *                 @c comment binding is resolved.
+     *                 @c description binding is resolved.
      * @param file     The group's own output file, matched against the
      *                 addressed table's @c file column when @p firstRow's
-     *                 @c comment binding is a table address.
-     * @returns The resolved comment text, or an empty string when
-     *          @p firstRow declares no @-sigiled @c comment binding, or the
+     *                 @c description binding is a table address.
+     * @returns The resolved description text, or an empty string when
+     *          @p firstRow declares no @-sigiled @c description binding, or the
      *          addressed table carries no row for @p file.
      */
-    juce::String getFileComment (const Model::Element& firstRow, const juce::String& file) const
+    juce::String getFileDescription (const Model::Element& firstRow, const juce::String& file) const
     {
         auto* firstLine { Shapes::getFirstLine (model, firstRow) };
 
-        static const juce::Identifier commentMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::comment.toString(), Chars::openBracket)) };
+        static const auto descriptionMarker { Model::getReservedName (Id::description) };
 
-        auto* commentBinding { model.getBinding (firstRow, Id::structure, *firstLine, commentMarker) };
+        auto* descriptionBinding { model.getBinding (firstRow, Id::structure, *firstLine, descriptionMarker) };
 
-        if (commentBinding != nullptr)
+        if (descriptionBinding != nullptr)
         {
-            const auto& commentValue { *commentBinding->get<juce::String> (Id::value) };
+            const auto& descriptionValue { *descriptionBinding->get<juce::String> (Id::value) };
 
-            if (Model::isAddress (commentValue))
+            if (Model::isAddress (descriptionValue))
             {
-                auto* headerTable { model.getTable (firstRow, commentValue) };
+                auto* headerTable { model.getTable (firstRow, descriptionValue) };
 
                 const auto fileName { jam::Format::toFileName (file) };
-                const auto column { model.isColumnAddress (firstRow, commentValue)
-                                         ? model.getColumn (firstRow, commentValue)
-                                         : Id::comment };
+                const auto column { model.isColumnAddress (firstRow, descriptionValue)
+                                         ? model.getColumn (firstRow, descriptionValue)
+                                         : Id::description };
 
                 for (auto* headerRow : model.getTableRows (*headerTable))
                 {
@@ -442,8 +439,8 @@ private:
                         and model.getFileName (*fileCell->get<juce::String> (Id::value))
                                 .compare (fileName)
                             == 0)
-                        if (auto* headerCommentCell { model.getTableCell (*headerRow, column) })
-                            return *headerCommentCell->get<juce::String> (Id::value);
+                        if (auto* headerDescriptionCell { model.getTableCell (*headerRow, column) })
+                            return *headerDescriptionCell->get<juce::String> (Id::value);
                 }
             }
         }
@@ -463,7 +460,7 @@ private:
      * @param index     The group's own first index into @p rows.
      * @param groupEnd  The index one past the group's own last row in
      *                  @p rows.
-     * @param extension The target file extension a comment value is
+     * @param extension The target file extension a description value is
      *                  commented for.
      */
     void apply (jam::MarkdownDocument& output, const jam::Array<const Model::Element*>& tables,
@@ -515,8 +512,7 @@ private:
     static juce::String getBody (const juce::String& shapeText, const juce::String& banner)
     {
         static const auto newlineText { juce::String::charToString (Chars::newline) };
-        static const juce::Identifier bannerMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::banner.toString(), Chars::openBracket)) };
+        static const auto bannerMarker { Model::getReservedName (Id::banner) };
 
         const auto marker { Items::getMarker (shapeText, bannerMarker) };
 
@@ -550,19 +546,19 @@ private:
      *        @p extension's own @c Id::bannerOpen / @c Id::bannerClose
      *        when declared, or wrapped line-by-line through
      *        Transforms::toCommentBlock() when @p extension declares no
-     *        banner frame, followed by @p comment when it is not empty.
+     *        banner frame, followed by @p description when it is not empty.
      *        The result carries no trailing newline -- the caller
      *        supplies its own separator before the shape text that
      *        follows.
      *
      * @param extension The target file extension the banner is framed
      *                  for.
-     * @param comment   The file's own header comment, appended after the
+     * @param description The file's own header description, appended after the
      *                  banner when not empty.
      * @returns The rendered banner, or an empty string when the parsed
      *          banner document declares no @c banner code block.
      */
-    juce::String getBanner (const juce::String& extension, const juce::String& comment) const
+    juce::String getBanner (const juce::String& extension, const juce::String& description) const
     {
         static const auto document { jam::MarkdownDocument::parse (
             BinaryData::getString (files::castOutput)) };
@@ -580,8 +576,8 @@ private:
                                  + syntax.get (Id::bannerClose)
                            : Transforms::toCommentBlock (bannerBlock->getAllSubText(), extension));
 
-            if (comment.isNotEmpty())
-                banner << Chars::newline << Chars::newline << comment;
+            if (description.isNotEmpty())
+                banner << Chars::newline << Chars::newline << description;
         }
 
         return banner;

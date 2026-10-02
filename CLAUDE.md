@@ -48,7 +48,7 @@
 
 | File | Purpose |
 |------|---------|
-| **spell.md** | Generation manifest: outputs, four-column wiring rows (`list | separator | structure | file`); shapes addressed `@code:<fence>` into `../../jam/cast/code.cast`; per-output file documentation wired via `- [comment]: @headers:brief` structure bindings into the `## headers` table (`file | brief | comment`) |
+| **spell.md** | Generation manifest: outputs, four-column wiring rows (`list | separator | structure | file`); shapes addressed `@code:<fence>` into `../../jam/cast/code.cast`; per-output file documentation wired via `- [description]: @headers:brief` structure bindings into the `## headers` table (`file | brief | description`) |
 | **identifiers.md** | Identifier table → generated/Identifiers.h |
 | **text.md, comments.md, files.md, banner.md** | Data tables (one table per generated concern) |
 | **cmake.cast** | Shared CMakeLists.txt template, wired by cast/spell.md and eve's manifest |

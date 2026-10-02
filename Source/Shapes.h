@@ -12,7 +12,7 @@
  *
  * Shapes owns no state of its own; every member is a pure function of the
  * Model rows, TemplateDocument shapes, and structure lines it is called
- * with. Comment resolution walks a shape's own list sources in authored
+ * with. Description resolution walks a shape's own list sources in authored
  * order to the first one addressing a table, falling back to the row's
  * own table when none does; each marker substitutes its first remaining
  * occurrence per template line; a shape's @c list marker is inline when
@@ -81,8 +81,7 @@ struct Shapes
      */
     static const Element* getFirstLine (const Model& model, const Element& row)
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const auto listMarker { Model::getReservedName (Id::list) };
 
         const Element* line { nullptr };
 
@@ -136,9 +135,9 @@ struct Shapes
     }
 
     /**
-     * @brief Resolves @p line's comment table -- a list item's own
+     * @brief Resolves @p line's description table -- a list item's own
      *        addressed table, a paragraph's explicitly authored
-     *        @-comment address, or, absent one, the first table addressed
+     *        @-description address, or, absent one, the first table addressed
      *        by @p line's list sources in authored order, falling back to
      *        @p row's own table when none of its sources address one.
      *
@@ -147,13 +146,13 @@ struct Shapes
      *                         read from.
      * @param row              The row @p line's sources are addressed
      *                         against.
-     * @param line             The structure line whose comment table is
+     * @param line             The structure line whose description table is
      *                         resolved.
-     * @returns The resolved comment table or code block, @p row's own
+     * @returns The resolved description table or code block, @p row's own
      *          table when no source resolves one but it carries a
-     *          comment, or @c nullptr when neither resolves.
+     *          description, or @c nullptr when neither resolves.
      */
-    static const Element* getCommentTable (const Model& model, const TemplateDocument& templateDocument,
+    static const Element* getDescriptionTable (const Model& model, const TemplateDocument& templateDocument,
         const Element& row, const Element& line)
     {
         const Element* table { nullptr };
@@ -165,9 +164,9 @@ struct Shapes
                     *model.getSource (row, *line.get<int> (Id::level), *line.get<int> (Id::line))
                          ->get<juce::String> (Id::value));
         }
-        else if (auto* comment { model.getComment (row, *line.get<int> (Id::level), *line.get<int> (Id::line)) })
+        else if (auto* description { model.getDescription (row, *line.get<int> (Id::level), *line.get<int> (Id::line)) })
         {
-            const auto& value { *comment->get<juce::String> (Id::value) };
+            const auto& value { *description->get<juce::String> (Id::value) };
 
             table = model.getTable (row, value);
 
@@ -182,7 +181,7 @@ struct Shapes
         if (table != nullptr)
             return table;
 
-        if (row.parent->get<juce::String> (Id::comment)->isNotEmpty())
+        if (row.parent->get<juce::String> (Id::description)->isNotEmpty())
             return row.parent;
 
         return nullptr;
@@ -214,9 +213,9 @@ struct Shapes
 
     /**
      * @brief Resolves @p name's value for @p line, in a declared order:
-     *        for the name @c comment, @p commentTable's own
+     *        for the name @c description, @p descriptionTable's own
      *        documentation -- the shape-level channel -- a list-column
-     *        comment reference or table documentation, never a
+     *        description reference or table documentation, never a
      *        structure-column binding), short-circuiting before any other
      *        rung; for every other name, in order, a binding of that
      *        name, then @p line's own maps' @p name row, then, for @p line
@@ -232,8 +231,8 @@ struct Shapes
      *                         resolved against.
      * @param line             The structure line whose binding and maps
      *                         are searched.
-     * @param commentTable     The table @p name's documentation is read
-     *                         from, when @p name is @c comment.
+     * @param descriptionTable The table @p name's documentation is read
+     *                         from, when @p name is @c description.
      * @param name             The token or column name to resolve.
      * @param joinText         The join text passed through to
      *                         getShapeText() when @p name binds to a
@@ -243,7 +242,7 @@ struct Shapes
      * @param isAtColumnZero   Whether the enclosing @c list marker began
      *                         at column zero, passed through to
      *                         getShapeText().
-     * @param extension        The target file extension a comment value
+     * @param extension        The target file extension a description value
      *                         is commented for.
      * @returns @p name's resolved value, or an empty string when none of
      *          the rungs names it -- including when @p line is an item
@@ -251,17 +250,15 @@ struct Shapes
      *          under-supply, addressing no row.
      */
     static juce::String getTokenValue (const Model& model, const TemplateDocument& templateDocument,
-        const jam::Array<const Element*>& tables, const Element& row, const Element& line, const Element* commentTable,
+        const jam::Array<const Element*>& tables, const Element& row, const Element& line, const Element* descriptionTable,
         const juce::Identifier& name, const juce::String& joinText, int parentIndent,
         bool isAtColumnZero, const juce::String& extension)
     {
-        static const juce::Identifier commentMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::comment.toString(), Chars::openBracket)) };
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const auto descriptionMarker { Model::getReservedName (Id::description) };
+        static const auto listMarker { Model::getReservedName (Id::list) };
 
-        if (name == commentMarker)
-            return commentTable != nullptr ? *commentTable->get<juce::String> (Id::comment)
+        if (name == descriptionMarker)
+            return descriptionTable != nullptr ? *descriptionTable->get<juce::String> (Id::description)
                                            : juce::String{};
 
         if (auto* binding { model.getBinding (row, Id::structure, line, name) })
@@ -294,7 +291,7 @@ struct Shapes
      * @brief Resolves @p name's own marker value -- getFill()'s own filled
      *        occurrence for the @c list token, getTokenValue()'s own
      *        resolved value for every other token -- then comments a
-     *        non-empty @c comment value as a block comment when
+     *        non-empty @c description value as a block comment when
      *        @p templateLine's own trimmed text equals @p marker, or an
      *        inline comment otherwise.
      *
@@ -307,8 +304,8 @@ struct Shapes
      *                         @p lines.
      * @param lines            The structure lines corresponding, index by
      *                         index, to @p rows.
-     * @param commentTable     The table @p name's documentation is read
-     *                         from, when @p name is @c comment.
+     * @param descriptionTable The table @p name's documentation is read
+     *                         from, when @p name is @c description.
      * @param name             The token name to resolve.
      * @param tokenOccurrence  @p name's own substitution count so far,
      *                         passed through to getFill().
@@ -318,7 +315,7 @@ struct Shapes
      *                         through to the @c list token's expansion.
      * @param isAtColumnZero   Whether @p marker began at column zero in
      *                         @p templateLine.
-     * @param extension        The target file extension a comment value
+     * @param extension        The target file extension a description value
      *                         is commented for.
      * @param templateLine     @p marker's own authored template line.
      * @param marker           @p name's own verbatim marker as authored
@@ -327,23 +324,21 @@ struct Shapes
      */
     static juce::String getMarkerValue (const Model& model, const TemplateDocument& templateDocument,
         const jam::Array<const Element*>& tables, const jam::Array<const Element*>& rows,
-        const jam::Array<const Element*>& lines, const Element* commentTable, const juce::Identifier& name,
+        const jam::Array<const Element*>& lines, const Element* descriptionTable, const juce::Identifier& name,
         int tokenOccurrence, const juce::String& joinText, int parentIndent, bool isAtColumnZero,
         const juce::String& extension, const juce::String& templateLine, const juce::String& marker)
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
-        static const juce::Identifier commentMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::comment.toString(), Chars::openBracket)) };
+        static const auto listMarker { Model::getReservedName (Id::list) };
+        static const auto descriptionMarker { Model::getReservedName (Id::description) };
 
         auto value { name == listMarker
                          ? getFill (model, templateDocument, tables, rows, lines,
                                tokenOccurrence, joinText, parentIndent, isAtColumnZero, extension)
                          : getTokenValue (model, templateDocument, tables, *rows.first(),
-                               *lines.first(), commentTable, name, joinText, parentIndent,
+                               *lines.first(), descriptionTable, name, joinText, parentIndent,
                                isAtColumnZero, extension) };
 
-        if (name == commentMarker and value.isNotEmpty())
+        if (name == descriptionMarker and value.isNotEmpty())
             value = templateLine.trim().compare (marker) == 0
                         ? Transforms::toCommentBlock (value, extension)
                         : Transforms::toComment (value, extension);
@@ -355,7 +350,7 @@ struct Shapes
      * @brief Substitutes each of @p tokens' first remaining marker in
      *        @p templateLine with its resolved value -- the @c list token
      *        filled by getFill(), every other token resolved through
-     *        getTokenValue() -- wrapping the @c comment token's value as a
+     *        getTokenValue() -- wrapping the @c description token's value as a
      *        block comment when its marker spans the entire trimmed line,
      *        or an inline comment otherwise.
      *
@@ -378,7 +373,7 @@ struct Shapes
      *                         @c list token's expansion.
      * @param parentIndent     The parent shape's own indent, passed
      *                         through to the @c list token's expansion.
-     * @param extension        The target file extension a comment value is
+     * @param extension        The target file extension a description value is
      *                         commented for.
      * @returns The substituted line text.
      */
@@ -389,11 +384,10 @@ struct Shapes
         const juce::String& templateLine, const juce::String& joinText, int parentIndent,
         const juce::String& extension)
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const auto listMarker { Model::getReservedName (Id::list) };
 
         auto lineText { templateLine };
-        auto* commentTable { getCommentTable (model, templateDocument, *rows.first(), *lines.first()) };
+        auto* descriptionTable { getDescriptionTable (model, templateDocument, *rows.first(), *lines.first()) };
 
         for (const auto& name : tokens)
         {
@@ -410,7 +404,7 @@ struct Shapes
                     {
                         const auto isAtColumnZero { position == 0 and templateLine.indexOf (marker) == 0 };
                         const auto value { getMarkerValue (model, templateDocument, tables, rows, lines,
-                            commentTable, name, tokenOccurrence, joinText, parentIndent, isAtColumnZero,
+                            descriptionTable, name, tokenOccurrence, joinText, parentIndent, isAtColumnZero,
                             extension, templateLine, marker) };
                         lineText = lineText.replaceSection (position, marker.length(), value);
                         ++tokenOccurrence;
@@ -421,7 +415,7 @@ struct Shapes
                 {
                     const auto isAtColumnZero { templateLine.indexOf (marker) == 0 };
                     const auto value { getMarkerValue (model, templateDocument, tables, rows, lines,
-                        commentTable, name, tokenOccurrence, joinText, parentIndent, isAtColumnZero,
+                        descriptionTable, name, tokenOccurrence, joinText, parentIndent, isAtColumnZero,
                         extension, templateLine, marker) };
                     lineText = jam::Format::replaceholder (lineText, marker.substring (
                         Id::tripleColon.length(), marker.length() - Id::tripleColon.length()), value);
@@ -456,7 +450,7 @@ struct Shapes
      *                         @c list token's expansion.
      * @param parentIndent     The parent shape's own indent, passed
      *                         through to the @c list token's expansion.
-     * @param extension        The target file extension a comment value
+     * @param extension        The target file extension a description value
      *                         is commented for.
      * @returns @p line's own shape's rendered text, joined by newline.
      */
@@ -553,7 +547,7 @@ struct Shapes
      *                         from @p line's computed indent.
      * @param isAtColumnZero   Whether the enclosing @c list marker began
      *                         at column zero.
-     * @param extension        The target file extension a comment value is
+     * @param extension        The target file extension a description value is
      *                         commented for.
      * @returns The rendered, indented shape text.
      */
@@ -590,7 +584,7 @@ struct Shapes
      *                         from @p sourceLines' computed indent.
      * @param isAtColumnZero   Whether the enclosing @c list marker began
      *                         at column zero.
-     * @param extension        The target file extension a comment value is
+     * @param extension        The target file extension a description value is
      *                         commented for.
      * @returns The rendered, indented shape group text.
      */
@@ -620,8 +614,7 @@ struct Shapes
      */
     static bool isListMarkerInline (const TemplateDocument& templateDocument, const Element& sourceLine)
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const auto listMarker { Model::getReservedName (Id::list) };
 
         const auto& shapeTokens { *templateDocument.getCodeBlock (sourceLine)
                                         ->get<jam::Document::Identifiers> (Id::placeholder) };
@@ -661,13 +654,16 @@ struct Shapes
      *                         @p sourceLines.
      * @param sourceLines      The list-item structure lines to render,
      *                         sharing one structure depth.
+     * @param shapeLines       The structure lines whose own @c shape
+     *                         ordinals select the map tables, one per
+     *                         @p sourceLines entry.
      * @param joinText         The join text between the distinct rendered
      *                         items.
      * @param parentIndent     The parent shape's own indent, subtracted
      *                         from @p sourceLines' computed indent.
      * @param isAtColumnZero   Whether the enclosing @c list marker began
      *                         at column zero.
-     * @param extension        The target file extension a comment value is
+     * @param extension        The target file extension a description value is
      *                         commented for.
      * @returns The rendered, indented item-group text.
      */
@@ -763,7 +759,7 @@ struct Shapes
      *                         through to getShapeText() and getItemText().
      * @param isAtColumnZero   Whether the @c list marker being filled
      *                         began at column zero.
-     * @param extension        The target file extension a comment value is
+     * @param extension        The target file extension a description value is
      *                         commented for.
      * @returns The rendered text for @p occurrence, paragraph sources
      *          followed by item sources, joined by @p joinText.
@@ -839,7 +835,7 @@ struct Shapes
      * @param parentIndent     The parent shape's own indent, passed
      *                         through to a shape-valued token's own
      *                         expansion.
-     * @param extension        The target file extension a comment value
+     * @param extension        The target file extension a description value
      *                         is commented for.
      * @returns @p line's own grouping key.
      */
@@ -848,10 +844,9 @@ struct Shapes
         int parentIndent, const juce::String& extension)
     {
         static const auto newlineText { juce::String::charToString (Chars::newline) };
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const auto listMarker { Model::getReservedName (Id::list) };
 
-        auto* commentTable { getCommentTable (model, templateDocument, row, line) };
+        auto* descriptionTable { getDescriptionTable (model, templateDocument, row, line) };
         const auto& tokens { *templateDocument.getCodeBlock (line)
                                    ->get<jam::Document::Identifiers> (Id::placeholder) };
         jam::Strings key;
@@ -860,7 +855,7 @@ struct Shapes
 
         for (const auto& name : tokens)
             if (name != listMarker)
-                key.add (getTokenValue (model, templateDocument, tables, row, line, commentTable,
+                key.add (getTokenValue (model, templateDocument, tables, row, line, descriptionTable,
                     name, joinText, parentIndent, false, extension));
 
         return key.joinIntoString (newlineText, 0, -1);
@@ -885,7 +880,7 @@ struct Shapes
      *                         @c list token's expansion.
      * @param parentIndent     The parent shape's own indent, passed
      *                         through to getLines().
-     * @param extension        The target file extension a comment value
+     * @param extension        The target file extension a description value
      *                         is commented for.
      * @returns The group's own rendered text.
      */
@@ -929,7 +924,7 @@ struct Shapes
      *                         rendered text.
      * @param parentIndent     The parent shape's own indent, passed
      *                         through to getLines().
-     * @param extension        The target file extension a comment value
+     * @param extension        The target file extension a description value
      *                         is commented for.
      * @returns Every group's own rendered text, in first-occurrence
      *          order, joined by @p joinText.

@@ -116,7 +116,7 @@ Row order is authored order. CAST never sorts.
 
 Column names are yours. Name a column for what it produces, because a template addresses it by that name — a column called `value` fills `:::value:::`.
 
-Four column names are reserved everywhere: `format`, `comment`, `brief`, and `value`. Inside the manifest's wiring tables, four more are reserved: `list`, `separator`, `structure`, `file`. A data table — wherever it lives, the manifest included — can use any of those four words as an ordinary column.
+Four column names are reserved everywhere: `format`, `description`, `brief`, and `value`. Inside the manifest's wiring tables, four more are reserved: `list`, `separator`, `structure`, `file`. A data table — wherever it lives, the manifest included — can use any of those four words as an ordinary column.
 
 ### Cells
 
@@ -199,18 +199,18 @@ The table declares the formatting. A template never formats anything.
 
 Three doc channels exist, all data:
 
-- **row** — a column named `comment`. An item shape's `:::[comment]:::` takes it like each other column.
-- **table** — write a paragraph or a fenced block between the `## table name` heading and the table. A shape-level `:::[comment]:::` falls back to it when no reference names something else.
-- **fence** — a fenced block that carries an info string, anywhere in a data file, not bound to a table. The info string is its name, and the fence text is its prose. Address it — or a table — by name with a `- [comment]: @file:<name>` bullet in the manifest's list column, at the shape line's own `>` count. A wrapper shape declared across several rows carries the same reference on each declaring row, exactly like a binding.
+- **row** — a column named `description`. An item shape's `:::[description]:::` renders it as documentation, in the output language's comment syntax. A plain `:::description:::` reads the same cell as text, like each other column. The cell is prose: no `toLiteral`, no `@` lookup.
+- **table** — write a paragraph or a fenced block between the `## table name` heading and the table. A shape-level `:::[description]:::` falls back to it when no reference names something else.
+- **fence** — a fenced block that carries an info string, anywhere in a data file, not bound to a table. The info string is its name, and the fence text is its prose. Address it — or a table — by name with a `- [description]: @file:<name>` bullet in the manifest's list column, at the shape line's own `>` count. A wrapper shape declared across several rows carries the same reference on each declaring row, exactly like a binding.
 
-At shape level, with no comment reference authored, `:::[comment]:::` falls back to the documentation of the first table that the shape's own sources address, in authored order. With no source that addresses a table, it falls back to the documentation of the row's own table.
+At shape level, with no description reference authored, `:::[description]:::` falls back to the documentation of the first table that the shape's own sources address, in authored order. With no source that addresses a table, it falls back to the documentation of the row's own table.
 
 You never author the comment frame (`/** @brief ... */`, `///< ...`) yourself — you write prose only. CAST renders the frame from the comment-syntax table, keyed by the output file's extension — except when the file's exact name has a row in the manifest-syntax table (`CMakeLists.txt` is CMake, not text; that row's value replaces the extension as the key):
 
 - the marker alone on its line — block form. Multi-line prose renders one prose line per output line. Single-line prose renders open, text, close on one line.
 - the marker inline, after content — single-line form: the language's comment glyph, then the text, its lines joined by one space.
 
-A missing comment is not an error — the marker renders empty, and an emptied line trims or collapses like each other placeholder line.
+A missing description is not an error — the marker renders empty, and an emptied line trims or collapses like each other placeholder line.
 
 ### The banner
 
@@ -224,7 +224,7 @@ CAST writes an output whose extension names no comment syntax — or which has n
 
 ### The date
 
-Write `:::[date:format]:::` in a template and CAST puts the date there. You always state the format, inside the brackets, after the colon. No default format exists. `:::[date]:::`, and `[date:` with no closing bracket, are not the date token: each is an ordinary named token.
+Write `:::[date:format]:::` in a template and CAST puts the date there. You always state the format, inside the brackets, after the colon. No default format exists. `[date:` with no closing bracket is not the date token: it is an ordinary named token. `:::[date]:::` is the fatal `unknown reserved name`.
 
 | Pattern | Replacement                                    |
 | ------- | ---------------------------------------------- |
@@ -239,7 +239,7 @@ The date is the UTC date. CAST reads the clock one time in each run, thus each d
 
 ### Uniqueness
 
-Within one table, each identity column's entries — `name`, `key`, `alias`, `file` — must be unique, compared byte for byte. `circleCross` and `CircleCross` are two different entries. Each other column is payload — `value`, `type`, `format`, `comment` — and payload repeats by design: many rows can map to the same payload. The manifest's wiring tables are exempt — wiring repeats templates, separators and files by design.
+Within one table, each identity column's entries — `name`, `key`, `alias`, `file` — must be unique, compared byte for byte. `circleCross` and `CircleCross` are two different entries. Each other column is payload — `value`, `type`, `format`, `description` — and payload repeats by design: many rows can map to the same payload. The manifest's wiring tables are exempt — wiring repeats templates, separators and files by design.
 
 ---
 
@@ -317,7 +317,7 @@ inline const :::type::: :::name::: { juce::String::fromUTF8 (:::value:::) };
 
 A block is the literal text of the output. Braces, keywords, punctuation — all authored, all verbatim. No conditionals, no loops, and no formatting exist. Target-language directives (`#if`, `#endif`) are literal text like everything else — CAST never reads them, and slots inside such an arm take sources by the ordinary arity law. Comment frames are the one exception: CAST renders them itself, from the comment-syntax table (see Documentation) — never author one in a template.
 
-Square brackets mark a name that CAST reserves — `:::[list]:::`, `:::[comment]:::`, `:::[banner]:::`, `:::[date:format]:::`, and the bullets `- [list]:`, `- [comment]:`, `- [begin]:` and `- [end]:`. Everything without brackets is yours, thus `:::list:::` and `- comment:` are ordinary names of your own. Column names are the exception: a table already scopes its columns, thus reserved column names carry no brackets.
+Square brackets mark a name that CAST reserves — `:::[list]:::`, `:::[description]:::`, `:::[banner]:::`, `:::[date:format]:::`, and the bullets `- [list]:`, `- [description]:`, `- [begin]:` and `- [end]:`. A bracketed name outside this set is the fatal `unknown reserved name`, thus `:::[comment]:::` and `- [comment]:` stop CAST. Everything without brackets is yours, thus `:::list:::` and `- description:` are ordinary names of your own. Column names are the exception: a table already scopes its columns, thus reserved column names carry no brackets. A column named `comment` is an ordinary column.
 
 Token names are yours — free text, matched exactly as you wrote them. `:::macro-guard:::` pairs with `- macro-guard:`, and `:::keyType:::` pairs with a `keyType` column. You never reshape a name to please the engine. Two fences can use the same token name — each shape's own suppliers feed its own occurrences, thus an outer shape's binding never leaks into a wrapper's token of the same name.
 
@@ -468,7 +468,7 @@ A block full of named tokens and no rows to iterate — a build manifest, a conf
 | cxxStandard    | 17     |
 ```
 
-`:::minimumVersion:::` in the `cmake` block takes the `value` of the row whose first column is `minimumVersion`. The first column is the key — `key | value`, or `name | type | value | comment`, any table whose first column is an identity. The same table under a `- [list]:` expansion is rows. Under a shape paragraph it is a map. The reader decides, never the table.
+`:::minimumVersion:::` in the `cmake` block takes the `value` of the row whose first column is `minimumVersion`. The first column is the key — `key | value`, or `name | type | value | description`, any table whose first column is an identity. The same table under a `- [list]:` expansion is rows. Under a shape paragraph it is a map. The reader decides, never the table.
 
 Map lines are the list column's `- [list]:` lines at a `>` count beyond the structure column's `- [list]:` lines at that count, first in order. Column-address lines (`@file:table:column`, the inline sources) are never counted — the address form tells them apart. Map lines belong to that count's shape paragraphs in order. A blank `- [list]:` closes one paragraph's group and starts the next. Fewer groups than paragraphs fill the last paragraphs — the same slot law as expansions. A different `>` count is a different scope. A map line with no paragraph at its count stops the run. So does a map table with no `value` column.
 
@@ -484,16 +484,16 @@ Rows that declare the same `file` render as one merged shape, and the wrap emits
 
 Same-file rows must be authored contiguously — a row for a file already closed by an intervening row of another file is a fatal error.
 
-### file documentation — a `- [comment]:` binding, wired to a table
+### file documentation — a `- [description]:` binding, wired to a table
 
-The wiring table carries no documentation column. A file's documentation is a `- [comment]:` binding in the **structure** cell of the file group's first row. First appearance counts in authored order — the same rule that decides output-file ordering. The binding's value is a table address: `@file:table:column`, or the local form `@table:column` for a table of the manifest itself. Aliases are scoped to the index, thus a manifest never aliases its own file. The addressed table carries a `file` column and documentation columns. CAST reads the row whose `file` matches the group's own output file. It takes the cell of the column that the address names — the `comment` column when the address names none. CAST writes the resolved text between the banner and the file's own text, in the file's comment syntax. No binding, no matching row, or a blank cell writes nothing extra.
+The four wiring columns carry no file documentation. A file's documentation is a `- [description]:` binding in the **structure** cell of the file group's first row. First appearance counts in authored order — the same rule that decides output-file ordering. The binding's value is a table address: `@file:table:column`, or the local form `@table:column` for a data table of the manifest itself. Aliases are scoped to the index, thus a manifest never aliases its own file. The addressed table carries a `file` column and documentation columns. CAST reads the row whose `file` matches the group's own output file. It takes the cell of the column that the address names — the `description` column when the address names none. CAST writes the resolved text between the banner and the file's own text, in the file's comment syntax. No binding, no matching row, or a blank cell writes nothing extra.
 
-This is the pattern for real projects: one small `## headers` table holds every file's header prose in one place — a `brief` column for the doc block, a `comment` column for a single-liner — and every output group points one binding at it.
+This is the pattern for real projects: one small `## headers` table holds every file's header prose in one place — a `brief` column for the doc block, a `description` column for a single-liner — and every output group points one binding at it.
 
 ```markdown
 ## headers
 
-| file    | brief                           | comment |
+| file    | brief                           | description |
 | Out.h   | ```                             |         |
 |         | @file Out.h                     |         |
 |         | @brief One generated namespace. |         |
@@ -505,13 +505,13 @@ This is the pattern for real projects: one small `## headers` table holds every 
 | - [list]: @data:rows    |           | @code:namespace              | @Out.h  |
 |                       |           | - macro: #pragma once        |         |
 |                       |           | - name: Out                  |         |
-|                       |           | - [comment]: @headers:brief    |         |
+|                       |           | - [description]: @headers:brief    |         |
 |                       |           | - [list]: @code:entry          |         |
 ```
 
 The file match, not the row, decides which prose comes back. To declare `## headers` as a table that CAST also lists an output's includes from (`- [list]: @headers`, per "Declared membership instead of a derived sweep" below) needs no extra care: the self-exclusion law (a file never lists itself) already keeps a file's own row out of its own include sweep, even though the same table supplies that file's header.
 
-The `@` sigil law (a `@`-sigiled value is a reference, never data) separates this binding's two readers. A `- [comment]:` binding whose value is plain text is per-item prose, the same as always: the item-shape reader finds the binding before it falls to the source row's own `comment` column, and renders the bound text. The file-documentation reader resolves only the address-valued form. A reader that renders prose never treats a reference as its prose. One structure cell can carry both — the sigil decides which reader takes which.
+The `@` sigil law (a `@`-sigiled value is a reference, never data) separates this binding's two readers. A `- [description]:` binding whose value is plain text is per-item prose, the same as always: the item-shape reader finds the binding before it falls to the source row's own `description` column, and renders the bound text. The file-documentation reader resolves only the address-valued form. A reader that renders prose never treats a reference as its prose. One structure cell can carry both — the sigil decides which reader takes which.
 
 ### toolchain — commands after the write
 
@@ -633,12 +633,12 @@ Each input uses one style file, or none; two style files never merge. A manifest
 The style file holds one `## format` table, `| name | width |`. A `## format` table in any other file is an ordinary data table: no formatter meaning, no error. One reserved row, `line-wrap`, sets the paragraph wrap; `--line-wrap n` overrides it. It is not a column. `name` is a column name and an identity column: a column named two times is the duplicate fatal. `width` is that column's wrap width, a positive integer. Every grid table that carries a column of that name reflows its body cells at that width. A named cell is one line of value: its rows join with nothing first, then the text wraps, and each break moves the space it consumed to the start of the next row. A column the table does not name keeps its natural width and its lines. No style file means no column reflows. A split is layout only. The reader joins a named cell's rows with nothing between, so the value reads the same at every width. Nothing is added. A fenced cell is verbatim and never rewraps. The table is data the reader depends on: to unname a column whose cells are wrapped, first format at a width that holds every value on one row, then remove the row — otherwise the wrapped rows read as your lines. A grid table whose body has no border between rows never splits.
 
 ```
-+-----------+-------+
-| name      | width |
-+===========+=======+
-| comment   | 40    |
-| line-wrap | 100   |
-+-----------+-------+
++-------------+-------+
+| name        | width |
++=============+=======+
+| description | 40    |
+| line-wrap   | 100   |
++-------------+-------+
 ```
 
 A style-file header row without `name` or `width`, or a `width` cell that is not a positive integer, is fatal. CAST checks the style file before it reads any input.
@@ -685,7 +685,7 @@ A `format` cell names one operation, never two. The one composition that CAST pe
 
 **Comment** — `toComment`, `toCommentBlock`, `brief`
 
-The comment family exists for the banner that CAST stamps and for the `:::[comment]:::` marker, both formatted for the output file's language.
+The comment family exists for the banner that CAST stamps and for the `:::[description]:::` marker, both formatted for the output file's language.
 
 ---
 
@@ -830,48 +830,42 @@ the same wiring row). To delete the wrapper line deletes the step. The command t
 itself is never duplicated, never baked into the frame, and never repeated per
 platform or per build.
 
-### One table, two configurations, two compilers
+### Compile options and link options, one `configuration` column
 
-A per-platform, per-configuration flag set needs neither a table per platform nor a
-table per configuration — one table, split by a cell-match filter (see Filtering rows
-by a cell) on a `stage` column that tells a compile flag from a link flag:
+A per-platform, per-configuration option set needs one table for compile options and one table for link options. Each table has a `configuration` column. The `configuration` cell of a row names the configuration that the row serves: `all` for every configuration, `Release`, or `Debug`. A `configuration` cell is never blank, thus no blank cell carries a meaning. A cell-match filter (see Filtering rows by a cell) selects the rows of one configuration:
 
 ```markdown
-## release
+## compile option
 
-+-------------------+-------------+----------+--------+
-| name              | mac         | win      | stage  |
-+===================+=============+==========+========+
-| optimization      | -O3         | /O2      |        |
-| deadCodeStripping | -dead_strip | /OPT:REF | linker |
-+-------------------+-------------+----------+--------+
++------------------+---------------+-------------+-------------+
+| name             | configuration | mac         | win         |
++==================+===============+=============+=============+
+| shadow           | all           | -Wno-shadow | -Wno-shadow |
+| fullOptimization | Release       | -O3         | /clang:-O3  |
+| debugSymbols     | Debug         | -g          | /Z7         |
++------------------+---------------+-------------+-------------+
 
-## debug
+## link option
 
-+---------------+------+------+--------+
-| name          | mac  | win  | stage  |
-+===============+======+======+========+
-| optimization  | -O0  | /Od  |        |
-| debugSymbols  | -g   | /Zi  |        |
-+---------------+------+------+--------+
++-------------------+---------------+-------------+----------+
+| name              | configuration | mac         | win      |
++===================+===============+=============+==========+
+| deadCodeStripping | Release       | -dead_strip | /OPT:REF |
++-------------------+---------------+-------------+----------+
 ```
 
 ```
-+----------------------------------------------+----------------------+----------------------+
-| list                                         | separator            | structure            |
-+==============================================+======================+======================+
-| - [list]: @project-info:release:stage=       | - [list]: @semicolon | - [list]: @cmake:mac |
-| - [list]: @project-info:release:stage=linker | - [list]: @semicolon | - [list]: @cmake:mac |
-| - [list]: @project-info:debug:stage=         | - [list]: @semicolon | - [list]: @cmake:mac |
-+----------------------------------------------+----------------------+----------------------+
++--------------------------------------------------------------+----------------------+----------------------+
+| list                                                         | separator            | structure            |
++==============================================================+======================+======================+
+| - [list]: @project-info:compile option:configuration=all     | - [list]: @semicolon | - [list]: @cmake:mac |
+| - [list]: @project-info:compile option:configuration=Release | - [list]: @semicolon | - [list]: @cmake:mac |
+| - [list]: @project-info:link option:configuration=Release    | - [list]: @semicolon | - [list]: @cmake:mac |
+| - [list]: @project-info:compile option:configuration=Debug   | - [list]: @semicolon | - [list]: @cmake:mac |
++--------------------------------------------------------------+----------------------+----------------------+
 ```
 
-Each wiring line names the same table two times, split only by what its `stage`
-filter selects — the release compile flags, the release link flags, the debug
-compile flags. The mac and win rows work the same way. Both read through their own
-column in the `@cmake:mac` / `@cmake:win` shape. A row with a blank `mac` or `win`
-cell contributes nothing to that platform's join — nothing is nothing, not an
-omitted row.
+The `compile option` table holds every compiler option, and the `link option` table holds every linker option. The `configuration` filter splits each table: `configuration=all` selects the options of every configuration, `configuration=Release` selects the Release options, and `configuration=Debug` selects the Debug options. Each wiring line names its own table and its own `configuration` value. The mac and win rows work the same way. Both read through their own column in the `@cmake:mac` / `@cmake:win` shape. A row with a blank `mac` or `win` cell contributes nothing to that platform's join — nothing is nothing, not an omitted row.
 
 ---
 
@@ -926,6 +920,7 @@ No warnings exist. Every failure is fatal, exits non-zero, and writes no output 
 identifiers.md:412 (name): duplicate "circleCross"
 spell.md:133 (structure): template not found: namespace
 spell.md:36 (structure): nested shape has more than one candidate
+spell.md:36 (structure): unknown reserved name: [comment]
 ```
 
 These failures belong to the toolchain and to `--pack`. Each one is fatal:

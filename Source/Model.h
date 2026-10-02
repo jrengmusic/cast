@@ -221,6 +221,20 @@ public:
     }
 
     /**
+     * @brief Returns the Identifier that a bracketed reserved name takes in
+     *        the parsed document -- @p word enclosed in square brackets,
+     *        then normalized as the parser normalizes a list item's key.
+     *
+     * @param word The reserved word, without brackets.
+     * @returns The Identifier of @p word's own bracketed form.
+     */
+    static juce::Identifier getReservedName (const juce::Identifier& word)
+    {
+        return juce::Identifier (jam::Format::toValidID (
+            jam::Format::withEnclosure (word.toString(), Chars::openBracket)));
+    }
+
+    /**
      * @brief Answers whether @p value is an @-sigiled reference -- a
      *        @-sigiled cell is a reference, a bare word is data.
      *
@@ -273,7 +287,7 @@ public:
      *                authored @c >.
      * @param ordinal The bullet's position among @p indent's own list
      *                bullets, counted separately from shape paragraphs
-     *                and comment bullets at the same depth.
+     *                and description bullets at the same depth.
      * @returns The addressed list bullet, or @c nullptr when none exists
      *          at (@p indent, @p ordinal).
      */
@@ -353,8 +367,7 @@ public:
      */
     const Element* getRowJoin (const Element& row) const
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const auto listMarker { getReservedName (Id::list) };
 
         return getPairedItem (row, Id::separator,
             [] (const Element& candidate)
@@ -362,10 +375,10 @@ public:
     }
 
     /**
-     * @brief Returns @p row's comment bullet paired with the shape
+     * @brief Returns @p row's description bullet paired with the shape
      *        paragraph at blockquote depth @p indent and shape ordinal
-     *        @p ordinal -- the comment counted at position @p ordinal
-     *        among @p indent's own comment bullets, its own running count
+     *        @p ordinal -- the description counted at position @p ordinal
+     *        among @p indent's own description bullets, its own running count
      *        kept independently of, but authored in lockstep with, that
      *        depth's shape paragraphs.
      *
@@ -373,21 +386,20 @@ public:
      * @param indent  The blockquote nesting depth to search, one per
      *                authored @c >.
      * @param ordinal The paired shape paragraph's own ordinal at
-     *                @p indent, answered by the comment bullet counted at
-     *                the same position among @p indent's own comment
+     *                @p indent, answered by the description bullet counted at
+     *                the same position among @p indent's own description
      *                bullets.
-     * @returns The paired comment bullet, or @c nullptr when @p indent
-     *          carries no comment at that position.
+     * @returns The paired description bullet, or @c nullptr when @p indent
+     *          carries no description at that position.
      */
-    const Element* getComment (const Element& row, int indent, int ordinal) const
+    const Element* getDescription (const Element& row, int indent, int ordinal) const
     {
-        static const juce::Identifier commentMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::comment.toString(), Chars::openBracket)) };
+        static const auto descriptionMarker { getReservedName (Id::description) };
 
         return getPairedItem (row, Id::list,
             [indent, ordinal] (const Element& candidate)
             {
-                return candidate.id == commentMarker and *candidate.get<int> (Id::level) == indent
+                return candidate.id == descriptionMarker and *candidate.get<int> (Id::level) == indent
                        and *candidate.get<int> (Id::line) == ordinal;
             });
     }
@@ -439,8 +451,7 @@ public:
      */
     const Element* getMap (const Element& row, const Element& line, int occurrence) const
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const auto listMarker { getReservedName (Id::list) };
 
         const Element* item { nullptr };
         int matchOrdinal { 0 };
@@ -508,8 +519,7 @@ public:
      */
     const Element* getNextLine (const Element& line) const
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const auto listMarker { getReservedName (Id::list) };
 
         auto* walk { &line };
         const Element* candidate { nullptr };
@@ -560,8 +570,7 @@ public:
     const Element* getBinding (const Element& row, const juce::Identifier& column, const Element& line,
                          const juce::Identifier& name) const
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const auto listMarker { getReservedName (Id::list) };
 
         const Element* item { nullptr };
         const auto ordinal { *line.get<int> (Id::shape) };
@@ -633,8 +642,7 @@ public:
      */
     bool hasRegionBegin (const Element& row) const
     {
-        static const juce::Identifier beginMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::begin.toString(), Chars::openBracket)) };
+        static const auto beginMarker { getReservedName (Id::begin) };
 
         return hasRegionBinding (row, beginMarker);
     }
@@ -647,8 +655,7 @@ public:
      */
     bool hasRegionEnd (const Element& row) const
     {
-        static const juce::Identifier endMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::end.toString(), Chars::openBracket)) };
+        static const auto endMarker { getReservedName (Id::end) };
 
         return hasRegionBinding (row, endMarker);
     }
@@ -848,7 +855,7 @@ private:
     /**
      * @brief Returns @p column's own first list item under @p row matching
      * @p predicate -- the one scan getSource(), getSeparator(),
-     * getRowJoin(), and getComment() each read through.
+     * getRowJoin(), and getDescription() each read through.
      *
      * @param row       The row whose @p column cell is searched.
      * @param column    The column searched.
@@ -885,14 +892,13 @@ private:
      *                authored @c >.
      * @param ordinal The bullet's position among @p indent's own list
      *                bullets, counted separately from shape paragraphs
-     *                and comment bullets at the same depth.
+     *                and description bullets at the same depth.
      * @returns The addressed list item, or @c nullptr when none exists
      *          at (@p indent, @p ordinal).
      */
     const Element* getPairedListItem (const Element& row, const juce::Identifier& column, int indent, int ordinal) const
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const auto listMarker { getReservedName (Id::list) };
 
         return getPairedItem (row, column,
             [indent, ordinal] (const Element& candidate)
@@ -964,7 +970,7 @@ private:
         document.appendChildren (jam::MarkdownDocument::parse (text, origin));
 
         parse (document, directory, getTableOrigins (document, origin));
-        addComments (document);
+        addDescriptions (document);
 
         for (auto* table : *document.root)
             if (jam::MarkdownDocument::isTable (*table))
@@ -1071,7 +1077,7 @@ private:
 
     /**
      * @brief Stamps @p cell's own structure lines through addLines(),
-     *        from a fresh ordinal, comment-ordinal, and map-ordinal
+     *        from a fresh ordinal, description-ordinal, and map-ordinal
      *        state and a document-order @c shape ordinal starting at
      *        zero.
      *
@@ -1087,22 +1093,22 @@ private:
         jam::Array<int>& shapeOrdinals, const Model& document, const Element& row)
     {
         jam::Array<int> ordinals;
-        jam::Array<int> commentOrdinals, mapOrdinal, paragraphOwner;
+        jam::Array<int> descriptionOrdinals, mapOrdinal, paragraphOwner;
         int lineIndex { 0 };
 
-        addLines (cell, 0, ordinals, shapeOrdinals, commentOrdinals, mapOrdinal, excess, lineIndex,
+        addLines (cell, 0, ordinals, shapeOrdinals, descriptionOrdinals, mapOrdinal, excess, lineIndex,
             document, row, paragraphOwner);
     }
 
     /**
-     * @brief Stamps every table with its own header-adjacent @c comment
+     * @brief Stamps every table with its own header-adjacent @c description
      *        -- a preceding paragraph or named code block bound to that
      *        table, and every named code block not bound to a following
-     *        table with its own prose as its @c comment.
+     *        table with its own prose as its @c description.
      *
      * @param document The model whose top-level blocks are walked.
      */
-    static void addComments (Model& document)
+    static void addDescriptions (Model& document)
     {
         Element* precedingBlock { nullptr };
         bool precedingBoundToTable { false };
@@ -1111,12 +1117,12 @@ private:
         {
             if (isBlockType (*child, map::BlockType::table))
             {
-                juce::String comment;
+                juce::String description;
 
                 if (precedingBoundToTable)
-                    comment = precedingBlock->getAllSubText();
+                    description = precedingBlock->getAllSubText();
 
-                child->add<juce::String> (Id::comment, comment);
+                child->add<juce::String> (Id::description, description);
             }
 
             const auto isNamedFence { isBlockType (*child, map::BlockType::codeBlock)
@@ -1131,7 +1137,7 @@ private:
                                                   *child->nextSibling->get<juce::String> (Id::path)) == 0 };
 
             if (isNamedFence and not boundToNextTable)
-                child->add<juce::String> (Id::comment, child->getAllSubText());
+                child->add<juce::String> (Id::description, child->getAllSubText());
 
             precedingBlock = child;
             precedingBoundToTable = boundToNextTable;
@@ -1201,8 +1207,7 @@ private:
     static void
     addBindings (Element& scope, juce::String& precedingBinding, const Model& document, const Element& row)
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const auto listMarker { getReservedName (Id::list) };
 
         for (auto* block : scope)
         {
@@ -1265,8 +1270,7 @@ private:
     static void addListCount (const Element& scope, int indent, jam::Array<int>& counts, jam::Array<int>& blanks,
         const Model& document, const Element& row)
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const auto listMarker { getReservedName (Id::list) };
 
         if (indent == counts.size())
             counts.resize (indent + 1);
@@ -1295,7 +1299,7 @@ private:
     /**
      * @brief Stamps one list-column @p item with its structure-line
      *        addressing -- an expansion @c list bullet with level,
-     *        ordinal, and a fresh @c shape ordinal; a comment bullet
+     *        ordinal, and a fresh @c shape ordinal; a description bullet
      *        with level, ordinal, and its enclosing shape's ordinal; a
      *        shape-valued binding with level and its enclosing paragraph's
      *        own ordinal, shared with the shape line above it; any other
@@ -1312,7 +1316,7 @@ private:
      * @param item            The list-column item stamped.
      * @param indent          The blockquote depth @p item sits at.
      * @param ordinals        Each depth's next expansion-bullet ordinal.
-     * @param commentOrdinals Each depth's next comment-bullet ordinal.
+     * @param descriptionOrdinals Each depth's next description-bullet ordinal.
      * @param mapOrdinal      Each depth's own map-bullet position,
      *                        advanced past the depth's non-expansion
      *                        bullets.
@@ -1328,13 +1332,11 @@ private:
      *                        binding at that depth is stamped with.
      */
     static void addItem (Element& item, int indent, jam::Array<int>& ordinals,
-        jam::Array<int>& commentOrdinals, jam::Array<int>& mapOrdinal, const jam::Array<int>& excess,
+        jam::Array<int>& descriptionOrdinals, jam::Array<int>& mapOrdinal, const jam::Array<int>& excess,
         int& lineIndex, const Model& document, const Element& row, const jam::Array<int>& paragraphOwner)
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
-        static const juce::Identifier commentMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::comment.toString(), Chars::openBracket)) };
+        static const auto listMarker { getReservedName (Id::list) };
+        static const auto descriptionMarker { getReservedName (Id::description) };
 
         const auto blockText { *item.get<juce::String> (Id::value) };
         const auto isShapeValue { document.isShape (row, blockText) };
@@ -1351,10 +1353,10 @@ private:
             }
             if (not isColumn) ++mapOrdinal.at (indent);
         }
-        else if (item.id == commentMarker)
+        else if (item.id == descriptionMarker)
         {
             item.add<int> (Id::level, indent);
-            item.add<int> (Id::line, commentOrdinals.at (indent)++);
+            item.add<int> (Id::line, descriptionOrdinals.at (indent)++);
             item.add<int> (Id::shape, lineIndex - 1);
         }
         else if (isShapeValue)
@@ -1421,7 +1423,7 @@ private:
      *                        passed through to addItem().
      * @param shapeOrdinals   Each depth's next shape-paragraph ordinal,
      *                        advanced for every stamped paragraph.
-     * @param commentOrdinals Each depth's next comment-bullet ordinal,
+     * @param descriptionOrdinals Each depth's next description-bullet ordinal,
      *                        passed through to addItem().
      * @param mapOrdinal      Each depth's own map-bullet position, passed
      *                        through to addItem().
@@ -1437,13 +1439,13 @@ private:
      *                        and passed through to addItem().
      */
     static void addLines (Element& cell, int indent, jam::Array<int>& ordinals,
-        jam::Array<int>& shapeOrdinals, jam::Array<int>& commentOrdinals, jam::Array<int>& mapOrdinal,
+        jam::Array<int>& shapeOrdinals, jam::Array<int>& descriptionOrdinals, jam::Array<int>& mapOrdinal,
         jam::Array<int>& excess, int& lineIndex, const Model& document, const Element& row,
         jam::Array<int>& paragraphOwner)
     {
         if (indent == ordinals.size()) ordinals.resize (indent + 1);
         if (indent == shapeOrdinals.size()) shapeOrdinals.resize (indent + 1);
-        if (indent == commentOrdinals.size()) commentOrdinals.resize (indent + 1);
+        if (indent == descriptionOrdinals.size()) descriptionOrdinals.resize (indent + 1);
         if (indent == mapOrdinal.size()) mapOrdinal.resize (indent + 1);
         if (indent == excess.size()) excess.resize (indent + 1);
         if (indent == paragraphOwner.size()) paragraphOwner.resize (indent + 1);
@@ -1454,10 +1456,10 @@ private:
                 addParagraph (*block, indent, shapeOrdinals, lineIndex, paragraphOwner, document, row);
             if (block->isTag (Id::ul))
                 for (auto* item : *block)
-                    addItem (*item, indent, ordinals, commentOrdinals, mapOrdinal, excess, lineIndex,
+                    addItem (*item, indent, ordinals, descriptionOrdinals, mapOrdinal, excess, lineIndex,
                         document, row, paragraphOwner);
             if (block->isTag (Id::blockquote))
-                addLines (*block, indent + 1, ordinals, shapeOrdinals, commentOrdinals, mapOrdinal,
+                addLines (*block, indent + 1, ordinals, shapeOrdinals, descriptionOrdinals, mapOrdinal,
                     excess, lineIndex, document, row, paragraphOwner);
         }
     }
@@ -1485,8 +1487,7 @@ private:
     static void addMaps (const Model& document, const Element& row, Element& scope, int indent,
         const jam::Array<int>& blanks, const jam::Array<int>& paragraphCount, jam::Array<int>& group)
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const auto listMarker { getReservedName (Id::list) };
 
         if (indent == group.size())
             group.resize (indent + 1);
@@ -1585,34 +1586,34 @@ private:
     /**
      * @brief Returns @p cell's own authored text -- its literal child,
      *        transformed and formatted for its column kind, its stamped
-     *        comment prose, or its own subtext, in that order of
+     *        description prose, or its own subtext, in that order of
      *        preference.
      *
      * @param cell            The cell whose authored text is read.
      * @param literal         @p cell's own backtick code child, or
      *                        @c nullptr when it carries none.
-     * @param isCommentColumn Whether @p cell belongs to a @c comment or
+     * @param isDescriptionColumn Whether @p cell belongs to a @c description or
      *                        @c brief column.
-     * @param isCommentProse  Whether @p cell's own comment column carries
+     * @param isDescriptionProse  Whether @p cell's own description column carries
      *                        prose rather than a literal.
      * @param transform       @p cell's own @c format cell's transform
      *                        name, applied to a literal's text.
      * @returns @p cell's own authored text, resolved in preference order.
      */
-    static juce::String getAuthoredText (const Element& cell, const Element* literal, bool isCommentColumn,
-        bool isCommentProse, const juce::String& transform)
+    static juce::String getAuthoredText (const Element& cell, const Element* literal, bool isDescriptionColumn,
+        bool isDescriptionProse, const juce::String& transform)
     {
-        if (literal != nullptr and not isCommentProse)
+        if (literal != nullptr and not isDescriptionProse)
         {
             juce::String text { literal->getAllSubText() };
 
             if (Transforms::contains (transform))
                 text = Transforms::getTransformed (transform, text, {});
 
-            return isCommentColumn ? text : jam::Format::toLiteral (text);
+            return isDescriptionColumn ? text : jam::Format::toLiteral (text);
         }
 
-        if (isCommentProse)
+        if (isDescriptionProse)
             return *cell.get<juce::String> (Id::rawText);
 
         return cell.getAllSubText();
@@ -1657,11 +1658,11 @@ private:
 
     /**
      * @brief Stamps @p cell with its resolved value -- its own authored
-     *        literal or comment prose, joined into one line through
+     *        literal or description prose, joined into one line through
      *        getJoinedValue() first when @p headerCell names a
      *        reflowWidths column, then resolved through getValue() when
      *        the joined result is an @-sigiled reference outside the
-     *        @c alias and @c comment columns, then transformed by
+     *        @c alias, @c description and @c brief columns, then transformed by
      *        @p cell's own @c format cell when present.
      *
      * The join runs first, on getAuthoredText()'s own raw return --
@@ -1690,16 +1691,16 @@ private:
                 transform = formatCell->getAllSubText();
 
         const auto* literal { getLiteral (cell) };
-        const auto isCommentColumn { headerCell.id == Id::comment or headerCell.id == Id::brief };
-        const auto isCommentProse { isCommentColumn
+        const auto isDescriptionColumn { headerCell.id == Id::description or headerCell.id == Id::brief };
+        const auto isDescriptionProse { isDescriptionColumn
                                     and (literal == nullptr
                                          or cell.getAllSubText().compare (
                                                 literal->getAllSubText()) != 0) };
 
         auto value { getJoinedValue (headerCell, cell,
-            getAuthoredText (cell, literal, isCommentColumn, isCommentProse, transform)) };
+            getAuthoredText (cell, literal, isDescriptionColumn, isDescriptionProse, transform)) };
 
-        if (not isCommentColumn and headerCell.id != Id::alias and isAddress (value))
+        if (not isDescriptionColumn and headerCell.id != Id::alias and isAddress (value))
             value = getValue (row, value);
 
         if (literal == nullptr and Transforms::contains (transform))

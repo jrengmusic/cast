@@ -45,7 +45,7 @@
 | - [list]: @project-info:debug:stage=         | - [list]: @semicolon      | - [list]: @cmake:mac                          |                  |
 | - [list]: @project-info:user module          |                           | - [list]: @cmake:module                       |                  |
 | - [list]: @project-info:source glob          |                           | - [list]: @cmake:glob-pattern                 |                  |
-| - [list]: @project-info:define               |                           | - [list]: @cmake:value                        |                  |
+| - [list]: @project-info:macro                |                           | - [list]: @cmake:value                        |                  |
 | - [list]: @project-info:include              |                           | - [list]: @cmake:value                        |                  |
 | - [list]: @project-info:juce module          |                           | - [list]: @cmake:value                        |                  |
 | - [list]: @project-info:user module          |                           | - [list]: @cmake:link                         |                  |
@@ -69,13 +69,13 @@
 | > - [list]: @project-info:project info       |                           | @code:namespace                               | @ProjectInfo     |
 |                                              |                           | - macro: #pragma once                         |                  |
 |                                              |                           | - name: ProjectInfo                           |                  |
-|                                              |                           | - [comment]: @headers:brief                   |                  |
+|                                              |                           | - [description]: @headers:brief               |                  |
 |                                              |                           | > - [list]: @code:constant                    |                  |
 +----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
 | - [list]: @identifiers:identifiers           |                           | @code:namespace                               | @Identifiers     |
 |                                              |                           | - macro: #pragma once                         |                  |
 |                                              |                           | - name: Id                                    |                  |
-|                                              |                           | - [comment]: @headers:brief                   |                  |
+|                                              |                           | - [description]: @headers:brief               |                  |
 |                                              |                           | - [list]: @code:identifier                    |                  |
 +----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
 | > - [list]: @identifiers:identifiers         |                           | @source:source                                | @GeneratedSource |
@@ -218,7 +218,7 @@
 | > - [list]: @text:diagnostics                |                           | @code:namespace                               | @Text            |
 |                                              |                           | - macro: #pragma once                         |                  |
 |                                              |                           | - name: text                                  |                  |
-|                                              |                           | - [comment]: @headers:brief                   |                  |
+|                                              |                           | - [description]: @headers:brief               |                  |
 |                                              |                           |                                               |                  |
 |                                              |                           | @code:struct                                  |                  |
 |                                              |                           | - name: Diagnostics                           |                  |
@@ -227,13 +227,13 @@
 | - [list]: @binaryFiles:files                 |                           | @code:namespace                               | @Files           |
 |                                              |                           | - macro: #pragma once                         |                  |
 |                                              |                           | - name: files                                 |                  |
-|                                              |                           | - [comment]: @headers:brief                   |                  |
+|                                              |                           | - [description]: @headers:brief               |                  |
 |                                              |                           | - [list]: @code:identifier                    |                  |
 +----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
 |                                              | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
 |                                              |                           | - macro: #pragma once                         |                  |
 |                                              |                           | - name: map                                   |                  |
-|                                              |                           | - [comment]: @headers:brief                   |                  |
+|                                              |                           | - [description]: @headers:brief               |                  |
 |                                              |                           |                                               |                  |
 |                                              |                           | @code:hash-map                                |                  |
 |                                              |                           | - name: banner                                |                  |
@@ -361,7 +361,7 @@
 ## headers
 
 +---------------+----------------------------------------------------------------------------+------------------------------------------+
-| file          | brief                                                                      | comment                                  |
+| file          | brief                                                                      | description                              |
 +===============+============================================================================+==========================================+
 | ProjectInfo.h | ```                                                                        | Product name, version, and source        |
 |               | @file ProjectInfo.h                                                        |  commit.                                 |

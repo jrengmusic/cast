@@ -261,8 +261,7 @@ struct Validator : jam::MarkdownValidator
     static juce::Result isBindingCountValid (const Element& table, const Element& row,
         const juce::Identifier& column, const Element& scope, jam::HashSet<juce::Identifier>& seen)
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const auto listMarker { Model::getReservedName (Id::list) };
 
         for (auto* child : scope)
         {
@@ -403,6 +402,107 @@ struct Validator : jam::MarkdownValidator
     }
 
     /**
+     * @brief Checks that every bracketed marker interior in @p scope's
+     *        shape code blocks is a reserved name -- @c \[list\],
+     *        @c \[description\] or @c \[banner\].
+     *
+     * @param templateDocument The template document @p scope's shapes are
+     *                         read from.
+     * @param table            The table @p row belongs to, named in a
+     *                         failure's location.
+     * @param row              The row @p scope belongs to, named in a
+     *                         failure's location.
+     * @param column           The column @p scope was read from, named in a
+     *                         failure's location.
+     * @param scope            The blockquote scope walked.
+     * @returns juce::Result::ok() when every bracketed interior is a
+     *          reserved name, or a failure naming the first unknown one.
+     */
+    static juce::Result isReservedName (const TemplateDocument& templateDocument, const Element& table,
+        const Element& row, const juce::Identifier& column, const Element& scope)
+    {
+        static const jam::HashSet<juce::Identifier> templateNames {
+            Model::getReservedName (Id::list),
+            Model::getReservedName (Id::description),
+            Model::getReservedName (Id::banner) };
+
+        juce::String failingName;
+
+        scope.applyFunctionRecursively (
+            [&failingName, &templateDocument] (const Element& candidate) -> bool
+            {
+                if (failingName.isEmpty() and candidate.contains (Id::templatePath))
+                    for (const auto& interior : TemplateDocument::getMarkers (
+                             *templateDocument.getCodeBlock (candidate)->get<juce::String> (Id::value)))
+                        if (failingName.isEmpty() and interior.startsWithChar (Chars::openBracket)
+                            and interior.endsWithChar (Chars::closeBracket)
+                            and not templateNames.contains (juce::Identifier (jam::Format::toValidID (interior))))
+                            failingName = interior;
+
+                return failingName.isEmpty();
+            });
+
+        if (failingName.isNotEmpty())
+            return juce::Result::fail (getLocation (table, row, column.toString())
+                                       + Id::diagnosticSeparator + text::Diagnostics::failReservedName
+                                       + Id::diagnosticSeparator + failingName);
+
+        return juce::Result::ok();
+    }
+
+    /**
+     * @brief Checks that every bracketed token in an output row's
+     *        @c structure, @c separator and @c list shapes, and every
+     *        bracket-form bullet name in those columns, is a reserved
+     *        name -- @c \[list\], @c \[description\], @c \[begin\] or @c \[end\]
+     *        for a bullet.
+     *
+     * @param model            The model whose output tables are checked.
+     * @param templateDocument The template document each shape is read
+     *                         from.
+     * @returns juce::Result::ok() when every bracketed name is reserved,
+     *          or the first failing entry's result.
+     */
+    static juce::Result isReservedName (const Model& model, const TemplateDocument& templateDocument)
+    {
+        static const jam::HashSet<juce::Identifier> bulletNames {
+            Model::getReservedName (Id::list),
+            Model::getReservedName (Id::description),
+            Model::getReservedName (Id::begin),
+            Model::getReservedName (Id::end) };
+
+        for (auto* table : model.getTables())
+            if (model.isOutputTable (*table))
+                for (auto* row : model.getTableRows (*table))
+                    for (const auto& column : { Id::structure, Id::separator, Id::list })
+                        if (auto* scope { model.getTableCell (*row, column) })
+                            if (const auto result {
+                                    isReservedName (templateDocument, *table, *row, column, *scope) };
+                                not result.wasOk())
+                                return result;
+
+        for (const auto& column : { Id::structure, Id::separator, Id::list })
+            if (const auto result { forEachBinding (model, column,
+                    [&column] (const Element& table, const Element& row, const juce::Identifier& entryId,
+                        const juce::String&) -> juce::Result
+                    {
+                        if (entryId.toString().startsWithChar (Chars::underscore)
+                            and entryId.toString().endsWithChar (Chars::underscore)
+                            and not bulletNames.contains (entryId))
+                            return juce::Result::fail (getLocation (table, row, column.toString())
+                                                       + Id::diagnosticSeparator
+                                                       + text::Diagnostics::failReservedName
+                                                       + Id::diagnosticSeparator + entryId.toString());
+
+                        return juce::Result::ok();
+                    }) };
+                not result.wasOk())
+                return result;
+
+        return juce::Result::ok();
+    }
+
+    /**
      * @brief Checks that @p precedingShape, when it is a list-item shape
      *        addressing a column, resolves through hasTable().
      *
@@ -470,8 +570,7 @@ struct Validator : jam::MarkdownValidator
         const TemplateDocument& templateDocument, const Element& table, const Element& row,
         const juce::Identifier& column, const Element& scope, const Element* precedingShape)
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const auto listMarker { Model::getReservedName (Id::list) };
 
         for (auto* block : scope)
         {
@@ -573,8 +672,7 @@ struct Validator : jam::MarkdownValidator
      */
     static juce::Result isSourceCountValid (const Model& model, const TemplateDocument& templateDocument)
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const auto listMarker { Model::getReservedName (Id::list) };
 
         for (auto* table : model.getTables())
             if (model.isOutputTable (*table))
@@ -630,8 +728,7 @@ struct Validator : jam::MarkdownValidator
      */
     static juce::Result isItemSourceCountValid (const Model& model, const TemplateDocument& templateDocument)
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const auto listMarker { Model::getReservedName (Id::list) };
 
         for (auto* table : model.getTables())
             if (model.isOutputTable (*table))
@@ -671,14 +768,14 @@ struct Validator : jam::MarkdownValidator
      *        when @p column is not the row's own @c list column, pairs
      *        with a bullet in @p row's own @c list column at its own
      *        (depth, ordinal) through Model::getSource(), and that every
-     *        @-sigiled comment bullet, when @p column is not @c structure,
+     *        @-sigiled description bullet, when @p column is not @c structure,
      *        resolves through Model::getTable() -- the alias form or,
      *        absent an alias hit, the local form -- or names a code block
-     *        carrying documentation. A comment bullet whose value is not
+     *        carrying documentation. A description bullet whose value is not
      *        @-sigiled is plain prose, never a reference, and is
      *        exempt. Bullets carrying no @c Id::line stamp -- the row join
      *        and map bullets -- are exempt from the pairing check. A
-     *        @c structure comment bullet is exempt from this address check
+     *        @c structure description bullet is exempt from this address check
      *        -- it is the file-documentation binding, validated instead by
      *        isReference() through hasTable().
      *
@@ -696,10 +793,8 @@ struct Validator : jam::MarkdownValidator
     static juce::Result isPaired (const Model& model, const Element& table, const Element& row,
         const juce::Identifier& column, const Element& scope)
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
-        static const juce::Identifier commentMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::comment.toString(), Chars::openBracket)) };
+        static const auto listMarker { Model::getReservedName (Id::list) };
+        static const auto descriptionMarker { Model::getReservedName (Id::description) };
 
         for (auto* block : scope)
         {
@@ -717,7 +812,7 @@ struct Validator : jam::MarkdownValidator
                                                        + text::Diagnostics::failOrphan);
                     }
 
-                    if (item->id == commentMarker and column != Id::structure)
+                    if (item->id == descriptionMarker and column != Id::structure)
                     {
                         const auto& value { *item->get<juce::String> (Id::value) };
 
@@ -728,7 +823,7 @@ struct Validator : jam::MarkdownValidator
 
                             if (model.getTable (row, value) == nullptr
                                 and (referencedCodeBlock == nullptr
-                                     or not referencedCodeBlock->contains (Id::comment)))
+                                     or not referencedCodeBlock->contains (Id::description)))
                                 return juce::Result::fail (getLocation (table, row, column.toString())
                                                            + Id::diagnosticSeparator
                                                            + text::Diagnostics::failOrphan);
@@ -783,11 +878,12 @@ struct Validator : jam::MarkdownValidator
     /**
      * @brief Checks that every @-sigiled binding across @p model's
      *        @c structure, @c separator, and @c list scopes, and every
-     *        @-sigiled non-wiring cell, resolves through hasTable() --
+     *        @-sigiled non-wiring cell outside the @c description and
+     *        @c brief columns, resolves through hasTable() --
      *        a shape address is exempt, resolved instead by
-     *        Validator::isStructure(). A @c separator or @c list comment
+     *        Validator::isStructure(). A @c separator or @c list description
      *        binding is exempt -- it is item prose, validated instead by
-     *        isPaired(). A @c structure comment binding is not exempt --
+     *        isPaired(). A @c structure description binding is not exempt --
      *        it is the file-documentation binding, validated here like any
      *        other address.
      *
@@ -797,15 +893,14 @@ struct Validator : jam::MarkdownValidator
      */
     static juce::Result isReference (const Model& model)
     {
-        static const juce::Identifier commentMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::comment.toString(), Chars::openBracket)) };
+        static const auto descriptionMarker { Model::getReservedName (Id::description) };
 
         for (const auto& column : { Id::structure, Id::separator, Id::list })
             if (const auto result { forEachBinding (model, column,
                     [&model, &column] (const Element& table, const Element& row, const juce::Identifier& entryId,
                         const juce::String& entryValue) -> juce::Result
                     {
-                        if ((entryId != commentMarker or column == Id::structure)
+                        if ((entryId != descriptionMarker or column == Id::structure)
                             and Model::isAddress (entryValue) and not model.isShape (row, entryValue))
                             return hasTable (model, table, row, column, entryValue);
 
@@ -818,7 +913,7 @@ struct Validator : jam::MarkdownValidator
             [&model] (const Element& table, const Element& row, const juce::Identifier& column,
                 const juce::String& entryValue) -> juce::Result
             {
-                if (Model::isAddress (entryValue))
+                if (column != Id::description and column != Id::brief and Model::isAddress (entryValue))
                     return hasTable (model, table, row, column, entryValue);
 
                 return juce::Result::ok();
@@ -844,8 +939,7 @@ struct Validator : jam::MarkdownValidator
     static juce::Result
     isMap (const Model& model, const Element& table, const Element& row, const Element& scope)
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const auto listMarker { Model::getReservedName (Id::list) };
 
         for (auto* block : scope)
         {
@@ -1260,10 +1354,8 @@ struct Validator : jam::MarkdownValidator
      */
     static juce::Result isRegionDelimited (const Model& model, const TemplateDocument& templateDocument)
     {
-        static const juce::Identifier beginMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::begin.toString(), Chars::openBracket)) };
-        static const juce::Identifier endMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::end.toString(), Chars::openBracket)) };
+        static const auto beginMarker { Model::getReservedName (Id::begin) };
+        static const auto endMarker { Model::getReservedName (Id::end) };
 
         for (auto* table : model.getTables())
             if (model.isOutputTable (*table))
@@ -1693,6 +1785,9 @@ struct Validator : jam::MarkdownValidator
             return result;
 
         if (const auto result { isMarkerCountValid (model, templateDocument) }; not result.wasOk())
+            return result;
+
+        if (const auto result { isReservedName (model, templateDocument) }; not result.wasOk())
             return result;
 
         if (const auto result { isPaired (model) }; not result.wasOk())

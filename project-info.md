@@ -21,7 +21,7 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 ```
 
 +------------------+-------+--------------------------------------------------+-----------+--------------------------------------------------+
-| name             | type  | value                                            | format    | comment                                          |
+| name             | type  | value                                            | format    | description                                      |
 +==================+=======+==================================================+===========+==================================================+
 | projectName      | @char | cast                                             | toLiteral | Codegen Annotated Source of Truth                |
 | companyName      | @char | JRENG                                            | toLiteral | Company name.                                    |
@@ -37,9 +37,9 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 ## cmake
 
 +-----------------------------+----------------------------------------------------------+------------------------------------------+
-| key                         | value                                                    | comment                                  |
+| key                         | value                                                    | description                              |
 +=============================+==========================================================+==========================================+
-| description                 | Codegen Annotated Source of Truth                        | Project description, single line         |
+| projectDescription          | Codegen Annotated Source of Truth                        | Project description, single line         |
 +-----------------------------+----------------------------------------------------------+------------------------------------------+
 | banner                      | ████████████░░████████████░░████████████░░████████████░░ | Banner artwork, printed at configuretime |
 |                             | ████░░  ████░░████░░  ████░░████░░  ████░░    ████░░     |                                          |
@@ -103,7 +103,7 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 ## signing
 
 +-------------------+--------------------------------------------------------------+---------------------------------+
-| key               | value                                                        | comment                         |
+| key               | value                                                        | description                     |
 +===================+==============================================================+=================================+
 | identity          | Developer ID Application: Bayu Ardianto \\\\(9BDSN9TDX3\\\\) | Code signing identity           |
 +-------------------+--------------------------------------------------------------+---------------------------------+
@@ -126,7 +126,7 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 ## user module
 
 +--------------+----------------+------------------------------------------------------------------------------+
-| root         | name           | comment                                                                      |
+| root         | name           | description                                                                  |
 +==============+================+==============================================================================+
 | @user-module | jam_core       | JAM Core                                                                     |
 | @user-module | jam_subprocess | JUCE-based subprocess launcher with streaming output and byte-cap truncation |
@@ -137,16 +137,16 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 ## source glob
 
 +---------+-----------+-------------------------------------+
-| path    | extension | comment                             |
+| path    | extension | description                         |
 +=========+===========+=====================================+
 | @source | cpp       | Source .cpp files                   |
 | @source | h         | Source headers, including generated |
 +---------+-----------+-------------------------------------+
 
-## define
+## macro
 
 +--------------------+---------------------------------+-----------------------------------------+
-| name               | value                           | comment                                 |
+| name               | value                           | description                             |
 +====================+=================================+=========================================+
 | useJuceNamespace   | DONT_SET_USING_JUCE_NAMESPACE=1 | No using namespace juce in JuceHeader.h |
 | declareProjectInfo | JUCE_DONT_DECLARE_PROJECTINFO=1 | No auto-generated ProjectInfo namespace |
@@ -155,7 +155,7 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 ## include
 
 +------------+--------------+-------------------------------------------+
-| name       | value        | comment                                   |
+| name       | value        | description                               |
 +============+==============+===========================================+
 | userModule | @user-module | User module root, for #include resolution |
 | generated  | @generated   | Generated headers                         |
@@ -164,7 +164,7 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 ## binary
 
 +------------+---------------------------------+--------------------------+
-| name       | value                           | comment                  |
+| name       | value                           | description              |
 +============+=================================+==========================+
 | help       | Source/HELP.md                  | Help document source     |
 | castOutput | Source/resources/cast-output.md | Output document resource |
@@ -197,7 +197,7 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 ## release
 
 +-------------------------+--------------------------------+----------------+--------+------------------------------------------+
-| name                    | mac                            | win            | stage  | comment                                  |
+| name                    | mac                            | win            | stage  | description                              |
 +=========================+================================+================+========+==========================================+
 | shadow                  | -Wno-shadow                    | /wd4456        |        | Lambda captures / declarations mayshadow |
 |                         |                                |                |        |  intentionally                           |
@@ -242,7 +242,7 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 ## debug
 
 +-------------------------+--------------------------------+----------------+-------+------------------------------------------+
-| name                    | mac                            | win            | stage | comment                                  |
+| name                    | mac                            | win            | stage | description                              |
 +=========================+================================+================+=======+==========================================+
 | shadow                  | -Wno-shadow                    | /wd4456        |       | Lambda captures / declarations mayshadow |
 |                         |                                |                |       |  intentionally                           |

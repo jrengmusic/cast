@@ -17,12 +17,12 @@ The engine hardcodes these items and no other items:
 
 - the markers `:::token:::`, `@`, `````, `- key: value`, `> `, `[word]`
 - the manifest column names
-- the reserved bullet names `[list]` (source, §6.5), `[comment]` (documentation reference, §5.4), and `[begin]` / `[end]` (region delimiters, §6.10)
-- the reserved token names `[list]` (expansion, §6.5), `[comment]` (documentation, §5.4) and `[banner]` (§5.5)
+- the reserved bullet names `[list]` (source, §6.5), `[description]` (documentation reference, §5.4), and `[begin]` / `[end]` (region delimiters, §6.10)
+- the reserved token names `[list]` (expansion, §6.5), `[description]` (documentation, §5.4) and `[banner]` (§5.5)
 - the reserved date token `[date:format]` and its format patterns `yyyy`, `yy`, `mm` and `dd` (§7.4)
 - the reserved fence prefix `[no-banner]` (§7.3)
 - the index table name and its columns
-- the reserved column names `format`, `comment`, `brief`, and `value` (map payload, §6.5)
+- the reserved column names `format`, `description`, `brief`, and `value` (map payload, §6.5)
 - the identity column names `name`, `key`, `alias`, `file` (§5.3)
 - the toolchain table name and its columns (§6.9)
 - the `--pack` flag words `--icon-size`, `--bundle-column`, `--link-column`,
@@ -47,11 +47,14 @@ The engine hardcodes these items and no other items:
 Every other name in every file is data.
 
 **Square brackets mark a reserved name.** Each name that the engine reserves is
-written in brackets — `:::[list]:::`, `- [comment]:`, the `[sh]` prefix of a fence.
+written in brackets — `:::[list]:::`, `- [description]:`, the `[sh]` prefix of a fence.
 A name without brackets always belongs to the author. The bare words `list`,
-`comment`, `banner` and `date` are ordinary token names and binding names. Column names are
+`description`, `banner` and `date` are ordinary token names and binding names. Column names are
 the one exception: a table gives each of its columns a scope (§6), thus reserved
-column names have no brackets.
+column names have no brackets. A bracketed token or bullet name outside the reserved
+set is fatal (§10.1) in each shape that a wiring row reaches and in each wiring row, thus
+`:::[comment]:::` and `- [comment]:` stop the engine. A column named `comment` is an
+ordinary column.
 
 ### 1.1 Data Is Correct
 
@@ -487,7 +490,7 @@ it binds to verbatim (§5.2).
 The law governs a cell that the engine reads as a **value**. It does not govern a
 cell that the engine reads as an **address**. An address names a thing, and a name
 that is nothing names nothing. The `## index` `symbol` cell is the one such cell, and
-a blank one is fatal (§4.1, §10.1). A blank `comment` cell documents nothing (§5.4).
+a blank one is fatal (§4.1, §10.1). A blank `description` cell documents nothing (§5.4).
 Both are this one law, applied to their own column.
 
 The substrate is markdown. An HTML entity in a plain cell decodes at parse — `&amp;`
@@ -524,7 +527,7 @@ Within one table, the entries of each identity column — `name`, `key`, `alias`
 
 Byte-exact means that `circleCross` and `CircleCross` are two entries.
 
-Each other column is payload — `value`, `type`, `format`, `comment`. Payload repeats
+Each other column is payload — `value`, `type`, `format`, `description`. Payload repeats
 by design: many rows can map to the same payload.
 
 The manifest's **wiring** tables are exempt. Wiring repeats templates, separators and
@@ -533,21 +536,23 @@ engine gates its identity columns like those of each other table.
 
 ### 5.4 Documentation
 
-`comment` and `brief` are reserved column names, like `format` (§5.2). They are
-documentation, never data. Their entries are exempt from §5.3 uniqueness. No
-expansion (§6.5) emits them.
+`description` and `brief` are reserved column names, like `format` (§5.2). They are
+documentation. A cell of either column is prose: `toLiteral` never applies to it, and the
+engine does not resolve a leading `@` in it as an address. Their entries are exempt from
+§5.3 uniqueness. No expansion (§6.5) emits them.
 
 Three documentation channels exist, all data:
 
-- **row** — the `comment` column
+- **row** — the `description` column
 - **table** — the text between a table's `## heading` and the table itself, a
   paragraph or a fenced block. The parser stamps it onto the table at parse (§11.1)
 - **fence** — a fenced block that carries an info string, anywhere in a data file,
   not bound to a table. The info string is its name, and the fence text is its prose.
-  The parser stamps it at parse (§11.1), and a comment reference addresses it
+  The parser stamps it at parse (§11.1), and a description reference addresses it
 
-`:::[comment]:::` is the comment marker — the only place where documentation reaches
-an output. The author writes prose. Documentation tags (`@file`, `@brief`) are
+`:::[description]:::` renders the description cell as documentation, in the output language's
+comment syntax. A plain `:::description:::` token reads the same cell as text, like each
+other column, and adds no comment syntax. The author writes prose. Documentation tags (`@file`, `@brief`) are
 authored text. Comment syntax is not authored text. The engine renders the marker's
 replacement in the **output language's** comment syntax. The file that the row writes
 to selects the language, through the comment-syntax table. Comment syntax never
@@ -576,10 +581,10 @@ axis (§7):
 - inline, after content — single-line form: the language's comment glyph and the text,
   its lines joined by one space
 
-The marker resolves by scope. In an item shape, it reads the source row's `comment`
+The marker resolves by scope. In an item shape, it reads the source row's `description`
 column. At shape level, it reads, in order:
 
-1. the row's **comment reference** — a `- [comment]: @file:<name>` bullet in the list
+1. the row's **description reference** — a `- [description]: @file:<name>` bullet in the list
   column at the shape line's own `>` count. The bullet pairs with that line exactly
   as a `- [list]:` line pairs (§6.5). The address names a table (its table
   documentation) or a fence (§5.4). A wrapper shape declared across several rows
@@ -589,7 +594,7 @@ column. At shape level, it reads, in order:
   address. When no source addresses a table, it reads the documentation of the row's
   own table.
 
-A missing comment is not an error and is not a special case. The replacement is
+A missing description is not an error and is not a special case. The replacement is
 empty. The line trims or collapses exactly like each other emptied placeholder line —
 plain replacement, no elision machinery.
 
@@ -597,7 +602,7 @@ plain replacement, no elision machinery.
 
 Every output file carries the banner. The engine stamps it. A template never authors
 it. The engine renders it in the output language's own comment syntax, keyed exactly
-as `:::[comment]:::` is keyed (§5.4). The file's documentation (§6.8) is part of the
+as `:::[description]:::` is keyed (§5.4). The file's documentation (§6.8) is part of the
 banner and travels with it.
 
 `:::[banner]:::` places the banner. The banner renders where the marker sits — in any
@@ -612,7 +617,7 @@ template places the banner.
 
 A language that declares a banner frame frames the banner with it. A language that
 declares no frame takes its single-line marker before each banner line — the same
-rendering that `:::[comment]:::` gives multi-line prose (§5.4). Shell, TOML and YAML
+rendering that `:::[description]:::` gives multi-line prose (§5.4). Shell, TOML and YAML
 have no block comment, and this is how they carry a banner at all.
 
 A file gets no banner when a fence of its render carries the `[no-banner]` prefix
@@ -628,12 +633,12 @@ Four reserved column names, in canonical authored order:
 | list | separator | structure | file |
 ```
 
-A manifest table can also carry a `comment` column (§5.4): documentation for the
-row's items. An item shape's `:::[comment]:::` reads it exactly as it reads a data
-table's comment column. The marker always reads the item's own source row (§5.4). A
-manifest row's comment cell thus speaks where the manifest row itself is the source,
+A table of the manifest, wiring or data, can also carry a `description` column (§5.4):
+documentation for the row's items. An item shape's `:::[description]:::` reads it exactly as it reads a data
+table's description column. The marker always reads the item's own source row (§5.4). A
+manifest row's description cell thus speaks where the manifest row itself is the source,
 as a selector's rows are. Items sourced from a data table read that table's own rows.
-An absent row comment renders empty, never a fallback.
+An absent row description renders empty, never a fallback.
 
 A **wiring table** is a table of the manifest that carries a `structure` column. No
 other table is wiring. No column name is reserved outside the manifest's wiring
@@ -751,11 +756,11 @@ and takes its value from, in order:
   first (below)
 3. the column of that name — on the manifest row, or, for an item shape, on the
   source row
-4. the table documentation (§5.4), for the name `[comment]` at shape level
+4. the table documentation (§5.4), for the name `[description]` at shape level
 
 **Maps.** A map is a table that the engine reads one row per token. The row whose
 **first column** equals the token name supplies its `value` cell. `key | value` is
-the plain form. `name | type | value | comment` is the same map with more payload.
+the plain form. `name | type | value | description` is the same map with more payload.
 Any table whose first column is an identity column (§5.3) is a map when a shape reads
 it as one. The same table, iterated by a `- [list]:` expansion, is a record table.
 Orientation belongs to the reader, never to the table.
@@ -773,8 +778,8 @@ trailing slots (§6.4). A different `>` count is a different scope and needs no
 placeholder. A map line with no shape paragraph at its count is fatal (§10.1). A map
 table with no `value` column is fatal (§10.1).
 
-`[comment]` at shape level skips rungs 2 and 3. A map row named `comment` is data. A
-manifest row's comment column documents the row's items (§6), never the row's own
+`[description]` at shape level skips rungs 2 and 3. A map row named `description` is data. A
+manifest row's description column documents the row's items (§6), never the row's own
 shape — shape documentation is the table channel (§5.4).
 
 A supplier that carries no text renders empty. A line that its own placeholder leaves
@@ -832,7 +837,7 @@ A list-column line with no structure partner is a map line (above). A structure
 `- [list]:` line, or a separator line past the row join, with no list-column line of
 its ordinal is fatal (§10.1).
 
-A shape-level `:::[comment]:::` (§5.4) falls back to the documentation of the first
+A shape-level `:::[description]:::` (§5.4) falls back to the documentation of the first
 table that the shape's own sources address, in authored order. When no source
 addresses a table, it falls back to the documentation of the row's own table.
 
@@ -879,37 +884,37 @@ time.
 
 ### 6.8 File Documentation
 
-A wiring table carries no documentation column. The structure column wires a file's
-documentation: a `- [comment]:` binding whose value is a table address, on the file
+The four wiring columns carry no file documentation. The structure column wires a file's
+documentation: a `- [description]:` binding whose value is a table address, on the file
 group's **first** row. First appearance counts in authored order — the same grouping
 law as §6.7, and the same law that the engine applies to output-file ordering.
 
-The address is `@file:table` or `@file:table:column` (§4.2) — or, for a table of the
+The address is `@file:table` or `@file:table:column` (§4.2) — or, for a data table of the
 manifest itself, the local form `@table` or `@table:column`. The addressed table
 carries a `file` column and documentation columns. The engine reads the row whose
 `file` value equals the group's own output file name and takes the cell of the column
-that the address names — the `comment` column when the address names none. The
+that the address names — the `description` column when the address names none. The
 addressed cell is plain text or the fenced documentation form (§3.2): each fence line
 is one line of the file's documentation prose. Three cases write no file
-documentation: a group whose first row carries no address-valued `- [comment]:`
+documentation: a group whose first row carries no address-valued `- [description]:`
 binding, a file absent from the addressed table, and an addressed cell that is blank.
 Each is plain replacement, no special case (§5.4).
 
 The engine renders the resolved prose in the file's own comment syntax, exactly as a
-shape-level `:::[comment]:::` renders (§5.4). The engine writes the prose immediately
+shape-level `:::[description]:::` renders (§5.4). The engine writes the prose immediately
 after the banner, with one blank line on each side. It is part of the banner and goes
 wherever the banner goes (§5.5): a file that places the banner with `:::[banner]:::`
 places its documentation there too, and a file with no banner carries no file
-documentation. The addressed table's documentation columns are documentation, never
-data (§5.4). A fence there is not a literal, `toLiteral` never applies, and the `@`
+documentation. The addressed table's documentation columns are prose, never
+a reference (§5.4). A fence there is not a literal, `toLiteral` never applies, and the `@`
 sigil law (§4) does not apply inside a fence's prose. Documentation is never a
 reference, thus a prose line that starts with `@file` or `@brief` is text. The
 binding's own value is the one exception — it is a reference, and the engine resolves
 it as it resolves each other address (§4.2).
 
-The `@` sigil law (§4) is what separates this binding's two readers. A `- [comment]:`
+The `@` sigil law (§4) is what separates this binding's two readers. A `- [description]:`
 binding whose value is plain text is per-item prose, exactly as before: an item-shape
-reader finds the binding before it falls to the source row's own `comment` column,
+reader finds the binding before it falls to the source row's own `description` column,
 and renders the bound text. The file-documentation reader reads only the
 address-valued form. An item-shape reader, which renders prose, never treats a
 reference as its prose. One structure cell can carry both — the reference for the
@@ -1231,8 +1236,9 @@ same file states nothing new and is not read.
 
 `:::[date:format]:::` is the date token. Its interior opens with `[date:` and closes
 with `]`. The text between them is the format. The author always states the format. No
-default format exists. An interior that opens with `[date:` and has no closing `]`, and
-the interior `[date]`, are not the date token. Each is a named token (§7).
+default format exists. An interior that opens with `[date:` and has no closing `]` is not
+the date token. It is a named token (§7). The interior `[date]` is fatal: `unknown
+reserved name` (§10.1).
 
 The engine replaces the token with its format, and in that format it replaces each of
 these patterns:
@@ -1273,7 +1279,7 @@ They transform a datum's own characters:
 - **encoding** — `toLiteral`, `toUTF8`, `fromUTF8`, `toHex`, `toCodepoint`, `fromCodepoint`
 - **text** — `join`, `toFileName`
 - **comment** — `toComment`, `toCommentBlock`, `brief`, for the banner CAST stamps and
-  the `:::[comment]:::` marker (§5.4)
+  the `:::[description]:::` marker (§5.4)
 
 In each case operation, an all-uppercase word is an abbreviation and passes through
 with no change, in each position. `WindowFX` camel-cases to `windowFX`. `CSI` and
@@ -1361,6 +1367,7 @@ These, and nothing else:
 | duplicate entry within one identity column of one table                                                           | §5.3       |
 | a shape address names a fence that does not exist in its template file                                            | §7         |
 | a fence prefix naming neither a comment-syntax extension nor `no-banner`, or a bracket group that never closes    | §7.3       |
+| a bracketed token or bullet name outside the reserved set, in a reached shape or a wiring row                      | §1         |
 | a map line with no shape paragraph at its `>` count                                                               | §6.5       |
 | a map table with no `value` column                                                                                | §6.5       |
 | an output file that cannot be written                                                                             | §10        |
@@ -1381,7 +1388,7 @@ These, and nothing else:
 | a row supplies more sources than its shapes demand                                                                | §6.4       |
 | a structure or separator `- [list]:` line without its list-column line of the same ordinal, the row join excepted | §6.5, §6.6 |
 | duplicate binding name among one shape's bindings                                                                 | §6.1       |
-| a comment reference naming neither a table nor a fence                                                            | §5.4       |
+| a description reference naming neither a table nor a fence                                                        | §5.4       |
 | unterminated `:::` marker in a shape block                                                                        | §7         |
 | a `## toolchain` header row declaring no `command` or no `flag` column                                            | §6.9       |
 | a region row whose file does not exist                                                                            | §6.10      |

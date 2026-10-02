@@ -111,6 +111,62 @@
 
 ## SPRINT HISTORY
 
+## Sprint: description-reserved — Reserved Documentation Column `description`, `unknown reserved name`, `getReservedName` ✅
+
+**Date:** 2026-10-02
+**Duration:** two sessions (shared with jreng-filter-strip Sprint 103, jam Sprint 148, user_modules Sprint 134)
+
+### Agents Participated
+- COUNSELOR: opus-5.5 — site reads, plan, validation of every return, audit triage, `CLAUDE.md:51`, this log
+- Pathfinder: haiku — engine site map
+- Engineer: sonnet-5 — engine rename, validator, data, SPEC/HELP, doxygen pass, bootstrap runs, scratch gate checks
+- Auditor: opus-5.5 — one sweep (jfs log, Sprint 103)
+
+### Decisions (ARCHITECT)
+1. *"the reserved token should be :::[description]::: that's the NAMES.md adherence. hence, docs, comment generation etc wired from desc not comment."*
+2. *"any of conflict or blocker must be renamed, description is reserved column name"*
+3. *"this will break project that uses project-info.md, let it break. it's just trivial word replacement, as long as HELP.md and error message correctly Validate, hence future session Agents could easily fix it"*
+4. A stale `comment` data column: *"ordinary column"*.
+5. *"the best design is there should not be comment column, but description column. desc could be used as comment for codegen"*
+6. *"## define table bad name, it should be just ## macro or preprocessor"* (jfs), applied here for the same concept (audit F18).
+
+### Files Modified
+- `Source/Items.h`, `Model.h`, `Shapes.h`, `Validator.h`, `Writer.h`, `TemplateDocument.h`:
+  - The reserved column `comment` → `description`; `:::[comment]:::` → `:::[description]:::`; `- [comment]:` → `- [description]:`. Locals renamed by the substitution (`descriptionMarker`, `getDescription`, `addDescriptions`, `descriptionOrdinals`, `isDescriptionColumn`, `isDescriptionProse`, `getDescriptionTable`, `descriptionTable`, `getFileDescription`, `descriptionBinding`, `descriptionValue`, `headerDescriptionCell`).
+  - `Model::getReservedName (const juce::Identifier&)` (`Model.h:231`) builds each reserved name once; every marker site reads it.
+  - `Validator::isReservedName`, two overloads: a bracketed template marker outside `[list]`, `[description]`, `[banner]`, in any shape a `structure`, `separator` or `list` row reaches, and a bracketed bullet outside `[list]`, `[description]`, `[begin]`, `[end]`, fail with `unknown reserved name`. Called in `isManifest` after `isMarkerCountValid`.
+  - `isReference` exempts `description` and `brief` cells (documentation is never a reference).
+  - `Items::getSourceValue`: a `description` cell that starts with `@` renders as text (the column-address skip is removed).
+  - `Id::comment` stays only for the output language's comment glyph (`Transforms.h:31`, `:91`, `Generated.cpp`, `cast/comments.md` syntax rows).
+  - Doxygen pass: every stale `comment` reference and `@param` updated; `isReservedName` documented. `docs/xml` regenerated, zero warnings.
+- `cast/identifiers.md` — `description` row (sorted after `date`). `cast/text.md` — `failReservedName` = `unknown reserved name`; `failOrphan` prose. `cast/spell.md`, `cast/files.md`, `cast/comments.md` — `description` columns and bullets; `@project-info:macro`. `cast/cmake.cast` — `:::projectDescription:::`. `cast/.cast-format` — `description | 40`. `project-info.md` — `## macro` (was `## define`, `:146`); `## cmake` row `projectDescription`.
+- `SPEC.md` — §1 reservation and the fatal rule (scoped to wired shapes); §5.4 (a plain `:::description:::` reads the cell as text); §6 table kinds; §7.4 (`:::[date]:::` is fatal); §10.1 diagnostic.
+- `Source/HELP.md` — reservation, examples, `unknown reserved name`, the build-option example rewritten to `## compile option` / `## link option` with a `configuration` column.
+- `CLAUDE.md:51` — `- [description]:` and the `## headers` columns.
+- `Source/generated/*`, `CMakeLists.txt` — regenerated.
+
+### Alignment Check
+- [x] BLESSED — S: one reserved name, built once (`getReservedName`); E: a stale reserved name fails with its location
+- [x] NAMES.md — `description` per ARCHITECT; `failReservedName` (sibling `failFencePrefix`), `isReservedName` (siblings `isReference`, `isMap`), `getReservedName`, `failingName` (sibling `failingLine`)
+- [x] MANIFESTO.md — no new state; the validator reads what the parse stored
+
+### Problems Solved
+- **Bootstrap.** cast's manifest addresses `@code ../../jam/cast/code.cast` (`cast/spell.md:12`), and its toolchain runs `cast ../jam/cast/spell.md` (`project-info.md:178`, `:184`, `:190`), so jam's cast data moved in the same sprint (jam Sprint 148). `cast cast/spell.md` reaches its fixpoint: the repeat run prints `ninja: no work to do.`, zero compiler warnings. jam outputs are byte-identical.
+- **Gate checks (scratch):** stale `:::[comment]:::` in a structure or separator shape → `unknown reserved name: [comment]`; stale `- [comment]:` → `unknown reserved name: _comment_`; `:::[date]:::` → `unknown reserved name: [date]`; a `comment` data column passes; a `description` cell `@brief text` renders `///< @brief text`.
+
+### State for Continuation
+- The Windows binary `~/.local/bin/cast.exe` is rebuilt. Each Mac needs `./build.sh` before its next `cast` run; an older binary reads `:::[description]:::` as an ordinary token.
+- **SPEC vs code (ARCHITECT rules).** A bullet's authored key is not stored by jam's parser (`jam_MarkdownBlockParser.cpp:670-684`, value span from `:754-766`), so a stale bullet prints its parsed id (`_comment_`), and an author bullet such as `- (x):` parses to `_x_` and fails as reserved. SPEC.md:51 says a name without brackets belongs to the author.
+- A malformed grid (a wiring row split across stray lines) crashed cast in a scratch test; not investigated.
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None
+
+---
+
 ## Sprint: date-token — Reserved `:::[date:format]:::`, UTC, Letter Patterns, Stamped at Template Creation ✅
 
 **Date:** 2026-10-02

@@ -3,7 +3,7 @@
 ```
 @brief C-family comment syntax — the delimiters for a clang-style target.
 
-Carries every frame the `:::[comment]:::` marker renders into for a C-like
+Carries every frame the `:::[description]:::` marker renders into for a C-like
 file: the single-line trailing marker (`Id::comment`, `///<`), the block
 brief marker (`Id::brief`, `@brief`), the block delimiters (`Id::blockOpen`
 / `Id::blockClose`), and the banner frame (`Id::bannerOpen` /
@@ -212,7 +212,7 @@ frame, which also serves as the banner frame for `.sql` outputs.
 ```
 @brief File extension to comment-syntax table.
 
-Maps an output file's extension to the comment frame the `:::[comment]:::`
+Maps an output file's extension to the comment frame the `:::[description]:::`
 marker renders in. Transforms.h reads one row per output file to wrap
 authored documentation, and Writer.h reads it to frame the banner. Each
 extension keys one of the `clangComment`, `cmakeComment`, `cssComment`,

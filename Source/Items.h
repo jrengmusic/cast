@@ -112,8 +112,7 @@ struct Items
      */
     static int getArity (const TemplateDocument& templateDocument, const Element& line)
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const auto listMarker { Model::getReservedName (Id::list) };
 
         const auto& tokens { *templateDocument.getCodeBlock (line)
                                    ->get<jam::Document::Identifiers> (Id::placeholder) };
@@ -139,8 +138,7 @@ struct Items
                                              const TemplateDocument& templateDocument,
                                              const Element& row)
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const auto listMarker { Model::getReservedName (Id::list) };
 
         jam::Array<int> privateShapes;
         const auto arityOf = [&templateDocument] (const Element& line) { return getArity (templateDocument, line); };
@@ -189,8 +187,7 @@ struct Items
                                                        const jam::Array<const Element*>& tables,
                                                        const juce::Identifier& source)
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const auto listMarker { Model::getReservedName (Id::list) };
 
         jam::Array<const Element*> sourceRows;
 
@@ -224,27 +221,28 @@ struct Items
      * @brief Resolves @p name's value for @p sourceRow -- the deepest
      *        structure-wiring binding of that name outside a shape-valued
      *        binding's own private render data, or, absent one, the
-     *        row's own column value. An @-sigiled @c comment binding or
-     *        column value is a reference, not prose, and
-     *        resolves empty.
+     *        row's own column value. An @-sigiled @c description binding is a
+     *        reference, not prose, and resolves empty; a @c description
+     *        column value is prose, whatever its first character.
      *
      * @param model            The model @p sourceRow belongs to.
      * @param templateDocument The template document @p sourceRow's own
      *                         private render data is read through.
+     * @param row              The row whose map tables are read.
+     * @param shapeLine        The structure line whose own @c shape
+     *                         ordinal selects the map tables.
      * @param sourceRow        The row @p name is resolved against.
      * @param name             The token or column name to resolve.
      * @returns The resolved value, or an empty string when neither a
      *          binding nor a column named @p name exists on @p sourceRow, or
-     *          @p name is @c comment and the binding or column value is a
+     *          @p name is @c description and the binding value is a
      *          reference.
      */
     static juce::String getSourceValue (const Model& model, const TemplateDocument& templateDocument,
         const Element& row, const Element& shapeLine, const Element& sourceRow, const juce::Identifier& name)
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
-        static const juce::Identifier commentMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::comment.toString(), Chars::openBracket)) };
+        static const auto listMarker { Model::getReservedName (Id::list) };
+        static const auto descriptionMarker { Model::getReservedName (Id::description) };
 
         juce::String deepestValue;
         const auto privateShapes { getPrivateShapes (model, templateDocument, sourceRow) };
@@ -260,23 +258,20 @@ struct Items
                     return true;
                 });
 
-        if (name == commentMarker and Model::isAddress (deepestValue))
+        if (name == descriptionMarker and Model::isAddress (deepestValue))
             return {};
 
         if (deepestValue.isNotEmpty())
             return deepestValue;
 
-        if (name != commentMarker)
+        if (name != descriptionMarker)
             if (auto* cell { model.getMapCell (row, shapeLine, name) })
                 return *cell->get<juce::String> (Id::value);
 
         juce::String columnValue;
 
-        if (auto* cell { model.getTableCell (sourceRow, name == commentMarker ? Id::comment : name) })
+        if (auto* cell { model.getTableCell (sourceRow, name == descriptionMarker ? Id::description : name) })
             columnValue = *cell->get<juce::String> (Id::value);
-
-        if (name == commentMarker and Model::isAddress (columnValue))
-            return {};
 
         return name == Id::file ? model.getFileName (columnValue) : columnValue;
     }
@@ -291,6 +286,9 @@ struct Items
      * @param templateDocument The template document @p sourceRow's own
      *                         private render data is read through, when
      *                         present.
+     * @param row         The row whose map tables are read.
+     * @param shapeLine   The structure line whose own @c shape ordinal
+     *                    selects the map tables.
      * @param sourceRow   The item's source row, or @c nullptr when the item
      *                    is a bare column value.
      * @param sourceValue The column value returned when @p sourceRow is
@@ -387,7 +385,7 @@ struct Items
      *        resolved value, the @c list token filled by getChildValue()
      *        -- once per its own occurrence, in authored order, when
      *        @p line's own shape's arity is 2 or more -- and every other
-     *        token by getColumnValue(), commenting a non-empty @c comment
+     *        token by getColumnValue(), commenting a non-empty @c description
      *        value for @p extension.
      *
      * @param model            The model @p sourceRow and @p row belong
@@ -402,13 +400,15 @@ struct Items
      * @param line             The structure line whose shape is rendered.
      * @param row              The structure row @p sourceOrdinal's child
      *                         column addresses are read from.
+     * @param shapeLine        The structure line whose own @c shape
+     *                         ordinal selects the map tables.
      * @param indent           The depth @p sourceOrdinal's child column
      *                         addresses are read from.
      * @param sourceOrdinal    The structure position after which child
      *                         column addresses are read.
      * @param childJoin        The @c list token's own child values' join
      *                         text.
-     * @param extension        The target file extension a comment value
+     * @param extension        The target file extension a description value
      *                         is commented for.
      * @returns The rendered item text.
      */
@@ -425,10 +425,8 @@ struct Items
                                  const juce::String& childJoin,
                                  const juce::String& extension)
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
-        static const juce::Identifier commentMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::comment.toString(), Chars::openBracket)) };
+        static const auto listMarker { Model::getReservedName (Id::list) };
+        static const auto descriptionMarker { Model::getReservedName (Id::description) };
 
         const auto& tokens { *templateDocument.getCodeBlock (line)
                                    ->get<jam::Document::Identifiers> (Id::placeholder) };
@@ -449,7 +447,7 @@ struct Items
                                        model, templateDocument, row, shapeLine, sourceRow, sourceValue,
                                        sourceKey, name) };
 
-                if (name == commentMarker and value.isNotEmpty())
+                if (name == descriptionMarker and value.isNotEmpty())
                     value = Transforms::toComment (value, extension);
 
                 if (name == listMarker)
@@ -484,13 +482,16 @@ struct Items
     /**
      * @brief Resolves one item's own replacement map -- @p tokens' own
      *        names, each mapped to its resolved value through
-     *        getColumnValue(), commenting a non-empty @c comment value.
+     *        getColumnValue(), commenting a non-empty @c description value.
      *
      * @param model            The model @p sourceRow, when present,
      *                         belongs to.
      * @param templateDocument The template document @p sourceRow's own
      *                         private render data is read through, when
      *                         present.
+     * @param row              The row whose map tables are read.
+     * @param shapeLine        The structure line whose own @c shape
+     *                         ordinal selects the map tables.
      * @param tokens           The placeholder tokens to resolve.
      * @param sourceRow        The item's source row, or @c nullptr when
      *                         the item is a bare column value.
@@ -498,7 +499,7 @@ struct Items
      *                         is @c nullptr and a token matches
      *                         @p sourceKey.
      * @param sourceKey        The token name @p sourceValue answers for.
-     * @param extension        The target file extension a comment value
+     * @param extension        The target file extension a description value
      *                         is commented for.
      * @returns @p tokens' own name-to-value map for this item.
      */
@@ -507,8 +508,7 @@ struct Items
         const jam::Document::Identifiers& tokens, const Element* sourceRow, const juce::String& sourceValue, const juce::Identifier& sourceKey,
         const juce::String& extension)
     {
-        static const juce::Identifier commentMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::comment.toString(), Chars::openBracket)) };
+        static const auto descriptionMarker { Model::getReservedName (Id::description) };
 
         jam::HashMap<juce::Identifier, juce::String> replacements;
 
@@ -518,7 +518,7 @@ struct Items
                 getColumnValue (model, templateDocument, row, shapeLine, sourceRow, sourceValue, sourceKey, name)
             };
 
-            if (name == commentMarker and value.isNotEmpty())
+            if (name == descriptionMarker and value.isNotEmpty())
                 value = Transforms::toComment (value, extension);
 
             replacements.emplace (name, value);
@@ -537,13 +537,16 @@ struct Items
      *                         to.
      * @param templateDocument The template document @p line's shape and
      *                         placeholder tokens are read from.
+     * @param row              The row whose map tables are read.
+     * @param shapeLine        The structure line whose own @c shape
+     *                         ordinal selects the map tables.
      * @param sourceRows       The item source rows to resolve.
      * @param sourceValues     The item column values to resolve.
      * @param sourceKey        The token name each of @p sourceValues
      *                         answers for.
      * @param line             The structure line whose placeholder tokens
      *                         are resolved.
-     * @param extension        The target file extension a comment value is
+     * @param extension        The target file extension a description value is
      *                         commented for.
      * @returns One replacement map per item, in @p sourceRows then
      *          @p sourceValues order.
@@ -719,12 +722,15 @@ struct Items
      *                         to.
      * @param templateDocument The template document @p line's shape is
      *                         read from.
+     * @param row              The row whose map tables are read.
+     * @param shapeLine        The structure line whose own @c shape
+     *                         ordinal selects the map tables.
      * @param sourceRows       The item source rows to render.
      * @param sourceValues     The item column values to render.
      * @param sourceKey        The token name each of @p sourceValues
      *                         answers for.
      * @param line             The structure line whose shape is rendered.
-     * @param extension        The target file extension a comment value is
+     * @param extension        The target file extension a description value is
      *                         commented for.
      * @returns Every non-empty rendered item text, in @p sourceRows then
      *          @p sourceValues order.
@@ -785,13 +791,15 @@ struct Items
      * @param line             The structure line whose shape is rendered.
      * @param row              The structure row @p sourceOrdinal's child
      *                         column addresses are read from.
+     * @param shapeLine        The structure line whose own @c shape
+     *                         ordinal selects the map tables.
      * @param indent           The depth @p sourceOrdinal's child column
      *                         addresses are read from.
      * @param sourceOrdinal    The structure position after which child
      *                         column addresses are read.
      * @param childJoin        The @c list token's own child values' join
      *                         text.
-     * @param extension        The target file extension a comment value
+     * @param extension        The target file extension a description value
      *                         is commented for.
      * @returns Every non-empty rendered item text, in @p sourceRows then
      *          @p sourceValues order.
@@ -848,13 +856,15 @@ struct Items
      * @param line             The structure line whose shape is rendered.
      * @param row              The structure row @p sourceOrdinal's child
      *                         column addresses are read from.
+     * @param shapeLine        The structure line whose own @c shape
+     *                         ordinal selects the map tables.
      * @param indent           The depth @p sourceOrdinal's child column
      *                         addresses are read from.
      * @param sourceOrdinal    The structure position after which child
      *                         column addresses are read.
      * @param childJoin        The @c list token's own child values' join
      *                         text.
-     * @param extension        The target file extension a comment value
+     * @param extension        The target file extension a description value
      *                         is commented for.
      * @returns Every non-empty rendered item text, in @p sourceRows then
      *          @p sourceValues order.
@@ -872,8 +882,7 @@ struct Items
                                       const juce::String& childJoin,
                                       const juce::String& extension)
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const auto listMarker { Model::getReservedName (Id::list) };
 
         const auto& shapeText { *templateDocument.getCodeBlock (line)->get<juce::String> (Id::value) };
         const auto usePadding { isSingleLineShape (shapeText)
@@ -926,13 +935,15 @@ struct Items
      * @param row              The row @p source is resolved against.
      * @param source           The item source's own name or address.
      * @param line             The structure line whose shape is rendered.
+     * @param shapeLine        The structure line whose own @c shape
+     *                         ordinal selects the map tables.
      * @param indent           The depth @p sourceOrdinal's child column
      *                         addresses are read from.
      * @param sourceOrdinal    The structure position after which child
      *                         column addresses are read.
      * @param childJoin        The @c list token's own child values' join
      *                         text.
-     * @param extension        The target file extension a comment value
+     * @param extension        The target file extension a description value
      *                         is commented for.
      * @returns Every non-empty rendered item text, in discovery order.
      */
@@ -948,8 +959,7 @@ struct Items
                                   const juce::String& childJoin,
                                   const juce::String& extension)
     {
-        static const juce::Identifier listMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::list.toString(), Chars::openBracket)) };
+        static const auto listMarker { Model::getReservedName (Id::list) };
 
         jam::Array<const Element*> sourceRows;
         jam::Strings sourceValues;
@@ -985,6 +995,8 @@ struct Items
      * @param row              The row @p source is resolved against.
      * @param source           The item source's own name or address.
      * @param line             The structure line whose shape is rendered.
+     * @param shapeLine        The structure line whose own @c shape
+     *                         ordinal selects the map tables.
      * @param separator        The rendered items' own join text.
      * @param indent           The depth @p sourceOrdinal's child column
      *                         addresses are read from.
@@ -992,7 +1004,7 @@ struct Items
      *                         column addresses are read.
      * @param childJoin        The @c list token's own child values' join
      *                         text.
-     * @param extension        The target file extension a comment value
+     * @param extension        The target file extension a description value
      *                         is commented for.
      * @returns @p source's own rendered items, joined by @p separator.
      */

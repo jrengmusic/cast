@@ -18,7 +18,7 @@ transform operations a format cell may declare (§8).
 ```
 
 +---------+------------------+----------------------+-------------------------------------------------------------+
-| type    | name             | value                | comment                                                     |
+| type    | name             | value                | description                                                 |
 +=========+==================+======================+=============================================================+
 | @id     | argument         | `argument`           | Toolchain table argument column.                            |
 | @id     | assumeFilename   | `assume-filename`    | --assume-filename CLI flag word — stdin style search start. |
@@ -34,6 +34,7 @@ transform operations a format cell may declare (§8).
 | @id     | bundleColumn     | `bundle-column`      | --pack layout option word.                                  |
 | @id     | comment          | `comment`            |                                                             |
 | @id     | date             | `date`               | Reserved date token name.                                   |
+| @id     | description      | `description`        |                                                             |
 | @string | dmg              | `dmg`                | Dmg archive extension.                                      |
 | @id     | doubleDash       | `--`                 | Double-dash delimiter.                                      |
 | @string | dsStore          | `.DS_Store`          | Finder layout file name.                                    |

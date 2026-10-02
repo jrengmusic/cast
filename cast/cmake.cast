@@ -32,7 +32,7 @@ endif()
 project(:::targetName:::
     VERSION :::versionString:::
     LANGUAGES C CXX
-    DESCRIPTION ":::description:::"
+    DESCRIPTION ":::projectDescription:::"
 )
 
 message(STATUS "\n:::banner:::")
@@ -260,7 +260,7 @@ message(STATUS "━━━━━━━━━━━━━━━━━━━━━�
 ```
 
 ```module
-juce_add_module(":::root:::/:::name:::"):::[comment]:::
+juce_add_module(":::root:::/:::name:::"):::[description]:::
 ```
 
 ```glob-pattern

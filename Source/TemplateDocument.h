@@ -156,8 +156,7 @@ private:
      */
     static void addStamps (Element& block)
     {
-        static const juce::Identifier bannerMarker { jam::Format::toValidID (
-            jam::Format::withEnclosure (Id::banner.toString(), Chars::openBracket)) };
+        static const auto bannerMarker { Model::getReservedName (Id::banner) };
 
         const auto blockText { getDatedText (block.getAllSubText(), getDate()) };
         block.add<juce::String> (Id::value, blockText);
