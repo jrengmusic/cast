@@ -173,6 +173,7 @@
 - Not verified: doxygen warnings (no `doxygen` run this sprint); a Release build; Windows.
 
 ### State for Continuation
+- **After the log (2026-10-02), ARCHITECT:** *"cast built."* on the build Mac. The line below is closed for macOS; Windows (Step C4) is open.
 - **ARCHITECT installs the binary.** The cast build target ALL installs to `~/.local/bin` (`cast/cmake.cast:229-237`, `:327-340`); `./build.sh` does the Release build, sign and install. Until then the installed cast has no date token.
 - **Windows (jfs plan Step C4):** build and repeat the fixpoint and date checks; `std::gmtime` at `TemplateDocument.h:188` may warn C4996 under MSVC.
 - **Exit 139 on a minimal manifest** is open; scratch files were in the session scratchpad only. Reproduce with a manifest that holds one index row and one template before reading the cause.
