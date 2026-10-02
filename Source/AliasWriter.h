@@ -133,10 +133,10 @@ private:
         const auto length { juce::jmin (carbonName.getNumBytesAsUTF8(), static_cast<size_t> (size - 1)) };
         const auto lengthByte { static_cast<char> (length) };
 
-        juce::MemoryBlock pascal (static_cast<size_t> (size), true);
-        pascal.copyFrom (&lengthByte, 0, sizeof (lengthByte));
-        pascal.copyFrom (carbonName.toRawUTF8(), 1, length);
-        return pascal;
+        juce::MemoryBlock pascalString (static_cast<size_t> (size), true);
+        pascalString.copyFrom (&lengthByte, 0, sizeof (lengthByte));
+        pascalString.copyFrom (carbonName.toRawUTF8(), 1, length);
+        return pascalString;
     }
 
     /**

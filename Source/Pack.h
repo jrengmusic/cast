@@ -71,7 +71,7 @@ struct Pack
             return juce::Result::fail (archive.getFullPathName() + Id::diagnosticSeparator
                                        + text::Diagnostics::failArchiveExtension);
 
-        const auto items { getItems (triples) };
+        const auto items (getItems (triples));
         const auto found { isFound (arguments, items) };
         const auto unique { found.wasOk() ? isUnique (archive, items, triples) : found };
 
@@ -305,7 +305,7 @@ private:
 
         if (stage.createDirectory().wasOk())
         {
-            const auto stagedItems { getStagedItems (stage, items) };
+            const auto stagedItems (getStagedItems (stage, items));
             const auto staged { addStageItems (items, stagedItems) };
             const auto created { staged.wasOk() ? archiveStage (stage, stagedItems) : staged };
             const auto removed { stage.deleteRecursively() };

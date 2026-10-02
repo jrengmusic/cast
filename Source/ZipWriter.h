@@ -234,8 +234,8 @@ private:
 
         if (item.isDirectory() and not item.isSymbolicLink())
         {
-            auto descendants { item.findChildFiles (juce::File::findFilesAndDirectories, true, "*",
-                                                    juce::File::FollowSymlinks::no) };
+            auto descendants (item.findChildFiles (juce::File::findFilesAndDirectories, true, "*",
+                                                   juce::File::FollowSymlinks::no));
             std::sort (descendants.begin(), descendants.end(), [&item] (const juce::File& first, const juce::File& second)
             {
                 return getEntryName (first, item).compare (getEntryName (second, item)) < 0;
@@ -438,7 +438,7 @@ private:
      */
     static int addItemEntries (juce::MemoryOutputStream& archive, juce::MemoryOutputStream& directory, const juce::File& item)
     {
-        const auto entries { getEntries (item) };
+        const auto entries (getEntries (item));
         int added { entries.size() };
 
         for (const auto& entry : entries)
