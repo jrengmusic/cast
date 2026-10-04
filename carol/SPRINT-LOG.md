@@ -111,6 +111,34 @@
 
 ## SPRINT HISTORY
 
+## Sprint: signing-lane — `cast/signing.md`; Generated `entitlements.plist` ✅
+
+**Date:** 2026-10-04
+**Duration:** part of one session (jam Sprint 150 is the primary record)
+**Plan:** `dev/jam/PLAN-signing.md` (locked)
+
+### Decisions (ARCHITECT)
+1. *"now let's fix the entitlements generation for ALL project"*; *"ensure everything is table driven"*.
+2. Lane switch **"Own file per chain (Recommended)"**; keys **"Rows in ## signing"**, **"type column"**.
+
+### Files Modified
+- `cast/signing.md` — NEW. `## signing` moved from `project-info.md`; columns `key | value | type | description`; no entitlement rows.
+- `project-info.md` — `## signing` deleted.
+- `cast/spell.md` — index `@signing signing.md`, `@Entitlements ../entitlements.plist`; `- [list]: @signing:signing`; output group `@code:[xml]entitlements` → `@Entitlements`.
+- `entitlements.plist` — now generated (banner after the DOCTYPE; `<dict>` and `</dict>`).
+
+### Problems Solved
+- Oracle (scratch mirror, `## toolchain` removed): `entitlements.plist` = the previous file plus the banner; every other output byte-identical.
+
+### State for Continuation
+- Not built. This log holds more than its "keep last 5" rule; no entry was rotated.
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None
+
 ## Sprint: description-reserved — Reserved Documentation Column `description`, `unknown reserved name`, `getReservedName` ✅
 
 **Date:** 2026-10-02
