@@ -78,8 +78,10 @@ extern const juce::Identifier macroPrefix;     ///< Sync composed identity key â
 extern const juce::Identifier noBanner;        ///< Banner-suppressing fence-prefix marker.
 extern const juce::Identifier noFormat;        ///< Formatless-column marker.
 extern const juce::Identifier placeholder;     ///< Placeholder token name.
+extern const juce::Identifier region;          ///< Sync info-file region table name.
 extern const juce::Identifier separator;       ///< Separator column key.
 extern const juce::Identifier structure;       ///< Structure column key.
+extern const juce::Identifier submodule;       ///< Sync info-file submodule table name.
 extern const juce::Identifier symbol;          ///< Index symbol column key.
 extern const juce::Identifier sync;            ///< --sync CLI flag word.
 extern const juce::Identifier templatePath;    ///< Template file path stamp.

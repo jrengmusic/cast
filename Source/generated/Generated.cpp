@@ -74,8 +74,10 @@ namespace Id
     const juce::Identifier noBanner         { juce::String::fromUTF8 ("no-banner") };
     const juce::Identifier noFormat         { juce::String::fromUTF8 ("no-format") };
     const juce::Identifier placeholder      { juce::String::fromUTF8 ("placeholder") };
+    const juce::Identifier region           { juce::String::fromUTF8 ("region") };
     const juce::Identifier separator        { juce::String::fromUTF8 ("separator") };
     const juce::Identifier structure        { juce::String::fromUTF8 ("structure") };
+    const juce::Identifier submodule        { juce::String::fromUTF8 ("submodule") };
     const juce::Identifier symbol           { juce::String::fromUTF8 ("symbol") };
     const juce::Identifier sync             { juce::String::fromUTF8 ("sync") };
     const juce::Identifier templatePath     { juce::String::fromUTF8 ("template") };

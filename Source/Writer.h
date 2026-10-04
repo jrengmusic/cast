@@ -178,9 +178,6 @@ private:
         const auto& outputFile { outputFiles.at (index) };
         const auto groupEnd { index + 1 < groupStarts.size() ? groupStarts.at (index + 1) : rows.size() };
 
-        static const auto beginMarker { Model::getReservedName (Id::begin) };
-        static const auto endMarker { Model::getReservedName (Id::end) };
-
         auto* firstLine { Shapes::getFirstLine (model, *rows.at (start)) };
         const auto fencePrefix { Transforms::getFencePrefix (*firstLine->get<juce::String> (Id::info)) };
         const auto noBanner { Id::noBanner.toString() };
@@ -188,12 +185,8 @@ private:
                                     ? dotText + fencePrefix
                                     : Transforms::getCommentSyntaxKey (outputFile.getFileName()) };
 
-        auto* beginBinding { model.getBinding (*rows.at (start), Id::structure, *firstLine, beginMarker) };
-        auto* endBinding { model.getBinding (*rows.at (start), Id::structure, *firstLine, endMarker) };
-
         if (model.isRegionRow (*rows.at (start)))
-            return toRegionFile (rows, tables, start, groupEnd, outputFile, *rows.at (start),
-                extension, beginBinding, endBinding);
+            return toRegionFile (rows, tables, start, groupEnd, outputFile, extension);
 
         auto description { getFileDescription (*rows.at (start), outputFile.getFileName()) };
 
@@ -235,47 +228,76 @@ private:
     }
 
     /**
-     * @brief Finds @p beginValue's own first matching line and, strictly
-     *        after it, @p endValue's own first matching line.
+     * @brief Finds the end of the run of consecutive region rows that
+     *        resolve the same @c \[begin\] and @c \[end\] values as the
+     *        row at @p runStart.
      *
-     * Validator::isRegionDelimited() has already established that both
-     * delimiters resolve, in order, before the writer ever runs --
-     * toRegionFile() reads this result to splice the region, not to
-     * re-check it.
-     *
-     * @param lines      The region file's own content, split into lines.
-     * @param beginValue The resolved @c \[begin\] delimiter text.
-     * @param endValue   The resolved @c \[end\] delimiter text.
-     * @returns @p beginValue's own matching line index paired with
-     *          @p endValue's own matching line index.
+     * @param rows       The table's own rows.
+     * @param runStart   The index of the run's own first row in @p rows.
+     * @param groupEnd   The index one past the file group's own last row in
+     *                   @p rows.
+     * @param beginValue The run's own resolved @c \[begin\] value.
+     * @param endValue   The run's own resolved @c \[end\] value.
+     * @returns The index one past the run's own last row.
      */
-    static std::pair<int, int> getDelimiterLines (
-        const jam::Strings& lines, const juce::String& beginValue, const juce::String& endValue)
+    int getRunEnd (const jam::Array<const Model::Element*>& rows, int runStart, int groupEnd,
+        const juce::String& beginValue, const juce::String& endValue) const
     {
-        auto beginLine { -1 };
+        auto runEnd { runStart + 1 };
 
-        for (int lineIndex { 0 }; lineIndex < lines.size() and beginLine < 0; ++lineIndex)
-            if (lines.at (lineIndex).contains (beginValue))
-                beginLine = lineIndex;
+        while (runEnd < groupEnd
+               and Shapes::getRegionValue (model, templateDocument, *rows.at (runEnd), Id::begin)
+                       .compare (beginValue) == 0
+               and Shapes::getRegionValue (model, templateDocument, *rows.at (runEnd), Id::end)
+                       .compare (endValue) == 0)
+            ++runEnd;
 
-        auto endLine { -1 };
-
-        for (int lineIndex { beginLine + 1 }; lineIndex < lines.size() and endLine < 0; ++lineIndex)
-            if (lines.at (lineIndex).contains (endValue))
-                endLine = lineIndex;
-
-        return { beginLine, endLine };
+        return runEnd;
     }
 
     /**
-     * @brief Splices @p rows' own rendered shape into @p outputFile's own
-     *        region -- the lines strictly between its @c \[begin\] and
-     *        @c \[end\] delimiters -- write-if-different, every line
-     *        outside the region kept byte-for-byte. No banner and no file
-     *        documentation render; Validator has already
-     *        established the region's pairing, the file's existence, and
-     *        the delimiters' own presence and order, so this trusts all
-     *        three unconditionally.
+     * @brief Splices the rendered shape of one run of region rows into
+     *        @p lines, between the run's own delimiter lines.
+     *
+     * @param lines      The region file's own content, split into lines.
+     * @param tables     The tables searched when a nested @c list token
+     *                   expands.
+     * @param rows       The table's own rows.
+     * @param runStart   The index of the run's own first row in @p rows.
+     * @param runEnd     The index one past the run's own last row in
+     *                   @p rows.
+     * @param extension  The target file extension the shape renders for.
+     * @param beginValue The run's own resolved @c \[begin\] value.
+     * @param endValue   The run's own resolved @c \[end\] value.
+     * @returns @p lines with the run's own region replaced by the rendered
+     *          shape.
+     */
+    jam::Strings getSplicedLines (const jam::Strings& lines, const jam::Array<const Model::Element*>& tables,
+        const jam::Array<const Model::Element*>& rows, int runStart, int runEnd, const juce::String& extension,
+        const juce::String& beginValue, const juce::String& endValue) const
+    {
+        const auto [beginLine, endLine] { Transforms::getDelimiterLines (lines, beginValue, endValue) };
+
+        jam::MarkdownDocument rendered;
+        apply (rendered, tables, rows, runStart, runEnd, extension);
+
+        jam::Strings renderedLines;
+        renderedLines.addLines (getText (rendered).trimEnd());
+
+        return Transforms::getSplicedLines (lines, beginLine, endLine, renderedLines, 0, renderedLines.size());
+    }
+
+    /**
+     * @brief Splices @p rows' own rendered shapes into @p outputFile's own
+     *        regions -- the lines strictly between each @c \[begin\] and
+     *        @c \[end\] delimiter pair -- write-if-different, every line
+     *        outside the regions kept byte-for-byte. Consecutive rows that
+     *        resolve the same pair render into one region; the regions
+     *        apply in manifest order. No banner and no file documentation
+     *        render; Validator has already established each region's
+     *        pairing, the file's existence, the delimiters' own presence
+     *        and order, and that the regions do not overlap, so this
+     *        trusts all of it unconditionally.
      *
      * @param rows          The table's own rows, sliced to the group's
      *                      own [@p start, @p groupEnd) range.
@@ -286,49 +308,32 @@ private:
      *                      @p rows.
      * @param outputFile    The region file patched, already resolved
      *                      without creation by getOutputFiles().
-     * @param firstRow      The group's own first row, whose bindings are
-     *                      resolved against.
      * @param extension     The target file extension the shape renders
      *                      for.
-     * @param beginBinding  The group's own @c \[begin\] binding.
-     * @param endBinding    The group's own @c \[end\] binding.
      * @returns @p outputFile's own full path when it needed rewriting and
      *          the write failed, or an empty string when its text was
      *          already canonical or wrote successfully.
      */
     juce::String toRegionFile (const jam::Array<const Model::Element*>& rows,
         const jam::Array<const Model::Element*>& tables, int start, int groupEnd,
-        const juce::File& outputFile, const Model::Element& firstRow, const juce::String& extension,
-        const Model::Element* beginBinding, const Model::Element* endBinding) const
+        const juce::File& outputFile, const juce::String& extension) const
     {
         static const auto newlineText { juce::String::charToString (Chars::newline) };
 
-        const auto beginValue { templateDocument.getValue (
-            model, firstRow, *beginBinding->get<juce::String> (Id::value)) };
-        const auto endValue { templateDocument.getValue (
-            model, firstRow, *endBinding->get<juce::String> (Id::value)) };
-
         const auto current { outputFile.loadFileAsString() };
-        const auto lines { jam::Strings::fromLines (current) };
-        const auto [beginLine, endLine] { getDelimiterLines (lines, beginValue, endValue) };
+        auto lines (jam::Strings::fromLines (current));
+        auto runStart { start };
 
-        jam::MarkdownDocument rendered;
-        apply (rendered, tables, rows, start, groupEnd, extension);
+        while (runStart < groupEnd)
+        {
+            const auto beginValue { Shapes::getRegionValue (model, templateDocument, *rows.at (runStart), Id::begin) };
+            const auto endValue { Shapes::getRegionValue (model, templateDocument, *rows.at (runStart), Id::end) };
+            const auto runEnd { getRunEnd (rows, runStart, groupEnd, beginValue, endValue) };
+            lines = getSplicedLines (lines, tables, rows, runStart, runEnd, extension, beginValue, endValue);
+            runStart = runEnd;
+        }
 
-        jam::Strings spliced;
-
-        for (int lineIndex { 0 }; lineIndex <= beginLine; ++lineIndex)
-            spliced.add (lines.at (lineIndex));
-
-        spliced.addLines (getText (rendered).trimEnd());
-
-        for (int lineIndex { endLine }; lineIndex < lines.size(); ++lineIndex)
-            spliced.add (lines.at (lineIndex));
-
-        auto canonical { spliced.joinIntoString (newlineText, 0, -1) };
-
-        if (current.endsWith (newlineText) and not canonical.endsWith (newlineText))
-            canonical += newlineText;
+        const auto canonical { Transforms::getJoinedText (lines, current) };
 
         return canonical.compare (current) != 0
                    and not outputFile.replaceWithText (canonical, false, false, newlineText.toRawUTF8())

@@ -1143,16 +1143,24 @@ struct Validator : jam::MarkdownValidator
      *                    against.
      * @param kernelNames @p root's own @c kernel-classed module names.
      * @returns juce::Result::ok() when every kernel name's own directory
-     *          exists, or a failure naming @p root and the missing name.
+     *          exists, or a failure naming @p root and the first missing
+     *          name in ascending order.
      */
     static juce::Result isKernelPresent (const juce::File& root, const jam::HashSet<juce::String>& kernelNames)
     {
+        jam::Array<juce::String> missingNames;
+
         for (const auto& name : kernelNames)
             if (not root.getChildFile (name).isDirectory())
-                return juce::Result::fail (root.getFullPathName() + Id::diagnosticSeparator + name
-                                           + Id::diagnosticSeparator + text::Diagnostics::failSyncModule);
+                missingNames.add (name);
 
-        return juce::Result::ok();
+        missingNames.sort();
+
+        if (missingNames.isEmpty())
+            return juce::Result::ok();
+
+        return juce::Result::fail (root.getFullPathName() + Id::diagnosticSeparator + missingNames.at (0)
+                                   + Id::diagnosticSeparator + text::Diagnostics::failSyncModule);
     }
 
     /**
@@ -1186,22 +1194,63 @@ struct Validator : jam::MarkdownValidator
     }
 
     /**
+     * @brief Checks that the files on disk under a root's own kernel
+     *        scopes are exactly the files its @c ## submodule rows name --
+     *        except that a declared file listed in @p writablePaths can be
+     *        absent, because sync writes it.
+     *
+     * @param root          The sync root, named in a failure.
+     * @param diskPaths     The root-relative paths on disk under the
+     *                      root's own kernel scopes, after the ignore
+     *                      globs.
+     * @param declaredPaths The root-relative paths the root's own
+     *                      @c ## submodule rows name.
+     * @param writablePaths The declared paths that can be absent from disk.
+     * @returns juce::Result::ok() when the two sets agree, or a failure
+     *          naming @p root and the first differing path, in ascending
+     *          order.
+     */
+    static juce::Result isSubmoduleListed (const juce::File& root, const jam::HashSet<juce::String>& diskPaths,
+        const jam::HashSet<juce::String>& declaredPaths, const jam::HashSet<juce::String>& writablePaths)
+    {
+        jam::Array<juce::String> differences;
+
+        for (const auto& path : diskPaths)
+            if (not declaredPaths.contains (path))
+                differences.add (path);
+
+        for (const auto& path : declaredPaths)
+            if (not diskPaths.contains (path) and not writablePaths.contains (path))
+                differences.add (path);
+
+        differences.sort();
+
+        if (differences.isEmpty())
+            return juce::Result::ok();
+
+        return juce::Result::fail (root.getFullPathName() + Id::diagnosticSeparator + differences.at (0)
+                                   + Id::diagnosticSeparator + text::Diagnostics::failSyncSubmodule);
+    }
+
+    /**
      * @brief Checks that @p sourceKernelNames, each name transformed by
      *        the @p sourceFilePrefix-to-@p targetFilePrefix pair,
-     *        corresponds one to one with @p targetKernelNames.
+     *        corresponds one to one with @p targetKernelNames. A name is a
+     *        module name or a submodule path.
      *
      * @param sourceRoot        The sync source root, named in a failure.
      * @param targetRoot        The sync target root, named in a failure.
      * @param sourceKernelNames The source's own @c kernel-classed module
-     *                          names.
+     *                          names or submodule paths.
      * @param targetKernelNames The target's own @c kernel-classed module
-     *                          names.
+     *                          names or submodule paths.
      * @param sourceFilePrefix  The source's own identity @c filePrefix
      *                          value.
      * @param targetFilePrefix  The target's own identity @c filePrefix
      *                          value.
-     * @returns juce::Result::ok() when the two kernel sets correspond, or
-     *          a failure naming both roots.
+     * @returns juce::Result::ok() when the two sets correspond, or a
+     *          failure naming both roots and the first differing name, in
+     *          ascending order.
      */
     static juce::Result isCorresponding (const juce::File& sourceRoot, const juce::File& targetRoot,
         const jam::HashSet<juce::String>& sourceKernelNames, const jam::HashSet<juce::String>& targetKernelNames,
@@ -1210,46 +1259,26 @@ struct Validator : jam::MarkdownValidator
         jam::HashSet<juce::String> transformedSourceNames;
 
         for (const auto& name : sourceKernelNames)
-            transformedSourceNames.insert (name.replace (sourceFilePrefix, targetFilePrefix));
+            transformedSourceNames.insert (Transforms::getTransformedPath (name, sourceFilePrefix, targetFilePrefix));
 
-        auto corresponds { transformedSourceNames.size() == targetKernelNames.size() };
+        jam::Array<juce::String> differences;
 
         for (const auto& name : transformedSourceNames)
-            corresponds = corresponds and targetKernelNames.contains (name);
+            if (not targetKernelNames.contains (name))
+                differences.add (name);
 
-        if (corresponds)
+        for (const auto& name : targetKernelNames)
+            if (not transformedSourceNames.contains (name))
+                differences.add (name);
+
+        differences.sort();
+
+        if (differences.isEmpty())
             return juce::Result::ok();
 
         return juce::Result::fail (sourceRoot.getFullPathName() + Chars::space + targetRoot.getFullPathName()
-                                   + Id::diagnosticSeparator + text::Diagnostics::failSyncCorrespondence);
-    }
-
-    /**
-     * @brief Answers whether @p beginValue matches a line in @p lines and
-     *        @p endValue matches a strictly later line.
-     *
-     * @param lines      The region file's own content, split into lines.
-     * @param beginValue The resolved @c \[begin\] delimiter text.
-     * @param endValue   The resolved @c \[end\] delimiter text.
-     * @returns @c true when both delimiters match, in order.
-     */
-    static bool hasDelimiterOrder (
-        const jam::Strings& lines, const juce::String& beginValue, const juce::String& endValue)
-    {
-        auto beginLine { -1 };
-
-        for (int lineIndex { 0 }; lineIndex < lines.size() and beginLine < 0; ++lineIndex)
-            if (lines.at (lineIndex).contains (beginValue))
-                beginLine = lineIndex;
-
-        auto endLine { -1 };
-
-        for (int lineIndex { beginLine + 1 }; beginLine >= 0 and lineIndex < lines.size() and endLine < 0;
-             ++lineIndex)
-            if (lines.at (lineIndex).contains (endValue))
-                endLine = lineIndex;
-
-        return beginLine >= 0 and endLine >= 0;
+                                   + Id::diagnosticSeparator + text::Diagnostics::failSyncCorrespondence
+                                   + Id::diagnosticSeparator + differences.at (0));
     }
 
     /**
@@ -1305,7 +1334,7 @@ struct Validator : jam::MarkdownValidator
     /**
      * @brief Reads @p row's own region file once and checks that its own
      *        resolved @c \[begin\] and @c \[end\] delimiters both match,
-     *        in order, through hasDelimiterOrder().
+     *        in order, through Transforms::getDelimiterLines().
      *
      * @param model            The model @p row belongs to.
      * @param templateDocument The template document @p row's own bindings
@@ -1314,28 +1343,15 @@ struct Validator : jam::MarkdownValidator
      *                         failure's location.
      * @param row              The region row whose delimiters are
      *                         checked.
-     * @param beginMarker      @p row's own @c \[begin\] binding's marker
-     *                         id.
-     * @param endMarker        @p row's own @c \[end\] binding's marker
-     *                         id.
      * @returns juce::Result::ok() when both delimiters match, in order,
      *          or a failure naming @p row's own file.
      */
-    static juce::Result isRegionDelimited (const Model& model, const TemplateDocument& templateDocument,
-        const Element& table, const Element& row, const juce::Identifier& beginMarker, const juce::Identifier& endMarker)
+    static juce::Result isRegionDelimited (
+        const Model& model, const TemplateDocument& templateDocument, const Element& table, const Element& row)
     {
-        auto* firstLine { Shapes::getFirstLine (model, row) };
-        auto* beginBinding { model.getBinding (row, Id::structure, *firstLine, beginMarker) };
-        auto* endBinding { model.getBinding (row, Id::structure, *firstLine, endMarker) };
+        const auto [beginLine, endLine] { getRegionLines (model, templateDocument, row) };
 
-        const auto beginValue {
-            templateDocument.getValue (model, row, *beginBinding->get<juce::String> (Id::value)) };
-        const auto endValue {
-            templateDocument.getValue (model, row, *endBinding->get<juce::String> (Id::value)) };
-        const auto& file { model.getValue (row, Id::file) };
-        const auto lines { jam::Strings::fromLines (model.getFile (file).loadFileAsString()) };
-
-        if (hasDelimiterOrder (lines, beginValue, endValue))
+        if (endLine >= 0)
             return juce::Result::ok();
 
         return juce::Result::fail (getLocation (table, row, Id::file.toString())
@@ -1343,8 +1359,72 @@ struct Validator : jam::MarkdownValidator
     }
 
     /**
+     * @brief Finds @p row's own @c \[begin\] and @c \[end\] delimiter
+     *        lines in @p row's own region file.
+     *
+     * @param model            The model @p row belongs to.
+     * @param templateDocument The template document @p row's own bindings
+     *                         are resolved through.
+     * @param row              The region row whose delimiter lines are
+     *                         found.
+     * @returns The begin and end line indices Transforms::getDelimiterLines()
+     *          returns.
+     */
+    static std::pair<int, int> getRegionLines (
+        const Model& model, const TemplateDocument& templateDocument, const Element& row)
+    {
+        const auto beginValue { Shapes::getRegionValue (model, templateDocument, row, Id::begin) };
+        const auto endValue { Shapes::getRegionValue (model, templateDocument, row, Id::end) };
+        const auto& file { model.getValue (row, Id::file) };
+        const auto lines (jam::Strings::fromLines (model.getFile (file).loadFileAsString()));
+
+        return Transforms::getDelimiterLines (lines, beginValue, endValue);
+    }
+
+    /**
+     * @brief Checks that the regions of one file do not overlap, and that
+     *        one region is written by consecutive rows only -- a row that
+     *        resolves a region the file's own earlier rows already wrote,
+     *        after a row of another region, fails.
+     *
+     * @param model            The model whose output tables are checked.
+     * @param templateDocument The template document each region row's own
+     *                         bindings are resolved through.
+     * @returns juce::Result::ok() when every file's regions are disjoint
+     *          and consecutive, or a failure naming the first offending
+     *          row.
+     */
+    static juce::Result isRegionDisjoint (const Model& model, const TemplateDocument& templateDocument)
+    {
+        jam::HashMap<juce::String, jam::Array<std::pair<int, int>>> fileRegions;
+
+        for (auto* table : model.getTables())
+            if (model.isOutputTable (*table))
+                for (auto* row : model.getTableRows (*table))
+                    if (model.isRegionRow (*row))
+                    {
+                        const auto [beginLine, endLine] { getRegionLines (model, templateDocument, *row) };
+                        auto [entry, inserted] { fileRegions.try_emplace (model.getValue (*row, Id::file)) };
+                        auto& [entryFile, entryRegions] { *entry };
+                        const auto region { std::make_pair (beginLine, endLine) };
+                        const auto isRepeat { entryRegions.contains (region) and entryRegions.last() != region };
+
+                        for (const auto& [otherBegin, otherEnd] : entryRegions)
+                            if (isRepeat or (region != std::make_pair (otherBegin, otherEnd)
+                                             and beginLine <= otherEnd and otherBegin <= endLine))
+                                return juce::Result::fail (getLocation (*table, *row, Id::file.toString())
+                                                           + Id::diagnosticSeparator
+                                                           + text::Diagnostics::failRegionOverlap);
+
+                        entryRegions.add (region);
+                    }
+
+        return juce::Result::ok();
+    }
+
+    /**
      * @brief Checks every region row's own delimiters through the
-     *        recursive overload.
+     *        per-row overload.
      *
      * @param model            The model whose output tables are checked.
      * @param templateDocument The template document each region row's own
@@ -1354,16 +1434,11 @@ struct Validator : jam::MarkdownValidator
      */
     static juce::Result isRegionDelimited (const Model& model, const TemplateDocument& templateDocument)
     {
-        static const auto beginMarker { Model::getReservedName (Id::begin) };
-        static const auto endMarker { Model::getReservedName (Id::end) };
-
         for (auto* table : model.getTables())
             if (model.isOutputTable (*table))
                 for (auto* row : model.getTableRows (*table))
                     if (model.isRegionRow (*row))
-                        if (const auto result {
-                                isRegionDelimited (model, templateDocument, *table,
-                                    *row, beginMarker, endMarker) };
+                        if (const auto result { isRegionDelimited (model, templateDocument, *table, *row) };
                             not result.wasOk())
                             return result;
 
@@ -1773,6 +1848,9 @@ struct Validator : jam::MarkdownValidator
             return result;
 
         if (const auto result { isRegionDelimited (model, templateDocument) }; not result.wasOk())
+            return result;
+
+        if (const auto result { isRegionDisjoint (model, templateDocument) }; not result.wasOk())
             return result;
 
         if (const auto result { isFencePrefix (model) }; not result.wasOk())

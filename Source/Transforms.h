@@ -38,6 +38,120 @@ struct Transforms
     }
 
     /**
+     * @brief Finds @p beginValue's own first matching line and, strictly
+     *        after it, @p endValue's own first matching line.
+     *
+     * The search is the one delimiter search every region reader shares:
+     * Validator checks its result before a run writes, Writer splices at
+     * it, and Sync keeps the target's region through it. When
+     * @p beginValue matches no line, @p endValue is not searched, so the
+     * end index is negative whenever the begin index is.
+     *
+     * @param lines      The region file's own content, split into lines.
+     * @param beginValue The resolved @c \[begin\] delimiter text.
+     * @param endValue   The resolved @c \[end\] delimiter text.
+     * @returns @p beginValue's own matching line index paired with
+     *          @p endValue's own matching line index, each @c -1 when it
+     *          matches no line.
+     */
+    static std::pair<int, int> getDelimiterLines (
+        const jam::Strings& lines, const juce::String& beginValue, const juce::String& endValue)
+    {
+        static constexpr int noLine { -1 };
+
+        auto beginLine { noLine };
+
+        for (int lineIndex { 0 }; lineIndex < lines.size() and beginLine < 0; ++lineIndex)
+            if (lines.at (lineIndex).contains (beginValue))
+                beginLine = lineIndex;
+
+        auto endLine { noLine };
+
+        for (int lineIndex { beginLine + 1 }; beginLine >= 0 and lineIndex < lines.size() and endLine < 0;
+             ++lineIndex)
+            if (lines.at (lineIndex).contains (endValue))
+                endLine = lineIndex;
+
+        return { beginLine, endLine };
+    }
+
+    /**
+     * @brief Builds @p lines with the lines strictly between @p beginLine
+     *        and @p endLine replaced by a slice of @p regionLines.
+     *
+     * @param lines       The file's own content, split into lines.
+     * @param beginLine   The index of @p lines' own begin delimiter line,
+     *                    kept.
+     * @param endLine     The index of @p lines' own end delimiter line,
+     *                    kept.
+     * @param regionLines The lines the replacement is sliced from.
+     * @param regionStart The index of @p regionLines' own first replacement
+     *                    line.
+     * @param regionEnd   The index one past @p regionLines' own last
+     *                    replacement line.
+     * @returns @p lines up to and including @p beginLine, then
+     *          @p regionLines' own [@p regionStart, @p regionEnd) slice,
+     *          then @p lines from @p endLine on.
+     */
+    static jam::Strings getSplicedLines (const jam::Strings& lines, int beginLine, int endLine,
+        const jam::Strings& regionLines, int regionStart, int regionEnd)
+    {
+        jam::Strings spliced;
+
+        for (int lineIndex { 0 }; lineIndex <= beginLine; ++lineIndex)
+            spliced.add (lines.at (lineIndex));
+
+        for (int lineIndex { regionStart }; lineIndex < regionEnd; ++lineIndex)
+            spliced.add (regionLines.at (lineIndex));
+
+        for (int lineIndex { endLine }; lineIndex < lines.size(); ++lineIndex)
+            spliced.add (lines.at (lineIndex));
+
+        return spliced;
+    }
+
+    /**
+     * @brief Joins @p lines with LF, keeping the final LF that @p original
+     *        carried.
+     *
+     * @param lines    The lines to join.
+     * @param original The text @p lines derive from, whose final LF is
+     *                 kept.
+     * @returns @p lines joined with LF, with a final LF added when
+     *          @p original ends with one and the join does not.
+     */
+    static juce::String getJoinedText (const jam::Strings& lines, const juce::String& original)
+    {
+        static const auto newlineText { juce::String::charToString (Chars::newline) };
+
+        auto joined { lines.joinIntoString (newlineText, 0, -1) };
+
+        if (original.endsWith (newlineText) and not joined.endsWith (newlineText))
+            joined += newlineText;
+
+        return joined;
+    }
+
+    /**
+     * @brief Replaces @p sourceFilePrefix with @p targetFilePrefix in
+     *        every segment of @p relativePath -- directory names and file
+     *        names alike.
+     *
+     * @param relativePath     The root-relative path to transform.
+     * @param sourceFilePrefix The source's own identity @c filePrefix
+     *                         value.
+     * @param targetFilePrefix The target's own identity @c filePrefix
+     *                         value.
+     * @returns @p relativePath with @p sourceFilePrefix replaced by
+     *          @p targetFilePrefix.
+     */
+    static juce::String getTransformedPath (
+        const juce::String& relativePath, const juce::String& sourceFilePrefix, const juce::String& targetFilePrefix)
+    {
+        return relativePath.replace (sourceFilePrefix, targetFilePrefix);
+    }
+
+    /**
      * @brief Wraps @p input in @p extension's block-comment syntax, when
      *        @p extension declares one -- one line when @p input carries
      *        no newline, otherwise each prose line behind @p extension's

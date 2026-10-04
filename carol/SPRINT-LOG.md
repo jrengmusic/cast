@@ -111,6 +111,40 @@
 
 ## SPRINT HISTORY
 
+## Sprint: submodule-sync — Sync Reads `## submodule` and `## region`; Many Regions per File; Mirror-Delete Deleted ✅
+
+**Date:** 2026-10-04
+**Duration:** part of one session (jam Sprint 151 is the primary record)
+**Plan:** `dev/jam/PLAN-submodule-sync.md` (locked)
+
+### Decisions (ARCHITECT)
+1. *"cast --sync able to sync submodules determnistically"*; *"always test in scratchpad before committing to production repo"*.
+2. Region: **"Keep target region (Recommended)"**; list every submodule in `user-modules-info.md`; core split **"Two regions, new pair"**.
+
+### Files Modified
+- `Source/Transforms.h` — `getDelimiterLines` (moved from Writer; the one search; `noLine`), `getSplicedLines`, `getJoinedText`, `getTransformedPath` (moved from Sync).
+- `Source/Shapes.h` — `getRegionValue (model, templateDocument, row, word)`, the one `[begin]`/`[end]` resolver.
+- `Source/Writer.h` — `toRegionFile` patches every region of one file in manifest order, one write; `getRunEnd`, `getSplicedLines`; marker statics deleted.
+- `Source/Validator.h` — `hasDelimiterOrder` deleted; `getRegionLines`, `isRegionDisjoint` (overlap, or one region written by non-consecutive rows); `isSubmoduleListed (root, diskPaths, declaredPaths, writablePaths)`; `isCorresponding` and `isKernelPresent` name the first sorted difference.
+- `Source/Sync.h` — five tables; `isSubmoduleDeclared` (listing gate at both roots, kernel-row correspondence); walk = source kernel rows in authored order (`getSyncFiles`); `getRegionKeptText` / `getRegionKeptLines` keep the target's own regions from its `## region` rows; `getMirrorDeletions`, `runReport` deleted; report = written paths. Same-container initializers use parentheses.
+- `cast/identifiers.md` — `region`, `submodule`. `cast/text.md` — `failRegionOverlap`, `failSyncSubmodule`; `failSyncDelete` deleted.
+- `SPEC.md` §2.2, §6.10, §10.1; `Source/HELP.md` Sync and Regions sections.
+- Doc pass: doxygen for every new or changed function; 0 warnings (scratch Doxyfile, the repo has none).
+
+### Problems Solved
+- Sync carried each aggregator's include list as shared text, so KANJUT received jam's TextEditor includes. Each root now owns its include regions; sync keeps them.
+- Scratch tests: second sync in both directions writes nothing; a new kernel file with rows in both roots syncs to the target.
+
+### State for Continuation
+- A deleted kernel file needs its row and file removed by hand in the other root.
+- Builds: Debug in `Builds/Debug`; Release installed to `~/.local/bin/cast` (`--no-sign`).
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None
+
 ## Sprint: signing-lane — `cast/signing.md`; Generated `entitlements.plist` ✅
 
 **Date:** 2026-10-04

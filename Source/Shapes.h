@@ -101,6 +101,30 @@ struct Shapes
     }
 
     /**
+     * @brief Resolves @p row's own @c \[begin\] or @c \[end\] region
+     *        delimiter value through @p templateDocument.
+     *
+     * @pre @p row carries the @p word binding -- established once by
+     *      Validator::isRegionPaired() before any reader runs.
+     *
+     * @param model            The model @p row belongs to.
+     * @param templateDocument The template document the binding's value is
+     *                         resolved through.
+     * @param row              The region row whose delimiter is resolved.
+     * @param word             The reserved word that names the delimiter,
+     *                         @c Id::begin or @c Id::end.
+     * @returns The resolved delimiter text.
+     */
+    static juce::String getRegionValue (const Model& model, const TemplateDocument& templateDocument,
+        const Element& row, const juce::Identifier& word)
+    {
+        auto* binding { model.getBinding (
+            row, Id::structure, *getFirstLine (model, row), Model::getReservedName (word)) };
+
+        return templateDocument.getValue (model, row, *binding->get<juce::String> (Id::value));
+    }
+
+    /**
      * @brief Resolves @p line's own first list source addressing a table,
      *        walking @p line's own arity of sources in authored order.
      *

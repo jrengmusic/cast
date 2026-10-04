@@ -175,13 +175,14 @@ the stdin input only — no argument, or the argument `-`. The `--no-format` lin
 
 ### 2.2 Sync
 
-`cast --sync <source-root> <target-root>` mirrors one framework's kernel onto
-another's. Each root carries a `user-modules-info.md` file at its top level, with
-three tables: `## identity` (`key | value | boundary`), `## module` (`name | class`,
-plus data columns that manifest wiring reads, never sync), and `## ignore`
-(`value`). Sync reads the two info files and no manifest. The two roots must
-differ (§10.1). Sync reads exactly these three tables — any other table in the file
-belongs to the manifest and is never read by sync.
+`cast --sync <source-root> <target-root>` mirrors one framework's kernel onto another's.
+Each root carries a `user-modules-info.md` file at its top level, with five tables:
+`## identity` (`key | value | boundary`), `## module` (`name | class`, plus data
+columns that manifest wiring reads, never sync), `## submodule` (`module | path |
+class`, plus data columns that manifest wiring reads, never sync), `## region`
+(`begin | end`), and `## ignore` (`value`). Sync reads the two info files and no
+manifest. The two roots must differ (§10.1). Sync reads exactly these five tables — any
+other table in the file belongs to the manifest and is never read by sync.
 
 **The transform is one ordered replacement list, longest source first** — sources
 of equal length order by their text, descending, and sources with equal text keep
@@ -199,21 +200,31 @@ directory names and file names alike. A row whose `boundary` cell is `word` matc
 whole words only: the characters before and after the match are absent or outside
 `[A-Za-z0-9_]`. Every other row matches plain text.
 
-**The walk.** Sync visits the source's `kernel` rows. A `kernel` row names a
-directory; every other class value is provision. At each root, every kernel row's
-directory must exist, and every `<filePrefix>*` directory on disk must be declared
-(§10.1). After the path transform, the two files' kernel sets must correspond one
-to one (§10.1). Root-relative paths use `/` on every host. A file whose
-root-relative path matches an `## ignore` row (`*` wildcards) is skipped. A source
-file that cannot be read is fatal (§10.1). A file with a NUL byte in its first
-8000 bytes copies byte-for-byte. Every other file transforms as text and normalizes
-to LF (§10). A `.md` file re-canonicalizes through the formatter (§3.3) after the
-transform only when its kernel scope's own name carries no `filePrefix` — the data
-scopes, never the module directories. Every write is write-if-different, and a
-write or delete that fails is fatal (§10.1). Before a write, a target file whose
-on-disk name differs from the transformed path only by case is renamed to the
-transformed path, so mirror-delete compares exact names on every host; a rename
-that fails is fatal as an output that cannot be written (§10).
+**The walk.** A `## module` row whose class is `kernel` names a directory; every other
+class value is provision. At each root, every kernel row's directory must exist, and
+every `<filePrefix>*` directory on disk must be declared (§10.1). After the path
+transform, the two files' kernel module sets must correspond one to one (§10.1).
+Root-relative paths use `/` on every host.
+
+**The listing.** A `## submodule` row names one file: its `module` cell names the kernel
+directory, and its `path` cell names the path inside that directory. At each root, the
+files under the kernel directories, less each file whose root-relative path matches an
+`## ignore` row (`*` wildcards), must be exactly the files that the `## submodule` rows
+name (§10.1) — except that at the target, a kernel row's file can be absent, because
+sync writes it. A row whose class is `kernel` is a kernel submodule; every other class
+value is provision. After the path transform, the two files' kernel submodule sets must
+correspond one to one (§10.1). Sync walks the source's kernel submodule rows. A
+provision row is never walked, never written, and never deleted.
+
+**The write.** A source file that cannot be read is fatal (§10.1). A file with a NUL
+byte in its first 8000 bytes copies byte-for-byte. Every other file transforms as text
+and normalizes to LF (§10). A `.md` file re-canonicalizes through the formatter (§3.3)
+after the transform only when its kernel scope's own name carries no `filePrefix` — the
+data scopes, never the module directories. Every write is write-if-different, and a
+write that fails is fatal (§10.1). Before a write, a target file whose on-disk name
+differs from the transformed path only by case is renamed to the transformed path, so
+the target name matches the transformed path byte for byte on every host; a rename that
+fails is fatal as an output that cannot be written (§10).
 
 **The style.** A sync root is a framework root, and a framework root is a project. The
 re-canonicalization uses one style file (§6.11), the first match of:
@@ -230,13 +241,15 @@ source root has no effect.
 is fatal, and the diagnostic names the file and the token (§10.1) — the transform
 must be invertible, and a target token on the source side proves it is not.
 
-**Mirror-delete.** A target file inside a kernel scope with no transformed source
-counterpart and no `## ignore` match is deleted. `provision` rows are never walked,
-never written, never deleted from.
+**The region.** A `## region` row names a delimiter pair (§6.10). When the target file
+exists, and both the transformed text and the target file hold the pair's `begin` line
+and a later `end` line, the lines between the two delimiters come from the target file.
+Every other line comes from the transformed text. Thus each root keeps the regions that
+its own manifest writes. The pairs are the target's own `## region` rows.
 
-**The report** is the written paths and the deleted paths, one per line, nothing
-else. Zero lines is the pass: the roots are in sync. Generated outputs are not
-carried — the target regenerates them by running cast against its own manifest.
+**The report** is the written paths, one per line, nothing else. Zero lines is the pass:
+the roots are in sync. Generated outputs are not carried — the target regenerates them
+by running cast against its own manifest.
 
 ---
 
@@ -983,8 +996,12 @@ delimiter pair marks where the engine's ownership begins and ends.
 A `[begin]` binding without an `[end]` binding, or the reverse, is fatal. A delimiter
 value that matches no line, or an `[end]` value whose first match is at or before the
 `[begin]` match, is fatal. One file is either region-written or whole-written: a file
-shared between a region row and a whole-file row is fatal (§10.1). Same-file region
-rows merge by the §6.7 law inside the one region.
+shared between a region row and a whole-file row is fatal (§10.1). A file can hold more
+than one region. Consecutive region rows of one file that resolve the same `[begin]` and
+`[end]` values merge by the §6.7 law inside that region. Region rows with other values
+patch their own region. Region rows that write one region again after rows of another
+region of the same file are fatal (§10.1). The engine writes the file one time, and patches its regions in
+manifest order. Two regions of one file that overlap are fatal (§10.1).
 
 ### 6.11 Style File
 
@@ -1395,15 +1412,16 @@ These, and nothing else:
 | a `- [begin]:` binding without `- [end]:`, or the reverse                                                         | §6.10      |
 | a region delimiter value matching no line, or `[end]` matching at or before `[begin]`                             | §6.10      |
 | a file shared between region rows and whole-file rows                                                             | §6.10      |
+| two regions of one file that overlap, or one region written by rows that are not consecutive                      | §6.10      |
 | `user-modules-info.md` absent at a sync root                                                                      | §2.2       |
 | a composed identity key absent from either sync file                                                              | §2.2       |
 | a kernel row naming no directory at its root, or a `<filePrefix>*` directory undeclared — checked at each root    | §2.2       |
 | kernel sets not corresponding one to one after the path transform                                                 | §2.2       |
+| a kernel directory file that no `## submodule` row names, or a `## submodule` row that names no file              | §2.2       |
 | a source text file containing a pair's target value — names the file and the token                                | §2.2       |
 | sync source root equals target root                                                                               | §2.2       |
 | a `--sync` line without exactly two roots, with or without one `--style=file:<path>`                              | §2.1       |
 | a sync source file that cannot be read                                                                            | §2.2       |
-| a sync delete that fails                                                                                          | §2.2       |
 | the manifest file, a `--format` file argument, or a `--style=file:<path>` file does not exist                     | §2.1       |
 | a `--line-wrap` value below 1, or a flag value that is not an integer                                             | §2.1       |
 | `-i` on a `--format` line that reads stdin                                                                        | §2.1       |

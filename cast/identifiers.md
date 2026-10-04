@@ -65,8 +65,10 @@ transform operations a format cell may declare (§8).
 | @id     | noBanner         | `no-banner`          | Banner-suppressing fence-prefix marker.                     |
 | @id     | noFormat         | `no-format`          | Formatless-column marker.                                   |
 | @id     | placeholder      | `placeholder`        | Placeholder token name.                                     |
+| @id     | region           | `region`             | Sync info-file region table name.                           |
 | @id     | separator        | `separator`          | Separator column key.                                       |
 | @id     | structure        | `structure`          | Structure column key.                                       |
+| @id     | submodule        | `submodule`          | Sync info-file submodule table name.                        |
 | @id     | symbol           | `symbol`             | Index symbol column key.                                    |
 | @id     | sync             | `sync`               | --sync CLI flag word.                                       |
 | @id     | templatePath     | `template`           | Template file path stamp.                                   |

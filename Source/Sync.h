@@ -10,9 +10,10 @@
  * @struct Sync
  * @brief Mirrors one framework's kernel onto another's -- parses each
  *        root's own @c user-modules-info.md, validates the
- *        sync-specific gates through Validator, then walks, transforms,
- *        writes, and mirror-deletes the source's own kernel scopes into
- *        the target root.
+ *        sync-specific gates through Validator, then walks the source's
+ *        own kernel @c ## submodule rows, transforms each file, and
+ *        writes it into the target root. A file the target holds in a
+ *        @c ## region keeps its own region lines. Sync deletes nothing.
  *
  * Sync owns no state of its own -- every member is static, matching
  * Validator and Transforms. run() is the one public entry point; every
@@ -29,8 +30,7 @@ struct Sync
      *        unique-pair gates, then runGates() for the rest.
      *
      * @param sourceRoot The framework root sync reads from.
-     * @param targetRoot The framework root sync writes and mirror-deletes
-     *                   into.
+     * @param targetRoot The framework root sync writes into.
      * @param formatter  The writer every re-canonicalized .md file renders through.
      * @returns juce::Result::ok() when the sync run succeeds, or the
      *          first failing gate's or step's result.
@@ -85,12 +85,12 @@ private:
     }
 
     /**
-     * @brief Resolves both roots' own @c filePrefix and module-name sets,
-     *        checks isKernelDeclared(), then runs runWalk().
+     * @brief Resolves both roots' own @c filePrefix, module-name sets, and
+     *        kernel submodule path sets, checks isKernelDeclared() and
+     *        isSubmoduleDeclared(), then runs runWalk().
      *
      * @param sourceRoot The framework root sync reads from.
-     * @param targetRoot The framework root sync writes and mirror-deletes
-     *                   into.
+     * @param targetRoot The framework root sync writes into.
      * @param sourceInfo @p sourceRoot's own parsed info file.
      * @param targetInfo @p targetRoot's own parsed info file.
      * @param formatter  The writer every re-canonicalized .md file renders through.
@@ -104,18 +104,75 @@ private:
         const auto sourceFilePrefix { getIdentityValue (sourceInfo, filePrefixKeyText) };
         const auto targetFilePrefix { getIdentityValue (targetInfo, filePrefixKeyText) };
 
-        const auto sourceDeclaredNames { getDeclaredModuleNames (sourceInfo) };
-        const auto targetDeclaredNames { getDeclaredModuleNames (targetInfo) };
-        const auto sourceKernelNames { getKernelModuleNames (sourceInfo) };
-        const auto targetKernelNames { getKernelModuleNames (targetInfo) };
+        const auto sourceDeclaredNames (getDeclaredModuleNames (sourceInfo));
+        const auto targetDeclaredNames (getDeclaredModuleNames (targetInfo));
+        const auto sourceKernelNames (getKernelModuleNames (sourceInfo));
+        const auto targetKernelNames (getKernelModuleNames (targetInfo));
+        const auto sourceKernelSubmodulePaths (getKernelSubmodulePaths (sourceInfo));
+        const auto targetKernelSubmodulePaths (getKernelSubmodulePaths (targetInfo));
 
         if (const auto result { isKernelDeclared (sourceRoot, targetRoot, sourceFilePrefix, targetFilePrefix,
                 sourceDeclaredNames, targetDeclaredNames, sourceKernelNames, targetKernelNames) };
             not result.wasOk())
             return result;
 
-        return runWalk (sourceRoot, targetRoot, sourceInfo, targetInfo, sourceFilePrefix, targetFilePrefix,
-            sourceKernelNames, targetKernelNames, formatter);
+        if (const auto result { isSubmoduleDeclared (sourceRoot, targetRoot, sourceInfo, targetInfo,
+                sourceKernelNames, targetKernelNames, sourceKernelSubmodulePaths, targetKernelSubmodulePaths,
+                sourceFilePrefix, targetFilePrefix) };
+            not result.wasOk())
+            return result;
+
+        return runWalk (sourceRoot, targetRoot, sourceInfo, targetInfo, sourceFilePrefix, targetFilePrefix, formatter);
+    }
+
+    /**
+     * @brief Checks the listing gate at both roots, then the
+     *        correspondence gate between the source's and the target's
+     *        kernel submodule paths, through Validator. At the target, a
+     *        kernel row's file can be absent, because sync writes it.
+     *
+     * @param sourceRoot                 The framework root sync reads from.
+     * @param targetRoot                 The framework root sync writes into.
+     * @param sourceInfo                 @p sourceRoot's own parsed info
+     *                                   file.
+     * @param targetInfo                 @p targetRoot's own parsed info
+     *                                   file.
+     * @param sourceKernelNames          @p sourceRoot's own
+     *                                   @c kernel-classed module names.
+     * @param targetKernelNames          @p targetRoot's own
+     *                                   @c kernel-classed module names.
+     * @param sourceKernelSubmodulePaths @p sourceRoot's own
+     *                                   @c kernel-classed submodule paths.
+     * @param targetKernelSubmodulePaths @p targetRoot's own
+     *                                   @c kernel-classed submodule paths.
+     * @param sourceFilePrefix           @p sourceRoot's own identity
+     *                                   @c filePrefix value.
+     * @param targetFilePrefix           @p targetRoot's own identity
+     *                                   @c filePrefix value.
+     * @returns juce::Result::ok() when both gates hold, or the first
+     *          failing gate's result.
+     */
+    static juce::Result isSubmoduleDeclared (const juce::File& sourceRoot, const juce::File& targetRoot,
+        const Model& sourceInfo, const Model& targetInfo, const jam::HashSet<juce::String>& sourceKernelNames,
+        const jam::HashSet<juce::String>& targetKernelNames,
+        const jam::HashSet<juce::String>& sourceKernelSubmodulePaths,
+        const jam::HashSet<juce::String>& targetKernelSubmodulePaths, const juce::String& sourceFilePrefix,
+        const juce::String& targetFilePrefix)
+    {
+        if (const auto result { Validator::isSubmoduleListed (sourceRoot,
+                getDiskPaths (sourceRoot, sourceKernelNames, getIgnorePatterns (sourceInfo)),
+                getDeclaredSubmodulePaths (sourceInfo), jam::HashSet<juce::String> {}) };
+            not result.wasOk())
+            return result;
+
+        if (const auto result { Validator::isSubmoduleListed (targetRoot,
+                getDiskPaths (targetRoot, targetKernelNames, getIgnorePatterns (targetInfo)),
+                getDeclaredSubmodulePaths (targetInfo), targetKernelSubmodulePaths) };
+            not result.wasOk())
+            return result;
+
+        return Validator::isCorresponding (sourceRoot, targetRoot, sourceKernelSubmodulePaths,
+            targetKernelSubmodulePaths, sourceFilePrefix, targetFilePrefix);
     }
 
     /**
@@ -166,8 +223,8 @@ private:
 
     /**
      * @brief Builds the ordered replacement pairs and the source's own
-     *        walked file list, runs runContamination() over them, then,
-     *        once clean, runTransform().
+     *        kernel submodule file list, runs runContamination() over
+     *        them, then, once clean, runTransform().
      *
      * @param sourceRoot        The framework root sync reads from.
      * @param targetRoot        The framework root sync writes into.
@@ -177,26 +234,21 @@ private:
      *                          value.
      * @param targetFilePrefix  @p targetRoot's own identity @c filePrefix
      *                          value.
-     * @param sourceKernelNames @p sourceRoot's own @c kernel-classed
-     *                          module names.
-     * @param targetKernelNames @p targetRoot's own @c kernel-classed
-     *                          module names.
      * @param formatter         The writer every re-canonicalized .md file renders through.
      * @returns juce::Result::ok() when the walk, contamination check, and
      *          transform all succeed, or the first failure's result.
      */
     static juce::Result runWalk (const juce::File& sourceRoot, const juce::File& targetRoot,
         const Model& sourceInfo, const Model& targetInfo, const juce::String& sourceFilePrefix,
-        const juce::String& targetFilePrefix, const jam::HashSet<juce::String>& sourceKernelNames,
-        const jam::HashSet<juce::String>& targetKernelNames, const jam::MarkdownWriter& formatter)
+        const juce::String& targetFilePrefix, const jam::MarkdownWriter& formatter)
     {
-        const auto identityRows { getIdentityRows (sourceInfo, targetInfo) };
-        const auto namespaceValues { getIdentityValues (sourceInfo, targetInfo, Id::tokenNamespace.toString()) };
-        const auto namespaceSpacePair { getNamespaceSpacePair (namespaceValues.first, namespaceValues.second) };
-        const auto namespaceColonPair { getNamespaceColonPair (namespaceValues.first, namespaceValues.second) };
+        const auto identityRows (getIdentityRows (sourceInfo, targetInfo));
+        const auto [sourceNamespace, targetNamespace] {
+            getIdentityValues (sourceInfo, targetInfo, Id::tokenNamespace.toString()) };
+        const auto namespaceSpacePair { getNamespaceSpacePair (sourceNamespace, targetNamespace) };
+        const auto namespaceColonPair { getNamespaceColonPair (sourceNamespace, targetNamespace) };
 
-        const auto sourceIgnorePatterns { getIgnorePatterns (sourceInfo) };
-        const auto sourceFiles { getSyncFiles (sourceRoot, sourceKernelNames, sourceIgnorePatterns) };
+        const auto sourceFiles (getSyncFiles (sourceRoot, sourceInfo));
 
         if (const auto result { runContamination (sourceFiles, sourceRoot, sourceInfo, targetInfo, identityRows,
                 namespaceSpacePair, namespaceColonPair) };
@@ -204,7 +256,7 @@ private:
             return result;
 
         return runTransform (sourceFiles, sourceRoot, targetRoot, sourceFilePrefix, targetFilePrefix, sourceInfo,
-            targetInfo, identityRows, namespaceSpacePair, namespaceColonPair, targetKernelNames, formatter);
+            targetInfo, identityRows, namespaceSpacePair, namespaceColonPair, formatter);
     }
 
     /**
@@ -214,7 +266,7 @@ private:
      *        of Sync's own two-pass walk. The contamination fatal
      *        must stop the run before any write, never after.
      *
-     * @param sourceFiles         The source's own walked, ignore-filtered
+     * @param sourceFiles         The source's own kernel submodule rows'
      *                            files.
      * @param sourceRoot          The framework root @p sourceFiles are
      *                            resolved under.
@@ -258,7 +310,7 @@ private:
      *        own two-pass walk, run only once runContamination() has
      *        cleared every file.
      *
-     * @param sourceFiles        The source's own walked, ignore-filtered
+     * @param sourceFiles        The source's own kernel submodule rows'
      *                           files.
      * @param sourceRoot         The framework root @p sourceFiles are
      *                           resolved under.
@@ -291,7 +343,8 @@ private:
 
         Jobs::run (sourceFiles.size(),
             [&sourceFiles, &sourceRoot, &targetRoot, &sourceFilePrefix, &targetFilePrefix, &sourceInfo, &targetInfo,
-                &identityRows, &namespaceSpacePair, &namespaceColonPair, &formatter, &syncResults] (int index)
+                &identityRows, &namespaceSpacePair, &namespaceColonPair, &formatter,
+                &syncResults] (int index)
             {
                 syncResults.at (index) = getSyncOutcome (sourceFiles.at (index), sourceRoot, targetRoot,
                     sourceFilePrefix, targetFilePrefix, sourceInfo, targetInfo, identityRows, namespaceSpacePair,
@@ -303,9 +356,9 @@ private:
 
     /**
      * @brief Runs getSyncResults(), collects every written path, and, when
-     *        every file wrote or was already current, runs runReport().
+     *        every file wrote or was already current, prints the report.
      *
-     * @param sourceFiles        The source's own walked, ignore-filtered
+     * @param sourceFiles        The source's own kernel submodule rows'
      *                           files.
      * @param sourceRoot         The framework root @p sourceFiles are
      *                           resolved under.
@@ -323,22 +376,19 @@ private:
      *                           @c "namespace <target>" pair.
      * @param namespaceColonPair The @c "<source>::" to @c "<target>::"
      *                           pair.
-     * @param targetKernelNames  The target's own @c kernel-classed module
-     *                           names, passed through to runReport().
      * @param formatter          The writer every re-canonicalized .md file renders through.
-     * @returns juce::Result::ok() when every file writes successfully and
-     *          runReport() succeeds, or the first failure's result.
+     * @returns juce::Result::ok() when every file writes successfully, or
+     *          the first failure's result.
      */
     static juce::Result runTransform (const jam::Array<juce::File>& sourceFiles, const juce::File& sourceRoot,
         const juce::File& targetRoot, const juce::String& sourceFilePrefix, const juce::String& targetFilePrefix,
         const Model& sourceInfo, const Model& targetInfo, const jam::Array<const Model::Element*>& identityRows,
         const std::pair<juce::String, juce::String>& namespaceSpacePair,
-        const std::pair<juce::String, juce::String>& namespaceColonPair,
-        const jam::HashSet<juce::String>& targetKernelNames, const jam::MarkdownWriter& formatter)
+        const std::pair<juce::String, juce::String>& namespaceColonPair, const jam::MarkdownWriter& formatter)
     {
-        const auto syncResults { getSyncResults (sourceFiles, sourceRoot, targetRoot, sourceFilePrefix,
+        const auto syncResults (getSyncResults (sourceFiles, sourceRoot, targetRoot, sourceFilePrefix,
             targetFilePrefix, sourceInfo, targetInfo, identityRows, namespaceSpacePair, namespaceColonPair,
-            formatter) };
+            formatter));
 
         jam::Array<juce::String> writtenPaths;
 
@@ -351,52 +401,7 @@ private:
                 writtenPaths.add (writtenPath);
         }
 
-        return runReport (targetRoot, targetInfo, targetKernelNames, sourceFiles, sourceRoot, sourceFilePrefix,
-            targetFilePrefix, writtenPaths);
-    }
-
-    /**
-     * @brief Mirror-deletes every target kernel file with no transformed
-     *        source counterpart, through getMirrorDeletions(), then prints
-     *        the written and deleted paths through printReport().
-     *
-     * @param targetRoot        The framework root mirror-delete walks.
-     * @param targetInfo        @p targetRoot's own parsed info file.
-     * @param targetKernelNames @p targetRoot's own @c kernel-classed
-     *                          module names.
-     * @param sourceFiles       The source's own walked, ignore-filtered
-     *                          files, read for their own transformed
-     *                          target-relative paths.
-     * @param sourceRoot        The framework root @p sourceFiles are
-     *                          resolved under.
-     * @param sourceFilePrefix  The source's own identity @c filePrefix
-     *                          value.
-     * @param targetFilePrefix  The target's own identity @c filePrefix
-     *                          value.
-     * @param writtenPaths      Every file runTransform() actually wrote,
-     *                          reported verbatim.
-     * @returns juce::Result::ok() when mirror-delete succeeds, or the
-     *          first delete failure's result.
-     */
-    static juce::Result runReport (const juce::File& targetRoot, const Model& targetInfo,
-        const jam::HashSet<juce::String>& targetKernelNames, const jam::Array<juce::File>& sourceFiles,
-        const juce::File& sourceRoot, const juce::String& sourceFilePrefix, const juce::String& targetFilePrefix,
-        const jam::Array<juce::String>& writtenPaths)
-    {
-        jam::HashSet<juce::String> expectedTargetPaths;
-
-        for (const auto& sourceFile : sourceFiles)
-            expectedTargetPaths.insert (getTransformedPath (
-                getNormalizedPath (sourceFile.getRelativePathFrom (sourceRoot)), sourceFilePrefix, targetFilePrefix));
-
-        const auto targetIgnorePatterns { getIgnorePatterns (targetInfo) };
-        auto [deleteResult, deletedPaths] {
-            getMirrorDeletions (targetRoot, targetKernelNames, targetIgnorePatterns, expectedTargetPaths) };
-
-        if (not deleteResult.wasOk())
-            return deleteResult;
-
-        printReport (writtenPaths, deletedPaths);
+        printReport (writtenPaths);
 
         return juce::Result::ok();
     }
@@ -789,6 +794,59 @@ private:
     }
 
     /**
+     * @brief Returns @p row's own root-relative submodule path -- its
+     *        module name, a slash, and its own @c path cell.
+     *
+     * @param info The parsed info file @p row belongs to.
+     * @param row  The @c ## submodule row whose path is built.
+     * @returns The root-relative path of @p row's own file.
+     */
+    static juce::String getSubmodulePath (const Model& info, const Model::Element& row)
+    {
+        static const auto slashText { juce::String::charToString (Chars::slash) };
+
+        return info.getValue (row, Id::tokenModule) + slashText + info.getValue (row, Id::path);
+    }
+
+    /**
+     * @brief Returns every @c ## submodule row's own root-relative path in
+     *        @p info, every class alike.
+     *
+     * @param info The parsed info file whose submodule table is read.
+     * @returns @p info's own declared submodule paths.
+     */
+    static jam::HashSet<juce::String> getDeclaredSubmodulePaths (const Model& info)
+    {
+        jam::HashSet<juce::String> paths;
+
+        for (auto* row : info.getTableRows (Id::submodule))
+            paths.insert (getSubmodulePath (info, *row));
+
+        return paths;
+    }
+
+    /**
+     * @brief Returns every @c ## submodule row's own root-relative path
+     *        whose @c class cell is @c kernel -- every other class value is
+     *        provision and is never walked.
+     *
+     * @param info The parsed info file whose submodule table is read.
+     * @returns @p info's own @c kernel-classed submodule paths.
+     */
+    static jam::HashSet<juce::String> getKernelSubmodulePaths (const Model& info)
+    {
+        static const auto kernelClassText { Id::kernel.toString() };
+
+        jam::HashSet<juce::String> paths;
+
+        for (auto* row : info.getTableRows (Id::submodule))
+            if (info.getValue (*row, Id::codeClass).compare (kernelClassText) == 0)
+                paths.insert (getSubmodulePath (info, *row));
+
+        return paths;
+    }
+
+    /**
      * @brief Answers whether @p relativePath matches any of @p patterns,
      *        each tested as a @c * wildcard ignore match.
      *
@@ -829,25 +887,49 @@ private:
     }
 
     /**
-     * @brief Returns getKernelFiles()'s own result, @p ignorePatterns'
-     *        own matches excluded.
+     * @brief Returns the root-relative path of every file under
+     *        @p kernelNames' own directories at @p root, minus the files
+     *        @p ignorePatterns match.
      *
-     * @param root           The framework root @p kernelNames are
-     *                       resolved against.
+     * @param root           The framework root @p kernelNames are resolved
+     *                       against.
      * @param kernelNames    The @c kernel-classed module names to walk.
-     * @param ignorePatterns The ignore patterns tested against each
-     *                       file's own root-relative path.
-     * @returns Every non-ignored file found under @p kernelNames' own
-     *          directories.
+     * @param ignorePatterns The @c ## ignore patterns that drop a path.
+     * @returns The @c /-normalized, root-relative paths on disk.
      */
-    static jam::Array<juce::File> getSyncFiles (const juce::File& root,
+    static jam::HashSet<juce::String> getDiskPaths (const juce::File& root,
         const jam::HashSet<juce::String>& kernelNames, const jam::Array<juce::String>& ignorePatterns)
     {
-        jam::Array<juce::File> files;
+        jam::HashSet<juce::String> paths;
 
         for (const auto& file : getKernelFiles (root, kernelNames))
-            if (not isIgnored (getNormalizedPath (file.getRelativePathFrom (root)), ignorePatterns))
-                files.add (file);
+        {
+            const auto rootRelativePath { getNormalizedPath (file.getRelativePathFrom (root)) };
+
+            if (not isIgnored (rootRelativePath, ignorePatterns))
+                paths.insert (rootRelativePath);
+        }
+
+        return paths;
+    }
+
+    /**
+     * @brief Returns the file of every @c kernel-classed @c ## submodule
+     *        row in @p info, in authored order.
+     *
+     * @param root The framework root each row's path is resolved against.
+     * @param info The parsed info file whose submodule table is read.
+     * @returns The files sync reads, in the rows' own order.
+     */
+    static jam::Array<juce::File> getSyncFiles (const juce::File& root, const Model& info)
+    {
+        static const auto kernelClassText { Id::kernel.toString() };
+
+        jam::Array<juce::File> files;
+
+        for (auto* row : info.getTableRows (Id::submodule))
+            if (info.getValue (*row, Id::codeClass).compare (kernelClassText) == 0)
+                files.add (root.getChildFile (getSubmodulePath (info, *row)));
 
         return files;
     }
@@ -881,26 +963,6 @@ private:
     {
         const auto document { jam::MarkdownDocument::parse (text) };
         return formatter.getText (document);
-    }
-
-    /**
-     * @brief Replaces @p sourceFilePrefix with @p targetFilePrefix in
-     *        every segment of @p relativePath -- @c filePrefix
-     *        transforms every path segment -- directory names and file
-     *        names alike").
-     *
-     * @param relativePath      The root-relative path to transform.
-     * @param sourceFilePrefix  The source's own identity @c filePrefix
-     *                          value.
-     * @param targetFilePrefix  The target's own identity @c filePrefix
-     *                          value.
-     * @returns @p relativePath with @p sourceFilePrefix replaced by
-     *          @p targetFilePrefix.
-     */
-    static juce::String getTransformedPath (
-        const juce::String& relativePath, const juce::String& sourceFilePrefix, const juce::String& targetFilePrefix)
-    {
-        return relativePath.replace (sourceFilePrefix, targetFilePrefix);
     }
 
     /**
@@ -1109,11 +1171,66 @@ private:
     }
 
     /**
+     * @brief Splices the target's own lines of one region into the source
+     *        lines, when both hold the delimiter pair.
+     *
+     * @param lines       The transformed source text, split into lines.
+     * @param targetLines The target file's own content, split into lines.
+     * @param beginValue  The region's own @c \[begin\] delimiter text.
+     * @param endValue    The region's own @c \[end\] delimiter text.
+     * @returns @p lines with the lines between the delimiters replaced by
+     *          @p targetLines' own, or @p lines when either side lacks the
+     *          pair.
+     */
+    static jam::Strings getRegionKeptLines (const jam::Strings& lines, const jam::Strings& targetLines,
+        const juce::String& beginValue, const juce::String& endValue)
+    {
+        const auto [sourceBegin, sourceEnd] { Transforms::getDelimiterLines (lines, beginValue, endValue) };
+        const auto [targetBegin, targetEnd] { Transforms::getDelimiterLines (targetLines, beginValue, endValue) };
+
+        if (sourceEnd >= 0 and targetEnd >= 0)
+            return Transforms::getSplicedLines (lines, sourceBegin, sourceEnd, targetLines, targetBegin + 1, targetEnd);
+
+        return lines;
+    }
+
+    /**
+     * @brief Keeps @p targetFile's own lines of every @c ## region of
+     *        @p targetInfo in @p text, when @p targetFile exists.
+     *
+     * @param text       The transformed source text.
+     * @param targetFile The file sync writes.
+     * @param targetInfo The target's own parsed info file, whose region
+     *                   rows name the delimiter pairs.
+     * @returns @p text with each region's lines taken from @p targetFile,
+     *          or @p text unchanged when @p targetFile does not exist.
+     */
+    static juce::String getRegionKeptText (
+        const juce::String& text, const juce::File& targetFile, const Model& targetInfo)
+    {
+        if (targetFile.existsAsFile())
+        {
+            const auto targetLines (jam::Strings::fromLines (targetFile.loadFileAsString()));
+            auto lines (jam::Strings::fromLines (text));
+
+            for (auto* row : targetInfo.getTableRows (Id::region))
+                lines = getRegionKeptLines (
+                    lines, targetLines, targetInfo.getValue (*row, Id::begin), targetInfo.getValue (*row, Id::end));
+
+            return Transforms::getJoinedText (lines, text);
+        }
+
+        return text;
+    }
+
+    /**
      * @brief Reads @p sourceFile, transforms it, and writes it under
      *        @p targetRoot -- the second pass's own per-file step: a
      *        binary file copies byte-for-byte; a text file is
-     *        transformed, LF-normalized, and, when it is a prefix-less
-     *        @c .md file in its own kernel scope, re-canonicalized.
+     *        transformed, LF-normalized, when it is a prefix-less
+     *        @c .md file in its own kernel scope re-canonicalized, and,
+     *        when the target file exists, given the target's own
+     *        @c ## region lines through getRegionKeptText().
      *
      * @param sourceFile         The source file to sync.
      * @param sourceRoot         The framework root @p sourceFile is
@@ -1144,7 +1261,7 @@ private:
         const std::pair<juce::String, juce::String>& namespaceColonPair, const jam::MarkdownWriter& formatter)
     {
         const auto rootRelativePath { getNormalizedPath (sourceFile.getRelativePathFrom (sourceRoot)) };
-        const auto targetRelativePath { getTransformedPath (rootRelativePath, sourceFilePrefix, targetFilePrefix) };
+        const auto targetRelativePath { Transforms::getTransformedPath (rootRelativePath, sourceFilePrefix, targetFilePrefix) };
         const auto targetFile { targetRoot.getChildFile (targetRelativePath) };
 
         juce::MemoryBlock rawData;
@@ -1164,49 +1281,9 @@ private:
         if (sourceFile.hasFileExtension (Extensions::md) and not kernelScopeName.startsWith (sourceFilePrefix))
             transformed = getCanonicalMarkdown (transformed, formatter);
 
+        transformed = getRegionKeptText (transformed, targetFile, targetInfo);
+
         return getWriteOutcome (targetFile, targetRelativePath, false, transformed, juce::MemoryBlock {});
-    }
-
-    /**
-     * @brief Deletes every file under @p targetKernelNames' own
-     *        directories at @p targetRoot with no matching entry in
-     *        @p expectedTargetPaths and no @p targetIgnorePatterns match --
-     *        the mirror-delete.
-     *
-     * @param targetRoot           The framework root mirror-delete walks.
-     * @param targetKernelNames    @p targetRoot's own @c kernel-classed
-     *                             module names.
-     * @param targetIgnorePatterns @p targetRoot's own ignore patterns.
-     * @param expectedTargetPaths  Every root-relative path the sync run's
-     *                             own transformed source files resolve
-     *                             to.
-     * @returns juce::Result::ok() paired with every deleted path, or a
-     *          failure naming the first file that could not be deleted,
-     *          paired with an empty array.
-     */
-    static std::pair<juce::Result, jam::Array<juce::String>> getMirrorDeletions (const juce::File& targetRoot,
-        const jam::HashSet<juce::String>& targetKernelNames, const jam::Array<juce::String>& targetIgnorePatterns,
-        const jam::HashSet<juce::String>& expectedTargetPaths)
-    {
-        jam::Array<juce::String> deletions;
-
-        for (const auto& file : getKernelFiles (targetRoot, targetKernelNames))
-        {
-            const auto rootRelativePath { getNormalizedPath (file.getRelativePathFrom (targetRoot)) };
-
-            if (not isIgnored (rootRelativePath, targetIgnorePatterns)
-                and not expectedTargetPaths.contains (rootRelativePath))
-            {
-                if (not file.deleteFile())
-                    return std::make_pair (juce::Result::fail (rootRelativePath + Id::diagnosticSeparator
-                                               + text::Diagnostics::failSyncDelete),
-                        jam::Array<juce::String> {});
-
-                deletions.add (rootRelativePath);
-            }
-        }
-
-        return std::make_pair (juce::Result::ok(), std::move (deletions));
     }
 
     /**
@@ -1224,25 +1301,21 @@ private:
             if (path.isNotEmpty())
                 filtered.add (path);
 
-        std::sort (filtered.begin(), filtered.end());
+        filtered.sort();
         return filtered;
     }
 
     /**
-     * @brief Prints @p writtenPaths then @p deletedPaths to stdout, each
-     *        sorted through getReportLines(), one path per line -- the
+     * @brief Prints @p writtenPaths to stdout, sorted through
+     *        getReportLines(), one path per line -- the
      *        run's own report. Zero lines means the roots
      *        are already in sync.
      *
      * @param writtenPaths The paths the run actually wrote.
-     * @param deletedPaths The paths the run actually deleted.
      */
-    static void printReport (const jam::Array<juce::String>& writtenPaths, const jam::Array<juce::String>& deletedPaths)
+    static void printReport (const jam::Array<juce::String>& writtenPaths)
     {
         for (const auto& path : getReportLines (writtenPaths))
-            printf ("%s\n", path.toRawUTF8());
-
-        for (const auto& path : getReportLines (deletedPaths))
             printf ("%s\n", path.toRawUTF8());
     }
 };
