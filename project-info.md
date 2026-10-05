@@ -99,6 +99,12 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 +-----------------------------+----------------------------------------------------------+------------------------------------------+
 | qaDirectory                 | `$ENV{HOME}/Documents/Poems/dev/___builds___`            | QA build archive root                    |
 +-----------------------------+----------------------------------------------------------+------------------------------------------+
+| repository                  | jrengmusic/cast                                          | GitHub repository of the release         |
++-----------------------------+----------------------------------------------------------+------------------------------------------+
+| installerResourceDirectory  | ${CMAKE_SOURCE_DIR}/cast/installer/resources             | Installer artwork directory              |
++-----------------------------+----------------------------------------------------------+------------------------------------------+
+| installDirectoryWindows     | $PROFILE\\.local\\bin                                    | Windows installer default directory      |
++-----------------------------+----------------------------------------------------------+------------------------------------------+
 
 ## juce module
 
@@ -167,6 +173,8 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 +----------+---------+----------------------------------------------------------------------------+
 |          | ninja   | -C Builds/Release                                                          |
 +----------+---------+----------------------------------------------------------------------------+
+|          | cmake   | -P gh.cmake                                                                |
++----------+---------+----------------------------------------------------------------------------+
 | debug    | cast    | ../jam/cast/spell.md                                                       |
 +----------+---------+----------------------------------------------------------------------------+
 | debug    | cmake   | -S . -B Builds/Debug -G Ninja -DCMAKE_BUILD_TYPE=Debug                     |
@@ -179,6 +187,30 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 +----------+---------+----------------------------------------------------------------------------+
 | no-sign  | ninja   | -C Builds/Release                                                          |
 +----------+---------+----------------------------------------------------------------------------+
+
+## pack
+
++----------+------------+------------+-----------------------------------+
+| name     | mac        | win        | description                       |
++==========+============+============+===================================+
+| folder   | ../Release | ../Release | Archive folder                    |
+| format   | pkg        | exe        | Archive format                    |
+| platform | macOS      | Windows    | Platform word in the archive name |
++----------+------------+------------+-----------------------------------+
+
+## release notes
+
++---------------------------------------------------------------------------------------------------------------------+
+| note                                                                                                                |
++=====================================================================================================================+
+| Release lane: a signed macOS pkg and Windows x64 and arm64 installers, uploaded to the GitHub release.              |
++---------------------------------------------------------------------------------------------------------------------+
+| cast --sync syncs submodules deterministically from the submodule and region tables; a file can carry many regions. |
++---------------------------------------------------------------------------------------------------------------------+
+| Signing data lives in cast/signing.md, and entitlements.plist is generated from it.                                 |
++---------------------------------------------------------------------------------------------------------------------+
+| description is the reserved documentation column; an unknown bracketed name is a fatal diagnostic.                  |
++---------------------------------------------------------------------------------------------------------------------+
 
 ## release
 

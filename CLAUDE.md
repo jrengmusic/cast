@@ -10,13 +10,13 @@
 
 ## Current State
 
-**Last Sprint:** pack-link-preset-attach — `cast --pack <archive> <item> [--link=<name>=<target>] …`: the link is an optional option word after its item; a `--link` before the first item, a second `--link` on one item, or an empty name or target is the `failPackArguments` fatal; one `ArgumentList` source (`getPackPaths`, `isLinkValid`, `getPackRows`); Windows cast build fixed (`pascal` macro, `juce::Array` brace init); jfs `cmake.cast` passes no empty list elements, so the Windows zip packs; KANJUT `PresetSelector` attach loads the preset again (`sendNotificationSync`), a pick while dirty loads, `Selector` navigation does nothing at the list edge; CODING.md platform macro and brace rules; doxygen zero warnings ✅ (2026-10-02)
+**Last Sprint:** release-lane — GitHub release lane for cast, whatdbg, ggwp, stamp, END and archetype/{cli,app}: macOS pkg (productbuild, notarized), Windows NSIS installer (x64, arm64, signtool), generated `gh.cmake` (`cmake -P`, last toolchain row) creates or appends to release `v<versionString>`, generated `RELEASE.md`; END dmg lane replaced; placeholder installer artwork ✅ (2026-10-05)
 
-**Sprint before:** build-sh — one cross-platform `build.sh`, `build.bat` deleted, stale macOS binary diagnosed ✅ (2026-09-28)
+**Sprint before:** pack-link-preset-attach — `cast --pack <archive> <item> [--link=<name>=<target>] …`: the link is an optional option word after its item; a `--link` before the first item, a second `--link` on one item, or an empty name or target is the `failPackArguments` fatal; one `ArgumentList` source (`getPackPaths`, `isLinkValid`, `getPackRows`); Windows cast build fixed (`pascal` macro, `juce::Array` brace init); jfs `cmake.cast` passes no empty list elements, so the Windows zip packs; KANJUT `PresetSelector` attach loads the preset again (`sendNotificationSync`), a pick while dirty loads, `Selector` navigation does nothing at the list edge; CODING.md platform macro and brace rules; doxygen zero warnings ✅ (2026-10-02)
 
-**Previous Sprint:** metadata-block — pandoc `yaml_metadata_block` in the JAM markdown parser: a top-level `---` opener (next line not blank) closed by `---` or `...` is an opaque `metadataBlock` leaf, written byte for byte; frontmatter survives `cast --format`; `closeLeaf` dispatches through `leafClosing`; SPEC §3/§3.4, HELP; jam→KANJUT synced; fixpoints and doxygen zero warnings ✅ (2026-09-27)
+**Previous Sprint:** build-sh — one cross-platform `build.sh`, `build.bat` deleted, stale macOS binary diagnosed ✅ (2026-09-28)
 
-**Active Work:** None — ARCHITECT tests the jfs preset behaviour and the macOS dmg `--link` (see carol/SPRINT-LOG.md State for Continuation)
+**Active Work:** None — ARCHITECT runs the release lane per host and restores the six archetype stubs (see carol/SPRINT-LOG.md State for Continuation)
 
 **Active ODE:** None
 
@@ -51,7 +51,9 @@
 | **spell.md** | Generation manifest: outputs, four-column wiring rows (`list | separator | structure | file`); shapes addressed `@code:<fence>` into `../../jam/cast/code.cast`; per-output file documentation wired via `- [description]: @headers:brief` structure bindings into the `## headers` table (`file | brief | description`) |
 | **identifiers.md** | Identifier table → generated/Identifiers.h |
 | **text.md, comments.md, files.md, banner.md** | Data tables (one table per generated concern) |
-| **cmake.cast** | Shared CMakeLists.txt template, wired by cast/spell.md and eve's manifest |
+| **cmake.cast** | Shared CMakeLists.txt template, wired by cast/spell.md and eve's manifest; also the `gh` fence that writes `gh.cmake` |
+| **installer.cast** | Installer templates: `distribution` → `cast/installer/mac/distribution.xml`, `installer` → `cast/installer/win/installer.nsi`, `[no-banner]release` → `RELEASE.md` |
+| **installer/resources/** | Installer artwork (placeholders): `background.png`, `background-dark.png` (1240×832 px, 144 dpi), `header.bmp` (150×57, 24-bit), `welcome.bmp` (164×314, 24-bit) |
 
 ### Doxygen
 
@@ -86,6 +88,13 @@
 **Runtime:**
 - `./cast <manifest>` formats then generates, re-canonicalizing all origin .md files; `cast --format -i <manifest>` formats only, in place; `cast --format <file>` prints canonical text to stdout (clang-format command line); widths live in `cast/.cast-format`
 - `cast_BinaryData` embeds `Source/HELP.md` and `Source/resources/cast-output.md` (`project-info.md` `## binary`)
+
+**Release:**
+- `cast cast/spell.md` (default flow) on each host: macOS universal, Windows x64, Windows arm64 (Windows: from the MSVC shell of the host architecture, NSIS + EnVar plugin + `gh` on PATH)
+- Release build: macOS `pkgbuild` → `productbuild` → `productsign` → notarize → staple; Windows makensis signs `cast.exe`, the installer and the uninstaller with the `identityWindows` thumbprint
+- Archive: `../Release/cast v<version> <platform>.<format>` (`## pack`; Windows platform word gets `x64` / `arm64` from `CMAKE_CXX_COMPILER_ARCHITECTURE_ID`)
+- Last toolchain row `cmake -P gh.cmake`: creates the GitHub release `v<versionString>` of `jrengmusic/cast` with `RELEASE.md` as notes, or uploads with `--clobber` to the existing one
+- `RELEASE.md` is generated; its What's New rows live in `project-info.md` `## release notes`
 
 **Doxygen:**
 - Read doxygen XML before any C++ file search (use doxygen-protocol skill)
