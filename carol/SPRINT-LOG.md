@@ -111,6 +111,32 @@
 
 ## SPRINT HISTORY
 
+## Sprint: release-publish-test — Notarized Release Installed and Published; Quarantine Cleared ✅
+
+**Date:** 2026-10-08
+**Duration:** part of one session (jam Sprint 152 is the primary record)
+
+### Decisions (ARCHITECT)
+1. *"remove the qurantine. and build cast release with cast, it should be notarized"*.
+2. *"publish is fine. the publish path havent been tested, so this also the right time to test, fix if you found any error"*.
+
+### Files Modified
+- None in this repository. The run found `../jam/cast/code.cast` without the `[xml]entitlements` and `entitlement` fences (`cast: spell.md:93 (structure): template not found: [xml]entitlements`); they were restored in jam (Sprint 152) from `f9204abc8`.
+
+### Problems Solved
+- `~/.local/bin/cast` (the Debug build, ad-hoc signed) carried `com.apple.quarantine` from LocalSend and hung in `_dyld_start`. The attribute is removed.
+- The default flow ran end to end: Release build with 0 errors and 0 warnings, Developer ID signature, pkg notarized (`8a5439ad-a8fe-4af1-915c-377c8124fa9c`, Accepted), stapled, installed to `~/.local/bin` (`cast 0.1.0 (a45a6cd)`), and `gh.cmake` uploaded `cast v0.1.0 macOS.pkg` to release `v0.1.0`. The publish path needed no fix.
+
+### State for Continuation
+- The `v0.1.0` release notes list Windows x64 and arm64 installers; the release holds only the macOS pkg until a Windows machine runs the flow.
+- `spctl --assess --type execute` rejects the bare CLI ("does not seem to be an app"); the signature is valid and the pkg assesses as `Notarized Developer ID`.
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None
+
 ## Sprint: release-lane — GitHub Release Lane: macOS pkg, Windows NSIS (x64, arm64), gh Upload; cast, whatdbg, ggwp, stamp, END, archetype/cli, archetype/app ✅
 
 **Date:** 2026-10-05
