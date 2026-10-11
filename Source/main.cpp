@@ -772,24 +772,19 @@ static juce::Result runStyled (int lineWrap, const juce::File& styleFile, Functi
 }
 
 /**
- * @brief Prints the banner and help text to stdout, the help text wrapped
- *        at @p lineWrap when positive, at the nearest style file's own line
- *        wrap otherwise.
+ * @brief Prints the banner and help text to stdout.
  *
  * Opens its own JUCE GUI initialiser scope, because printHelp() renders
  * through the terminal graphics context.
- *
- * @param lineWrap The @c --line-wrap value, read once by main().
  */
-static void printBannerAndHelp (int lineWrap)
+static void printBannerAndHelp()
 {
     static const auto newlineText { juce::String::charToString (Chars::newline) };
     juce::ScopedJuceInitialiser_GUI juceInitialiser;
-    const auto style { Model::parse (getNearestStyleFile (juce::File::getCurrentWorkingDirectory())) };
 
     printBanner();
     printf ("%s", newlineText.toRawUTF8());
-    printHelp (BinaryData::getString (files::castHelp), getLineWrap (lineWrap, *style));
+    printHelp (BinaryData::getString (files::castHelp));
 }
 
 /**
@@ -842,13 +837,12 @@ static int runDocument (int lineWrap, const juce::File& documentFile, bool skipF
  * @brief Prints the banner and help text, then reports @p documentFile as
  *        not found on stderr.
  *
- * @param lineWrap     The @c --line-wrap value, read once by main().
  * @param documentFile The manifest file that was not found.
  * @returns @c 1.
  */
-static int runDocumentNotFound (int lineWrap, const juce::File& documentFile)
+static int runDocumentNotFound (const juce::File& documentFile)
 {
-    printBannerAndHelp (lineWrap);
+    printBannerAndHelp();
     printError (text::Diagnostics::failNotFound + Id::diagnosticSeparator + documentFile.getFileName());
     return 1;
 }
@@ -1394,7 +1388,7 @@ static int runCommandLine (int argc, char* argv[], int lineWrap)
 
     if (isHelp (argc, argv))
     {
-        printBannerAndHelp (lineWrap);
+        printBannerAndHelp();
         return 0;
     }
 
@@ -1407,7 +1401,7 @@ static int runCommandLine (int argc, char* argv[], int lineWrap)
         return runDocument (lineWrap, documentFile, isSkipFormat (argc, argv),
             getOutputDirectory (argc, argv), getToolchainArgument (argc, argv));
 
-    return runDocumentNotFound (lineWrap, documentFile);
+    return runDocumentNotFound (documentFile);
 }
 
 /**

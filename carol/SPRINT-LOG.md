@@ -111,6 +111,39 @@
 
 ## SPRINT HISTORY
 
+## Sprint: terminal-llgc — --help at Terminal Width; Cell-Snapped Metrics; Solid Tables; Fixed Palette ✅
+
+**Date:** 2026-10-11
+**Duration:** one session. jam Sprint 160 is the primary record.
+**Plan:** `PLAN-terminal-llgc.md` (Steps 1–7, Amendments 1 and 2).
+
+ARCHITECT: *"always watchdog your engineer. max 10m … always build with cast toolchain. no gate until /log"*.
+
+### Files Modified
+- `Source/Help.h` `printHelp (helpText)`:
+  - the width is the terminal column count (`GraphicsEngine::getWinsize`) when valid, else the smallest container of `maxLineWidth` plus both margins;
+  - `styleMarkdown.setCellSize (narrowColumns, lineHeight)`;
+  - the vertical scale is `1 / lineHeight`; rows are the smallest container of the content height times that scale;
+  - `engine.resize (width, rows, verticalScale)`.
+- `Source/main.cpp`: `printBannerAndHelp()` and `runDocumentNotFound (documentFile)` lose `lineWrap` (*"--line-wrap no longer affects --help"*); `--line-wrap` still governs `--format` and generate.
+- `Source/markdown.css:120`: `maxLineWidth: 100em` (*"if terminal column width wider than 100. render centered, otherwise wrap"*).
+- `PLAN-terminal-llgc.md` (new).
+
+### Verification
+- `cast cast/spell.md --debug`: exit 0, 0 errors, 0 warnings, after the doxygen pass.
+- `cast --help` (Debug): exit 0; the final capture is byte-identical to the pre-doxygen capture; 0 half-blocks; tables draw `┌` 4 times and `┼` 18 times.
+
+### State for Continuation
+- ARCHITECT runtime test of `cast --help` at several terminal widths.
+- Residuals in the render: each table body row has a blank padding row (ceil table padding gives every row a top padding row, and only the first row draws a top border); the thematic rule ends in `╶` and `╴`.
+- The grid tables and `>` lines in HELP.md are inside ``` fences, so they render as code.
+
+### Debts Paid
+None.
+
+### Debts Deferred
+None.
+
 ## Sprint: --help Through MarkdownComponent and the Terminal LLGC ✅
 
 **Date:** 2026-10-11
