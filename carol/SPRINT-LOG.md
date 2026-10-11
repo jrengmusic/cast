@@ -111,6 +111,43 @@
 
 ## SPRINT HISTORY
 
+## Sprint: --help Through MarkdownComponent and the Terminal LLGC ✅
+
+**Date:** 2026-10-11
+**Duration:** one session. jam Sprint 159 is the primary record.
+
+### Files Modified
+- `Source/main.cpp`:
+  - `jam::Stamp` uses deleted (jam deleted `Stamp` in Sprint 158);
+  - `printBannerAndHelp (int lineWrap)`;
+  - `getLineWrap (int, const Model&)`, shared with `runStyled`;
+  - `runDocumentNotFound (lineWrap)`.
+- `Source/Processor.h`: the `Stamp` call is deleted.
+- `Source/Help.h`: `printHelp (helpText, lineWrap)`:
+  1. the `terminal::GraphicsEngine (stdout)`, which owns `Typeface` and `GlyphArrangement`;
+  2. the `markdown` and `mermaid` sheets, `StyleManager` and `StyleMarkdown`;
+  3. `MarkdownComponent`, with `setBounds` before `setDocument`, so there is one layout;
+  4. `GraphicsContext` with `juce::Graphics`, which paints the viewed content.
+- `Source/markdown.css` (replaces `Source/style.css`; the name is the jam lookup `files::markdownStyleSheet`):
+  - the HEAD CMYK palette plus `--blank`;
+  - the 18 HEAD colour ids plus 10 that jam now needs, each mapped to the CMYK colour of the id that shares its jam palette variable, and background ids to `--black` or `--blank`;
+  - `system-ui` font slots with real Bold and Italic styles;
+  - jam's `.metrics` block verbatim in `em`, without `fontSize` (owner default 1).
+- `project-info.md`:
+  - aliases `@patch` and `@mermaid-style`;
+  - `## patch` (5 stamp rows plus `juce-attributed-text-hook.patch`);
+  - user modules for `MarkdownComponent` and `jam_terminal` (the module graph forces `jam_vulkan`: `jam_gui.h:76`);
+  - define and include rows;
+  - `## binary` rows `markdownStyleSheet` and `mermaidStyleSheet`.
+- `cast/cmake.cast`: stamp's patch block and the Vulkan block.
+- `cast/spell.md`: the `@project-info:patch` row.
+- `cast/identifiers.md`: the `description`, `link` and `region` rows are deleted, because they duplicated jam's `Id::` symbols at link time.
+
+### State for Continuation
+- `--help` (Debug): exit 0, 2.78 s, 0 assertions.
+- The toolchain installs the Debug build at `~/.local/bin/cast`. The pre-sprint binary is backed up in the session scratchpad.
+- RFC §6.1 *"no Vulkan"* does not hold under jam's module graph.
+
 ## Sprint: release-publish-test — Notarized Release Installed and Published; Quarantine Cleared ✅
 
 **Date:** 2026-10-08

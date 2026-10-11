@@ -25,18 +25,6 @@ static void printBanner()
 }
 
 /**
- * @brief Prints the banner and help text to stdout.
- */
-static void printBannerAndHelp()
-{
-    static const auto newlineText { juce::String::charToString (Chars::newline) };
-
-    printBanner();
-    printf ("%s", newlineText.toRawUTF8());
-    printHelp (BinaryData::getString (files::castHelp));
-}
-
-/**
  * @brief Prints @p message to stderr, prefixed with the project name and
  *        the diagnostic separator.
  *
@@ -737,11 +725,23 @@ static juce::Result isFound (const jam::Strings& names)
 }
 
 /**
+ * @brief Returns the line wrap to use.
+ *
+ * @param lineWrap The @c --line-wrap value, read once by main().
+ * @param style    The style whose own line wrap applies when @p lineWrap is not positive.
+ * @returns @p lineWrap when positive, otherwise Model::getLineWrap() of @p style.
+ */
+static int getLineWrap (int lineWrap, const Model& style)
+{
+    return lineWrap > 0 ? lineWrap : style.getLineWrap();
+}
+
+/**
  * @brief Resolves @p styleFile into a style Model and, when it validates,
  *        the reflow widths and writer it declares, then invokes
  *        @p function with them.
  *
- * @pre The JUCE GUI initialiser and jam::Stamp scope is open.
+ * @pre The JUCE GUI initialiser scope is open.
  *
  * @tparam Function A callable invoked as
  *                  @c function(formatter,reflowWidths), returning a
@@ -763,12 +763,33 @@ static juce::Result runStyled (int lineWrap, const juce::File& styleFile, Functi
     if (result.wasOk())
     {
         const auto reflowWidths { style->getReflowWidths() };
-        const jam::MarkdownWriter formatter { lineWrap > 0 ? lineWrap : style->getLineWrap(), reflowWidths };
+        const jam::MarkdownWriter formatter { getLineWrap (lineWrap, *style), reflowWidths };
 
         return function (formatter, reflowWidths);
     }
 
     return result;
+}
+
+/**
+ * @brief Prints the banner and help text to stdout, the help text wrapped
+ *        at @p lineWrap when positive, at the nearest style file's own line
+ *        wrap otherwise.
+ *
+ * Opens its own JUCE GUI initialiser scope, because printHelp() renders
+ * through the terminal graphics context.
+ *
+ * @param lineWrap The @c --line-wrap value, read once by main().
+ */
+static void printBannerAndHelp (int lineWrap)
+{
+    static const auto newlineText { juce::String::charToString (Chars::newline) };
+    juce::ScopedJuceInitialiser_GUI juceInitialiser;
+    const auto style { Model::parse (getNearestStyleFile (juce::File::getCurrentWorkingDirectory())) };
+
+    printBanner();
+    printf ("%s", newlineText.toRawUTF8());
+    printHelp (BinaryData::getString (files::castHelp), getLineWrap (lineWrap, *style));
 }
 
 /**
@@ -790,7 +811,6 @@ static int runDocument (int lineWrap, const juce::File& documentFile, bool skipF
     const juce::String& outputDirectory, const juce::String& toolchainArgument)
 {
     juce::ScopedJuceInitialiser_GUI libraryInitialiser;
-    jam::Stamp stamp;
 
     const auto result { runStyled (lineWrap, getNearestStyleFile (documentFile.getParentDirectory()),
         [&documentFile, skipFormat, &outputDirectory, &toolchainArgument]
@@ -822,12 +842,13 @@ static int runDocument (int lineWrap, const juce::File& documentFile, bool skipF
  * @brief Prints the banner and help text, then reports @p documentFile as
  *        not found on stderr.
  *
+ * @param lineWrap     The @c --line-wrap value, read once by main().
  * @param documentFile The manifest file that was not found.
  * @returns @c 1.
  */
-static int runDocumentNotFound (const juce::File& documentFile)
+static int runDocumentNotFound (int lineWrap, const juce::File& documentFile)
 {
-    printBannerAndHelp();
+    printBannerAndHelp (lineWrap);
     printError (text::Diagnostics::failNotFound + Id::diagnosticSeparator + documentFile.getFileName());
     return 1;
 }
@@ -945,7 +966,6 @@ static juce::Result runFormatWrite (int lineWrap, const juce::String& stylePath,
 static int runFormatInPlace (int lineWrap, const juce::ArgumentList& arguments, const jam::Strings& files)
 {
     juce::ScopedJuceInitialiser_GUI libraryInitialiser;
-    jam::Stamp stamp;
 
     const auto stylePath { getStylePath (arguments) };
     const auto filesFound { isFound (files) };
@@ -1047,7 +1067,6 @@ static void writeTexts (const jam::Strings& texts)
 static int runFormatOutput (int lineWrap, const juce::ArgumentList& arguments, const jam::Strings& files)
 {
     juce::ScopedJuceInitialiser_GUI libraryInitialiser;
-    jam::Stamp stamp;
 
     const auto stylePath { getStylePath (arguments) };
     const auto assumeFilename { getAssumeFilename (arguments) };
@@ -1130,7 +1149,6 @@ static int runFormat (int argc, char* argv[], int lineWrap)
 static int runSync (int lineWrap, const juce::File& sourceRoot, const juce::File& targetRoot, const juce::String& stylePath)
 {
     juce::ScopedJuceInitialiser_GUI libraryInitialiser;
-    jam::Stamp stamp;
 
     const auto styleFile { getStyleFile (stylePath, getStyleFile (targetRoot.getChildFile (files::castDirectory))) };
     const auto found { isFound (stylePath) };
@@ -1305,7 +1323,6 @@ static juce::StringArray getPackRows (const juce::ArgumentList& arguments)
 static int runPack (const juce::ArgumentList& arguments, const juce::File& archive, const juce::StringArray& triples)
 {
     juce::ScopedJuceInitialiser_GUI libraryInitialiser;
-    jam::Stamp stamp;
 
     const auto result { Pack::toArchive (arguments, archive, triples) };
 
@@ -1377,7 +1394,7 @@ static int runCommandLine (int argc, char* argv[], int lineWrap)
 
     if (isHelp (argc, argv))
     {
-        printBannerAndHelp();
+        printBannerAndHelp (lineWrap);
         return 0;
     }
 
@@ -1390,7 +1407,7 @@ static int runCommandLine (int argc, char* argv[], int lineWrap)
         return runDocument (lineWrap, documentFile, isSkipFormat (argc, argv),
             getOutputDirectory (argc, argv), getToolchainArgument (argc, argv));
 
-    return runDocumentNotFound (documentFile);
+    return runDocumentNotFound (lineWrap, documentFile);
 }
 
 /**

@@ -2,15 +2,17 @@
 
 ## index
 
-+--------------+----------------------------------------------+
-| alias        | symbol                                       |
-+==============+==============================================+
-| @char        | const char* const                            |
-| @juce-path   | ${CMAKE_CURRENT_SOURCE_DIR}/../../JUCE       |
-| @user-module | ${CMAKE_CURRENT_SOURCE_DIR}/../jam           |
-| @source      | ${CMAKE_CURRENT_SOURCE_DIR}/Source           |
-| @generated   | ${CMAKE_CURRENT_SOURCE_DIR}/Source/generated |
-+--------------+----------------------------------------------+
++----------------+----------------------------------------------------------+
+| alias          | symbol                                                   |
++================+==========================================================+
+| @char          | const char* const                                        |
+| @juce-path     | ${CMAKE_CURRENT_SOURCE_DIR}/../../JUCE                   |
+| @user-module   | ${CMAKE_CURRENT_SOURCE_DIR}/../jam                       |
+| @patch         | ${CAST_USER_MODULE_PATH}/patch                           |
+| @source        | ${CMAKE_CURRENT_SOURCE_DIR}/Source                       |
+| @generated     | ${CMAKE_CURRENT_SOURCE_DIR}/Source/generated             |
+| @mermaid-style | ${CMAKE_CURRENT_SOURCE_DIR}/../jam/resources/mermaid.css |
++----------------+----------------------------------------------------------+
 
 ## project info
 
@@ -67,6 +69,8 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 +-----------------------------+----------------------------------------------------------+------------------------------------------+
 | userModulePath              | @user-module                                             | User module root                         |
 +-----------------------------+----------------------------------------------------------+------------------------------------------+
+| vulkanPath                  | ${CMAKE_CURRENT_SOURCE_DIR}/../../Vulkan                 | Vulkan SDK root                          |
++-----------------------------+----------------------------------------------------------+------------------------------------------+
 | installDirectory            | $ENV{HOME}/.local/bin                                    | Installed binary directory               |
 +-----------------------------+----------------------------------------------------------+------------------------------------------+
 | bundleIdentifier            | com.jrengmusic.cast                                      | JUCE BUNDLE_ID                           |
@@ -115,16 +119,41 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 | guiBasics | juce_gui_basics |
 +-----------+-----------------+
 
+## patch
+
++--------+---------------------------------------------+----------------------------------------------+
+| root   | name                                        | description                                  |
++========+=============================================+==============================================+
+| @patch | juce-cached-image-factory-hook.patch        | External CachedComponentImage factory        |
+| @patch | juce-direct2d-helpers-visibility-hook.patch | Direct2D helpers visibility gate             |
+| @patch | juce-image-subsection-hook.patch            | Root image and subsection bounds hooks       |
+| @patch | juce-vulkan-engine-hook.patch               | External graphics context factory for Vulkan |
+| @patch | juce-paint-update-rect-hook.patch           | OS dirty rectangle before native paint       |
+| @patch | juce-attributed-text-hook.patch             | Attributed text integration                  |
++--------+---------------------------------------------+----------------------------------------------+
+
 ## user module
 
-+--------------+----------------+------------------------------------------------------------------------------+
-| root         | name           | description                                                                  |
-+==============+================+==============================================================================+
-| @user-module | jam_core       | JAM Core                                                                     |
-| @user-module | jam_subprocess | JUCE-based subprocess launcher with streaming output and byte-cap truncation |
-| @user-module | jam_markdown   | Clean-room native CommonMark + GFM markdown parsing/rendering                |
-| @user-module | jam_document   | Universal line break and reflow (UAX #14)                                    |
-+--------------+----------------+------------------------------------------------------------------------------+
++--------------+-----------------------+--------------------------------------------------------------------------------------------------+
+| root         | name                  | description                                                                                      |
++==============+=======================+==================================================================================================+
+| @user-module | jam_core              | JAM Core                                                                                         |
+| @user-module | jam_subprocess        | JUCE-based subprocess launcher with streaming output and byte-cap truncation                     |
+| @user-module | jam_markdown          | Clean-room native CommonMark + GFM markdown parsing/rendering                                    |
+| @user-module | jam_document          | Universal line break and reflow (UAX #14)                                                        |
+| @user-module | jam_freetype          | Vendored FreeType font rasterization library                                                     |
+| @user-module | jam_graphics          | Graphics utilities, blur, shadows, colours, fonts, mesh                                          |
+| @user-module | jam_pdf               | Clean-room PDF document model, writer and graphics context                                       |
+| @user-module | jam_data_structures   | ValueTree management and data model utilities — model, parameters, JSON conversion               |
+| @user-module | jam_animation         | Foundation animation classes (Animator, AnimationBase, AnimationScrollingText)                   |
+| @user-module | jam_vulkan            | Vulkan rendering backend                                                                         |
+| @user-module | jam_web               | HTML authored-subset and CSS Syntax Level 3 subset tokenizers and parsers                        |
+| @user-module | jam_style             | JAM Style — LookAndFeel base + ColourScheme-backed colour registry                               |
+| @user-module | jam_gui               | GUI foundation — Window, Modal, Glass                                                            |
+| @user-module | jam_mermaid_diagram   | Clean-room native mermaid diagram parsing over jam::Document producing the semantic Element tree |
+| @user-module | jam_markdown_graphics | Markdown and mermaid materialisation, layout and view component                                  |
+| @user-module | jam_terminal          | VT read-side engine, TTY, protocol vocabulary, keyboard encoding                                 |
++--------------+-----------------------+--------------------------------------------------------------------------------------------------+
 
 ## source glob
 
@@ -137,30 +166,46 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 
 ## macro
 
-+--------------------+---------------------------------+-----------------------------------------+
-| name               | value                           | description                             |
-+====================+=================================+=========================================+
-| useJuceNamespace   | DONT_SET_USING_JUCE_NAMESPACE=1 | No using namespace juce in JuceHeader.h |
-| declareProjectInfo | JUCE_DONT_DECLARE_PROJECTINFO=1 | No auto-generated ProjectInfo namespace |
-+--------------------+---------------------------------+-----------------------------------------+
++------------------------------------+----------------------------------------------------------------------+---------------------------------------------------------------+
+| name                               | value                                                                | description                                                   |
++====================================+======================================================================+===============================================================+
+| useJuceNamespace                   | DONT_SET_USING_JUCE_NAMESPACE=1                                      | No using namespace juce in JuceHeader.h                       |
+| declareProjectInfo                 | JUCE_DONT_DECLARE_PROJECTINFO=1                                      | No auto-generated ProjectInfo namespace                       |
+| juceStrictRefCountedPointer        | JUCE_STRICT_REFCOUNTEDPOINTER=1                                      | Strict ReferenceCountedObjectPtr casting                      |
+| juceWebBrowser                     | JUCE_WEB_BROWSER=0                                                   | WebBrowserComponent support                                   |
+| juceUseCurl                        | JUCE_USE_CURL=0                                                      | libcurl for http on Linux                                     |
+| win32LeanAndMean                   | `$<$<PLATFORM_ID:Windows>:WIN32_LEAN_AND_MEAN=1>`                    | Exclude rarely used Windows headers                           |
+| nominmax                           | `$<$<PLATFORM_ID:Windows>:NOMINMAX=1>`                               | No Windows min/max macros                                     |
+| win32Ie                            | `$<$<PLATFORM_ID:Windows>:_WIN32_IE=0x0A00>`                         | Windows IE platform version                                   |
+| juceCoreIncludeNativeHeaders       | `$<$<PLATFORM_ID:Windows>:JUCE_CORE_INCLUDE_NATIVE_HEADERS=1>`       | Native platform headers in juce_core                          |
+| juceGraphicsIncludeDirect2dHelpers | `$<$<PLATFORM_ID:Windows>:JUCE_GRAPHICS_INCLUDE_DIRECT2D_HELPERS=1>` | Direct2D helper visibility, from the framework patch          |
+| juceCoreIncludeComSmartPtr         | `$<$<PLATFORM_ID:Windows>:JUCE_CORE_INCLUDE_COM_SMART_PTR=1>`        | Windows COM smart pointer helpers                             |
+| vmaVulkanVersion                   | VMA_VULKAN_VERSION=1002000                                           | Vulkan version for Vulkan Memory Allocator                    |
+| haveFreetype                       | HAVE_FREETYPE                                                        | FreeType font backend, consumed by juce_graphics_Harfbuzz.cpp |
+| haveUnistdH                        | `$<$<NOT:$<PLATFORM_ID:Windows>>:HAVE_UNISTD_H>`                     | POSIX unistd.h present, non-Windows                           |
++------------------------------------+----------------------------------------------------------------------+---------------------------------------------------------------+
 
 ## include
 
-+------------+--------------+-------------------------------------------+
-| name       | value        | description                               |
-+============+==============+===========================================+
-| userModule | @user-module | User module root, for #include resolution |
-| generated  | @generated   | Generated headers                         |
-+------------+--------------+-------------------------------------------+
++------------+----------------------------------------------------------+-------------------------------------------+
+| name       | value                                                    | description                               |
++============+==========================================================+===========================================+
+| userModule | @user-module                                             | User module root, for #include resolution |
+| generated  | @generated                                               | Generated headers                         |
+| freetype   | `${CAST_USER_MODULE_PATH}/jam_freetype/freetype/include` |                                           |
+| harfbuzz   | `${CAST_JUCE_PATH}/modules/juce_graphics/fonts/harfbuzz` |                                           |
++------------+----------------------------------------------------------+-------------------------------------------+
 
 ## binary
 
-+------------+---------------------------------+--------------------------+
-| name       | value                           | description              |
-+============+=================================+==========================+
-| help       | Source/HELP.md                  | Help document source     |
-| castOutput | Source/resources/cast-output.md | Output document resource |
-+------------+---------------------------------+--------------------------+
++--------------------+---------------------------------+------------------------------------------------------+
+| name               | value                           | description                                          |
++====================+=================================+======================================================+
+| help               | Source/HELP.md                  | Help document source                                 |
+| castOutput         | Source/resources/cast-output.md | Output document resource                             |
+| markdownStyleSheet | Source/markdown.css             | Markdown terminal stylesheet, embedded as BinaryData |
+| mermaidStyleSheet  | @mermaid-style                  | Mermaid stylesheet, embedded as BinaryData           |
++--------------------+---------------------------------+------------------------------------------------------+
 
 ## toolchain
 

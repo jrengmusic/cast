@@ -37,7 +37,6 @@ struct Processor
         , templateDocument (*model)
         , writer (*model, templateDocument)
     {
-        jam::Stamp::getInstance()->addIfNotAlreadyThere (jam::Stamp::Entry {});
     }
 
     /**

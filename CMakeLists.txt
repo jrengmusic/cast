@@ -111,12 +111,95 @@ elseif(WIN32)
 endif()
 
 set(CAST_JUCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../JUCE")
+set(CAST_USER_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../jam")
+set(CAST_VULKAN_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../Vulkan")
 
 set(CAST_JUCE_VERSION 8.0.14)
 
 find_package(Git REQUIRED)
 
-message(STATUS "CAST: using JUCE at ${CAST_JUCE_PATH}")
+set(CAST_JUCE_PATCHES
+"${CAST_USER_MODULE_PATH}/patch/juce-cached-image-factory-hook.patch"       # External CachedComponentImage factory
+"${CAST_USER_MODULE_PATH}/patch/juce-direct2d-helpers-visibility-hook.patch"# Direct2D helpers visibility gate
+"${CAST_USER_MODULE_PATH}/patch/juce-image-subsection-hook.patch"           # Root image and subsection bounds hooks
+"${CAST_USER_MODULE_PATH}/patch/juce-vulkan-engine-hook.patch"              # External graphics context factory for Vulkan
+"${CAST_USER_MODULE_PATH}/patch/juce-paint-update-rect-hook.patch"          # OS dirty rectangle before native paint
+"${CAST_USER_MODULE_PATH}/patch/juce-attributed-text-hook.patch"            # Attributed text integration
+)
+
+if(WIN32)
+    set(CAST_JUCE_CACHE_DIR "$ENV{LOCALAPPDATA}/cast/juce")
+else()
+    set(CAST_JUCE_CACHE_DIR "$ENV{HOME}/.cache/cast/juce")
+endif()
+
+set(CAST_JUCE_PATCH_SET_CONCAT "${CAST_JUCE_VERSION}")
+foreach(CAST_JUCE_PATCH ${CAST_JUCE_PATCHES})
+    file(READ "${CAST_JUCE_PATCH}" CAST_JUCE_PATCH_CONTENT)
+    string(APPEND CAST_JUCE_PATCH_SET_CONCAT "${CAST_JUCE_PATCH_CONTENT}")
+endforeach()
+
+set(CAST_JUCE_PATCH_SET_CONCAT_FILE "${CMAKE_BINARY_DIR}/cast_juce_patch_set_concat.tmp")
+file(WRITE "${CAST_JUCE_PATCH_SET_CONCAT_FILE}" "${CAST_JUCE_PATCH_SET_CONCAT}")
+file(SHA256 "${CAST_JUCE_PATCH_SET_CONCAT_FILE}" CAST_JUCE_PATCH_SET_HASH)
+file(REMOVE "${CAST_JUCE_PATCH_SET_CONCAT_FILE}")
+
+set(CAST_PATCHED_JUCE_PATH "${CAST_JUCE_CACHE_DIR}/${CAST_JUCE_PATCH_SET_HASH}")
+set(CAST_JUCE_PATCH_STAMP_FILE "${CAST_PATCHED_JUCE_PATH}/.patch-stamp")
+
+if(NOT EXISTS "${CAST_JUCE_PATCH_STAMP_FILE}")
+    message(STATUS "CAST: patching JUCE into ${CAST_PATCHED_JUCE_PATH}")
+
+    if(EXISTS "${CAST_PATCHED_JUCE_PATH}")
+        file(REMOVE_RECURSE "${CAST_PATCHED_JUCE_PATH}")
+    endif()
+
+    file(COPY "${CAST_JUCE_PATH}/"
+        DESTINATION "${CAST_PATCHED_JUCE_PATH}"
+        PATTERN ".git" EXCLUDE
+        PATTERN "docs" EXCLUDE
+        PATTERN "DOCS.html" EXCLUDE
+    )
+
+    foreach(CAST_JUCE_PATCH ${CAST_JUCE_PATCHES})
+        get_filename_component(CAST_JUCE_PATCH_NAME "${CAST_JUCE_PATCH}" NAME)
+
+        execute_process(
+            COMMAND "${GIT_EXECUTABLE}" apply --check --ignore-whitespace "${CAST_JUCE_PATCH}"
+            WORKING_DIRECTORY "${CAST_PATCHED_JUCE_PATH}"
+            RESULT_VARIABLE CAST_JUCE_PATCH_CHECK_RESULT
+            ERROR_VARIABLE CAST_JUCE_PATCH_CHECK_ERROR
+        )
+        if(NOT CAST_JUCE_PATCH_CHECK_RESULT EQUAL 0)
+            message(FATAL_ERROR "CAST: JUCE patch failed --check: ${CAST_JUCE_PATCH_NAME}\n${CAST_JUCE_PATCH_CHECK_ERROR}")
+        endif()
+
+        execute_process(
+            COMMAND "${GIT_EXECUTABLE}" apply --ignore-whitespace "${CAST_JUCE_PATCH}"
+            WORKING_DIRECTORY "${CAST_PATCHED_JUCE_PATH}"
+            RESULT_VARIABLE CAST_JUCE_PATCH_RESULT
+            ERROR_VARIABLE CAST_JUCE_PATCH_ERROR
+        )
+        if(NOT CAST_JUCE_PATCH_RESULT EQUAL 0)
+            message(FATAL_ERROR "CAST: JUCE patch failed to apply: ${CAST_JUCE_PATCH_NAME}\n${CAST_JUCE_PATCH_ERROR}")
+        endif()
+    endforeach()
+
+    file(WRITE "${CAST_JUCE_PATCH_STAMP_FILE}" "${CAST_JUCE_PATCH_SET_HASH}")
+endif()
+
+set(CAST_JUCE_PATH "${CAST_PATCHED_JUCE_PATH}")
+
+set(CAST_JUCE_PATCH_SET_STAMP_FILE "${CMAKE_BINARY_DIR}/cast_juce_patch_set")
+
+if(EXISTS "${CAST_JUCE_PATCH_SET_STAMP_FILE}")
+    file(READ "${CAST_JUCE_PATCH_SET_STAMP_FILE}" CAST_BUILT_JUCE_PATCH_SET_HASH)
+endif()
+
+if(NOT "${CAST_BUILT_JUCE_PATCH_SET_HASH}" STREQUAL "${CAST_JUCE_PATCH_SET_HASH}")
+    file(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/JUCE" "${CMAKE_BINARY_DIR}/vst3_helpers")
+    file(WRITE "${CAST_JUCE_PATCH_SET_STAMP_FILE}" "${CAST_JUCE_PATCH_SET_HASH}")
+endif()
 
 add_subdirectory("${CAST_JUCE_PATH}" "${CMAKE_BINARY_DIR}/JUCE")
 
@@ -126,12 +209,24 @@ if(NOT CAST_FOUND_JUCE_VERSION VERSION_EQUAL CAST_JUCE_VERSION)
     message(FATAL_ERROR "CAST: JUCE ${CAST_FOUND_JUCE_VERSION} found, ${CAST_JUCE_VERSION} required — exact match")
 endif()
 
-message(STATUS "CAST: JUCE ${CAST_FOUND_JUCE_VERSION} found at ${CAST_JUCE_PATH}")
+message(STATUS "CAST: JUCE ${CAST_FOUND_JUCE_VERSION} patched at ${CAST_JUCE_PATH}")
 
-juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_core")      # JAM Core
-juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_subprocess")# JUCE-based subprocess launcher with streaming output and byte-cap truncation
-juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_markdown")  # Clean-room native CommonMark + GFM markdown parsing/rendering
-juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_document")  # Universal line break and reflow (UAX #14)
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_core")             # JAM Core
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_subprocess")       # JUCE-based subprocess launcher with streaming output and byte-cap truncation
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_markdown")         # Clean-room native CommonMark + GFM markdown parsing/rendering
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_document")         # Universal line break and reflow (UAX #14)
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_freetype")         # Vendored FreeType font rasterization library
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_graphics")         # Graphics utilities, blur, shadows, colours, fonts, mesh
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_pdf")              # Clean-room PDF document model, writer and graphics context
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_data_structures")  # ValueTree management and data model utilities — model, parameters, JSON conversion
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_animation")        # Foundation animation classes (Animator, AnimationBase, AnimationScrollingText)
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_vulkan")           # Vulkan rendering backend
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_web")              # HTML authored-subset and CSS Syntax Level 3 subset tokenizers and parsers
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_style")            # JAM Style — LookAndFeel base + ColourScheme-backed colour registry
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_gui")              # GUI foundation — Window, Modal, Glass
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_mermaid_diagram")  # Clean-room native mermaid diagram parsing over jam::Document producing the semantic Element tree
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_markdown_graphics")# Markdown and mermaid materialisation, layout and view component
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_terminal")         # VT read-side engine, TTY, protocol vocabulary, keyboard encoding
 
 message(STATUS "CAST: user modules added from ${CMAKE_CURRENT_SOURCE_DIR}/../jam")
 
@@ -175,12 +270,32 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
     CAST_COMMIT="${CAST_COMMIT_HASH}"
 DONT_SET_USING_JUCE_NAMESPACE=1
 JUCE_DONT_DECLARE_PROJECTINFO=1
+JUCE_STRICT_REFCOUNTEDPOINTER=1
+JUCE_WEB_BROWSER=0
+JUCE_USE_CURL=0
+"$<$<PLATFORM_ID:Windows>:WIN32_LEAN_AND_MEAN=1>"
+"$<$<PLATFORM_ID:Windows>:NOMINMAX=1>"
+"$<$<PLATFORM_ID:Windows>:_WIN32_IE=0x0A00>"
+"$<$<PLATFORM_ID:Windows>:JUCE_CORE_INCLUDE_NATIVE_HEADERS=1>"
+"$<$<PLATFORM_ID:Windows>:JUCE_GRAPHICS_INCLUDE_DIRECT2D_HELPERS=1>"
+"$<$<PLATFORM_ID:Windows>:JUCE_CORE_INCLUDE_COM_SMART_PTR=1>"
+VMA_VULKAN_VERSION=1002000
+HAVE_FREETYPE
+"$<$<NOT:$<PLATFORM_ID:Windows>>:HAVE_UNISTD_H>"
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
 ${CMAKE_CURRENT_SOURCE_DIR}/../jam
 ${CMAKE_CURRENT_SOURCE_DIR}/Source/generated
+"${CAST_USER_MODULE_PATH}/jam_freetype/freetype/include"
+"${CAST_JUCE_PATH}/modules/juce_graphics/fonts/harfbuzz"
 )
+
+if(APPLE)
+    target_include_directories(${PROJECT_NAME} BEFORE PRIVATE "${CAST_VULKAN_PATH}/macOS/include")
+elseif(WIN32)
+    target_include_directories(${PROJECT_NAME} BEFORE PRIVATE "${CAST_VULKAN_PATH}/Include")
+endif()
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
@@ -190,9 +305,56 @@ jam_core
 jam_subprocess
 jam_markdown
 jam_document
+jam_freetype
+jam_graphics
+jam_pdf
+jam_data_structures
+jam_animation
+jam_vulkan
+jam_web
+jam_style
+jam_gui
+jam_mermaid_diagram
+jam_markdown_graphics
+jam_terminal
     PUBLIC
         juce::juce_recommended_config_flags
 )
+
+if(APPLE)
+    add_library(moltenVK STATIC IMPORTED GLOBAL)
+    set_target_properties(moltenVK PROPERTIES
+        IMPORTED_LOCATION
+            "${CAST_VULKAN_PATH}/macOS/lib/MoltenVK.xcframework/macos-arm64_x86_64/libMoltenVK.a"
+        INTERFACE_INCLUDE_DIRECTORIES
+            "${CAST_VULKAN_PATH}/macOS/include"
+    )
+    target_link_libraries(${PROJECT_NAME} PRIVATE moltenVK "-framework IOKit" "-framework IOSurface")
+elseif(WIN32)
+    find_library(CAST_VULKAN_LOADER_LIB vulkan-1
+        PATHS "${CAST_VULKAN_PATH}/Lib"
+        NO_DEFAULT_PATH
+        REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PRIVATE "${CAST_VULKAN_LOADER_LIB}" dwmapi.lib user32.lib)
+endif()
+
+if(MSVC)
+    set_source_files_properties(
+        "${CAST_USER_MODULE_PATH}/jam_freetype/jam_freetype.cpp"
+        PROPERTIES COMPILE_FLAGS "/wd4005 /wd4804"
+    )
+else()
+    set_source_files_properties(
+        "${CAST_USER_MODULE_PATH}/jam_freetype/jam_freetype.cpp"
+        "${CAST_USER_MODULE_PATH}/jam_freetype/jam_freetype.mm"
+        PROPERTIES COMPILE_FLAGS "-Wno-macro-redefined"
+    )
+    set_source_files_properties(
+        "${CAST_USER_MODULE_PATH}/jam_vulkan/jam_vulkan.cpp"
+        "${CAST_USER_MODULE_PATH}/jam_vulkan/jam_vulkan.mm"
+        PROPERTIES COMPILE_FLAGS "-Wno-nullability-completeness -Wno-nullability-extension -fno-strict-aliasing"
+    )
+endif()
 
 target_compile_options(${PROJECT_NAME} PRIVATE
     $<$<CONFIG:Release>:${CAST_RELEASE_COMPILE_FLAGS}>
@@ -203,9 +365,60 @@ target_link_options(${PROJECT_NAME} PRIVATE
     $<$<CONFIG:Release>:${CAST_RELEASE_LINK_FLAGS}>
 )
 
+if(APPLE)
+    set(CAST_VULKAN_GLSLC "${CAST_VULKAN_PATH}/macOS/bin/glslc")
+elseif(WIN32)
+    set(CAST_VULKAN_GLSLC "${CAST_VULKAN_PATH}/Bin/glslc.exe")
+endif()
+
+if(NOT EXISTS "${CAST_VULKAN_GLSLC}")
+    message(FATAL_ERROR "CAST: glslc not found at ${CAST_VULKAN_GLSLC}")
+endif()
+
+set(CAST_SHADER_INCLUDE_DIR "${CAST_USER_MODULE_PATH}/resources/shaders")
+
+file(GLOB_RECURSE CAST_SHADER_SOURCES CONFIGURE_DEPENDS
+    "${CAST_USER_MODULE_PATH}/resources/shaders/*.vert"
+    "${CAST_USER_MODULE_PATH}/resources/shaders/*.frag"
+    "${CAST_USER_MODULE_PATH}/resources/shaders/*.comp"
+)
+
+foreach(CAST_SHADER_SOURCE ${CAST_SHADER_SOURCES})
+    get_filename_component(CAST_SHADER_NAME "${CAST_SHADER_SOURCE}" NAME)
+    set(CAST_SHADER_SPV "${CAST_USER_MODULE_PATH}/resources/spv/${CAST_SHADER_NAME}.spv")
+    set(CAST_SHADER_DEPFILE "${CAST_SHADER_SPV}.d")
+    list(APPEND CAST_SHADER_SPV_OUTPUTS "${CAST_SHADER_SPV}")
+    add_custom_command(
+        OUTPUT  "${CAST_SHADER_SPV}"
+        COMMAND "${CAST_VULKAN_GLSLC}"
+                -I "${CAST_SHADER_INCLUDE_DIR}"
+                -MD -MF "${CAST_SHADER_DEPFILE}"
+                "${CAST_SHADER_SOURCE}" -o "${CAST_SHADER_SPV}"
+        DEPENDS "${CAST_SHADER_SOURCE}"
+        DEPFILE "${CAST_SHADER_DEPFILE}"
+        COMMENT "glslc: ${CAST_SHADER_NAME} -> spv"
+        VERBATIM
+    )
+endforeach()
+
+file(GLOB CAST_SHADER_SPV_FILES CONFIGURE_DEPENDS "${CAST_USER_MODULE_PATH}/resources/spv/*.spv")
+list(APPEND CAST_SHADER_SPV_FILES ${CAST_SHADER_SPV_OUTPUTS})
+list(REMOVE_DUPLICATES CAST_SHADER_SPV_FILES)
+
+if(CAST_SHADER_SPV_FILES)
+    juce_add_binary_data(jam_vulkan_ShaderData
+        NAMESPACE   "jam"
+        HEADER_NAME "jam_VulkanShaderData.h"
+        SOURCES     ${CAST_SHADER_SPV_FILES}
+    )
+    target_link_libraries(${PROJECT_NAME} PRIVATE jam_vulkan_ShaderData)
+endif()
+
 file(GLOB CAST_BINARY_FILES CONFIGURE_DEPENDS
 Source/HELP.md
 Source/resources/cast-output.md
+Source/markdown.css
+${CMAKE_CURRENT_SOURCE_DIR}/../jam/resources/mermaid.css
 )
 
 juce_add_binary_data(${PROJECT_NAME}_BinaryData

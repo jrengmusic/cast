@@ -47,7 +47,6 @@ extern const juce::Identifier blockOpen;
 extern const juce::Identifier bundleColumn;    ///< --pack layout option word.
 extern const juce::Identifier comment;
 extern const juce::Identifier date;            ///< Reserved date token name.
-extern const juce::Identifier description;
 extern const juce::String     dmg;             ///< Dmg archive extension.
 extern const juce::Identifier doubleDash;      ///< Double-dash delimiter.
 extern const juce::String     dsStore;         ///< Finder layout file name.
@@ -55,7 +54,6 @@ extern const juce::Identifier firstRow;        ///< --pack layout option word.
 extern const juce::String     hdiutil;         ///< Dmg image tool command.
 extern const juce::Identifier help;
 extern const juce::Identifier iconSize;        ///< --pack layout option word.
-extern const juce::Identifier link;            ///< --pack link option word.
 extern const juce::Identifier linkColumn;      ///< --pack layout option word.
 extern const juce::Identifier p;
 extern const juce::Identifier pack;            ///< --pack CLI flag word.
@@ -78,7 +76,6 @@ extern const juce::Identifier macroPrefix;     ///< Sync composed identity key â
 extern const juce::Identifier noBanner;        ///< Banner-suppressing fence-prefix marker.
 extern const juce::Identifier noFormat;        ///< Formatless-column marker.
 extern const juce::Identifier placeholder;     ///< Placeholder token name.
-extern const juce::Identifier region;          ///< Sync info-file region table name.
 extern const juce::Identifier separator;       ///< Separator column key.
 extern const juce::Identifier structure;       ///< Structure column key.
 extern const juce::Identifier submodule;       ///< Sync info-file submodule table name.

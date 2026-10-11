@@ -34,7 +34,6 @@ transform operations a format cell may declare (§8).
 | @id     | bundleColumn     | `bundle-column`      | --pack layout option word.                                  |
 | @id     | comment          | `comment`            |                                                             |
 | @id     | date             | `date`               | Reserved date token name.                                   |
-| @id     | description      | `description`        |                                                             |
 | @string | dmg              | `dmg`                | Dmg archive extension.                                      |
 | @id     | doubleDash       | `--`                 | Double-dash delimiter.                                      |
 | @string | dsStore          | `.DS_Store`          | Finder layout file name.                                    |
@@ -42,7 +41,6 @@ transform operations a format cell may declare (§8).
 | @string | hdiutil          | `hdiutil`            | Dmg image tool command.                                     |
 | @id     | help             | `help`               |                                                             |
 | @id     | iconSize         | `icon-size`          | --pack layout option word.                                  |
-| @id     | link             | `link`               | --pack link option word.                                    |
 | @id     | linkColumn       | `link-column`        | --pack layout option word.                                  |
 | @id     | p                | `p`                  |                                                             |
 | @id     | pack             | `pack`               | --pack CLI flag word.                                       |
@@ -65,7 +63,6 @@ transform operations a format cell may declare (§8).
 | @id     | noBanner         | `no-banner`          | Banner-suppressing fence-prefix marker.                     |
 | @id     | noFormat         | `no-format`          | Formatless-column marker.                                   |
 | @id     | placeholder      | `placeholder`        | Placeholder token name.                                     |
-| @id     | region           | `region`             | Sync info-file region table name.                           |
 | @id     | separator        | `separator`          | Separator column key.                                       |
 | @id     | structure        | `structure`          | Structure column key.                                       |
 | @id     | submodule        | `submodule`          | Sync info-file submodule table name.                        |

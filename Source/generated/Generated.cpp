@@ -43,7 +43,6 @@ namespace Id
     const juce::Identifier bundleColumn     { juce::String::fromUTF8 ("bundle-column") };
     const juce::Identifier comment          { juce::String::fromUTF8 ("comment") };
     const juce::Identifier date             { juce::String::fromUTF8 ("date") };
-    const juce::Identifier description      { juce::String::fromUTF8 ("description") };
     const juce::String     dmg              { juce::String::fromUTF8 ("dmg") };
     const juce::Identifier doubleDash       { juce::String::fromUTF8 ("--") };
     const juce::String     dsStore          { juce::String::fromUTF8 (".DS_Store") };
@@ -51,7 +50,6 @@ namespace Id
     const juce::String     hdiutil          { juce::String::fromUTF8 ("hdiutil") };
     const juce::Identifier help             { juce::String::fromUTF8 ("help") };
     const juce::Identifier iconSize         { juce::String::fromUTF8 ("icon-size") };
-    const juce::Identifier link             { juce::String::fromUTF8 ("link") };
     const juce::Identifier linkColumn       { juce::String::fromUTF8 ("link-column") };
     const juce::Identifier p                { juce::String::fromUTF8 ("p") };
     const juce::Identifier pack             { juce::String::fromUTF8 ("pack") };
@@ -74,7 +72,6 @@ namespace Id
     const juce::Identifier noBanner         { juce::String::fromUTF8 ("no-banner") };
     const juce::Identifier noFormat         { juce::String::fromUTF8 ("no-format") };
     const juce::Identifier placeholder      { juce::String::fromUTF8 ("placeholder") };
-    const juce::Identifier region           { juce::String::fromUTF8 ("region") };
     const juce::Identifier separator        { juce::String::fromUTF8 ("separator") };
     const juce::Identifier structure        { juce::String::fromUTF8 ("structure") };
     const juce::Identifier submodule        { juce::String::fromUTF8 ("submodule") };
