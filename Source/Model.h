@@ -983,7 +983,7 @@ private:
         for (auto* table : *document.root)
             if (jam::MarkdownDocument::isTable (*table))
             {
-                auto* headerRow { getTableHeaderRow (*table) };
+                const auto* headerRow { getTableHeaderRow (*table) };
 
                 for (auto* row : *table)
                     if (row != headerRow and not isTableBorder (*row))
@@ -1044,7 +1044,9 @@ private:
      */
     static void addRow (Model& document, Element& row)
     {
-        document.addValues (*document.getTableHeaderRow (*row.parent), row);
+        if (const auto* headerRow { document.getTableHeaderRow (*row.parent) })
+            document.addValues (*headerRow, row);
+
         auto* listCell { row.getChildByID (Id::list) };
         auto* structureCell { row.getChildByID (Id::structure) };
         auto* separatorCell { row.getChildByID (Id::separator) };

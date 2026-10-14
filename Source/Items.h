@@ -914,8 +914,9 @@ struct Items
         return std::any_of (tables.begin(), tables.end(),
             [&model, &sourceName] (const Element* table)
             {
-                auto* headerRow { Model::getTableHeaderRow (*table) };
+                const auto* headerRow { Model::getTableHeaderRow (*table) };
                 return model.isOutputTable (*table)
+                       and headerRow != nullptr
                        and model.getTableCell (*headerRow, sourceName) != nullptr;
             });
     }
