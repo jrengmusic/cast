@@ -111,6 +111,38 @@
 
 ## SPRINT HISTORY
 
+## Sprint: --help at 0.48 s Through the jam Contract Audit; Plain-Cell Escapes Kept ✅
+
+**Date:** 2026-10-14
+**Duration:** part of three sessions. jam Sprint 163 is the primary record.
+
+### Files Modified
+- `Source/Help.h`: `engine.setPalette (styleMarkdown)` after the appearance; the two style sheets fold through `Css::applyTo`; the engine takes `*stdout` (`GraphicsEngine (FILE&)`).
+- `Source/main.cpp:1425-1433`: the screen erase writes `jam::terminal::appendEraseScreen` to stdout for terminal output; `std::system` is gone. The engine no longer erases on its first frame.
+- `Source/Model.h`, `Source/Validator.h`: table-cell raw text through `MarkdownDocument::getRawText` (it replaces `Id::rawText`); `jam::Strings::fromView` at the view-to-String sites.
+- `Source/Transforms.h:494`: `jam::Strings::fromView`.
+
+### Verification
+- `cast cast/spell.md --debug`: 0 errors, 0 warnings.
+- `cast --help` (Debug): 2.03 s cold, 0.48 s warm (Sprint 162: 0.65 s). The output is byte-identical to the Sprint 162 capture (221865 bytes).
+- Regenerated `CMakeLists.txt` signing lines, `cast/installer/win/installer.nsi` and `Source/generated/Text.h` equal HEAD. A jam parse change had kept plain-cell backslash escapes (`HELP.md:151`); the jam fix restored them.
+- `~/.local/bin/cast` was rebuilt with `ninja` once, because the PATH binary had the broken parse and glued the jam module headers.
+
+## Sprint: --help Measured to Subsecond Through jam ✅
+
+**Date:** 2026-10-13
+**Duration:** part of two sessions. jam Sprint 162 is the primary record.
+
+ARCHITECT: *"cast --help is unacceptably SLOW"*; *"acceptable rendering for both whelmed and cast --help is subseconds, or SHUOLD BE FASTER. FASTEST."*
+
+### Files Modified
+- None. The cast working tree is clean. Every change is in jam (markdown parse, glyph engine, terminal LLGC).
+
+### Verification
+- `cast cast/spell.md --debug` builds.
+- `cast --help` (Debug) takes 0.65 s real warm, against a baseline of 1.20 s. Exit code is 0.
+- The output is byte-identical to the baseline capture (221865 bytes).
+
 ## Sprint: terminal-llgc — --help at Terminal Width; Cell-Snapped Metrics; Solid Tables; Fixed Palette ✅
 
 **Date:** 2026-10-11

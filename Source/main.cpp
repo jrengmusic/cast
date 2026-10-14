@@ -1422,16 +1422,15 @@ int main (int argc, char* argv[])
     SetConsoleOutputCP (CP_UTF8);
 #endif
 
+    const auto lineWrap { getFlagValue (argc, argv, getLineWrapFlag(), absentFlagValue) };
+
     if (isTerminalOutput() and not isFormatOnly (argc, argv) and not isPackFlag (argc, argv))
     {
-#ifdef _WIN32
-        std::system ("cls");
-#else
-        std::system ("clear");
-#endif
+        std::string erase;
+        jam::terminal::appendEraseScreen (erase);
+        fwrite (erase.data(), sizeof (char), erase.size(), stdout);
+        fflush (stdout);
     }
-
-    const auto lineWrap { getFlagValue (argc, argv, getLineWrapFlag(), absentFlagValue) };
 
     if (isPackFlag (argc, argv))
         return runPackArguments (argc, argv);

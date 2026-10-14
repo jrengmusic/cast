@@ -491,7 +491,7 @@ private:
                 const std::string_view text { input.getCharPointer().getAddress() };
                 const auto result { jam::Format::fromUTF8 (text) };
 
-                return juce::String::fromUTF8 (result.data(), static_cast<int> (result.size()));
+                return jam::Strings::fromView (result);
             });
         map.add<const juce::String&, const juce::String&> (
             jam::Format::toCamelCase (Id::toLiteral),

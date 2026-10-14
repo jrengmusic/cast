@@ -85,9 +85,10 @@ public:
                 if (row->id != Id::lineWrap)
                 {
                     auto* nameCell { getTableCell (*row, Id::name) };
+                    const auto nameView { getValueView (*nameCell) };
 
                     newReflowWidths.try_emplace (
-                        juce::Identifier (jam::Format::toValidID (*nameCell->get<juce::String> (Id::rawText))),
+                        juce::Identifier (jam::Format::toValidID (jam::Strings::fromView (nameView))),
                         getValue (*row, Id::width).getIntValue());
                 }
 
@@ -1218,8 +1219,7 @@ private:
                 for (auto* item : *block)
                 {
                     const auto valueView { document.getValueView (*item) };
-                    auto value { juce::String::fromUTF8 (valueView.data(),
-                        static_cast<int> (valueView.size())) };
+                    auto value { jam::Strings::fromView (valueView) };
 
                     if (value.isEmpty() and item->id != listMarker)
                         value = jam::Format::toCamelCase (precedingBinding);
@@ -1600,8 +1600,8 @@ private:
      *                        name, applied to a literal's text.
      * @returns @p cell's own authored text, resolved in preference order.
      */
-    static juce::String getAuthoredText (const Element& cell, const Element* literal, bool isDescriptionColumn,
-        bool isDescriptionProse, const juce::String& transform)
+    juce::String getAuthoredText (const Element& cell, const Element* literal, bool isDescriptionColumn,
+        bool isDescriptionProse, const juce::String& transform) const
     {
         if (literal != nullptr and not isDescriptionProse)
         {
@@ -1614,7 +1614,7 @@ private:
         }
 
         if (isDescriptionProse)
-            return *cell.get<juce::String> (Id::rawText);
+            return getRawText (cell, jam::Document::getSource());
 
         return cell.getAllSubText();
     }

@@ -148,10 +148,12 @@ struct Validator : jam::MarkdownValidator
                     for (auto* cell : *row)
                         if (cell->id != Id::list and cell->id != Id::separator
                             and cell->id != Id::structure)
-                            if (const auto result { function (
-                                    *table, *row, cell->id, *cell->get<juce::String> (Id::rawText)) };
+                        {
+                            if (const auto result { function (*table, *row, cell->id,
+                                    Model::getRawText (*cell, model.jam::Document::getSource())) };
                                 not result.wasOk())
                                 return result;
+                        }
 
         return juce::Result::ok();
     }
@@ -1579,9 +1581,7 @@ struct Validator : jam::MarkdownValidator
         for (auto* row : rows)
             if (auto* cell { model.getTableCell (*row, column) })
             {
-                const auto rawText { *cell->get<juce::String> (Id::rawText) };
-
-                if (not Model::isAddress (rawText))
+                if (not Model::isAddress (Model::getRawText (*cell, model.jam::Document::getSource())))
                     if (const auto& value { *cell->get<juce::String> (Id::value) }; value.isNotEmpty())
                     {
                         if (seen.contains (value))
@@ -1637,7 +1637,7 @@ struct Validator : jam::MarkdownValidator
                 for (auto* row : model.getTableRows (*table))
                     if (auto* cell { model.getTableCell (*row, Id::alias) })
                     {
-                        const auto& value { *cell->get<juce::String> (Id::rawText) };
+                        const auto value { Model::getRawText (*cell, model.jam::Document::getSource()) };
 
                         if (seen.contains (value))
                             return juce::Result::fail (getLocation (*table, *row, Id::alias.toString())

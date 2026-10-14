@@ -26,16 +26,16 @@ static inline void printHelp (const juce::String& helpText)
     juce::ValueTree config { Id::toType (Id::config) };
 
     for (const auto& styleSheet : { files::markdownStyleSheet, files::mermaidStyleSheet })
-        for (const auto& child : jam::Css::getOrCreate (juce::Identifier { styleSheet }).getValueTree (Id::toType (Id::config), juce::Identifier { juce::File::createFileWithoutCheckingPath (styleSheet).getFileNameWithoutExtension() }))
-            config.appendChild (child.createCopy(), nullptr);
+        jam::Css::getOrCreate (juce::Identifier { styleSheet }).applyTo (config, juce::Identifier { juce::File::createFileWithoutCheckingPath (styleSheet).getFileNameWithoutExtension() });
 
-    jam::terminal::GraphicsEngine engine { stdout };
+    jam::terminal::GraphicsEngine engine { *stdout };
     jam::StyleManager styleManager { { BinaryData::fetcher }, config };
     jam::StyleMarkdown styleMarkdown;
     juce::LookAndFeel::setDefaultLookAndFeel (&styleMarkdown);
 
     const auto lineHeight { styleMarkdown.getMetrics<float> (map::MarkdownStyleSheet::lineHeight) };
     styleMarkdown.setCellSize (static_cast<float> (jam::AttributedChar::narrowColumns), lineHeight);
+    engine.setPalette (styleMarkdown);
 
     const auto winsize { engine.getWinsize() };
     const auto maxLineWidth { styleMarkdown.getMetrics<float> (map::MarkdownStyleSheet::maxLineWidth) };
