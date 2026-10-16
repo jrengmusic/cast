@@ -33,16 +33,7 @@ struct Validator : jam::MarkdownValidator
      *          failure naming @p line's own info.
      */
     static juce::Result hasTemplate (const TemplateDocument& templateDocument, const Element& table,
-        const Element& row, const juce::Identifier& column, const Element& line)
-    {
-        if (templateDocument.getCodeBlock (line) == nullptr)
-            return juce::Result::fail (getLocation (table, row, column.toString())
-                                       + Id::diagnosticSeparator
-                                       + text::Diagnostics::failTemplateMissing
-                                       + Id::diagnosticSeparator + *line.get<juce::String> (Id::info));
-
-        return juce::Result::ok();
-    }
+        const Element& row, const juce::Identifier& column, const Element& line);
 
     /**
      * @brief Runs every manifest-level check against @p model and
@@ -54,10 +45,7 @@ struct Validator : jam::MarkdownValidator
      * @returns juce::Result::ok() when every check passes, or the first
      *          failing check's result.
      */
-    static juce::Result isValid (const Model& model, const TemplateDocument& templateDocument)
-    {
-        return isManifest (model, templateDocument);
-    }
+    static juce::Result isValid (const Model& model, const TemplateDocument& templateDocument);
 
     /**
      * @brief Invokes @p function once per bullet found by walking
@@ -167,37 +155,7 @@ struct Validator : jam::MarkdownValidator
      *          resolves to an existing file, or a failure naming the
      *          missing table, symbol, output, or template.
      */
-    static juce::Result isIndex (const Model& model)
-    {
-        for (auto* indexTable : model.getTables (Id::index))
-            for (auto* row : model.getTableRows (*indexTable))
-            {
-                const auto pathCell { model.getTableValue (*row, Id::symbol) };
-
-                if (pathCell.isEmpty())
-                    return juce::Result::fail (getLocation (*indexTable, *row, Id::symbol.toString())
-                                               + Id::diagnosticSeparator
-                                               + text::Diagnostics::failNotFound);
-
-                if (juce::File::createFileWithoutCheckingPath (pathCell)
-                        .hasFileExtension (Extensions::md)
-                    and not model.getFile (pathCell).existsAsFile())
-                    return juce::Result::fail (getLocation (*indexTable, *row, Id::symbol.toString())
-                                               + Id::diagnosticSeparator
-                                               + text::Diagnostics::failOutputMissing
-                                               + Id::diagnosticSeparator + pathCell);
-
-                if (juce::File::createFileWithoutCheckingPath (pathCell)
-                        .hasFileExtension (Extensions::cast)
-                    and not model.getFile (pathCell).existsAsFile())
-                    return juce::Result::fail (getLocation (*indexTable, *row, Id::symbol.toString())
-                                               + Id::diagnosticSeparator
-                                               + text::Diagnostics::failTemplateMissing
-                                               + Id::diagnosticSeparator + pathCell);
-            }
-
-        return juce::Result::ok();
-    }
+    static juce::Result isIndex (const Model& model);
 
     /**
      * @brief Checks that every output row declares a non-empty structure
@@ -212,41 +170,15 @@ struct Validator : jam::MarkdownValidator
      *          a failure naming the missing structure or the missing
      *          template.
      */
-    static juce::Result isStructure (const Model& model, const TemplateDocument& templateDocument)
-    {
-        for (auto* table : model.getTables())
-            if (model.isOutputTable (*table))
-                for (auto* row : model.getTableRows (*table))
-                {
-                    auto* structureScope { model.getTableCell (*row, Id::structure) };
-
-                    if (structureScope == nullptr or model.getStructure (*structureScope).isEmpty())
-                        return juce::Result::fail (
-                            getLocation (*table, *row, Id::structure.toString())
-                            + Id::diagnosticSeparator + text::Diagnostics::failStructureMissing);
-
-                    const Element* failingLine { nullptr };
-
-                    structureScope->applyFunctionRecursively (
-                        [&failingLine, &templateDocument] (const Element& candidate) -> bool
-                        {
-                            if (failingLine == nullptr and candidate.contains (Id::templatePath)
-                                and templateDocument.getCodeBlock (candidate) == nullptr)
-                                failingLine = &candidate;
-
-                            return failingLine == nullptr;
-                        });
-
-                    if (failingLine != nullptr)
-                        return hasTemplate (templateDocument, *table, *row, Id::structure, *failingLine);
-                }
-
-        return juce::Result::ok();
-    }
+    static juce::Result isStructure (const Model& model, const TemplateDocument& templateDocument);
 
     /**
      * @brief Checks that no two bindings under @p scope share the same
-     *        name, then checks the same for every nested blockquote scope.
+     *        name and the same owner, then checks the same for every nested
+     *        blockquote scope.
+     *
+     * Two non-@c list bullets carrying @c shape are duplicates when they
+     * share the same id and the same Model::getOwner().
      *
      * @param table  The table @p row belongs to, named in a failure's
      *               location.
@@ -255,46 +187,11 @@ struct Validator : jam::MarkdownValidator
      * @param column The column @p scope was read from, named in a
      *               failure's location.
      * @param scope  The blockquote scope whose bindings are checked.
-     * @param seen   The binding names seen for the current shape, reset at
-     *               each shape line.
      * @returns juce::Result::ok() when every scope's bindings are unique,
      *          or a failure naming the duplicate binding.
      */
     static juce::Result isBindingCountValid (const Element& table, const Element& row,
-        const juce::Identifier& column, const Element& scope, jam::HashSet<juce::Identifier>& seen)
-    {
-        static const auto listMarker { Model::getReservedName (Id::list) };
-
-        for (auto* child : scope)
-        {
-            if (child->isTag (Id::p) and child->contains (Id::templatePath))
-                seen.clear();
-
-            if (child->isTag (Id::ul))
-                for (auto* item : *child)
-                {
-                    if (item->id == listMarker)
-                        seen.clear();
-                    else
-                    {
-                        if (seen.contains (item->id))
-                            return juce::Result::fail (getLocation (table, row, column.toString())
-                                                       + Id::diagnosticSeparator
-                                                       + text::Diagnostics::failBindingDuplicate
-                                                       + Id::diagnosticSeparator + item->id.toString());
-
-                        seen.insert (item->id);
-                    }
-                }
-
-            if (child->isTag (Id::blockquote))
-                if (const auto result { isBindingCountValid (table, row, column, *child, seen) };
-                    not result.wasOk())
-                    return result;
-        }
-
-        return juce::Result::ok();
-    }
+        const juce::Identifier& column, const Element& scope);
 
     /**
      * @brief Checks every output row's @c structure and @c separator
@@ -305,24 +202,7 @@ struct Validator : jam::MarkdownValidator
      * @returns juce::Result::ok() when every row's bindings are unique, or
      *          the first failing row's result.
      */
-    static juce::Result isBindingCountValid (const Model& model)
-    {
-        for (auto* table : model.getTables())
-            if (model.isOutputTable (*table))
-                for (auto* row : model.getTableRows (*table))
-                    for (const auto& column : { Id::structure, Id::separator })
-                        if (auto* scope { model.getTableCell (*row, column) })
-                        {
-                            jam::HashSet<juce::Identifier> seen;
-
-                            if (const auto result {
-                                    isBindingCountValid (*table, *row, column, *scope, seen) };
-                                not result.wasOk())
-                                return result;
-                        }
-
-        return juce::Result::ok();
-    }
+    static juce::Result isBindingCountValid (const Model& model);
 
     /**
      * @brief Checks that every shape line under @p structureScope
@@ -341,42 +221,7 @@ struct Validator : jam::MarkdownValidator
      *          failure naming the unterminated shape.
      */
     static juce::Result isMarkerCountValid (const TemplateDocument& templateDocument, const Element& table,
-        const Element& row, const Element& structureScope)
-    {
-        juce::String shapeId;
-
-        structureScope.applyFunctionRecursively (
-            [&shapeId, &templateDocument] (const Element& candidate) -> bool
-            {
-                if (shapeId.isEmpty() and candidate.contains (Id::templatePath))
-                {
-                    const auto& blockText {
-                        *templateDocument.getCodeBlock (candidate)->get<juce::String> (Id::value)
-                    };
-                    int count { 0 };
-                    int cursor { 0 };
-
-                    for (auto position { blockText.indexOf (cursor, Id::tripleColon) }; position >= 0;
-                         position = blockText.indexOf (cursor, Id::tripleColon))
-                    {
-                        ++count;
-                        cursor = position + Id::tripleColon.length();
-                    }
-
-                    if (count % 2 != 0)
-                        shapeId = *candidate.get<juce::String> (Id::info);
-                }
-
-                return shapeId.isEmpty();
-            });
-
-        if (shapeId.isNotEmpty())
-            return juce::Result::fail (getLocation (table, row, Id::structure.toString())
-                                       + Id::diagnosticSeparator + text::Diagnostics::failMarkerUnterminated
-                                       + Id::diagnosticSeparator + shapeId);
-
-        return juce::Result::ok();
-    }
+        const Element& row, const Element& structureScope);
 
     /**
      * @brief Checks every output row's structure scope for unterminated
@@ -389,19 +234,7 @@ struct Validator : jam::MarkdownValidator
      *          first failing row's result.
      */
     static juce::Result
-    isMarkerCountValid (const Model& model, const TemplateDocument& templateDocument)
-    {
-        for (auto* table : model.getTables())
-            if (model.isOutputTable (*table))
-                for (auto* row : model.getTableRows (*table))
-                    if (auto* structureScope { model.getTableCell (*row, Id::structure) })
-                        if (const auto result {
-                                isMarkerCountValid (templateDocument, *table, *row, *structureScope) };
-                            not result.wasOk())
-                            return result;
-
-        return juce::Result::ok();
-    }
+    isMarkerCountValid (const Model& model, const TemplateDocument& templateDocument);
 
     /**
      * @brief Checks that every bracketed marker interior in @p scope's
@@ -421,36 +254,7 @@ struct Validator : jam::MarkdownValidator
      *          reserved name, or a failure naming the first unknown one.
      */
     static juce::Result isReservedName (const TemplateDocument& templateDocument, const Element& table,
-        const Element& row, const juce::Identifier& column, const Element& scope)
-    {
-        static const jam::HashSet<juce::Identifier> templateNames {
-            Model::getReservedName (Id::list),
-            Model::getReservedName (Id::description),
-            Model::getReservedName (Id::banner) };
-
-        juce::String failingName;
-
-        scope.applyFunctionRecursively (
-            [&failingName, &templateDocument] (const Element& candidate) -> bool
-            {
-                if (failingName.isEmpty() and candidate.contains (Id::templatePath))
-                    for (const auto& interior : TemplateDocument::getMarkers (
-                             *templateDocument.getCodeBlock (candidate)->get<juce::String> (Id::value)))
-                        if (failingName.isEmpty() and interior.startsWithChar (Chars::openBracket)
-                            and interior.endsWithChar (Chars::closeBracket)
-                            and not templateNames.contains (juce::Identifier (jam::Format::toValidID (interior))))
-                            failingName = interior;
-
-                return failingName.isEmpty();
-            });
-
-        if (failingName.isNotEmpty())
-            return juce::Result::fail (getLocation (table, row, column.toString())
-                                       + Id::diagnosticSeparator + text::Diagnostics::failReservedName
-                                       + Id::diagnosticSeparator + failingName);
-
-        return juce::Result::ok();
-    }
+        const Element& row, const juce::Identifier& column, const Element& scope);
 
     /**
      * @brief Checks that every bracketed token in an output row's
@@ -465,44 +269,7 @@ struct Validator : jam::MarkdownValidator
      * @returns juce::Result::ok() when every bracketed name is reserved,
      *          or the first failing entry's result.
      */
-    static juce::Result isReservedName (const Model& model, const TemplateDocument& templateDocument)
-    {
-        static const jam::HashSet<juce::Identifier> bulletNames {
-            Model::getReservedName (Id::list),
-            Model::getReservedName (Id::description),
-            Model::getReservedName (Id::begin),
-            Model::getReservedName (Id::end) };
-
-        for (auto* table : model.getTables())
-            if (model.isOutputTable (*table))
-                for (auto* row : model.getTableRows (*table))
-                    for (const auto& column : { Id::structure, Id::separator, Id::list })
-                        if (auto* scope { model.getTableCell (*row, column) })
-                            if (const auto result {
-                                    isReservedName (templateDocument, *table, *row, column, *scope) };
-                                not result.wasOk())
-                                return result;
-
-        for (const auto& column : { Id::structure, Id::separator, Id::list })
-            if (const auto result { forEachBinding (model, column,
-                    [&column] (const Element& table, const Element& row, const juce::Identifier& entryId,
-                        const juce::String&) -> juce::Result
-                    {
-                        if (entryId.toString().startsWithChar (Chars::underscore)
-                            and entryId.toString().endsWithChar (Chars::underscore)
-                            and not bulletNames.contains (entryId))
-                            return juce::Result::fail (getLocation (table, row, column.toString())
-                                                       + Id::diagnosticSeparator
-                                                       + text::Diagnostics::failReservedName
-                                                       + Id::diagnosticSeparator + entryId.toString());
-
-                        return juce::Result::ok();
-                    }) };
-                not result.wasOk())
-                return result;
-
-        return juce::Result::ok();
-    }
+    static juce::Result isReservedName (const Model& model, const TemplateDocument& templateDocument);
 
     /**
      * @brief Checks that @p precedingShape, when it is a list-item shape
@@ -523,25 +290,7 @@ struct Validator : jam::MarkdownValidator
      *          naming the unresolved reference.
      */
     static juce::Result isShapeSupplied (const Model& model, const Element& table, const Element& row,
-        const juce::Identifier& column, const Element& precedingShape)
-    {
-        juce::String sourceValue;
-
-        if (not precedingShape.isTag (Id::p))
-        {
-            const auto indent { *precedingShape.get<int> (Id::level) };
-            const auto ordinal { *precedingShape.get<int> (Id::line) };
-            auto* sourceItem { model.getSource (row, indent, ordinal) };
-            sourceValue = *sourceItem->get<juce::String> (Id::value);
-
-            if (model.isColumnAddress (row, sourceValue))
-                if (const auto result { hasTable (model, table, row, column, sourceValue) };
-                    not result.wasOk())
-                    return result;
-        }
-
-        return juce::Result::ok();
-    }
+        const juce::Identifier& column, const Element& precedingShape);
 
     /**
      * @brief Walks @p scope, checking every shape line's template through
@@ -570,57 +319,7 @@ struct Validator : jam::MarkdownValidator
      */
     static std::pair<juce::Result, const Element*> isPlaceholderScope (const Model& model,
         const TemplateDocument& templateDocument, const Element& table, const Element& row,
-        const juce::Identifier& column, const Element& scope, const Element* precedingShape)
-    {
-        static const auto listMarker { Model::getReservedName (Id::list) };
-
-        for (auto* block : scope)
-        {
-            if (block->isTag (Id::p) and block->contains (Id::templatePath) and column == Id::structure)
-            {
-                if (precedingShape != nullptr)
-                    if (const auto result {
-                            isShapeSupplied (model, table, row, column, *precedingShape) };
-                        not result.wasOk())
-                        return { result, precedingShape };
-
-                precedingShape = block;
-            }
-
-            if (block->isTag (Id::ul))
-                for (auto* item : *block)
-                {
-                    if (item->contains (Id::templatePath))
-                        if (const auto result { hasTemplate (templateDocument, table, row, column, *item) };
-                            not result.wasOk())
-                            return { result, precedingShape };
-
-                    if (item->id == listMarker and column == Id::structure)
-                    {
-                        if (precedingShape != nullptr)
-                            if (const auto result {
-                                    isShapeSupplied (model, table, row, column, *precedingShape) };
-                                not result.wasOk())
-                                return { result, precedingShape };
-
-                        precedingShape = item;
-                    }
-                }
-
-            if (block->isTag (Id::blockquote))
-            {
-                auto [blockResult, blockShape] { isPlaceholderScope (model, templateDocument, table, row,
-                    column, *block, precedingShape) };
-
-                precedingShape = blockShape;
-
-                if (not blockResult.wasOk())
-                    return { blockResult, precedingShape };
-            }
-        }
-
-        return { juce::Result::ok(), precedingShape };
-    }
+        const juce::Identifier& column, const Element& scope, const Element* precedingShape);
 
     /**
      * @brief Checks every output row's @c structure and @c separator
@@ -635,87 +334,22 @@ struct Validator : jam::MarkdownValidator
      *          or the first failing row's result.
      */
     static juce::Result
-    isPlaceholders (const Model& model, const TemplateDocument& templateDocument)
-    {
-        for (const auto& column : { Id::structure, Id::separator })
-            for (auto* table : model.getTables())
-                if (model.isOutputTable (*table))
-                    for (auto* row : model.getTableRows (*table))
-                        if (auto* scope { model.getTableCell (*row, column) })
-                        {
-                            auto [scopeResult, precedingShape] { isPlaceholderScope (model, templateDocument,
-                                *table, *row, column, *scope, nullptr) };
-
-                            if (not scopeResult.wasOk())
-                                return scopeResult;
-
-                            if (precedingShape != nullptr and column == Id::structure)
-                                if (const auto result {
-                                        isShapeSupplied (model, *table, *row, column, *precedingShape) };
-                                    not result.wasOk())
-                                    return result;
-                        }
-
-        return juce::Result::ok();
-    }
+    isPlaceholders (const Model& model, const TemplateDocument& templateDocument);
 
     /**
-     * @brief Checks that every output row's structure scope supplies no
-     *        more sources than its shapes demand -- each paragraph shape,
-     *        wrapper, and item shape's own arity, and each expansion
-     *        @c list bullet counting as one supplied source.
+     * @brief Checks that the render walk reaches every source line of each
+     *        output row -- from the row's first line through
+     *        Items::getNextShapeLine(), the walk the renderer consumes by.
+     *        A source line left after the walk would render nowhere.
      *
      * @param model            The model whose output tables are checked.
      * @param templateDocument The template document each shape line's
      *                         arity is read from.
-     * @returns juce::Result::ok() when every row's supplied sources stay
-     *          within its demanded arity, or a failure naming the
-     *          ambiguous row.
+     * @returns juce::Result::ok() when every row's walk consumes all of
+     *          its source lines, or a failure naming the first row that
+     *          leaves one.
      */
-    static juce::Result isSourceCountValid (const Model& model, const TemplateDocument& templateDocument)
-    {
-        static const auto listMarker { Model::getReservedName (Id::list) };
-
-        for (auto* table : model.getTables())
-            if (model.isOutputTable (*table))
-                for (auto* row : model.getTableRows (*table))
-                    if (auto* structureScope { model.getTableCell (*row, Id::structure) })
-                    {
-                        int demanded { 0 };
-                        int supplied { 0 };
-
-                        structureScope->applyFunctionRecursively (
-                            [&demanded, &supplied, &templateDocument] (const Element& candidate)
-                            {
-                                if (candidate.isTag (Id::p) and candidate.contains (Id::templatePath))
-                                {
-                                    ++supplied;
-                                    demanded += Items::getArity (templateDocument, candidate);
-                                }
-
-                                if (candidate.parent->isTag (Id::ul) and candidate.id == listMarker)
-                                {
-                                    ++supplied;
-
-                                    if (candidate.contains (Id::templatePath))
-                                        demanded += Items::getArity (templateDocument, candidate);
-                                }
-
-                                if (candidate.parent->isTag (Id::ul) and candidate.id != listMarker
-                                    and candidate.contains (Id::templatePath))
-                                    demanded += Items::getArity (templateDocument, candidate);
-
-                                return true;
-                            });
-
-                        if (supplied - 1 > demanded)
-                            return juce::Result::fail (getLocation (*table, *row, Id::structure.toString())
-                                                       + Id::diagnosticSeparator
-                                                       + text::Diagnostics::failAmbiguous);
-                    }
-
-        return juce::Result::ok();
-    }
+    static juce::Result isSourceCountValid (const Model& model, const TemplateDocument& templateDocument);
 
     /**
      * @brief Checks that no output row's 2-or-more-slot item shape
@@ -728,42 +362,7 @@ struct Validator : jam::MarkdownValidator
      *          addresses stay within its own arity, or a failure naming
      *          the ambiguous row.
      */
-    static juce::Result isItemSourceCountValid (const Model& model, const TemplateDocument& templateDocument)
-    {
-        static const auto listMarker { Model::getReservedName (Id::list) };
-
-        for (auto* table : model.getTables())
-            if (model.isOutputTable (*table))
-                for (auto* row : model.getTableRows (*table))
-                    if (auto* structureScope { model.getTableCell (*row, Id::structure) })
-                    {
-                        const Element* overSuppliedItem { nullptr };
-
-                        structureScope->applyFunctionRecursively (
-                            [&overSuppliedItem, &templateDocument, &model, row] (const Element& candidate) -> bool
-                            {
-                                if (overSuppliedItem == nullptr and candidate.parent->isTag (Id::ul)
-                                    and candidate.id == listMarker and candidate.contains (Id::templatePath))
-                                {
-                                    const auto arity { Items::getArity (templateDocument, candidate) };
-
-                                    if (arity >= 2
-                                        and model.getColumnAddress (*row, *candidate.get<int> (Id::level),
-                                                *candidate.get<int> (Id::line), arity) != nullptr)
-                                        overSuppliedItem = &candidate;
-                                }
-
-                                return overSuppliedItem == nullptr;
-                            });
-
-                        if (overSuppliedItem != nullptr)
-                            return juce::Result::fail (getLocation (*table, *row, Id::structure.toString())
-                                                       + Id::diagnosticSeparator
-                                                       + text::Diagnostics::failAmbiguous);
-                    }
-
-        return juce::Result::ok();
-    }
+    static juce::Result isItemSourceCountValid (const Model& model, const TemplateDocument& templateDocument);
 
     /**
      * @brief Checks that every expansion @c list bullet under @p scope,
@@ -793,54 +392,7 @@ struct Validator : jam::MarkdownValidator
      *          or a failure naming the orphan bullet.
      */
     static juce::Result isPaired (const Model& model, const Element& table, const Element& row,
-        const juce::Identifier& column, const Element& scope)
-    {
-        static const auto listMarker { Model::getReservedName (Id::list) };
-        static const auto descriptionMarker { Model::getReservedName (Id::description) };
-
-        for (auto* block : scope)
-        {
-            if (block->isTag (Id::ul))
-                for (auto* item : *block)
-                {
-                    if (item->id == listMarker and column != Id::list and item->contains (Id::line))
-                    {
-                        const auto indent { *item->get<int> (Id::level) };
-                        const auto ordinal { *item->get<int> (Id::line) };
-
-                        if (model.getSource (row, indent, ordinal) == nullptr)
-                            return juce::Result::fail (getLocation (table, row, column.toString())
-                                                       + Id::diagnosticSeparator
-                                                       + text::Diagnostics::failOrphan);
-                    }
-
-                    if (item->id == descriptionMarker and column != Id::structure)
-                    {
-                        const auto& value { *item->get<juce::String> (Id::value) };
-
-                        if (Model::isAddress (value))
-                        {
-                            auto* referencedCodeBlock { model.getCodeBlock (
-                                juce::Identifier (jam::Format::getPostColon (value).trim())) };
-
-                            if (model.getTable (row, value) == nullptr
-                                and (referencedCodeBlock == nullptr
-                                     or not referencedCodeBlock->contains (Id::description)))
-                                return juce::Result::fail (getLocation (table, row, column.toString())
-                                                           + Id::diagnosticSeparator
-                                                           + text::Diagnostics::failOrphan);
-                        }
-                    }
-                }
-
-            if (block->isTag (Id::blockquote))
-                if (const auto result { isPaired (model, table, row, column, *block) };
-                    not result.wasOk())
-                    return result;
-        }
-
-        return juce::Result::ok();
-    }
+        const juce::Identifier& column, const Element& scope);
 
     /**
      * @brief Checks every output row's @c structure, @c separator, and
@@ -850,32 +402,7 @@ struct Validator : jam::MarkdownValidator
      * @returns juce::Result::ok() when every row's bullets pair and
      *          resolve, or the first failing row's result.
      */
-    static juce::Result isPaired (const Model& model)
-    {
-        for (auto* table : model.getTables())
-            if (model.isOutputTable (*table))
-                for (auto* row : model.getTableRows (*table))
-                {
-                    if (auto* structureScope { model.getTableCell (*row, Id::structure) })
-                        if (const auto result {
-                                isPaired (model, *table, *row, Id::structure, *structureScope) };
-                            not result.wasOk())
-                            return result;
-
-                    if (auto* separatorScope { model.getTableCell (*row, Id::separator) })
-                        if (const auto result {
-                                isPaired (model, *table, *row, Id::separator, *separatorScope) };
-                            not result.wasOk())
-                            return result;
-
-                    if (auto* listScope { model.getTableCell (*row, Id::list) })
-                        if (const auto result { isPaired (model, *table, *row, Id::list, *listScope) };
-                            not result.wasOk())
-                            return result;
-                }
-
-        return juce::Result::ok();
-    }
+    static juce::Result isPaired (const Model& model);
 
     /**
      * @brief Checks that every @-sigiled binding across @p model's
@@ -893,34 +420,7 @@ struct Validator : jam::MarkdownValidator
      * @returns juce::Result::ok() when every @-sigiled entry resolves,
      *          or the first failing entry's result.
      */
-    static juce::Result isReference (const Model& model)
-    {
-        static const auto descriptionMarker { Model::getReservedName (Id::description) };
-
-        for (const auto& column : { Id::structure, Id::separator, Id::list })
-            if (const auto result { forEachBinding (model, column,
-                    [&model, &column] (const Element& table, const Element& row, const juce::Identifier& entryId,
-                        const juce::String& entryValue) -> juce::Result
-                    {
-                        if ((entryId != descriptionMarker or column == Id::structure)
-                            and Model::isAddress (entryValue) and not model.isShape (row, entryValue))
-                            return hasTable (model, table, row, column, entryValue);
-
-                        return juce::Result::ok();
-                    }) };
-                not result.wasOk())
-                return result;
-
-        return forEachEntry (model,
-            [&model] (const Element& table, const Element& row, const juce::Identifier& column,
-                const juce::String& entryValue) -> juce::Result
-            {
-                if (column != Id::description and column != Id::brief and Model::isAddress (entryValue))
-                    return hasTable (model, table, row, column, entryValue);
-
-                return juce::Result::ok();
-            });
-    }
+    static juce::Result isReference (const Model& model);
 
     /**
      * @brief Checks that every map bullet under @p scope carries a
@@ -939,48 +439,7 @@ struct Validator : jam::MarkdownValidator
      *          column.
      */
     static juce::Result
-    isMap (const Model& model, const Element& table, const Element& row, const Element& scope)
-    {
-        static const auto listMarker { Model::getReservedName (Id::list) };
-
-        for (auto* block : scope)
-        {
-            if (block->isTag (Id::ul))
-                for (auto* item : *block)
-                    if (item->id == listMarker and not item->contains (Id::line))
-                    {
-                        if (not item->contains (Id::shape))
-                            return juce::Result::fail (getLocation (table, row, Id::list.toString())
-                                                       + Id::diagnosticSeparator
-                                                       + text::Diagnostics::failMapOrphan);
-
-                        const auto& value { *item->get<juce::String> (Id::value) };
-
-                        if (value.isNotEmpty())
-                        {
-                            auto* mapTable { model.getTable (row, value) };
-
-                            if (mapTable == nullptr)
-                                return juce::Result::fail (getLocation (table, row, Id::list.toString())
-                                                           + Id::diagnosticSeparator
-                                                           + text::Diagnostics::failTableMissing
-                                                           + Id::diagnosticSeparator + value);
-
-                            if (not model.getTableHeaders (*mapTable).contains (Id::value.toString()))
-                                return juce::Result::fail (getLocation (table, row, Id::list.toString())
-                                                           + Id::diagnosticSeparator
-                                                           + text::Diagnostics::failColumnUnknown
-                                                           + Id::diagnosticSeparator + Id::value.toString());
-                        }
-                    }
-
-            if (block->isTag (Id::blockquote))
-                if (const auto result { isMap (model, table, row, *block) }; not result.wasOk())
-                    return result;
-        }
-
-        return juce::Result::ok();
-    }
+    isMap (const Model& model, const Element& table, const Element& row, const Element& scope);
 
     /**
      * @brief Checks every output row's @c list column's map bullets,
@@ -990,18 +449,7 @@ struct Validator : jam::MarkdownValidator
      * @returns juce::Result::ok() when every row's map bullets resolve,
      *          or the first failing row's result.
      */
-    static juce::Result isMap (const Model& model)
-    {
-        for (auto* table : model.getTables())
-            if (model.isOutputTable (*table))
-                for (auto* row : model.getTableRows (*table))
-                    if (auto* scope { model.getTableCell (*row, Id::list) })
-                        if (const auto result { isMap (model, *table, *row, *scope) };
-                            not result.wasOk())
-                            return result;
-
-        return juce::Result::ok();
-    }
+    static juce::Result isMap (const Model& model);
 
     /**
      * @brief Checks that @p entryValue's first segment resolves -- against
@@ -1026,262 +474,7 @@ struct Validator : jam::MarkdownValidator
      *          failure naming the missing table or column.
      */
     static juce::Result hasTable (const Model& model, const Element& table, const Element& row,
-        const juce::Identifier& column, const juce::String& entryValue)
-    {
-        static const auto colonText { juce::String::charToString (Chars::colon) };
-        static const auto equalsText { juce::String::charToString (Chars::equals) };
-
-        const auto parts { jam::Strings::fromTokens (entryValue, colonText, {}) };
-        const auto sourceName { parts.size() > 0 ? parts.at (0).trim() : juce::String{} };
-        const auto isAlias { model.getValue (row, sourceName).isNotEmpty() };
-        const auto columnIndex { isAlias ? 2 : 1 };
-
-        if (isAlias and parts.size() <= 1)
-            return juce::Result::ok();
-
-        auto* referencedTable { model.getTable (row, entryValue) };
-
-        if (referencedTable == nullptr)
-            return juce::Result::fail (getLocation (table, row, column.toString())
-                                       + Id::diagnosticSeparator
-                                       + text::Diagnostics::failTableMissing
-                                       + Id::diagnosticSeparator + entryValue);
-
-        if (parts.size() > columnIndex)
-        {
-            const auto columnName { parts.at (columnIndex).upToFirstOccurrenceOf (
-                equalsText, false, false).trim() };
-
-            if (not model.getTableHeaders (*referencedTable)
-                        .contains (jam::Format::toValidID (columnName)))
-                return juce::Result::fail (getLocation (table, row, column.toString())
-                                           + Id::diagnosticSeparator
-                                           + text::Diagnostics::failColumnUnknown
-                                           + Id::diagnosticSeparator + columnName);
-        }
-
-        return juce::Result::ok();
-    }
-
-    /**
-     * @brief Checks that @p sourceRoot and @p targetRoot resolve to
-     *        different directories.
-     *
-     * @param sourceRoot The sync source root.
-     * @param targetRoot The sync target root.
-     * @returns juce::Result::ok() when the two roots differ, or a failure
-     *          naming @p sourceRoot.
-     */
-    static juce::Result isRootsDistinct (const juce::File& sourceRoot, const juce::File& targetRoot)
-    {
-        if (sourceRoot == targetRoot)
-            return juce::Result::fail (sourceRoot.getFullPathName()
-                                       + Id::diagnosticSeparator + text::Diagnostics::failSyncRoot);
-
-        return juce::Result::ok();
-    }
-
-    /**
-     * @brief Checks that @p infoFile exists -- the
-     *        @c user-modules-info.md presence fatal.
-     *
-     * @param infoFile The sync root's own resolved info file.
-     * @returns juce::Result::ok() when @p infoFile exists, or a failure
-     *          naming it.
-     */
-    static juce::Result isInfoPresent (const juce::File& infoFile)
-    {
-        if (not infoFile.existsAsFile())
-            return juce::Result::fail (infoFile.getFullPathName()
-                                       + Id::diagnosticSeparator + text::Diagnostics::failSyncInfo);
-
-        return juce::Result::ok();
-    }
-
-    /**
-     * @brief Checks that each of the three composed identity keys --
-     *        @c namespace, @c filePrefix, @c macroPrefix -- is present
-     *        in both @p sourceInfo and @p targetInfo.
-     *
-     * @param sourceInfoFile The source's own resolved info file, named in
-     *                       a failure when @p sourceInfo is missing the
-     *                       key.
-     * @param targetInfoFile The target's own resolved info file, named in
-     *                       a failure when @p targetInfo is missing the
-     *                       key.
-     * @param sourceInfo     The source's own parsed info file.
-     * @param targetInfo     The target's own parsed info file.
-     * @returns juce::Result::ok() when every composed key resolves in
-     *          both files, or a failure naming the missing file and key.
-     */
-    static juce::Result isComposedComplete (const juce::File& sourceInfoFile, const juce::File& targetInfoFile,
-        const Model& sourceInfo, const Model& targetInfo)
-    {
-        static const jam::Strings composedKeys { Id::tokenNamespace.toString(), Id::filePrefix.toString(),
-            Id::macroPrefix.toString() };
-
-        for (const auto& key : composedKeys)
-        {
-            const juce::Identifier keyId { key };
-
-            if (sourceInfo.getTableRow (Id::identity, keyId) == nullptr)
-                return juce::Result::fail (sourceInfoFile.getFullPathName() + Id::diagnosticSeparator
-                                           + key + Id::diagnosticSeparator + text::Diagnostics::failSyncIdentity);
-
-            if (targetInfo.getTableRow (Id::identity, keyId) == nullptr)
-                return juce::Result::fail (targetInfoFile.getFullPathName() + Id::diagnosticSeparator
-                                           + key + Id::diagnosticSeparator + text::Diagnostics::failSyncIdentity);
-        }
-
-        return juce::Result::ok();
-    }
-
-    /**
-     * @brief Checks that every one of @p kernelNames' own directories
-     *        exists at @p root -- the kernel-row existence fatal,
-     *        checked at each root.
-     *
-     * @param root        The sync root @p kernelNames are resolved
-     *                    against.
-     * @param kernelNames @p root's own @c kernel-classed module names.
-     * @returns juce::Result::ok() when every kernel name's own directory
-     *          exists, or a failure naming @p root and the first missing
-     *          name in ascending order.
-     */
-    static juce::Result isKernelPresent (const juce::File& root, const jam::HashSet<juce::String>& kernelNames)
-    {
-        jam::Array<juce::String> missingNames;
-
-        for (const auto& name : kernelNames)
-            if (not root.getChildFile (name).isDirectory())
-                missingNames.add (name);
-
-        missingNames.sort();
-
-        if (missingNames.isEmpty())
-            return juce::Result::ok();
-
-        return juce::Result::fail (root.getFullPathName() + Id::diagnosticSeparator + missingNames.at (0)
-                                   + Id::diagnosticSeparator + text::Diagnostics::failSyncModule);
-    }
-
-    /**
-     * @brief Checks that every directory at @p root whose own name starts
-     *        with @p filePrefix is declared in @p declaredNames -- the
-     *        @c \<filePrefix\>* declaration fatal, checked at each
-     *        root).
-     *
-     * @param root          The sync root walked for @p filePrefix's own
-     *                      directories.
-     * @param filePrefix    @p root's own identity @c filePrefix value.
-     * @param declaredNames Every module row's own name declared at
-     *                      @p root.
-     * @returns juce::Result::ok() when every @p filePrefix directory is
-     *          declared, or a failure naming @p root and the undeclared
-     *          directory.
-     */
-    static juce::Result isPrefixDeclared (const juce::File& root, const juce::String& filePrefix,
-        const jam::HashSet<juce::String>& declaredNames)
-    {
-        for (const auto& directory : root.findChildFiles (juce::File::findDirectories, false))
-        {
-            const auto directoryName { directory.getFileName() };
-
-            if (directoryName.startsWith (filePrefix) and not declaredNames.contains (directoryName))
-                return juce::Result::fail (root.getFullPathName() + Id::diagnosticSeparator + directoryName
-                                           + Id::diagnosticSeparator + text::Diagnostics::failSyncModule);
-        }
-
-        return juce::Result::ok();
-    }
-
-    /**
-     * @brief Checks that the files on disk under a root's own kernel
-     *        scopes are exactly the files its @c ## submodule rows name --
-     *        except that a declared file listed in @p writablePaths can be
-     *        absent, because sync writes it.
-     *
-     * @param root          The sync root, named in a failure.
-     * @param diskPaths     The root-relative paths on disk under the
-     *                      root's own kernel scopes, after the ignore
-     *                      globs.
-     * @param declaredPaths The root-relative paths the root's own
-     *                      @c ## submodule rows name.
-     * @param writablePaths The declared paths that can be absent from disk.
-     * @returns juce::Result::ok() when the two sets agree, or a failure
-     *          naming @p root and the first differing path, in ascending
-     *          order.
-     */
-    static juce::Result isSubmoduleListed (const juce::File& root, const jam::HashSet<juce::String>& diskPaths,
-        const jam::HashSet<juce::String>& declaredPaths, const jam::HashSet<juce::String>& writablePaths)
-    {
-        jam::Array<juce::String> differences;
-
-        for (const auto& path : diskPaths)
-            if (not declaredPaths.contains (path))
-                differences.add (path);
-
-        for (const auto& path : declaredPaths)
-            if (not diskPaths.contains (path) and not writablePaths.contains (path))
-                differences.add (path);
-
-        differences.sort();
-
-        if (differences.isEmpty())
-            return juce::Result::ok();
-
-        return juce::Result::fail (root.getFullPathName() + Id::diagnosticSeparator + differences.at (0)
-                                   + Id::diagnosticSeparator + text::Diagnostics::failSyncSubmodule);
-    }
-
-    /**
-     * @brief Checks that @p sourceKernelNames, each name transformed by
-     *        the @p sourceFilePrefix-to-@p targetFilePrefix pair,
-     *        corresponds one to one with @p targetKernelNames. A name is a
-     *        module name or a submodule path.
-     *
-     * @param sourceRoot        The sync source root, named in a failure.
-     * @param targetRoot        The sync target root, named in a failure.
-     * @param sourceKernelNames The source's own @c kernel-classed module
-     *                          names or submodule paths.
-     * @param targetKernelNames The target's own @c kernel-classed module
-     *                          names or submodule paths.
-     * @param sourceFilePrefix  The source's own identity @c filePrefix
-     *                          value.
-     * @param targetFilePrefix  The target's own identity @c filePrefix
-     *                          value.
-     * @returns juce::Result::ok() when the two sets correspond, or a
-     *          failure naming both roots and the first differing name, in
-     *          ascending order.
-     */
-    static juce::Result isCorresponding (const juce::File& sourceRoot, const juce::File& targetRoot,
-        const jam::HashSet<juce::String>& sourceKernelNames, const jam::HashSet<juce::String>& targetKernelNames,
-        const juce::String& sourceFilePrefix, const juce::String& targetFilePrefix)
-    {
-        jam::HashSet<juce::String> transformedSourceNames;
-
-        for (const auto& name : sourceKernelNames)
-            transformedSourceNames.insert (Transforms::getTransformedPath (name, sourceFilePrefix, targetFilePrefix));
-
-        jam::Array<juce::String> differences;
-
-        for (const auto& name : transformedSourceNames)
-            if (not targetKernelNames.contains (name))
-                differences.add (name);
-
-        for (const auto& name : targetKernelNames)
-            if (not transformedSourceNames.contains (name))
-                differences.add (name);
-
-        differences.sort();
-
-        if (differences.isEmpty())
-            return juce::Result::ok();
-
-        return juce::Result::fail (sourceRoot.getFullPathName() + Chars::space + targetRoot.getFullPathName()
-                                   + Id::diagnosticSeparator + text::Diagnostics::failSyncCorrespondence
-                                   + Id::diagnosticSeparator + differences.at (0));
-    }
+        const juce::Identifier& column, const juce::String& entryValue);
 
     /**
      * @brief Checks that every output row carries either both the
@@ -1294,17 +487,7 @@ struct Validator : jam::MarkdownValidator
      * @returns juce::Result::ok() when every row's region bindings are
      *          paired, or a failure naming the unpaired row.
      */
-    static juce::Result isRegionPaired (const Model& model)
-    {
-        for (auto* table : model.getTables())
-            if (model.isOutputTable (*table))
-                for (auto* row : model.getTableRows (*table))
-                    if (model.hasRegionBegin (*row) != model.hasRegionEnd (*row))
-                        return juce::Result::fail (getLocation (*table, *row, Id::file.toString())
-                                                   + Id::diagnosticSeparator + text::Diagnostics::failRegionPair);
-
-        return juce::Result::ok();
-    }
+    static juce::Result isRegionPaired (const Model& model);
 
     /**
      * @brief Checks that every region row's own declared file exists on
@@ -1315,23 +498,7 @@ struct Validator : jam::MarkdownValidator
      * @returns juce::Result::ok() when every region row's own file
      *          exists, or a failure naming the missing file.
      */
-    static juce::Result isRegionFilePresent (const Model& model)
-    {
-        for (auto* table : model.getTables())
-            if (model.isOutputTable (*table))
-                for (auto* row : model.getTableRows (*table))
-                    if (model.isRegionRow (*row))
-                    {
-                        const auto& file { model.getValue (*row, Id::file) };
-
-                        if (not model.getFile (file).existsAsFile())
-                            return juce::Result::fail (getLocation (*table, *row, Id::file.toString())
-                                                       + Id::diagnosticSeparator + text::Diagnostics::failRegionFile
-                                                       + Id::diagnosticSeparator + file);
-                    }
-
-        return juce::Result::ok();
-    }
+    static juce::Result isRegionFilePresent (const Model& model);
 
     /**
      * @brief Reads @p row's own region file once and checks that its own
@@ -1349,16 +516,7 @@ struct Validator : jam::MarkdownValidator
      *          or a failure naming @p row's own file.
      */
     static juce::Result isRegionDelimited (
-        const Model& model, const TemplateDocument& templateDocument, const Element& table, const Element& row)
-    {
-        const auto [beginLine, endLine] { getRegionLines (model, templateDocument, row) };
-
-        if (endLine >= 0)
-            return juce::Result::ok();
-
-        return juce::Result::fail (getLocation (table, row, Id::file.toString())
-                                   + Id::diagnosticSeparator + text::Diagnostics::failRegionDelimiter);
-    }
+        const Model& model, const TemplateDocument& templateDocument, const Element& table, const Element& row);
 
     /**
      * @brief Finds @p row's own @c \[begin\] and @c \[end\] delimiter
@@ -1373,15 +531,7 @@ struct Validator : jam::MarkdownValidator
      *          returns.
      */
     static std::pair<int, int> getRegionLines (
-        const Model& model, const TemplateDocument& templateDocument, const Element& row)
-    {
-        const auto beginValue { Shapes::getRegionValue (model, templateDocument, row, Id::begin) };
-        const auto endValue { Shapes::getRegionValue (model, templateDocument, row, Id::end) };
-        const auto& file { model.getValue (row, Id::file) };
-        const auto lines (jam::Strings::fromLines (model.getFile (file).loadFileAsString()));
-
-        return Transforms::getDelimiterLines (lines, beginValue, endValue);
-    }
+        const Model& model, const TemplateDocument& templateDocument, const Element& row);
 
     /**
      * @brief Checks that the regions of one file do not overlap, and that
@@ -1396,33 +546,7 @@ struct Validator : jam::MarkdownValidator
      *          and consecutive, or a failure naming the first offending
      *          row.
      */
-    static juce::Result isRegionDisjoint (const Model& model, const TemplateDocument& templateDocument)
-    {
-        jam::HashMap<juce::String, jam::Array<std::pair<int, int>>> fileRegions;
-
-        for (auto* table : model.getTables())
-            if (model.isOutputTable (*table))
-                for (auto* row : model.getTableRows (*table))
-                    if (model.isRegionRow (*row))
-                    {
-                        const auto [beginLine, endLine] { getRegionLines (model, templateDocument, *row) };
-                        auto [entry, inserted] { fileRegions.try_emplace (model.getValue (*row, Id::file)) };
-                        auto& [entryFile, entryRegions] { *entry };
-                        const auto region { std::make_pair (beginLine, endLine) };
-                        const auto isRepeat { entryRegions.contains (region) and entryRegions.last() != region };
-
-                        for (const auto& [otherBegin, otherEnd] : entryRegions)
-                            if (isRepeat or (region != std::make_pair (otherBegin, otherEnd)
-                                             and beginLine <= otherEnd and otherBegin <= endLine))
-                                return juce::Result::fail (getLocation (*table, *row, Id::file.toString())
-                                                           + Id::diagnosticSeparator
-                                                           + text::Diagnostics::failRegionOverlap);
-
-                        entryRegions.add (region);
-                    }
-
-        return juce::Result::ok();
-    }
+    static juce::Result isRegionDisjoint (const Model& model, const TemplateDocument& templateDocument);
 
     /**
      * @brief Checks every region row's own delimiters through the
@@ -1434,18 +558,7 @@ struct Validator : jam::MarkdownValidator
      * @returns juce::Result::ok() when every region row's delimiters
      *          match, in order, or the first failing row's result.
      */
-    static juce::Result isRegionDelimited (const Model& model, const TemplateDocument& templateDocument)
-    {
-        for (auto* table : model.getTables())
-            if (model.isOutputTable (*table))
-                for (auto* row : model.getTableRows (*table))
-                    if (model.isRegionRow (*row))
-                        if (const auto result { isRegionDelimited (model, templateDocument, *table, *row) };
-                            not result.wasOk())
-                            return result;
-
-        return juce::Result::ok();
-    }
+    static juce::Result isRegionDelimited (const Model& model, const TemplateDocument& templateDocument);
 
     /**
      * @brief Checks that no declared @c file is shared between a region
@@ -1459,28 +572,7 @@ struct Validator : jam::MarkdownValidator
      *          on region-or-whole classification, or a failure naming the
      *          first row that disagrees.
      */
-    static juce::Result isRegionExclusive (const Model& model)
-    {
-        jam::HashMap<juce::String, bool> classifications;
-
-        for (auto* table : model.getTables())
-            if (model.isOutputTable (*table))
-                for (auto* row : model.getTableRows (*table))
-                {
-                    const auto& file { model.getValue (*row, Id::file) };
-                    const auto isRegion { model.isRegionRow (*row) };
-                    auto [entry, inserted] { classifications.try_emplace (file, isRegion) };
-                    auto& [entryFile, entryIsRegion] { *entry };
-
-                    if (not inserted and entryIsRegion != isRegion)
-                        return juce::Result::fail (getLocation (*table, *row, Id::file.toString())
-                                                   + Id::diagnosticSeparator
-                                                   + text::Diagnostics::failRegionShared
-                                                   + Id::diagnosticSeparator + file);
-                }
-
-        return juce::Result::ok();
-    }
+    static juce::Result isRegionExclusive (const Model& model);
 
     /**
      * @brief Checks that no header row carries two adjacent @c format
@@ -1492,32 +584,7 @@ struct Validator : jam::MarkdownValidator
      *          well formed and every named transform is known, or a
      *          failure naming the adjacency or the unknown transform.
      */
-    static juce::Result isFormatted (const Model& model)
-    {
-        for (auto* table : model.getTables())
-        {
-            auto* headerRow { model.getTableRow (*table, Id::headerRow) };
-
-            for (auto* cell : *headerRow)
-                if (cell->id == Id::format and cell->nextSibling != nullptr
-                    and cell->nextSibling->id == Id::format)
-                    return juce::Result::fail (getLocation (*table, *headerRow, Id::format.toString())
-                                               + Id::diagnosticSeparator
-                                               + text::Diagnostics::failFormatAdjacent);
-        }
-
-        return forEachCell (model, Id::format.toString(),
-            [] (const Element& table, const Element& row, const juce::String& transform) -> juce::Result
-            {
-                if (transform.isNotEmpty() and not Transforms::contains (transform))
-                    return juce::Result::fail (getLocation (table, row, Id::format.toString())
-                                               + Id::diagnosticSeparator
-                                               + text::Diagnostics::failUnknownTransform
-                                               + Id::diagnosticSeparator + transform);
-
-                return juce::Result::ok();
-            });
-    }
+    static juce::Result isFormatted (const Model& model);
 
     /**
      * @brief Checks that every row declaring a given @c file value stays
@@ -1530,32 +597,7 @@ struct Validator : jam::MarkdownValidator
      *          or a failure naming the file that reappears after its group
      *          closed.
      */
-    static juce::Result isContiguous (const Model& model, const Element& table)
-    {
-        jam::HashSet<juce::String> closedFiles;
-        juce::String previousFile;
-
-        for (auto* row : model.getTableRows (table))
-        {
-            const auto& file { model.getValue (*row, Id::file) };
-
-            if (file.compare (previousFile) != 0)
-            {
-                if (previousFile.isNotEmpty())
-                    closedFiles.insert (previousFile);
-
-                previousFile = file;
-            }
-
-            if (closedFiles.contains (file))
-                return juce::Result::fail (getLocation (table, *row, Id::file.toString())
-                                           + Id::diagnosticSeparator
-                                           + text::Diagnostics::failDuplicate + file
-                                           + Chars::doubleQuote);
-        }
-
-        return juce::Result::ok();
-    }
+    static juce::Result isContiguous (const Model& model, const Element& table);
 
     /**
      * @brief Checks that @p column's resolved, non-reference values are
@@ -1574,28 +616,7 @@ struct Validator : jam::MarkdownValidator
      *          unique, or a failure naming the duplicate value.
      */
     static juce::Result isUniqueColumn (const Model& model, const Element& table,
-        const jam::Array<const Element*>& rows, const juce::Identifier& column)
-    {
-        jam::HashSet<juce::String> seen;
-
-        for (auto* row : rows)
-            if (auto* cell { model.getTableCell (*row, column) })
-            {
-                if (not Model::isAddress (Model::getRawText (*cell, model.jam::Document::getSource())))
-                    if (const auto& value { *cell->get<juce::String> (Id::value) }; value.isNotEmpty())
-                    {
-                        if (seen.contains (value))
-                            return juce::Result::fail (getLocation (table, *row, column.toString())
-                                                       + Id::diagnosticSeparator
-                                                       + text::Diagnostics::failDuplicate + value
-                                                       + Chars::doubleQuote);
-
-                        seen.insert (value);
-                    }
-            }
-
-        return juce::Result::ok();
-    }
+        const jam::Array<const Element*>& rows, const juce::Identifier& column);
 
     /**
      * @brief Checks each of @p table's identity columns -- @c name,
@@ -1607,17 +628,7 @@ struct Validator : jam::MarkdownValidator
      * @returns juce::Result::ok() when every identity column is unique,
      *          or the first failing column's result.
      */
-    static juce::Result isUniqueTable (const Model& model, const Element& table)
-    {
-        const auto rows { model.getTableRows (table) };
-
-        for (const auto& column : { Id::name, Id::key, Id::alias, Id::file })
-            if (const auto result { isUniqueColumn (model, table, rows, column) };
-                not result.wasOk())
-                return result;
-
-        return juce::Result::ok();
-    }
+    static juce::Result isUniqueTable (const Model& model, const Element& table);
 
     /**
      * @brief Checks that every table carrying an @c alias column declares
@@ -1627,30 +638,7 @@ struct Validator : jam::MarkdownValidator
      * @returns juce::Result::ok() when every table's alias values are
      *          unique, or a failure naming the duplicate alias.
      */
-    static juce::Result isUniqueAlias (const Model& model)
-    {
-        for (auto* table : model.getTables())
-            if (model.getTableHeaders (*table).contains (Id::alias.toString()))
-            {
-                jam::HashSet<juce::String> seen;
-
-                for (auto* row : model.getTableRows (*table))
-                    if (auto* cell { model.getTableCell (*row, Id::alias) })
-                    {
-                        const auto value { Model::getRawText (*cell, model.jam::Document::getSource()) };
-
-                        if (seen.contains (value))
-                            return juce::Result::fail (getLocation (*table, *row, Id::alias.toString())
-                                                       + Id::diagnosticSeparator
-                                                       + text::Diagnostics::failDuplicate + value
-                                                       + Chars::doubleQuote);
-
-                        seen.insert (value);
-                    }
-            }
-
-        return juce::Result::ok();
-    }
+    static juce::Result isUniqueAlias (const Model& model);
 
     /**
      * @brief Checks every non-index, non-wiring table for column
@@ -1662,15 +650,7 @@ struct Validator : jam::MarkdownValidator
      * @returns juce::Result::ok() when every checked table is unique, or
      *          the first failing table's result.
      */
-    static juce::Result isUnique (const Model& model)
-    {
-        for (auto* table : model.getTables())
-            if (not model.isOutputTable (*table) and not table->isTag (Id::index))
-                if (const auto result { isUniqueTable (model, *table) }; not result.wasOk())
-                    return result;
-
-        return juce::Result::ok();
-    }
+    static juce::Result isUnique (const Model& model);
 
     /**
      * @brief Checks that every output row's @c structure, @c separator,
@@ -1684,52 +664,7 @@ struct Validator : jam::MarkdownValidator
      * @returns juce::Result::ok() when every fence's bracket word is
      *          legal, or a failure naming the illegal word.
      */
-    static juce::Result isFencePrefix (const Model& model)
-    {
-        static const auto dotText { juce::String::charToString (Chars::dot) };
-
-        const auto noBanner { Id::noBanner.toString() };
-
-        for (auto* table : model.getTables())
-            if (model.isOutputTable (*table))
-                for (auto* row : model.getTableRows (*table))
-                    for (const auto& column : { Id::structure, Id::separator, Id::list })
-                    if (auto* structureScope { model.getTableCell (*row, column) })
-                    {
-                        const Element* failingLine { nullptr };
-
-                        structureScope->applyFunctionRecursively (
-                            [&failingLine, &noBanner] (const Element& candidate) -> bool
-                            {
-                                if (failingLine == nullptr and candidate.contains (Id::templatePath))
-                                {
-                                    const auto& fenceName { *candidate.get<juce::String> (Id::info) };
-
-                                    if (fenceName.startsWithChar (Chars::openBracket))
-                                    {
-                                        const auto word { Transforms::getFencePrefix (fenceName) };
-
-                                        if (word.isEmpty()
-                                            or (word.compare (noBanner) != 0
-                                                and not map::commentSyntax.contains (
-                                                    dotText + word)))
-                                            failingLine = &candidate;
-                                    }
-                                }
-
-                                return failingLine == nullptr;
-                            });
-
-                        if (failingLine != nullptr)
-                            return juce::Result::fail (getLocation (*table, *row, column.toString())
-                                                       + Id::diagnosticSeparator
-                                                       + text::Diagnostics::failFencePrefix
-                                                       + Id::diagnosticSeparator
-                                                       + *failingLine->get<juce::String> (Id::info));
-                    }
-
-        return juce::Result::ok();
-    }
+    static juce::Result isFencePrefix (const Model& model);
 
     /**
      * @brief Checks that every declared @c ## toolchain table's header row
@@ -1742,21 +677,7 @@ struct Validator : jam::MarkdownValidator
      *          table carries both columns, or a failure naming the table
      *          missing one.
      */
-    static juce::Result isToolchain (const Model& model)
-    {
-        for (auto* table : model.getTables (Id::toolchain))
-        {
-            auto* headerRow { model.getTableRow (*table, Id::headerRow) };
-
-            if (model.getTableCell (*headerRow, Id::command) == nullptr
-                or model.getTableCell (*headerRow, Id::flag) == nullptr)
-                return juce::Result::fail (getLocation (*table, *headerRow, Id::toolchain.toString())
-                                           + Id::diagnosticSeparator
-                                           + text::Diagnostics::failToolchainColumn);
-        }
-
-        return juce::Result::ok();
-    }
+    static juce::Result isToolchain (const Model& model);
 
     /**
      * @brief Checks every declared @c ## format table's header, column
@@ -1776,34 +697,7 @@ struct Validator : jam::MarkdownValidator
      *          @c width is a positive integer, or the first failure's
      *          result.
      */
-    static juce::Result isFormat (const Model& model)
-    {
-        for (auto* table : model.getTables (Id::format))
-        {
-            auto* headerRow { model.getTableRow (*table, Id::headerRow) };
-
-            if (model.getTableCell (*headerRow, Id::name) == nullptr
-                or model.getTableCell (*headerRow, Id::width) == nullptr)
-                return juce::Result::fail (getLocation (*table, *headerRow, Id::format.toString())
-                                           + Id::diagnosticSeparator
-                                           + text::Diagnostics::failFormatColumn);
-
-            if (const auto result { isUniqueTable (model, *table) }; not result.wasOk())
-                return result;
-
-            for (auto* row : model.getTableRows (*table))
-            {
-                const auto width { model.getValue (*row, Id::width) };
-
-                if (juce::String (width.getIntValue()).compare (width) != 0 or width.getIntValue() <= 0)
-                    return juce::Result::fail (getLocation (*table, *row, Id::width.toString())
-                                               + Id::diagnosticSeparator
-                                               + text::Diagnostics::failFormatWidth);
-            }
-        }
-
-        return juce::Result::ok();
-    }
+    static juce::Result isFormat (const Model& model);
 
     /**
      * @brief Runs every manifest-level check against @p model and
@@ -1816,73 +710,5 @@ struct Validator : jam::MarkdownValidator
      * @returns juce::Result::ok() when every check passes, or the first
      *          failing check's result.
      */
-    static juce::Result isManifest (const Model& model, const TemplateDocument& templateDocument)
-    {
-        if (const auto result { isIndex (model) }; not result.wasOk())
-            return result;
-
-        if (const auto result { isToolchain (model) }; not result.wasOk())
-            return result;
-
-        if (const auto result { isUniqueAlias (model) }; not result.wasOk())
-            return result;
-
-        if (const auto result { isUnique (model) }; not result.wasOk())
-            return result;
-
-        if (const auto result { isFormatted (model) }; not result.wasOk())
-            return result;
-
-        for (auto* table : model.getTables())
-            if (model.isOutputTable (*table))
-                if (const auto result { isContiguous (model, *table) }; not result.wasOk())
-                    return result;
-
-        if (const auto result { isRegionExclusive (model) }; not result.wasOk())
-            return result;
-
-        if (const auto result { isRegionPaired (model) }; not result.wasOk())
-            return result;
-
-        if (const auto result { isRegionFilePresent (model) }; not result.wasOk())
-            return result;
-
-        if (const auto result { isRegionDelimited (model, templateDocument) }; not result.wasOk())
-            return result;
-
-        if (const auto result { isRegionDisjoint (model, templateDocument) }; not result.wasOk())
-            return result;
-
-        if (const auto result { isFencePrefix (model) }; not result.wasOk())
-            return result;
-
-        if (const auto result { isStructure (model, templateDocument) }; not result.wasOk())
-            return result;
-
-        if (const auto result { isBindingCountValid (model) }; not result.wasOk())
-            return result;
-
-        if (const auto result { isMarkerCountValid (model, templateDocument) }; not result.wasOk())
-            return result;
-
-        if (const auto result { isReservedName (model, templateDocument) }; not result.wasOk())
-            return result;
-
-        if (const auto result { isPaired (model) }; not result.wasOk())
-            return result;
-
-        if (const auto result { isReference (model) }; not result.wasOk())
-            return result;
-
-        if (const auto result { isMap (model) }; not result.wasOk())
-            return result;
-
-        if (const auto result { isPlaceholders (model, templateDocument) }; not result.wasOk())
-            return result;
-
-        if (const auto result { isSourceCountValid (model, templateDocument) }; not result.wasOk())
-            return result;
-
-        return isItemSourceCountValid (model, templateDocument);
-    }
+    static juce::Result isManifest (const Model& model, const TemplateDocument& templateDocument);
 };

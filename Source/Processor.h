@@ -32,16 +32,12 @@ struct Processor
      * @param reflowWidths The style's own @c name/@c width pairs, stamped
      *                     onto the parsed Model at creation.
      */
-    Processor (const juce::String& text, const juce::String& origin, const juce::File& directory, const jam::HashMap<juce::Identifier, int>& reflowWidths)
-        : model (Model::parse (text, origin, directory, reflowWidths))
-        , templateDocument (*model)
-        , writer (*model, templateDocument)
-    {
-    }
+    Processor (const juce::String& text, const juce::String& origin, const juce::File& directory, const jam::HashMap<juce::Identifier, int>& reflowWidths);
 
     /**
      * @brief Validates the parsed manifest's full structure through
-     *        Validator::isValid(), writes its declared outputs through the
+     *        Validator::isValid(), stamps every wrapper's chain through
+     *        Model::addChains(), writes its declared outputs through the
      *        Writer, then runs every selected @c ## toolchain row through
      *        run().
      *
@@ -56,16 +52,7 @@ struct Processor
      *          file writes successfully, and run() succeeds, or the first
      *          failure encountered.
      */
-    juce::Result generate (const juce::String& output = {}, const juce::String& toolchainArgument = {})
-    {
-        if (const auto validation { Validator::isValid (*model, templateDocument) }; not validation.wasOk())
-            return validation;
-
-        if (const auto written { writer.toFile (model->getFile (output)) }; not written.wasOk())
-            return written;
-
-        return run (toolchainArgument);
-    }
+    juce::Result generate (const juce::String& output = {}, const juce::String& toolchainArgument = {});
 
     /**
      * @brief Re-canonicalizes every origin file the manifest declares,
@@ -78,23 +65,7 @@ struct Processor
      *          validates and every changed file writes successfully, or a
      *          failure naming every file that failed to write.
      */
-    juce::Result format (const jam::MarkdownWriter& formatter)
-    {
-        if (const auto result { validator.isValid (*model) }; not result.wasOk())
-            return result;
-
-        const auto origins { getOrigins() };
-        jam::Array<juce::String> formatFailures;
-        formatFailures.resize (origins.size());
-
-        Jobs::run (origins.size(),
-            [this, &origins, &formatFailures, &formatter] (int index)
-            {
-                formatFailures.at (index) = writeOriginIfChanged (origins.at (index), formatter);
-            });
-
-        return getWriteResult (formatFailures);
-    }
+    juce::Result format (const jam::MarkdownWriter& formatter);
 
     /**
      * @brief Returns the manifest origin's own canonical text, paired with
@@ -105,13 +76,7 @@ struct Processor
      * @returns The manifest's own structural validation result, paired
      *          with its origin's canonical text.
      */
-    std::pair<juce::Result, juce::String> getText (const jam::MarkdownWriter& formatter) const
-    {
-        if (const auto result { validator.isValid (*model) }; not result.wasOk())
-            return { result, {} };
-
-        return { juce::Result::ok(), formatter.getText (*model, model->getManifestOrigin()) };
-    }
+    std::pair<juce::Result, juce::String> getText (const jam::MarkdownWriter& formatter) const;
 
 private:
     /**
@@ -131,33 +96,7 @@ private:
      *          least one row when non-empty and every selected row starts
      *          and exits zero, or the first failure encountered.
      */
-    juce::Result run (const juce::String& toolchainArgument)
-    {
-        const auto isToolchainArgumentGiven { toolchainArgument.isNotEmpty() };
-        auto hasMatchedToolchainRow { false };
-
-        for (auto* table : model->getTables (Id::toolchain))
-        {
-            for (auto* row : model->getTableRows (*table))
-            {
-                const auto argument { model->getColumnValue (*row, Id::argument) };
-
-                if (argument.compare (toolchainArgument) == 0)
-                {
-                    hasMatchedToolchainRow = true;
-
-                    if (const auto result { runToolchainRow (*row) }; not result.wasOk())
-                        return result;
-                }
-            }
-        }
-
-        if (isToolchainArgumentGiven and not hasMatchedToolchainRow)
-            return juce::Result::fail (toolchainArgument + Id::diagnosticSeparator
-                                       + text::Diagnostics::failToolchainArgument);
-
-        return juce::Result::ok();
-    }
+    juce::Result run (const juce::String& toolchainArgument);
 
     /**
      * @brief Returns every spliced block's own origin file, deduplicated.
@@ -165,18 +104,7 @@ private:
      * @returns Every distinct origin path found across the master
      *          document's root children, in discovery order.
      */
-    jam::Strings getOrigins() const
-    {
-        jam::Strings origins;
-
-        for (auto* block : *model->getRoot())
-        {
-            const auto origin { *block->get<juce::String> (Id::path) };
-            origins.addIfNotAlreadyThere (origin, false);
-        }
-
-        return origins;
-    }
+    jam::Strings getOrigins() const;
 
     /**
      * @brief Rewrites @p origin's own file with @p formatter's own
@@ -192,22 +120,7 @@ private:
      *          @p origin's text was already canonical or wrote
      *          successfully.
      */
-    juce::String writeOriginIfChanged (const juce::String& origin, const jam::MarkdownWriter& formatter) const
-    {
-        static const auto newlineText { juce::String::charToString (Chars::newline) };
-
-        const auto file { model->getFile (origin) };
-        const auto current { file.loadFileAsString() };
-
-        if (const auto canonical { formatter.getText (*model, origin) }; canonical.compare (current) != 0)
-            if (not file.replaceWithText (canonical,
-                false,
-                false,
-                newlineText.toRawUTF8()))
-                return file.getFullPathName();
-
-        return {};
-    }
+    juce::String writeOriginIfChanged (const juce::String& origin, const jam::MarkdownWriter& formatter) const;
 
     /**
      * @brief Collects @p formatFailures' own non-empty entries into one
@@ -219,21 +132,7 @@ private:
      * @returns juce::Result::ok() when every entry is empty, or a failure
      *          naming every file that failed to write.
      */
-    juce::Result getWriteResult (const jam::Array<juce::String>& formatFailures) const
-    {
-        static const auto newlineText { juce::String::charToString (Chars::newline) };
-
-        jam::Strings failures;
-
-        for (const auto& failedFile : formatFailures)
-            if (failedFile.isNotEmpty())
-                failures.add (failedFile + Id::diagnosticSeparator + text::Diagnostics::failOutputWrite);
-
-        if (failures.size() > 0)
-            return juce::Result::fail (failures.joinIntoString (newlineText, 0, -1));
-
-        return juce::Result::ok();
-    }
+    juce::Result getWriteResult (const jam::Array<juce::String>& formatFailures) const;
 
     /**
      * @brief Runs @p row's own @c command, followed by its @c flag when it
@@ -247,18 +146,7 @@ private:
      * @returns juce::Result::ok() when the process of @p row starts and
      *          exits zero, or a failure naming its command line.
      */
-    juce::Result runToolchainRow (const Model::Element& row)
-    {
-        const auto& command { model->getValue (row, Id::command) };
-
-        const auto flag { model->getValue (row, Id::flag) };
-        const auto arguments { Toolchain::getToolchainArguments (command, flag) };
-        const auto diagnosticLine { flag.isNotEmpty()
-                                        ? command + Chars::space + flag
-                                        : command };
-
-        return Toolchain::runProcess (arguments, diagnosticLine);
-    }
+    juce::Result runToolchainRow (const Model::Element& row);
 
     //==============================================================================
     /** The parsed manifest, spliced into one addressable document. */

@@ -34,26 +34,7 @@ struct Items
     static jam::Strings getColumnSourceValues (const Model& model,
                                                 const Element& row,
                                                 const jam::Array<const Element*>& tables,
-                                                const juce::Identifier& source)
-    {
-        const auto currentFile { model.getFileName (model.getValue (row, Id::file)) };
-        jam::Strings sourceValues;
-
-        for (auto* table : tables)
-            if (model.isOutputTable (*table))
-                for (auto* candidate : model.getTableRows (*table))
-                    if (auto* cell { model.getTableCell (*candidate, source) })
-                    {
-                        const auto value { model.getFileName (
-                            *cell->get<juce::String> (Id::value)) };
-
-                        if (value.isNotEmpty() and value.compare (currentFile) != 0
-                            and not sourceValues.contains (value, false))
-                            sourceValues.add (value);
-                    }
-
-        return sourceValues;
-    }
+                                                const juce::Identifier& source);
 
     /**
      * @brief Returns @p sourceTable's own rows, excluding a row whose
@@ -75,31 +56,7 @@ struct Items
     static jam::Array<const Element*> getTableSourceRows (const Model& model,
                                                      const Element& row,
                                                      const Element& sourceTable,
-                                                     const juce::String& source)
-    {
-        const auto currentFile { model.getFileName (model.getValue (row, Id::file)) };
-        const auto isFiltered { model.isFilteredAddress (row, source) };
-        const auto filterColumn { isFiltered ? model.getFilterColumn (row, source) : juce::Identifier{} };
-        const auto filterValue { isFiltered ? model.getFilterValue (row, source) : juce::String{} };
-        jam::Array<const Element*> sourceRows;
-
-        for (auto* candidate : model.getTableRows (sourceTable))
-        {
-            auto* fileCell { model.getTableCell (*candidate, Id::file) };
-            const auto candidateFile { fileCell != nullptr
-                                           ? model.getFileName (
-                                                 *fileCell->get<juce::String> (Id::value))
-                                           : juce::String{} };
-            const auto matchesFilter { not isFiltered
-                or model.getTableCell (*candidate, filterColumn)->get<juce::String> (Id::value)
-                       ->compare (filterValue) == 0 };
-
-            if (candidateFile.compare (currentFile) != 0 and matchesFilter)
-                sourceRows.add (candidate);
-        }
-
-        return sourceRows;
-    }
+                                                     const juce::String& source);
 
     /**
      * @brief Returns @p line's own arity -- its shape's count of
@@ -110,71 +67,46 @@ struct Items
      * @param line             The structure line whose arity is counted.
      * @returns @p line's own shape's @c :::\[list\]::: occurrence count.
      */
-    static int getArity (const TemplateDocument& templateDocument, const Element& line)
-    {
-        static const auto listMarker { Model::getReservedName (Id::list) };
-
-        const auto& tokens { *templateDocument.getCodeBlock (line)
-                                   ->get<jam::Document::Identifiers> (Id::placeholder) };
-
-        return static_cast<int> (std::count (tokens.begin(), tokens.end(), listMarker));
-    }
+    static int getArity (const TemplateDocument& templateDocument, const Element& line);
 
     /**
-     * @brief Collects @p row's own structure wiring's shape-valued
-     *        bindings' consumed shape ordinals -- every shape ordinal
-     *        transitively consumed by a wrapper, walking each consumed
-     *        source's own arity-bounded chain in turn.
+     * @brief Returns the next source line after @p line -- the next
+     *        structure line in document order. When that line is a wrapper,
+     *        the walk skips the wrapper and every source that its arity
+     *        consumes, each consumed source's own chain included. A wrapper
+     *        is a shape line and never a source.
      *
-     * @param model            The model @p row belongs to.
-     * @param templateDocument The template document each consumed
-     *                         source's own arity is read from.
-     * @param row              The row whose shape-valued bindings' private
-     *                         render data is collected.
-     * @returns Every shape ordinal privately consumed by one of @p row's
-     *          own shape-valued bindings, in discovery order.
+     * @param model            The model @p line belongs to.
+     * @param templateDocument The template document each visited line's
+     *                         own arity is read from.
+     * @param line             The structure line to advance from.
+     * @returns The next source line, or @c nullptr when none remains.
      */
-    static jam::Array<int> getPrivateShapes (const Model& model,
-                                             const TemplateDocument& templateDocument,
-                                             const Element& row)
-    {
-        static const auto listMarker { Model::getReservedName (Id::list) };
+    static const Element* getNextSourceLine (const Model& model, const TemplateDocument& templateDocument, const Element& line);
 
-        jam::Array<int> privateShapes;
-        const auto arityOf = [&templateDocument] (const Element& line) { return getArity (templateDocument, line); };
-
-        if (auto* scope { model.getTableCell (row, Id::structure) })
-            scope->applyFunctionRecursively (
-                [&model, &privateShapes, &arityOf] (const Element& candidate) -> bool
-                {
-                    if (candidate.parent->isTag (Id::ul) and candidate.id != listMarker
-                        and candidate.contains (Id::templatePath))
-                    {
-                        auto* cursor { model.getNextLine (candidate) };
-
-                        for (int occurrence { 0 };
-                             cursor != nullptr and occurrence < arityOf (candidate); ++occurrence)
-                        {
-                            privateShapes.addIfNotAlreadyThere (*cursor->get<int> (Id::shape));
-                            cursor = model.getNextShapeLine (*cursor, arityOf);
-                        }
-                    }
-
-                    return true;
-                });
-
-        return privateShapes;
-    }
+    /**
+     * @brief Returns the next source line after @p line's own chain --
+     *        when @p line is a shape paragraph or a wrapper, every source
+     *        that its arity consumes is skipped first, each source's own
+     *        chain included. The arity-bounded walk that
+     *        Shapes::getSourceLine(), Validator::isSourceCountValid(), and
+     *        Processor::generate() read through.
+     *
+     * @param model            The model @p line belongs to.
+     * @param templateDocument The template document each visited line's
+     *                         own arity is read from.
+     * @param line             The structure line to advance past.
+     * @returns The next source line, or @c nullptr when none remains.
+     */
+    static const Element* getNextShapeLine (const Model& model, const TemplateDocument& templateDocument, const Element& line);
 
     /**
      * @brief Collects every output row across @p tables whose structure
-     *        wiring, at any depth outside a shape-valued binding's own
-     *        private render data, declares @p source as a blank-binding
-     *        selector.
+     *        wiring, at any depth, declares @p source as a blank-binding
+     *        selector. An element stamped @c chain sits inside a wrapper's
+     *        chain and is excluded.
      *
      * @param model            The model @p tables belong to.
-     * @param templateDocument The template document each candidate row's
-     *                         private render data is read through.
      * @param tables           The tables searched for rows selecting
      *                         @p source.
      * @param source           The blank binding name a row must declare to
@@ -183,51 +115,19 @@ struct Items
      *          discovery order.
      */
     static jam::Array<const Element*> getBindingSourceRows (const Model& model,
-                                                       const TemplateDocument& templateDocument,
                                                        const jam::Array<const Element*>& tables,
-                                                       const juce::Identifier& source)
-    {
-        static const auto listMarker { Model::getReservedName (Id::list) };
-
-        jam::Array<const Element*> sourceRows;
-
-        for (auto* table : tables)
-            if (model.isOutputTable (*table))
-                for (auto* candidate : model.getTableRows (*table))
-                {
-                    auto matches { false };
-                    const auto privateShapes { getPrivateShapes (model, templateDocument, *candidate) };
-
-                    if (auto* scope { model.getTableCell (*candidate, Id::structure) })
-                        scope->applyFunctionRecursively (
-                            [&matches, &source, &privateShapes] (const Element& item) -> bool
-                            {
-                                if (item.parent->isTag (Id::ul) and item.id == source
-                                    and item.id != listMarker
-                                    and not privateShapes.contains (*item.get<int> (Id::shape)))
-                                    matches = true;
-
-                                return not matches;
-                            });
-
-                    if (matches)
-                        sourceRows.add (candidate);
-                }
-
-        return sourceRows;
-    }
+                                                       const juce::Identifier& source);
 
     /**
      * @brief Resolves @p name's value for @p sourceRow -- the deepest
-     *        structure-wiring binding of that name outside a shape-valued
-     *        binding's own private render data, or, absent one, the
-     *        row's own column value. An @-sigiled @c description binding is a
-     *        reference, not prose, and resolves empty; a @c description
-     *        column value is prose, whatever its first character.
+     *        structure-wiring binding of that name, or, absent one, the
+     *        row's own column value. An element stamped @c chain sits inside
+     *        a wrapper's chain and is excluded. An @-sigiled @c description
+     *        binding is a reference, not prose, and resolves empty; a
+     *        @c description column value is prose, whatever its first
+     *        character.
      *
      * @param model            The model @p sourceRow belongs to.
-     * @param templateDocument The template document @p sourceRow's own
-     *                         private render data is read through.
      * @param row              The row whose map tables are read.
      * @param shapeLine        The structure line whose own @c shape
      *                         ordinal selects the map tables.
@@ -238,43 +138,8 @@ struct Items
      *          @p name is @c description and the binding value is a
      *          reference.
      */
-    static juce::String getSourceValue (const Model& model, const TemplateDocument& templateDocument,
-        const Element& row, const Element& shapeLine, const Element& sourceRow, const juce::Identifier& name)
-    {
-        static const auto listMarker { Model::getReservedName (Id::list) };
-        static const auto descriptionMarker { Model::getReservedName (Id::description) };
-
-        juce::String deepestValue;
-        const auto privateShapes { getPrivateShapes (model, templateDocument, sourceRow) };
-
-        if (auto* scope { model.getTableCell (sourceRow, Id::structure) })
-            scope->applyFunctionRecursively (
-                [&deepestValue, &name, &privateShapes] (const Element& item) -> bool
-                {
-                    if (item.parent->isTag (Id::ul) and item.id == name and item.id != listMarker
-                        and not privateShapes.contains (*item.get<int> (Id::shape)))
-                        deepestValue = *item.get<juce::String> (Id::value);
-
-                    return true;
-                });
-
-        if (name == descriptionMarker and Model::isAddress (deepestValue))
-            return {};
-
-        if (deepestValue.isNotEmpty())
-            return deepestValue;
-
-        if (name != descriptionMarker)
-            if (auto* cell { model.getMapCell (row, shapeLine, name) })
-                return *cell->get<juce::String> (Id::value);
-
-        juce::String columnValue;
-
-        if (auto* cell { model.getTableCell (sourceRow, name == descriptionMarker ? Id::description : name) })
-            columnValue = *cell->get<juce::String> (Id::value);
-
-        return name == Id::file ? model.getFileName (columnValue) : columnValue;
-    }
+    static juce::String getSourceValue (const Model& model,
+        const Element& row, const Element& shapeLine, const Element& sourceRow, const juce::Identifier& name);
 
     /**
      * @brief Resolves @p name's value for one item -- @p sourceRow's
@@ -283,9 +148,6 @@ struct Items
      *        @p name matches @p sourceKey.
      *
      * @param model       The model @p sourceRow, when present, belongs to.
-     * @param templateDocument The template document @p sourceRow's own
-     *                         private render data is read through, when
-     *                         present.
      * @param row         The row whose map tables are read.
      * @param shapeLine   The structure line whose own @c shape ordinal
      *                    selects the map tables.
@@ -300,25 +162,12 @@ struct Items
      *          @p sourceRow nor @p sourceKey resolves @p name.
      */
     static juce::String getColumnValue (const Model& model,
-                                        const TemplateDocument& templateDocument,
                                         const Element& row,
                                         const Element& shapeLine,
                                         const Element* sourceRow,
                                         const juce::String& sourceValue,
                                         const juce::Identifier& sourceKey,
-                                        const juce::Identifier& name)
-    {
-        if (sourceRow != nullptr)
-            return getSourceValue (model, templateDocument, row, shapeLine, *sourceRow, name);
-
-        if (name == sourceKey)
-            return sourceValue;
-
-        if (auto* cell { model.getMapCell (row, shapeLine, name) })
-            return *cell->get<juce::String> (Id::value);
-
-        return {};
-    }
+                                        const juce::Identifier& name);
 
     /**
      * @brief Resolves the @c list token's value for one item -- when
@@ -353,31 +202,7 @@ struct Items
      */
     static juce::String getChildValue (const Model& model, const Element& row, int indent,
                                        int sourceOrdinal, const Element* sourceRow,
-                                       const juce::String& childJoin, int arity, int occurrence)
-    {
-        jam::Strings childValues;
-
-        if (sourceRow != nullptr)
-            for (int index { 0 };; ++index)
-            {
-                auto* childSourceLine { model.getColumnAddress (row, indent, sourceOrdinal, index) };
-
-                if (childSourceLine == nullptr)
-                    break;
-
-                const auto& value { *childSourceLine->get<juce::String> (Id::value) };
-
-                if (auto* cell { model.getTableCell (*sourceRow, model.getColumn (row, value)) })
-                    childValues.add (*cell->get<juce::String> (Id::value));
-            }
-
-        if (arity < 2)
-            return childValues.joinIntoString (childJoin, 0, -1);
-
-        return occurrence >= arity - childValues.size()
-                   ? childValues.at (occurrence - (arity - childValues.size()))
-                   : juce::String{};
-    }
+                                       const juce::String& childJoin, int arity, int occurrence);
 
     /**
      * @brief Renders one item's own plain (unpadded) text -- @p line's
@@ -423,49 +248,7 @@ struct Items
                                  int indent,
                                  int sourceOrdinal,
                                  const juce::String& childJoin,
-                                 const juce::String& extension)
-    {
-        static const auto listMarker { Model::getReservedName (Id::list) };
-        static const auto descriptionMarker { Model::getReservedName (Id::description) };
-
-        const auto& tokens { *templateDocument.getCodeBlock (line)
-                                   ->get<jam::Document::Identifiers> (Id::placeholder) };
-        auto itemText { *templateDocument.getCodeBlock (line)->get<juce::String> (Id::value) };
-        const auto arity { getArity (templateDocument, line) };
-        int occurrence { 0 };
-
-        for (const auto& name : tokens)
-        {
-            const auto marker { getMarker (itemText, name) };
-
-            if (marker.isNotEmpty())
-            {
-                auto value { name == listMarker
-                                 ? getChildValue (
-                                       model, row, indent, sourceOrdinal, sourceRow, childJoin, arity, occurrence)
-                                 : getColumnValue (
-                                       model, templateDocument, row, shapeLine, sourceRow, sourceValue,
-                                       sourceKey, name) };
-
-                if (name == descriptionMarker and value.isNotEmpty())
-                    value = Transforms::toComment (value, extension);
-
-                if (name == listMarker)
-                {
-                    itemText = jam::Format::upTo (itemText, marker, false)
-                             + value
-                             + jam::Format::from (itemText, marker, false);
-                    ++occurrence;
-                }
-                else
-                {
-                    itemText = itemText.replace (marker, value);
-                }
-            }
-        }
-
-        return itemText;
-    }
+                                 const juce::String& extension);
 
     /**
      * @brief Answers whether @p itemText, with trailing whitespace trimmed,
@@ -474,10 +257,7 @@ struct Items
      * @param itemText The rendered item text to check.
      * @returns @c true when @p itemText spans a single line.
      */
-    static bool isSingleLineShape (const juce::String& itemText) noexcept
-    {
-        return not itemText.trimEnd().containsChar (Chars::newline);
-    }
+    static bool isSingleLineShape (const juce::String& itemText) noexcept;
 
     /**
      * @brief Resolves one item's own replacement map -- @p tokens' own
@@ -486,9 +266,6 @@ struct Items
      *
      * @param model            The model @p sourceRow, when present,
      *                         belongs to.
-     * @param templateDocument The template document @p sourceRow's own
-     *                         private render data is read through, when
-     *                         present.
      * @param row              The row whose map tables are read.
      * @param shapeLine        The structure line whose own @c shape
      *                         ordinal selects the map tables.
@@ -504,28 +281,9 @@ struct Items
      * @returns @p tokens' own name-to-value map for this item.
      */
     static jam::HashMap<juce::Identifier, juce::String> getItemReplacement (const Model& model,
-        const TemplateDocument& templateDocument, const Element& row, const Element& shapeLine,
+        const Element& row, const Element& shapeLine,
         const jam::Document::Identifiers& tokens, const Element* sourceRow, const juce::String& sourceValue, const juce::Identifier& sourceKey,
-        const juce::String& extension)
-    {
-        static const auto descriptionMarker { Model::getReservedName (Id::description) };
-
-        jam::HashMap<juce::Identifier, juce::String> replacements;
-
-        for (const auto& name : tokens)
-        {
-            auto value {
-                getColumnValue (model, templateDocument, row, shapeLine, sourceRow, sourceValue, sourceKey, name)
-            };
-
-            if (name == descriptionMarker and value.isNotEmpty())
-                value = Transforms::toComment (value, extension);
-
-            replacements.emplace (name, value);
-        }
-
-        return replacements;
-    }
+        const juce::String& extension);
 
     /**
      * @brief Returns one replacement map per item -- @p sourceRows' own
@@ -560,24 +318,7 @@ struct Items
         const jam::Strings& sourceValues,
         const juce::Identifier& sourceKey,
         const Element& line,
-        const juce::String& extension)
-    {
-        jam::Array<jam::HashMap<juce::Identifier, juce::String>> itemReplacements;
-        const auto& tokens { *templateDocument.getCodeBlock (line)
-                                   ->get<jam::Document::Identifiers> (Id::placeholder) };
-
-        for (auto* sourceRow : sourceRows)
-            itemReplacements.add (
-                getItemReplacement (
-                    model, templateDocument, row, shapeLine, tokens, sourceRow, {}, sourceKey, extension));
-
-        for (const auto& value : sourceValues)
-            itemReplacements.add (
-                getItemReplacement (
-                    model, templateDocument, row, shapeLine, tokens, nullptr, value, sourceKey, extension));
-
-        return itemReplacements;
-    }
+        const juce::String& extension);
 
     /**
      * @brief Returns every @c :::interior::: marker's own interior text
@@ -588,10 +329,7 @@ struct Items
      * @param text The text scanned for its own markers.
      * @returns @p text's own marker interiors, in authored order.
      */
-    static jam::Strings getMarkers (const juce::String& text)
-    {
-        return TemplateDocument::getMarkers (text);
-    }
+    static jam::Strings getMarkers (const juce::String& text);
 
     /**
      * @brief Returns @p name's own verbatim @c :::interior::: marker as
@@ -603,14 +341,7 @@ struct Items
      * @returns @p name's verbatim marker found in @p text, or an empty
      *          string when @p text carries none.
      */
-    static juce::String getMarker (const juce::String& text, const juce::Identifier& name)
-    {
-        for (const auto& interior : getMarkers (text))
-            if (jam::Format::toValidID (interior).compare (name.toString()) == 0)
-                return Id::tripleColon + interior + Id::tripleColon;
-
-        return {};
-    }
+    static juce::String getMarker (const juce::String& text, const juce::Identifier& name);
 
     /**
      * @brief Returns @p literal with fill spaces inserted after its first
@@ -630,26 +361,7 @@ struct Items
      *          spaces @p previousName's own column width demands.
      */
     static juce::String getPaddedLiteral (const juce::String& literal, const juce::Identifier& previousName,
-        const juce::String& previousValue, const jam::HashMap<juce::Identifier, size_t>& columnWidths)
-    {
-        static const auto spaceText { juce::String::charToString (Chars::space) };
-
-        const auto literalStart { literal.getCharPointer() };
-        const auto whitespaceStart { juce::CharacterFunctions::trimBegin (literalStart,
-            literalStart.findTerminatingNull(),
-            [] (const auto& character)
-            { return not juce::CharacterFunctions::isWhitespace (*character); }) };
-        const auto whitespaceEnd { juce::CharacterFunctions::findEndOfWhitespace (whitespaceStart) };
-        const auto head { literal.substring (
-            0, static_cast<int> (literalStart.lengthUpTo (whitespaceEnd))) };
-        const auto tail { juce::String (whitespaceEnd) };
-        const auto fillWidth { columnWidths.at (previousName)
-            - static_cast<size_t> (previousValue.getNumBytesAsUTF8()) };
-
-        return head
-             + juce::String::repeatedString (spaceText, static_cast<int> (fillWidth))
-             + tail;
-    }
+        const juce::String& previousValue, const jam::HashMap<juce::Identifier, size_t>& columnWidths);
 
     /**
      * @brief Returns one item's own column-aligned rendering of @p line's
@@ -673,44 +385,7 @@ struct Items
     static juce::String getPaddedItem (const TemplateDocument& templateDocument,
                                        const Element& line,
                                        const jam::HashMap<juce::Identifier, juce::String>& replacements,
-                                       const jam::HashMap<juce::Identifier, size_t>& columnWidths)
-    {
-        const auto& itemText { *templateDocument.getCodeBlock (line)->get<juce::String> (Id::value) };
-        juce::String paddedText;
-        juce::String remainingText { itemText };
-        auto isFirstToken { true };
-        juce::Identifier previousName;
-        juce::String previousValue;
-
-        for (const auto& interior : getMarkers (itemText))
-        {
-            const auto marker { Id::tripleColon + interior + Id::tripleColon };
-            const auto name { juce::Identifier (jam::Format::toValidID (interior)) };
-            const auto literal { jam::Format::upTo (remainingText, marker, false) };
-            remainingText = jam::Format::from (remainingText, marker, false);
-            paddedText += isFirstToken
-                              ? literal
-                              : getPaddedLiteral (literal, previousName, previousValue, columnWidths);
-
-            if (auto replacementEntry { replacements.find (name) };
-                replacementEntry != replacements.end())
-            {
-                const auto& [replacementName, columnValue] { *replacementEntry };
-
-                paddedText += columnValue;
-                previousName = name;
-                previousValue = columnValue;
-                isFirstToken = false;
-            }
-            else
-            {
-                paddedText += marker;
-            }
-        }
-
-        paddedText += remainingText;
-        return paddedText.trimEnd();
-    }
+                                       const jam::HashMap<juce::Identifier, size_t>& columnWidths);
 
     /**
      * @brief Returns every item's own column-aligned rendering of @p line's
@@ -743,37 +418,7 @@ struct Items
                                             const jam::Strings& sourceValues,
                                             const juce::Identifier& sourceKey,
                                             const Element& line,
-                                            const juce::String& extension)
-    {
-        jam::Strings texts;
-
-        const auto itemReplacements { getItemReplacements (
-            model, templateDocument, row, shapeLine, sourceRows, sourceValues, sourceKey, line,
-            extension) };
-        jam::HashMap<juce::Identifier, size_t> columnWidths;
-
-        for (const auto& replacements : itemReplacements)
-            for (const auto& [name, value] : replacements)
-            {
-                const auto tokenWidth { static_cast<size_t> (value.getNumBytesAsUTF8()) };
-                auto [widthEntry, inserted] { columnWidths.try_emplace (name, tokenWidth) };
-                auto& [widthName, columnWidth] { *widthEntry };
-
-                if (not inserted and columnWidth < tokenWidth)
-                    columnWidth = tokenWidth;
-            }
-
-        for (int index { 0 }; index < itemReplacements.size(); ++index)
-        {
-            const auto itemText { getPaddedItem (
-                templateDocument, line, itemReplacements.at (index), columnWidths) };
-
-            if (itemText.isNotEmpty())
-                texts.add (itemText);
-        }
-
-        return texts;
-    }
+                                            const juce::String& extension);
 
     /**
      * @brief Renders every item's own plain (unpadded) text -- each of
@@ -815,29 +460,7 @@ struct Items
                                            int indent,
                                            int sourceOrdinal,
                                            const juce::String& childJoin,
-                                           const juce::String& extension)
-    {
-        jam::Strings texts;
-
-        const auto renderItem = [&model, &templateDocument, &sourceKey, &line, &row, &shapeLine, indent,
-                                 sourceOrdinal, &childJoin, &extension, &texts] (
-            const Element* sourceRow, const juce::String& sourceValue)
-        {
-            const auto itemText { getItem (model, templateDocument, sourceRow, sourceValue,
-                sourceKey, line, row, shapeLine, indent, sourceOrdinal, childJoin, extension) };
-
-            if (itemText.isNotEmpty())
-                texts.add (itemText);
-        };
-
-        for (auto* sourceRow : sourceRows)
-            renderItem (sourceRow, {});
-
-        for (const auto& value : sourceValues)
-            renderItem (nullptr, value);
-
-        return texts;
-    }
+                                           const juce::String& extension);
 
     /**
      * @brief Renders every item's own text -- getPaddedItemTexts() when
@@ -880,22 +503,7 @@ struct Items
                                       int indent,
                                       int sourceOrdinal,
                                       const juce::String& childJoin,
-                                      const juce::String& extension)
-    {
-        static const auto listMarker { Model::getReservedName (Id::list) };
-
-        const auto& shapeText { *templateDocument.getCodeBlock (line)->get<juce::String> (Id::value) };
-        const auto usePadding { isSingleLineShape (shapeText)
-                                 and sourceRows.size() + sourceValues.size() > 1
-                                 and getMarker (shapeText, listMarker).isEmpty() };
-
-        if (usePadding)
-            return getPaddedItemTexts (model, templateDocument, row, shapeLine, sourceRows, sourceValues,
-                sourceKey, line, extension);
-
-        return getPlainItemTexts (model, templateDocument, sourceRows, sourceValues, sourceKey,
-            line, row, shapeLine, indent, sourceOrdinal, childJoin, extension);
-    }
+                                      const juce::String& extension);
 
     /**
      * @brief Answers whether @p sourceName names a column any of
@@ -909,17 +517,7 @@ struct Items
      *          declares a @p sourceName column.
      */
     static bool isColumnSource (const Model& model, const jam::Array<const Element*>& tables,
-        const juce::Identifier& sourceName)
-    {
-        return std::any_of (tables.begin(), tables.end(),
-            [&model, &sourceName] (const Element* table)
-            {
-                const auto* headerRow { Model::getTableHeaderRow (*table) };
-                return model.isOutputTable (*table)
-                       and headerRow != nullptr
-                       and model.getTableCell (*headerRow, sourceName) != nullptr;
-            });
-    }
+        const juce::Identifier& sourceName);
 
     /**
      * @brief Resolves @p source against @p row -- a wired table's own
@@ -958,32 +556,7 @@ struct Items
                                   int indent,
                                   int sourceOrdinal,
                                   const juce::String& childJoin,
-                                  const juce::String& extension)
-    {
-        static const auto listMarker { Model::getReservedName (Id::list) };
-
-        jam::Array<const Element*> sourceRows;
-        jam::Strings sourceValues;
-        juce::Identifier sourceKey { listMarker };
-
-        if (auto* sourceTable { model.getTable (row, source) }; sourceTable != nullptr)
-            sourceRows = getTableSourceRows (model, row, *sourceTable, source);
-        else
-        {
-            const auto sourceName { juce::Identifier (source) };
-
-            if (isColumnSource (model, tables, sourceName))
-            {
-                sourceKey = sourceName;
-                sourceValues = getColumnSourceValues (model, row, tables, sourceName);
-            }
-            else
-                sourceRows = getBindingSourceRows (model, templateDocument, tables, sourceName);
-        }
-
-        return getItemTexts (model, templateDocument, sourceRows, sourceValues, sourceKey, line,
-            shapeLine, row, indent, sourceOrdinal, childJoin, extension);
-    }
+                                  const juce::String& extension);
 
     /**
      * @brief Renders @p source's own items through getItems(), joined by
@@ -1020,12 +593,5 @@ struct Items
                                         int indent,
                                         int sourceOrdinal,
                                         const juce::String& childJoin,
-                                        const juce::String& extension)
-    {
-        const auto texts { getItems (
-            model, templateDocument, tables, row, source, line, shapeLine, indent, sourceOrdinal, childJoin,
-            extension) };
-
-        return texts.joinIntoString (separator, 0, -1);
-    }
+                                        const juce::String& extension);
 };

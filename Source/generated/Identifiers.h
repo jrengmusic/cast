@@ -45,6 +45,7 @@ extern const juce::Identifier blockClose;
 extern const juce::Identifier blockLine;       ///< Block-comment continuation-line glyph key.
 extern const juce::Identifier blockOpen;
 extern const juce::Identifier bundleColumn;    ///< --pack layout option word.
+extern const juce::Identifier chain;           ///< Owning wrapper's shape ordinal of a private element.
 extern const juce::Identifier comment;
 extern const juce::Identifier date;            ///< Reserved date token name.
 extern const juce::String     dmg;             ///< Dmg archive extension.
@@ -75,6 +76,7 @@ extern const juce::Identifier list;            ///< Reserved expansion token nam
 extern const juce::Identifier macroPrefix;     ///< Sync composed identity key — macro-name prefix.
 extern const juce::Identifier noBanner;        ///< Banner-suppressing fence-prefix marker.
 extern const juce::Identifier noFormat;        ///< Formatless-column marker.
+extern const juce::Identifier owner;           ///< Wrapper's parent shape ordinal.
 extern const juce::Identifier placeholder;     ///< Placeholder token name.
 extern const juce::Identifier separator;       ///< Separator column key.
 extern const juce::Identifier structure;       ///< Structure column key.

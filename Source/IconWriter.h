@@ -1,8 +1,5 @@
 #pragma once
 #include <JuceHeader.h>
-#if JUCE_MAC
-#include <sys/xattr.h>
-#endif
 #include "generated/Generated.h"
 
 #if JUCE_MAC
@@ -28,20 +25,7 @@ struct IconWriter
      * @returns Ok, or the failure that names the path of the icon, the icon
      *          file, or the bundle that did not read or write.
      */
-    static juce::Result toBundle (const juce::File& bundle)
-    {
-        const auto propertyList { bundle.getChildFile (contentsFolder).getChildFile (propertyListName) };
-        const auto iconName { getIconName (propertyList) };
-
-        if (iconName.isNotEmpty())
-        {
-            const auto icon { bundle.getChildFile (contentsFolder).getChildFile (resourcesFolder).getChildFile (iconName) };
-
-            return toIconFile (bundle, icon);
-        }
-
-        return juce::Result::ok();
-    }
+    static juce::Result toBundle (const juce::File& bundle);
 
     /** Size of the Finder information attribute, in bytes. */
     static constexpr size_t finderInfoSize { 32 };
@@ -54,34 +38,7 @@ private:
      * @returns The value of the @c CFBundleIconFile key. It is empty when the
      *          file does not exist or the key is absent.
      */
-    static juce::String getIconName (const juce::File& propertyList)
-    {
-        if (propertyList.existsAsFile())
-        {
-            const auto document { juce::XmlDocument::parse (propertyList) };
-            jassert (document != nullptr);
-
-            if (document != nullptr)
-            {
-                if (const auto* dictionary { document->getChildByName (dictionaryTag) })
-                {
-                    for (const auto* element { dictionary->getFirstChildElement() }; element != nullptr;
-                         element = element->getNextElement())
-                    {
-                        if (element->hasTagName (keyTag) and element->getAllSubText().compare (iconKey) == 0)
-                        {
-                            jassert (element->getNextElement() != nullptr);
-
-                            if (const auto* value { element->getNextElement() })
-                                return value->getAllSubText();
-                        }
-                    }
-                }
-            }
-        }
-
-        return juce::String();
-    }
+    static juce::String getIconName (const juce::File& propertyList);
 
     /**
      * @brief Writes the @c Icon\\r file and sets the Finder information of
@@ -96,33 +53,7 @@ private:
      * @returns Ok, or the failure that names the path that did not read or
      *          write.
      */
-    static juce::Result toIconFile (const juce::File& bundle, const juce::File& icon)
-    {
-        juce::MemoryBlock iconData;
-
-        if (icon.loadFileAsData (iconData))
-        {
-            const auto iconFile { bundle.getChildFile (iconFileName) };
-
-            if (iconFile.deleteFile()
-                and iconFile.create().wasOk()
-                and applyAttribute (iconFile, XATTR_RESOURCEFORK_NAME, getResourceFork (iconData))
-                and applyAttribute (iconFile, XATTR_FINDERINFO_NAME, getFinderInfo (invisibleFlag)))
-            {
-                if (applyAttribute (bundle, XATTR_FINDERINFO_NAME, getFinderInfo (customIconFlag)))
-                    return juce::Result::ok();
-
-                return juce::Result::fail (bundle.getFullPathName() + Id::diagnosticSeparator
-                                           + text::Diagnostics::failOutputWrite);
-            }
-
-            return juce::Result::fail (iconFile.getFullPathName() + Id::diagnosticSeparator
-                                       + text::Diagnostics::failOutputWrite);
-        }
-
-        return juce::Result::fail (icon.getFullPathName() + Id::diagnosticSeparator
-                                   + text::Diagnostics::failNotFound);
-    }
+    static juce::Result toIconFile (const juce::File& bundle, const juce::File& icon);
 
     /**
      * @brief Encodes a resource fork with one icon resource.
@@ -131,24 +62,7 @@ private:
      * @returns The fork header, the padding to the data offset, the resource
      *          length, @p icon, and the resource map.
      */
-    static juce::MemoryBlock getResourceFork (const juce::MemoryBlock& icon)
-    {
-        const auto dataLength { static_cast<int> (resourceLengthSize + icon.getSize()) };
-
-        juce::MemoryOutputStream header;
-        header.writeIntBigEndian (dataOffset);
-        header.writeIntBigEndian (dataOffset + dataLength);
-        header.writeIntBigEndian (dataLength);
-        header.writeIntBigEndian (mapLength);
-
-        juce::MemoryOutputStream fork;
-        fork << header.getMemoryBlock();
-        fork.writeRepeatedByte (0, static_cast<size_t> (dataOffset) - fork.getDataSize());
-        fork.writeIntBigEndian (static_cast<int> (icon.getSize()));
-        fork << icon;
-        fork << getResourceMap (header.getMemoryBlock());
-        return fork.getMemoryBlock();
-    }
+    static juce::MemoryBlock getResourceFork (const juce::MemoryBlock& icon);
 
     /**
      * @brief Encodes the resource map of the fork.
@@ -156,23 +70,7 @@ private:
      * @param header The fork header. The map starts with a copy of it.
      * @returns The map with one type and one reference, and no name list.
      */
-    static juce::MemoryBlock getResourceMap (const juce::MemoryBlock& header)
-    {
-        juce::MemoryOutputStream map;
-        map << header;
-        map.writeRepeatedByte (0, mapReservedSize);
-        map.writeShortBigEndian (typeListOffset);
-        map.writeShortBigEndian (nameListOffset);
-        map.writeShortBigEndian (lastEntryIndex);
-        map << iconType;
-        map.writeShortBigEndian (lastEntryIndex);
-        map.writeShortBigEndian (referenceListOffset);
-        map.writeShortBigEndian (customIconId);
-        map.writeShortBigEndian (noName);
-        map.writeRepeatedByte (0, referenceTailSize);
-        jassert (map.getDataSize() == static_cast<size_t> (mapLength));
-        return map.getMemoryBlock();
-    }
+    static juce::MemoryBlock getResourceMap (const juce::MemoryBlock& header);
 
     /**
      * @brief Encodes the Finder information attribute.
@@ -181,14 +79,7 @@ private:
      * @returns The block of finderInfoSize bytes. It holds @p finderFlags
      *          at its flags offset and zero in each other byte.
      */
-    static juce::MemoryBlock getFinderInfo (juce::uint16 finderFlags)
-    {
-        juce::MemoryOutputStream finderInfo;
-        finderInfo.writeRepeatedByte (0, finderFlagsOffset);
-        finderInfo.writeShortBigEndian (static_cast<short> (finderFlags));
-        finderInfo.writeRepeatedByte (0, finderInfoSize - finderInfo.getDataSize());
-        return finderInfo.getMemoryBlock();
-    }
+    static juce::MemoryBlock getFinderInfo (juce::uint16 finderFlags);
 
     /**
      * @brief Sets one extended attribute on a file.
@@ -200,11 +91,7 @@ private:
      * @param value         The attribute bytes.
      * @returns True when the attribute is set.
      */
-    static bool applyAttribute (const juce::File& file, const char* attributeName, const juce::MemoryBlock& value)
-    {
-        return setxattr (file.getFullPathName().toRawUTF8(), attributeName, value.getData(), value.getSize(), 0,
-                         XATTR_NOFOLLOW) == 0;
-    }
+    static bool applyAttribute (const juce::File& file, const char* attributeName, const juce::MemoryBlock& value);
 
     /** Name of the icon file in the bundle root. */
     static constexpr const char* iconFileName { "Icon\r" };

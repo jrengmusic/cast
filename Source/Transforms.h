@@ -1,5 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
+#include "generated/Generated.h"
 
 /**
  * @struct Transforms
@@ -25,17 +26,7 @@ struct Transforms
      *          rendering when @p extension declares no single-line comment
      *          glyph.
      */
-    static juce::String toComment (const juce::String& input, const juce::String& extension)
-    {
-        const auto& syntax { map::commentSyntax.at (extension) };
-        const auto comment { syntax.get (Id::comment) };
-        const auto joined { input.replaceCharacter (Chars::newline, Chars::space) };
-
-        if (comment.isEmpty())
-            return toCommentBlock (joined, extension);
-
-        return (comment + Chars::space + joined).trim();
-    }
+    static juce::String toComment (const juce::String& input, const juce::String& extension);
 
     /**
      * @brief Finds @p beginValue's own first matching line and, strictly
@@ -55,25 +46,7 @@ struct Transforms
      *          matches no line.
      */
     static std::pair<int, int> getDelimiterLines (
-        const jam::Strings& lines, const juce::String& beginValue, const juce::String& endValue)
-    {
-        static constexpr int noLine { -1 };
-
-        auto beginLine { noLine };
-
-        for (int lineIndex { 0 }; lineIndex < lines.size() and beginLine < 0; ++lineIndex)
-            if (lines.at (lineIndex).contains (beginValue))
-                beginLine = lineIndex;
-
-        auto endLine { noLine };
-
-        for (int lineIndex { beginLine + 1 }; beginLine >= 0 and lineIndex < lines.size() and endLine < 0;
-             ++lineIndex)
-            if (lines.at (lineIndex).contains (endValue))
-                endLine = lineIndex;
-
-        return { beginLine, endLine };
-    }
+        const jam::Strings& lines, const juce::String& beginValue, const juce::String& endValue);
 
     /**
      * @brief Builds @p lines with the lines strictly between @p beginLine
@@ -94,21 +67,7 @@ struct Transforms
      *          then @p lines from @p endLine on.
      */
     static jam::Strings getSplicedLines (const jam::Strings& lines, int beginLine, int endLine,
-        const jam::Strings& regionLines, int regionStart, int regionEnd)
-    {
-        jam::Strings spliced;
-
-        for (int lineIndex { 0 }; lineIndex <= beginLine; ++lineIndex)
-            spliced.add (lines.at (lineIndex));
-
-        for (int lineIndex { regionStart }; lineIndex < regionEnd; ++lineIndex)
-            spliced.add (regionLines.at (lineIndex));
-
-        for (int lineIndex { endLine }; lineIndex < lines.size(); ++lineIndex)
-            spliced.add (lines.at (lineIndex));
-
-        return spliced;
-    }
+        const jam::Strings& regionLines, int regionStart, int regionEnd);
 
     /**
      * @brief Joins @p lines with LF, keeping the final LF that @p original
@@ -120,17 +79,7 @@ struct Transforms
      * @returns @p lines joined with LF, with a final LF added when
      *          @p original ends with one and the join does not.
      */
-    static juce::String getJoinedText (const jam::Strings& lines, const juce::String& original)
-    {
-        static const auto newlineText { juce::String::charToString (Chars::newline) };
-
-        auto joined { lines.joinIntoString (newlineText, 0, -1) };
-
-        if (original.endsWith (newlineText) and not joined.endsWith (newlineText))
-            joined += newlineText;
-
-        return joined;
-    }
+    static juce::String getJoinedText (const jam::Strings& lines, const juce::String& original);
 
     /**
      * @brief Replaces @p sourceFilePrefix with @p targetFilePrefix in
@@ -146,10 +95,7 @@ struct Transforms
      *          @p targetFilePrefix.
      */
     static juce::String getTransformedPath (
-        const juce::String& relativePath, const juce::String& sourceFilePrefix, const juce::String& targetFilePrefix)
-    {
-        return relativePath.replace (sourceFilePrefix, targetFilePrefix);
-    }
+        const juce::String& relativePath, const juce::String& sourceFilePrefix, const juce::String& targetFilePrefix);
 
     /**
      * @brief Wraps @p input in @p extension's block-comment syntax, when
@@ -170,46 +116,7 @@ struct Transforms
      *          @p extension's own single-line comment glyph.
      */
     static juce::String
-    toCommentBlock (const juce::String& input, const juce::String& extension)
-    {
-        static const auto spaceText { juce::String::charToString (Chars::space) };
-        static const auto newlineText { juce::String::charToString (Chars::newline) };
-
-        const auto& syntax { map::commentSyntax.at (extension) };
-        const auto blockOpen { syntax.get (Id::blockOpen) };
-        jam::Strings blockLines;
-
-        if (blockOpen.isNotEmpty())
-        {
-            if (not input.containsChar (Chars::newline))
-                return (blockOpen + Chars::space + input
-                       + Chars::space + syntax.get (Id::blockClose))
-                    .trim();
-
-            const auto blockLine { syntax.get (Id::blockLine) };
-            const auto prefix { blockLine.isNotEmpty()
-                                    ? blockLine + Chars::space
-                                    : juce::String{} };
-
-            blockLines.add (blockOpen);
-
-            for (const auto& proseLine : jam::Strings::fromLines (input))
-                blockLines.add (proseLine.isNotEmpty() ? prefix + proseLine : blockLine);
-
-            blockLines.add (blockLine.isNotEmpty()
-                                 ? spaceText + syntax.get (Id::blockClose)
-                                 : syntax.get (Id::blockClose));
-        }
-        else
-        {
-            const auto prefix { syntax.get (Id::comment) + Chars::space };
-
-            for (const auto& proseLine : jam::Strings::fromLines (input))
-                blockLines.add (prefix + proseLine);
-        }
-
-        return blockLines.joinIntoString (newlineText, 0, -1);
-    }
+    toCommentBlock (const juce::String& input, const juce::String& extension);
 
     /**
      * @brief Wraps @p input in @p extension's block-comment glyphs,
@@ -225,19 +132,7 @@ struct Transforms
      *          rendering when @p extension declares no block-comment open
      *          glyph.
      */
-    static juce::String toBrief (const juce::String& input, const juce::String& extension)
-    {
-        const auto& syntax { map::commentSyntax.at (extension) };
-        const auto blockOpen { syntax.get (Id::blockOpen) };
-
-        if (blockOpen.isEmpty())
-            return toComment (input, extension);
-
-        return (blockOpen + Chars::space
-               + syntax.get (Id::brief) + Chars::space + input.replaceCharacter (Chars::newline, Chars::space)
-               + Chars::space + syntax.get (Id::blockClose))
-            .trim();
-    }
+    static juce::String toBrief (const juce::String& input, const juce::String& extension);
 
     /**
      * @brief Resolves @p file's own comment-syntax key -- @c
@@ -251,27 +146,7 @@ struct Transforms
      * @param file The output file whose comment-syntax key is resolved.
      * @returns @p file's resolved comment-syntax key.
      */
-    static juce::String getCommentSyntaxKey (const juce::String& file)
-    {
-        static const auto dotText { juce::String::charToString (Chars::dot) };
-
-        const auto outputFile { juce::File::createFileWithoutCheckingPath (file) };
-
-        if (auto syntaxEntry { map::manifestSyntax.find (outputFile.getFileName()) };
-            syntaxEntry != map::manifestSyntax.end())
-        {
-            const auto& [syntaxKey, extension] { *syntaxEntry };
-
-            return extension;
-        }
-
-        const auto extension { outputFile.getFileExtension() };
-
-        if (map::commentSyntax.contains (extension))
-            return extension;
-
-        return dotText + Extensions::h;
-    }
+    static juce::String getCommentSyntaxKey (const juce::String& file);
 
     /**
      * @brief Reads @p fenceName's own bracket prefix -- the word enclosed
@@ -284,18 +159,7 @@ struct Transforms
      * @returns @p fenceName's own bracket word, or an empty string when
      *          @p fenceName carries no complete bracket group.
      */
-    static juce::String getFencePrefix (const juce::String& fenceName)
-    {
-        static const auto closeBracket { Chars::enclosure.get (Chars::openBracket) };
-        static const auto closeBracketText { juce::String::charToString (closeBracket) };
-
-        if (fenceName.startsWithChar (Chars::openBracket)
-            and fenceName.containsChar (closeBracket))
-            return jam::Format::withoutEnclosure (
-                jam::Format::upTo (fenceName, closeBracketText, true), Chars::openBracket);
-
-        return {};
-    }
+    static juce::String getFencePrefix (const juce::String& fenceName);
 
     /**
      * @brief Answers whether @p name is a known transform.
@@ -303,10 +167,7 @@ struct Transforms
      * @param name The camel-cased transform name to look up.
      * @returns @c true when @p name is a known transform.
      */
-    static bool contains (const juce::String& name) noexcept
-    {
-        return getTransforms().contains (name);
-    }
+    static bool contains (const juce::String& name) noexcept;
 
     /**
      * @brief Applies the transform named @p name to @p input.
@@ -319,12 +180,7 @@ struct Transforms
      */
     static juce::String getTransformed (const juce::String& name,
                                         const juce::String& input,
-                                        const juce::String& extension)
-    {
-        jassert (contains (name));
-
-        return getTransforms().get (name, input, extension);
-    }
+                                        const juce::String& extension);
 
     /**
      * @brief Answers whether @p character sits outside a word --
@@ -338,11 +194,7 @@ struct Transforms
      * @returns @c true when @p character is absent or not a letter,
      *          digit, or underscore.
      */
-    static bool isWordBoundaryChar (juce::juce_wchar character) noexcept
-    {
-        return character == Chars::nullCharacter
-               or not (juce::CharacterFunctions::isLetterOrDigit (character) or character == Chars::underscore);
-    }
+    static bool isWordBoundaryChar (juce::juce_wchar character) noexcept;
 
     /**
      * @brief Finds @p word's own next whole-word match in @p text at or
@@ -355,22 +207,7 @@ struct Transforms
      * @returns @p word's own next whole-word match position, or @c -1
      *          when none remains.
      */
-    static int getNextWholeWordMatch (const juce::String& text, const juce::String& word, int cursor)
-    {
-        for (auto position { text.indexOf (cursor, word) }; position >= 0; position = text.indexOf (cursor, word))
-        {
-            const auto beforeChar { position > 0 ? text[position - 1] : Chars::nullCharacter };
-            const auto matchEnd { position + word.length() };
-            const auto afterChar { matchEnd < text.length() ? text[matchEnd] : Chars::nullCharacter };
-
-            if (isWordBoundaryChar (beforeChar) and isWordBoundaryChar (afterChar))
-                return position;
-
-            cursor = position + 1;
-        }
-
-        return -1;
-    }
+    static int getNextWholeWordMatch (const juce::String& text, const juce::String& word, int cursor);
 
     /**
      * @brief Replaces every whole-word occurrence of @p source in
@@ -384,21 +221,7 @@ struct Transforms
      *          replaced by @p target.
      */
     static juce::String
-    getWordBoundaryReplaced (const juce::String& text, const juce::String& source, const juce::String& target)
-    {
-        juce::String result;
-        int cursor { 0 };
-
-        for (auto position { getNextWholeWordMatch (text, source, cursor) }; position >= 0;
-             position = getNextWholeWordMatch (text, source, cursor))
-        {
-            result += text.substring (cursor, position) + target;
-            cursor = position + source.length();
-        }
-
-        result += text.substring (cursor);
-        return result;
-    }
+    getWordBoundaryReplaced (const juce::String& text, const juce::String& source, const juce::String& target);
 
     /**
      * @brief Answers whether @p text contains @p word as a whole word --
@@ -409,10 +232,7 @@ struct Transforms
      * @param word The word to search for.
      * @returns @c true when @p text contains @p word as a whole word.
      */
-    static bool containsWholeWord (const juce::String& text, const juce::String& word)
-    {
-        return getNextWholeWordMatch (text, word, 0) >= 0;
-    }
+    static bool containsWholeWord (const juce::String& text, const juce::String& word);
 
 private:
     /**
@@ -422,51 +242,7 @@ private:
      *
      * @param map The transform registry the case transforms are added to.
      */
-    static void addCaseTransforms (jam::Function::Map<juce::String, juce::String>& map)
-    {
-        map.add<const juce::String&, const juce::String&> (
-            jam::Format::toCamelCase (Id::toUpper),
-            [] (const juce::String& input, const juce::String&)
-            {
-                return input.toUpperCase();
-            });
-        map.add<const juce::String&, const juce::String&> (
-            jam::Format::toCamelCase (Id::toTitle),
-            [] (const juce::String& input, const juce::String&)
-            {
-                return jam::Format::toTitleCase (input);
-            });
-        map.add<const juce::String&, const juce::String&> (
-            jam::Format::toCamelCase (Id::toKebab),
-            [] (const juce::String& input, const juce::String&)
-            {
-                return jam::Format::toKebabCase (input);
-            });
-        map.add<const juce::String&, const juce::String&> (
-            jam::Format::toCamelCase (Id::toPascal),
-            [] (const juce::String& input, const juce::String&)
-            {
-                return jam::Format::toPascalCase (input);
-            });
-        map.add<const juce::String&, const juce::String&> (
-            jam::Format::toCamelCase (Id::toCamel),
-            [] (const juce::String& input, const juce::String&)
-            {
-                return jam::Format::toCamelCase (input);
-            });
-        map.add<const juce::String&, const juce::String&> (
-            jam::Format::toCamelCase (Id::toSnake),
-            [] (const juce::String& input, const juce::String&)
-            {
-                return jam::Format::toSnakeCase (input);
-            });
-        map.add<const juce::String&, const juce::String&> (
-            jam::Format::toCamelCase (Id::toScreamingSnake),
-            [] (const juce::String& input, const juce::String&)
-            {
-                return jam::Format::toScreamingSnakeCase (input);
-            });
-    }
+    static void addCaseTransforms (jam::Function::Map<juce::String, juce::String>& map);
 
     /**
      * @brief Registers the encoding transforms -- @c toLiteral, @c toUTF8,
@@ -476,48 +252,7 @@ private:
      * @param map The transform registry the encoding transforms are added
      *            to.
      */
-    static void addEncodingTransforms (jam::Function::Map<juce::String, juce::String>& map)
-    {
-        map.add<const juce::String&, const juce::String&> (
-            jam::Format::toCamelCase (Id::toUTF8),
-            [] (const juce::String& input, const juce::String&)
-            {
-                return jam::Format::toUTF8 (input);
-            });
-        map.add<const juce::String&, const juce::String&> (
-            jam::Format::toCamelCase (Id::fromUTF8),
-            [] (const juce::String& input, const juce::String&)
-            {
-                const std::string_view text { input.getCharPointer().getAddress() };
-                const auto result { jam::Format::fromUTF8 (text) };
-
-                return jam::Strings::fromView (result);
-            });
-        map.add<const juce::String&, const juce::String&> (
-            jam::Format::toCamelCase (Id::toLiteral),
-            [] (const juce::String& input, const juce::String&)
-            {
-                return jam::Format::toLiteral (input);
-            });
-        map.add<const juce::String&, const juce::String&> (
-            jam::Format::toCamelCase (Id::toHex),
-            [] (const juce::String& input, const juce::String&)
-            {
-                return jam::Format::toHex (input);
-            });
-        map.add<const juce::String&, const juce::String&> (
-            jam::Format::toCamelCase (Id::toCodepoint),
-            [] (const juce::String& input, const juce::String&)
-            {
-                return jam::Format::toCodepoint (input);
-            });
-        map.add<const juce::String&, const juce::String&> (
-            jam::Format::toCamelCase (Id::fromCodepoint),
-            [] (const juce::String& input, const juce::String&)
-            {
-                return jam::Format::fromCodepoint (input);
-            });
-    }
+    static void addEncodingTransforms (jam::Function::Map<juce::String, juce::String>& map);
 
     /**
      * @brief Registers the text transforms -- @c join and @c toFileName --
@@ -525,22 +260,7 @@ private:
      *
      * @param map The transform registry the text transforms are added to.
      */
-    static void addTextTransforms (jam::Function::Map<juce::String, juce::String>& map)
-    {
-        map.add<const juce::String&, const juce::String&> (
-            jam::Format::toCamelCase (Id::join),
-            [] (const juce::String& input, const juce::String&)
-            {
-                return jam::Format::join (input);
-            });
-        map.add<const juce::String&, const juce::String&> (
-            jam::Format::toCamelCase (Id::toFileName),
-            [] (const juce::String& input, const juce::String&)
-            {
-                return static_cast<juce::String (*) (const juce::String&)> (
-                    &jam::Format::toFileName) (input);
-            });
-    }
+    static void addTextTransforms (jam::Function::Map<juce::String, juce::String>& map);
 
     /**
      * @brief Registers the comment transforms -- @c toComment,
@@ -549,15 +269,7 @@ private:
      * @param map The transform registry the comment transforms are added
      *            to.
      */
-    static void addCommentTransforms (jam::Function::Map<juce::String, juce::String>& map)
-    {
-        map.add<const juce::String&, const juce::String&> (
-            jam::Format::toCamelCase (Id::toComment), &Transforms::toComment);
-        map.add<const juce::String&, const juce::String&> (
-            jam::Format::toCamelCase (Id::toCommentBlock), &Transforms::toCommentBlock);
-        map.add<const juce::String&, const juce::String&> (
-            jam::Format::toCamelCase (Id::brief), &Transforms::toBrief);
-    }
+    static void addCommentTransforms (jam::Function::Map<juce::String, juce::String>& map);
 
     /**
      * @brief The registry mapping every known transform's camel-cased name
@@ -567,22 +279,5 @@ private:
      *
      * @returns The transform registry.
      */
-    static const jam::Function::Map<juce::String, juce::String>& getTransforms() noexcept
-    {
-        static const jam::Function::Map<juce::String, juce::String> transforms {
-            []()
-            {
-                jam::Function::Map<juce::String, juce::String> map;
-
-                addCaseTransforms (map);
-                addEncodingTransforms (map);
-                addTextTransforms (map);
-                addCommentTransforms (map);
-
-                return map;
-            }()
-        };
-
-        return transforms;
-    }
+    static const jam::Function::Map<juce::String, juce::String>& getTransforms() noexcept;
 };

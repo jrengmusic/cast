@@ -41,6 +41,7 @@ namespace Id
     const juce::Identifier blockLine        { juce::String::fromUTF8 ("blockLine") };
     const juce::Identifier blockOpen        { juce::String::fromUTF8 ("blockOpen") };
     const juce::Identifier bundleColumn     { juce::String::fromUTF8 ("bundle-column") };
+    const juce::Identifier chain            { juce::String::fromUTF8 ("chain") };
     const juce::Identifier comment          { juce::String::fromUTF8 ("comment") };
     const juce::Identifier date             { juce::String::fromUTF8 ("date") };
     const juce::String     dmg              { juce::String::fromUTF8 ("dmg") };
@@ -71,6 +72,7 @@ namespace Id
     const juce::Identifier macroPrefix      { juce::String::fromUTF8 ("macroPrefix") };
     const juce::Identifier noBanner         { juce::String::fromUTF8 ("no-banner") };
     const juce::Identifier noFormat         { juce::String::fromUTF8 ("no-format") };
+    const juce::Identifier owner            { juce::String::fromUTF8 ("owner") };
     const juce::Identifier placeholder      { juce::String::fromUTF8 ("placeholder") };
     const juce::Identifier separator        { juce::String::fromUTF8 ("separator") };
     const juce::Identifier structure        { juce::String::fromUTF8 ("structure") };

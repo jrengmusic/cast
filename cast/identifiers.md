@@ -32,6 +32,7 @@ transform operations a format cell may declare (§8).
 | @id     | blockLine        | `blockLine`          | Block-comment continuation-line glyph key.                  |
 | @id     | blockOpen        | `blockOpen`          |                                                             |
 | @id     | bundleColumn     | `bundle-column`      | --pack layout option word.                                  |
+| @id     | chain            | `chain`              | Owning wrapper's shape ordinal of a private element.        |
 | @id     | comment          | `comment`            |                                                             |
 | @id     | date             | `date`               | Reserved date token name.                                   |
 | @string | dmg              | `dmg`                | Dmg archive extension.                                      |
@@ -62,6 +63,7 @@ transform operations a format cell may declare (§8).
 | @id     | macroPrefix      | `macroPrefix`        | Sync composed identity key — macro-name prefix.             |
 | @id     | noBanner         | `no-banner`          | Banner-suppressing fence-prefix marker.                     |
 | @id     | noFormat         | `no-format`          | Formatless-column marker.                                   |
+| @id     | owner            | `owner`              | Wrapper's parent shape ordinal.                             |
 | @id     | placeholder      | `placeholder`        | Placeholder token name.                                     |
 | @id     | separator        | `separator`          | Separator column key.                                       |
 | @id     | structure        | `structure`          | Structure column key.                                       |

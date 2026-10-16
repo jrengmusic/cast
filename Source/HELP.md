@@ -409,7 +409,7 @@ The list column's `- [list]:` lines pair with the structure column's `- [list]:`
 +------------------------------------+---------------------------------+
 ```
 
-The namespace names `:::[list]:::` one time, thus it takes the next source — the bimap, rendered one time at column 0. The bimap names it two times — map region first, enum region second — thus it takes the next two: map-entry at three tabs, then enum at two. To match the template, the tables and the expression is yours. CAST reads the expression and generates. Its one check is the count — a row that supplies more sources than its shapes demand stops the run, and the diagnostic names the block and the row. To supply fewer is legal: your sources fill a shape's trailing slots, and the leading unfilled slots render empty.
+The namespace names `:::[list]:::` one time, thus it takes the next source — the bimap, rendered one time at column 0. The bimap names it two times — map region first, enum region second — thus it takes the next two: map-entry at three tabs, then enum at two. To match the template, the tables and the expression is yours. CAST reads the expression and generates. Its one check is the walk — a source line that no shape consumes would render nowhere, so it stops the run, and the diagnostic names the block and the row. To supply fewer is legal: your sources fill a shape's trailing slots, and the leading unfilled slots render empty.
 
 ### Wrappers — a shape in a named token
 

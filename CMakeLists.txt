@@ -123,8 +123,10 @@ set(CAST_JUCE_PATCHES
 "${CAST_USER_MODULE_PATH}/patch/juce-direct2d-helpers-visibility-hook.patch"# Direct2D helpers visibility gate
 "${CAST_USER_MODULE_PATH}/patch/juce-image-subsection-hook.patch"           # Root image and subsection bounds hooks
 "${CAST_USER_MODULE_PATH}/patch/juce-vulkan-engine-hook.patch"              # External graphics context factory for Vulkan
-"${CAST_USER_MODULE_PATH}/patch/juce-paint-update-rect-hook.patch"          # OS dirty rectangle before native paint
-"${CAST_USER_MODULE_PATH}/patch/juce-attributed-text-hook.patch"            # Attributed text integration
+"${CAST_USER_MODULE_PATH}/patch/juce-paint-update-rect-hook.patch"          # OS dirty rectangle before native paint; applies after juce-vulkan-engine-hook.patch
+"${CAST_USER_MODULE_PATH}/patch/juce-attributed-text-hook.patch"            # Attributed text virtual on LowLevelGraphicsContext; applies after juce-vulkan-engine-hook.patch
+"${CAST_USER_MODULE_PATH}/patch/juce-adhoc-sign-hook.patch"                 # No ad-hoc signature on the VST3 bundle
+"${CAST_USER_MODULE_PATH}/patch/juce-display-changed-hook.patch"            # Callback after refresh() finds a display change
 )
 
 if(WIN32)
@@ -153,6 +155,8 @@ if(NOT EXISTS "${CAST_JUCE_PATCH_STAMP_FILE}")
     if(EXISTS "${CAST_PATCHED_JUCE_PATH}")
         file(REMOVE_RECURSE "${CAST_PATCHED_JUCE_PATH}")
     endif()
+
+    file(REAL_PATH "${CAST_JUCE_PATH}" CAST_JUCE_PATH)
 
     file(COPY "${CAST_JUCE_PATH}/"
         DESTINATION "${CAST_PATCHED_JUCE_PATH}"

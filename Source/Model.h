@@ -36,17 +36,7 @@ public:
      * @returns The parsed Model, empty when @p documentFile does not exist
      *          as a file.
      */
-    static std::unique_ptr<Model> parse (const juce::File& documentFile)
-    {
-        auto document { std::make_unique<Model>() };
-
-        if (documentFile.existsAsFile())
-            parse (*document, documentFile.loadFileAsString(),
-                documentFile.getRelativePathFrom (documentFile.getParentDirectory()),
-                documentFile.getParentDirectory());
-
-        return document;
-    }
+    static std::unique_ptr<Model> parse (const juce::File& documentFile);
 
     /**
      * @brief Parses @p text as a manifest sourced from @p origin, under
@@ -61,14 +51,7 @@ public:
      * @returns The parsed Model.
      */
     static std::unique_ptr<Model> parse (const juce::String& text, const juce::String& origin,
-        const juce::File& directory, const jam::HashMap<juce::Identifier, int>& reflowWidths)
-    {
-        auto document { std::make_unique<Model>() };
-        document->reflowWidths = reflowWidths;
-        parse (*document, text, origin, directory);
-
-        return document;
-    }
+        const juce::File& directory, const jam::HashMap<juce::Identifier, int>& reflowWidths);
 
     /**
      * @brief Returns every @c ## format row's own resolved @c name mapped
@@ -76,24 +59,7 @@ public:
      *
      * @returns Every reflowed column's own identifier mapped to its width.
      */
-    jam::HashMap<juce::Identifier, int> getReflowWidths() const
-    {
-        jam::HashMap<juce::Identifier, int> newReflowWidths;
-
-        for (auto* table : getTables (Id::format))
-            for (auto* row : getTableRows (*table))
-                if (row->id != Id::lineWrap)
-                {
-                    auto* nameCell { getTableCell (*row, Id::name) };
-                    const auto nameView { getValueView (*nameCell) };
-
-                    newReflowWidths.try_emplace (
-                        juce::Identifier (jam::Format::toValidID (jam::Strings::fromView (nameView))),
-                        getValue (*row, Id::width).getIntValue());
-                }
-
-        return newReflowWidths;
-    }
+    jam::HashMap<juce::Identifier, int> getReflowWidths() const;
 
     /**
      * @brief Returns the @c line-wrap row's own resolved @c width, among
@@ -103,24 +69,14 @@ public:
      *          jam::MarkdownWriter::defaultLineWrap when no @c ## format
      *          table declares one.
      */
-    int getLineWrap() const
-    {
-        for (auto* table : getTables (Id::format))
-            if (auto* row { getTableRow (*table, Id::lineWrap) })
-                return getValue (*row, Id::width).getIntValue();
-
-        return jam::MarkdownWriter::defaultLineWrap;
-    }
+    int getLineWrap() const;
 
     /**
      * @brief Returns the manifest's own relative path, stamped at parse().
      *
      * @returns manifestOrigin.
      */
-    const juce::String& getManifestOrigin() const noexcept
-    {
-        return manifestOrigin;
-    }
+    const juce::String& getManifestOrigin() const noexcept;
 
     /**
      * @brief Resolves @p alias against @p file's index, when @p alias is
@@ -134,32 +90,7 @@ public:
      *          empty string when @p alias is not an @-sigiled identifier
      *          or is absent from @p file's index.
      */
-    juce::String getValue (juce::StringRef file, juce::StringRef alias) const
-    {
-        if (alias.isNotEmpty() and *alias.text == Chars::at)
-        {
-            const juce::String aliasText { alias };
-
-            if (juce::Identifier::isValidIdentifier (aliasText))
-            {
-                for (auto* table : *this)
-                {
-                    if (table->id == Id::index)
-                    {
-                        if (table->contains (Id::path)
-                            and table->get<juce::String> (Id::path)->compare (juce::String (file)) == 0)
-                        {
-                            if (auto* symbolCell {
-                                    getTableCell (*table, Id::symbol, juce::Identifier (aliasText)) })
-                                return *symbolCell->get<juce::String> (Id::value);
-                        }
-                    }
-                }
-            }
-        }
-
-        return {};
-    }
+    juce::String getValue (juce::StringRef file, juce::StringRef alias) const;
 
     /**
      * @brief Resolves @p alias against @p row's own file's index.
@@ -170,11 +101,7 @@ public:
      * @returns @p alias's symbol, or an empty string when @p alias does not
      *          resolve.
      */
-    juce::String getValue (const Element& row, const juce::String& alias) const
-    {
-        const auto origin { *row.parent->get<juce::String> (Id::path) };
-        return getValue (origin, alias);
-    }
+    juce::String getValue (const Element& row, const juce::String& alias) const;
 
     /**
      * @brief Returns @p row's resolved value for @p column.
@@ -183,10 +110,7 @@ public:
      * @param column The column whose cell value is read.
      * @returns @p row's resolved value for @p column.
      */
-    const juce::String& getValue (const Element& row, const juce::Identifier& column) const
-    {
-        return *getTableCell (row, column)->get<juce::String> (Id::value);
-    }
+    const juce::String& getValue (const Element& row, const juce::Identifier& column) const;
 
     /**
      * @brief Returns @p row's resolved value for @p column, or an empty
@@ -197,12 +121,7 @@ public:
      * @returns @p row's resolved value for @p column, or an empty string
      *          when @p row carries no cell for @p column.
      */
-    juce::String getColumnValue (const Element& row, const juce::Identifier& column) const
-    {
-        auto* cell { getTableCell (row, column) };
-
-        return cell != nullptr ? *cell->get<juce::String> (Id::value) : juce::String {};
-    }
+    juce::String getColumnValue (const Element& row, const juce::Identifier& column) const;
 
     /**
      * @brief Answers whether @p value is a shape address -- @-sigiled,
@@ -213,13 +132,7 @@ public:
      * @param value The authored value to test.
      * @returns @c true when @p value is a shape address.
      */
-    bool isShape (const Element& row, const juce::String& value) const
-    {
-        return isAddress (value)
-               and juce::File::createFileWithoutCheckingPath (
-                       getValue (row, jam::Format::getPreColon (value).trim()))
-                       .hasFileExtension (Extensions::cast);
-    }
+    bool isShape (const Element& row, const juce::String& value) const;
 
     /**
      * @brief Returns the Identifier that a bracketed reserved name takes in
@@ -229,11 +142,7 @@ public:
      * @param word The reserved word, without brackets.
      * @returns The Identifier of @p word's own bracketed form.
      */
-    static juce::Identifier getReservedName (const juce::Identifier& word)
-    {
-        return juce::Identifier (jam::Format::toValidID (
-            jam::Format::withEnclosure (word.toString(), Chars::openBracket)));
-    }
+    static juce::Identifier getReservedName (const juce::Identifier& word);
 
     /**
      * @brief Answers whether @p value is an @-sigiled reference -- a
@@ -242,10 +151,7 @@ public:
      * @param value The authored value to test.
      * @returns @c true when @p value starts with the @ sigil.
      */
-    static bool isAddress (const juce::String& value) noexcept
-    {
-        return value.startsWithChar (Chars::at);
-    }
+    static bool isAddress (const juce::String& value) noexcept;
 
     /**
      * @brief Returns @p scope's own shape line's resolved template file
@@ -259,20 +165,7 @@ public:
      * @returns The resolved @c .cast file path, or an empty string when
      *          @p scope carries no shape line of its own.
      */
-    juce::String getStructure (const Element& scope) const
-    {
-        for (auto* block : scope)
-        {
-            if (block->isTag (Id::p) and block->contains (Id::templatePath))
-                return *block->get<juce::String> (Id::templatePath);
-
-            if (block->isTag (Id::ul) and block->firstChild != nullptr
-                and block->firstChild->contains (Id::templatePath))
-                return *block->firstChild->get<juce::String> (Id::templatePath);
-        }
-
-        return {};
-    }
+    juce::String getStructure (const Element& scope) const;
 
     /**
      * @brief Returns @p row's list bullet at blockquote depth @p indent --
@@ -292,10 +185,7 @@ public:
      * @returns The addressed list bullet, or @c nullptr when none exists
      *          at (@p indent, @p ordinal).
      */
-    const Element* getSource (const Element& row, int indent, int ordinal) const
-    {
-        return getPairedListItem (row, Id::list, indent, ordinal);
-    }
+    const Element* getSource (const Element& row, int indent, int ordinal) const;
 
     /**
      * @brief Returns @p row's @p index-th (0-based) consecutive column-
@@ -317,24 +207,7 @@ public:
      *          when fewer than @p index + 1 consecutive column-address
      *          lines follow @p sourceOrdinal.
      */
-    const Element* getColumnAddress (const Element& row, int indent, int sourceOrdinal, int index) const
-    {
-        for (int offset { 0 }; offset <= index; ++offset)
-        {
-            auto* childSourceLine { getSource (row, indent, sourceOrdinal + 1 + offset) };
-
-            if (childSourceLine == nullptr)
-                return nullptr;
-
-            if (not isColumnAddress (row, *childSourceLine->get<juce::String> (Id::value)))
-                return nullptr;
-
-            if (offset == index)
-                return childSourceLine;
-        }
-
-        return nullptr;
-    }
+    const Element* getColumnAddress (const Element& row, int indent, int sourceOrdinal, int index) const;
 
     /**
      * @brief Returns @p row's separator bullet at blockquote depth
@@ -353,10 +226,7 @@ public:
      * @returns The addressed separator bullet, or @c nullptr when none
      *          exists at (@p indent, @p ordinal).
      */
-    const Element* getSeparator (const Element& row, int indent, int ordinal) const
-    {
-        return getPairedListItem (row, Id::separator, indent, ordinal);
-    }
+    const Element* getSeparator (const Element& row, int indent, int ordinal) const;
 
     /**
      * @brief Returns @p row's separator column's row join -- the leading
@@ -366,44 +236,19 @@ public:
      * @returns The row-join bullet, or @c nullptr when @p row's separator
      *          column declares none.
      */
-    const Element* getRowJoin (const Element& row) const
-    {
-        static const auto listMarker { getReservedName (Id::list) };
-
-        return getPairedItem (row, Id::separator,
-            [] (const Element& candidate)
-            { return candidate.id == listMarker and not candidate.contains (Id::line); });
-    }
+    const Element* getRowJoin (const Element& row) const;
 
     /**
-     * @brief Returns @p row's description bullet paired with the shape
-     *        paragraph at blockquote depth @p indent and shape ordinal
-     *        @p ordinal -- the description counted at position @p ordinal
-     *        among @p indent's own description bullets, its own running count
-     *        kept independently of, but authored in lockstep with, that
-     *        depth's shape paragraphs.
+     * @brief Returns @p row's description bullet paired with @p line -- the
+     *        list column bullet whose @c shape ordinal equals the @c shape
+     *        ordinal of @p line.
      *
-     * @param row     The row whose @c list column is searched.
-     * @param indent  The blockquote nesting depth to search, one per
-     *                authored @c >.
-     * @param ordinal The paired shape paragraph's own ordinal at
-     *                @p indent, answered by the description bullet counted at
-     *                the same position among @p indent's own description
-     *                bullets.
-     * @returns The paired description bullet, or @c nullptr when @p indent
-     *          carries no description at that position.
+     * @param row  The row whose @c list column is searched.
+     * @param line The shape paragraph or wrapper whose description is read.
+     * @returns The paired description bullet, or @c nullptr when @p line
+     *          has no description.
      */
-    const Element* getDescription (const Element& row, int indent, int ordinal) const
-    {
-        static const auto descriptionMarker { getReservedName (Id::description) };
-
-        return getPairedItem (row, Id::list,
-            [indent, ordinal] (const Element& candidate)
-            {
-                return candidate.id == descriptionMarker and *candidate.get<int> (Id::level) == indent
-                       and *candidate.get<int> (Id::line) == ordinal;
-            });
-    }
+    const Element* getDescription (const Element& row, const Element& line) const;
 
     /**
      * @brief Returns @p row's structure scope's shape paragraph at
@@ -418,147 +263,125 @@ public:
      * @returns The addressed shape paragraph, or @c nullptr when none
      *          exists at (@p indent, @p ordinal).
      */
-    const Element* getParagraph (const Element& row, int indent, int ordinal) const
-    {
-        const Element* item { nullptr };
-
-        getTableCell (row, Id::structure)->applyFunctionRecursively (
-            [&item, indent, ordinal] (const Element& candidate) -> bool
-            {
-                if (item == nullptr and candidate.isTag (Id::p) and candidate.contains (Id::line)
-                    and *candidate.get<int> (Id::level) == indent
-                    and *candidate.get<int> (Id::line) == ordinal)
-                    item = &candidate;
-
-                return item == nullptr;
-            });
-
-        return item;
-    }
+    const Element* getParagraph (const Element& row, int indent, int ordinal) const;
 
     /**
      * @brief Returns @p row's @p occurrence-th map table for @p line's
      *        own shape -- the @p occurrence-th non-empty, @c >-less
-     *        @c list bullet sharing @p line's own @c shape ordinal,
-     *        resolved through getTable().
+     *        @c list bullet whose @c shape ordinal equals @p line's owner,
+     *        read through getOwner(), resolved through getTable(). A
+     *        wrapper reads the maps of the paragraph that owns it.
      *
      * @param row        The row whose @c list column is searched.
      * @param line       The structure line whose maps are searched,
-     *                   matched by its own @c shape ordinal.
+     *                   matched by its owner's @c shape ordinal.
      * @param occurrence The map's position among @p line's own maps,
      *                   counted in authored order.
      * @returns The addressed map table, or @c nullptr when @p line
      *          declares no map at @p occurrence.
      */
-    const Element* getMap (const Element& row, const Element& line, int occurrence) const
-    {
-        static const auto listMarker { getReservedName (Id::list) };
-
-        const Element* item { nullptr };
-        int matchOrdinal { 0 };
-
-        getTableCell (row, Id::list)->applyFunctionRecursively (
-            [&item, &matchOrdinal, &line, occurrence] (const Element& candidate) -> bool
-            {
-                if (item == nullptr and candidate.parent->isTag (Id::ul) and candidate.id == listMarker
-                    and not candidate.contains (Id::line)
-                    and *candidate.get<int> (Id::shape) == *line.get<int> (Id::shape)
-                    and candidate.get<juce::String> (Id::value)->isNotEmpty()
-                    and matchOrdinal++ == occurrence)
-                    item = &candidate;
-
-                return item == nullptr;
-            });
-
-        return item != nullptr ? getTable (row, *item->get<juce::String> (Id::value)) : nullptr;
-    }
-
-    const Element* getMapCell (const Element& row, const Element& line, const juce::Identifier& name) const
-    {
-        for (int occurrence { 0 }; auto* map { getMap (row, line, occurrence) }; ++occurrence)
-            if (auto* cell { getTableCell (*map, Id::value, name) })
-                return cell;
-
-        return nullptr;
-    }
+    const Element* getMap (const Element& row, const Element& line, int occurrence) const;
 
     /**
-     * @brief Returns @p line's own next structure line, skipping past
-     *        every source @p line's own arity, read through @p arityOf,
-     *        consumes, when @p line is itself a shape line -- the
-     *        arity-bounded walk Shapes::getLineAfter() and
-     *        Items::getPrivateShapes() each read through.
+     * @brief Returns the @c value cell of the row named @p name, searched
+     *        through @p line's own map tables in authored order.
      *
-     * @tparam ArityOf A callable invoked as @c arityOf(candidate),
-     *                 returning @p candidate's own arity.
-     * @param line    The structure line to advance past.
-     * @param arityOf The callable each visited line's own arity is read
-     *                through.
-     * @returns The next structure line, or @c nullptr when none remains.
+     * @param row  The row whose @c list column holds @p line's maps.
+     * @param line The structure line whose maps are searched, matched by
+     *             its own @c shape ordinal.
+     * @param name The map row's name, matched in the @c value column.
+     * @returns The first matching @c value cell, or @c nullptr when none
+     *          of @p line's maps carries a row named @p name.
      */
-    template <typename ArityOf>
-    const Element* getNextShapeLine (const Element& line, ArityOf&& arityOf) const
-    {
-        auto* cursor { getNextLine (line) };
-
-        if (line.isTag (Id::p))
-            for (int occurrence { 0 }; cursor != nullptr and occurrence < arityOf (line); ++occurrence)
-                cursor = getNextShapeLine (*cursor, arityOf);
-
-        return cursor;
-    }
+    const Element* getMapCell (const Element& row, const Element& line, const juce::Identifier& name) const;
 
     /**
      * @brief Walks forward from @p line, depth-first through children
      *        then siblings, unwinding to each ancestor's next sibling
-     *        until leaving the enclosing table cell, to the next
-     *        paragraph or list item carrying a @c shape ordinal.
+     *        until leaving the enclosing table cell, to the next structure
+     *        line -- a shape paragraph, a @c list bullet, or a wrapper --
+     *        carrying a @c shape ordinal.
      *
      * @param line The structure line to advance from.
      * @returns The next structure line in document order, or @c nullptr
      *          when @p line is the cell's last one.
      */
-    const Element* getNextLine (const Element& line) const
+    const Element* getNextLine (const Element& line) const;
+
+    /**
+     * @brief Stamps every wrapper's chain across the output tables' rows.
+     *
+     * For each wrapper in a row's @c structure cell, every element after
+     * the wrapper in document order, up to the chain end, is stamped
+     * @c chain with the wrapper's @c shape ordinal. An element that
+     * already carries @c chain keeps it, thus the outermost chain wins.
+     * The wrapper itself is its parent's binding. Its own chain does not
+     * stamp it.
+     *
+     * @tparam GetChainEnd Callable taking a wrapper element and returning
+     *                     the @c const @c Element* that ends the wrapper's
+     *                     chain, or @c nullptr when the chain runs to the
+     *                     end of the cell.
+     * @param getChainEnd  The callable that returns each wrapper's chain
+     *                     end. The chain end is not stamped.
+     */
+    template <typename GetChainEnd>
+    void addChains (const GetChainEnd& getChainEnd)
     {
-        static const auto listMarker { getReservedName (Id::list) };
-
-        auto* walk { &line };
-        const Element* candidate { nullptr };
-
-        while (candidate == nullptr
-               or not (candidate->contains (Id::shape)
-                       and (candidate->isTag (Id::p) or candidate->id == listMarker)))
+        const auto getSuccessor = [] (Element& element, const Element& cell) -> Element*
         {
-            candidate = walk->firstChild != nullptr ? walk->firstChild : walk->nextSibling;
+            if (element.firstChild != nullptr) return element.firstChild;
 
-            while (candidate == nullptr and not isBlockType (*walk, map::BlockType::tableCell))
-            {
-                walk = walk->parent;
+            for (const Element* climb { &element }; climb != &cell; climb = climb->parent)
+                if (climb->nextSibling != nullptr) return climb->nextSibling;
 
-                if (isBlockType (*walk, map::BlockType::tableCell))
-                    break;
+            return nullptr;
+        };
 
-                candidate = walk->nextSibling;
-            }
+        for (auto* table : *root)
+            if (isTable (*table) and isOutputTable (*table))
+                for (auto* row : *table)
+                    if (auto* cell { row->getChildByID (Id::structure) })
+                        for (auto* wrapper { cell }; wrapper != nullptr; wrapper = getSuccessor (*wrapper, *cell))
+                            if (isWrapper (*wrapper))
+                            {
+                                static const auto listMarker { getReservedName (Id::list) };
+                                const Element* end { getChainEnd (*wrapper) };
+                                const auto shape { *wrapper->get<int> (Id::shape) };
+                                jam::Array<int> chainedShapes;
+                                chainedShapes.add (shape);
 
-            if (candidate == nullptr)
-                return nullptr;
+                                for (auto* chained { getSuccessor (*wrapper, *cell) };
+                                     chained != nullptr and chained != end;
+                                     chained = getSuccessor (*chained, *cell))
+                                    if (chained->contains (Id::shape))
+                                    {
+                                        const auto isLine { chained->isTag (Id::p) or chained->id == listMarker
+                                                            or isWrapper (*chained) };
+                                        auto isChained { false };
 
-            walk = candidate;
-        }
+                                        if (isLine)
+                                        {
+                                            chainedShapes.add (*chained->template get<int> (Id::shape));
+                                            isChained = not isWrapper (*chained)
+                                                        or chainedShapes.contains (getOwner (*chained));
+                                        }
+                                        else
+                                            isChained = chainedShapes.contains (getOwner (*chained));
 
-        return candidate;
+                                        if (isChained and not chained->contains (Id::chain))
+                                            chained->template add<int> (Id::chain, shape);
+                                    }
+                            }
     }
 
     /**
-     * @brief Returns @p row's @p name-named binding item declared under
-     *        the shape line whose own @c shape ordinal matches @p line's
-     *        -- the document-order position, at or after @p line itself,
-     *        shared by a shape paragraph or list source and the bindings
-     *        authored beneath it. Restricting the search to @p line's own
-     *        position onward disambiguates a shape-valued binding's own
-     *        @c shape ordinal, shared with the shape line above it, from
-     *        that shape line's own same-named bindings authored earlier.
+     * @brief Returns @p row's @p name-named binding item owned by @p line
+     *        -- the first non-@c list item named @p name whose owner, read
+     *        through getOwner(), equals @p line's own @c shape ordinal. A
+     *        wrapper's own bindings carry the wrapper's ordinal, and the
+     *        wrapper item itself carries its parent's, thus neither one
+     *        reaches the other's tokens.
      *
      * @param row    The row whose @p column cell is searched.
      * @param column The column @p line's own binding is read from.
@@ -569,30 +392,7 @@ public:
      *          declares no binding named @p name.
      */
     const Element* getBinding (const Element& row, const juce::Identifier& column, const Element& line,
-                         const juce::Identifier& name) const
-    {
-        static const auto listMarker { getReservedName (Id::list) };
-
-        const Element* item { nullptr };
-        const auto ordinal { *line.get<int> (Id::shape) };
-        auto reachedLine { false };
-
-        getTableCell (row, column)->applyFunctionRecursively (
-            [&item, &reachedLine, &line, ordinal, name] (const Element& candidate) -> bool
-            {
-                if (not reachedLine and &candidate == &line)
-                    reachedLine = true;
-
-                if (reachedLine and item == nullptr and candidate.parent->isTag (Id::ul)
-                    and candidate.id != listMarker and candidate.id == name
-                    and *candidate.get<int> (Id::shape) == ordinal)
-                    item = &candidate;
-
-                return item == nullptr;
-            });
-
-        return item;
-    }
+                         const juce::Identifier& name) const;
 
     /**
      * @brief Answers whether @p table is an output table -- reads @p table's
@@ -603,10 +403,7 @@ public:
      * @param table The table to test.
      * @returns @c true when @p table is an output table.
      */
-    bool isOutputTable (const Element& table) const noexcept
-    {
-        return *table.get<bool> (Id::wiring);
-    }
+    bool isOutputTable (const Element& table) const noexcept;
 
     /**
      * @brief Answers whether @p row's own structure column carries a
@@ -618,22 +415,7 @@ public:
      * @param marker The binding marker id searched for.
      * @returns @c true when @p row's structure column carries @p marker.
      */
-    bool hasRegionBinding (const Element& row, const juce::Identifier& marker) const
-    {
-        auto hasBinding { false };
-
-        if (auto* structureScope { getTableCell (row, Id::structure) })
-            structureScope->applyFunctionRecursively (
-                [&hasBinding, &marker] (const Element& candidate) -> bool
-                {
-                    if (not hasBinding and candidate.parent->isTag (Id::ul) and candidate.id == marker)
-                        hasBinding = true;
-
-                    return not hasBinding;
-                });
-
-        return hasBinding;
-    }
+    bool hasRegionBinding (const Element& row, const juce::Identifier& marker) const;
 
     /**
      * @brief Answers whether @p row declares a @c - [begin]: binding.
@@ -641,12 +423,7 @@ public:
      * @param row The row to test.
      * @returns @c true when @p row carries a @c \[begin\] binding.
      */
-    bool hasRegionBegin (const Element& row) const
-    {
-        static const auto beginMarker { getReservedName (Id::begin) };
-
-        return hasRegionBinding (row, beginMarker);
-    }
+    bool hasRegionBegin (const Element& row) const;
 
     /**
      * @brief Answers whether @p row declares a @c - [end]: binding.
@@ -654,12 +431,7 @@ public:
      * @param row The row to test.
      * @returns @c true when @p row carries an @c \[end\] binding.
      */
-    bool hasRegionEnd (const Element& row) const
-    {
-        static const auto endMarker { getReservedName (Id::end) };
-
-        return hasRegionBinding (row, endMarker);
-    }
+    bool hasRegionEnd (const Element& row) const;
 
     /**
      * @brief Answers whether @p row is a region row -- carrying both its
@@ -672,10 +444,7 @@ public:
      * @param row The row to test.
      * @returns @c true when @p row carries both region bindings.
      */
-    bool isRegionRow (const Element& row) const
-    {
-        return hasRegionBegin (row) and hasRegionEnd (row);
-    }
+    bool isRegionRow (const Element& row) const;
 
     /**
      * @brief Resolves @p relativePath against the manifest's own
@@ -685,15 +454,18 @@ public:
      *                     directory.
      * @returns The resolved file.
      */
-    juce::File getFile (juce::StringRef relativePath) const
-    {
-        return directory.getChildFile (relativePath);
-    }
+    juce::File getFile (juce::StringRef relativePath) const;
 
-    juce::String getFileName (juce::StringRef path) const
-    {
-        return path.isNotEmpty() ? getFile (path).getFileName() : juce::String{};
-    }
+    /**
+     * @brief Returns the file name of @p path, resolved against the
+     *        manifest's own directory.
+     *
+     * @param path The path to resolve, relative to the manifest's
+     *             directory.
+     * @returns The resolved file's name, or an empty string when @p path
+     *          is empty.
+     */
+    juce::String getFileName (juce::StringRef path) const;
 
     /**
      * @brief Resolves @p reference's address -- @c alias\[:table\], or,
@@ -709,24 +481,7 @@ public:
      * @returns The referenced table, or @c nullptr when neither the alias
      *          nor the local table name resolves.
      */
-    const Element* getTable (const Element& row, juce::StringRef reference) const
-    {
-        static const auto colonText { juce::String::charToString (Chars::colon) };
-        static const auto atText { juce::String::charToString (Chars::at) };
-
-        const auto parts { jam::Strings::fromTokens (reference, colonText, {}) };
-        const auto sourceName { parts.size() > 0 ? parts.at (0).trim() : juce::String{} };
-        const auto declaredPath { getValue (row, sourceName) };
-
-        if (declaredPath.isNotEmpty())
-        {
-            const auto tableName { parts.size() > 1 ? parts.at (1).trim() : juce::String{} };
-            return getTable (declaredPath, tableName);
-        }
-
-        return getTable (*row.parent->get<juce::String> (Id::path),
-                         sourceName.trimCharactersAtStart (atText));
-    }
+    const Element* getTable (const Element& row, juce::StringRef reference) const;
 
     /**
      * @brief Answers whether @p value is an @-sigiled address naming a
@@ -741,17 +496,7 @@ public:
      * @returns @c true when @p value is an @-sigiled address with a
      *          column part.
      */
-    bool isColumnAddress (const Element& row, const juce::String& value) const
-    {
-        static const auto colonText { juce::String::charToString (Chars::colon) };
-
-        const auto parts { jam::Strings::fromTokens (value, colonText, {}) };
-        const auto sourceName { parts.size() > 0 ? parts.at (0).trim() : juce::String{} };
-        const auto columnIndex { getValue (row, sourceName).isNotEmpty() ? 2 : 1 };
-
-        return isAddress (value) and parts.size() > columnIndex
-               and not parts.at (columnIndex).containsChar (Chars::equals);
-    }
+    bool isColumnAddress (const Element& row, const juce::String& value) const;
 
     /**
      * @brief Returns @p value's column part -- an isColumnAddress()
@@ -765,16 +510,7 @@ public:
      * @param value The @-sigiled column address to read.
      * @returns @p value's column name.
      */
-    juce::Identifier getColumn (const Element& row, const juce::String& value) const
-    {
-        static const auto colonText { juce::String::charToString (Chars::colon) };
-
-        const auto parts { jam::Strings::fromTokens (value, colonText, {}) };
-        const auto sourceName { parts.size() > 0 ? parts.at (0).trim() : juce::String{} };
-        const auto columnIndex { getValue (row, sourceName).isNotEmpty() ? 2 : 1 };
-
-        return juce::Identifier (jam::Format::toValidID (parts.at (columnIndex).trim()));
-    }
+    juce::Identifier getColumn (const Element& row, const juce::String& value) const;
 
     /**
      * @brief Answers whether @p value is an @-sigiled address naming a
@@ -789,17 +525,7 @@ public:
      * @returns @c true when @p value is an @-sigiled address with a
      *          filter part.
      */
-    bool isFilteredAddress (const Element& row, const juce::String& value) const
-    {
-        static const auto colonText { juce::String::charToString (Chars::colon) };
-
-        const auto parts { jam::Strings::fromTokens (value, colonText, {}) };
-        const auto sourceName { parts.size() > 0 ? parts.at (0).trim() : juce::String{} };
-        const auto filterIndex { getValue (row, sourceName).isNotEmpty() ? 2 : 1 };
-
-        return isAddress (value) and parts.size() > filterIndex
-               and parts.at (filterIndex).containsChar (Chars::equals);
-    }
+    bool isFilteredAddress (const Element& row, const juce::String& value) const;
 
     /**
      * @brief Returns @p value's filter column -- an isFilteredAddress()
@@ -813,19 +539,7 @@ public:
      * @param value The @-sigiled filter address to read.
      * @returns @p value's filter column name.
      */
-    juce::Identifier getFilterColumn (const Element& row, const juce::String& value) const
-    {
-        static const auto colonText { juce::String::charToString (Chars::colon) };
-        static const auto equalsText { juce::String::charToString (Chars::equals) };
-
-        const auto parts { jam::Strings::fromTokens (value, colonText, {}) };
-        const auto sourceName { parts.size() > 0 ? parts.at (0).trim() : juce::String{} };
-        const auto filterIndex { getValue (row, sourceName).isNotEmpty() ? 2 : 1 };
-        const auto filterPart { parts.at (filterIndex) };
-
-        return juce::Identifier (jam::Format::toValidID (
-            filterPart.upToFirstOccurrenceOf (equalsText, false, false).trim()));
-    }
+    juce::Identifier getFilterColumn (const Element& row, const juce::String& value) const;
 
     /**
      * @brief Returns @p value's filter value -- an isFilteredAddress()
@@ -839,18 +553,28 @@ public:
      * @returns @p value's filter value, empty when the filter matches a
      *          blank cell.
      */
-    juce::String getFilterValue (const Element& row, const juce::String& value) const
-    {
-        static const auto colonText { juce::String::charToString (Chars::colon) };
-        static const auto equalsText { juce::String::charToString (Chars::equals) };
+    juce::String getFilterValue (const Element& row, const juce::String& value) const;
 
-        const auto parts { jam::Strings::fromTokens (value, colonText, {}) };
-        const auto sourceName { parts.size() > 0 ? parts.at (0).trim() : juce::String{} };
-        const auto filterIndex { getValue (row, sourceName).isNotEmpty() ? 2 : 1 };
-        const auto filterPart { parts.at (filterIndex) };
+    /**
+     * @brief Answers whether @p candidate is a wrapper -- a structure
+     *        list item, not a @c list bullet, whose value is a shape
+     *        address.
+     *
+     * @param candidate The element tested.
+     * @returns @c true when @p candidate is a wrapper.
+     */
+    static bool isWrapper (const Element& candidate);
 
-        return filterPart.fromFirstOccurrenceOf (equalsText, false, false).trim();
-    }
+    /**
+     * @brief Returns the @c shape ordinal of the line that owns @p item --
+     *        a wrapper's parent, stamped as @c owner, or, for any other
+     *        binding, the nearest shape paragraph or wrapper above it,
+     *        stamped as @c shape.
+     *
+     * @param item The binding item whose owner is read.
+     * @returns The owning line's @c shape ordinal.
+     */
+    static int getOwner (const Element& item);
 
 private:
     /**
@@ -897,18 +621,7 @@ private:
      * @returns The addressed list item, or @c nullptr when none exists
      *          at (@p indent, @p ordinal).
      */
-    const Element* getPairedListItem (const Element& row, const juce::Identifier& column, int indent, int ordinal) const
-    {
-        static const auto listMarker { getReservedName (Id::list) };
-
-        return getPairedItem (row, column,
-            [indent, ordinal] (const Element& candidate)
-            {
-                return candidate.id == listMarker and candidate.contains (Id::line)
-                       and *candidate.get<int> (Id::level) == indent
-                       and *candidate.get<int> (Id::line) == ordinal;
-            });
-    }
+    const Element* getPairedListItem (const Element& row, const juce::Identifier& column, int indent, int ordinal) const;
 
     /**
      * @brief Answers whether @p element's own @c type equals @p blockType.
@@ -918,10 +631,7 @@ private:
      * @returns @c true when @p element carries a @c type equal to
      *          @p blockType.
      */
-    static bool isBlockType (const Element& element, int blockType)
-    {
-        return element.contains (Id::type) and *element.get<int> (Id::type) == blockType;
-    }
+    static bool isBlockType (const Element& element, int blockType);
 
     /**
      * @brief Returns @p document's own index rows' distinct data-file
@@ -934,22 +644,7 @@ private:
      *          other than @p manifestOrigin, in row order.
      */
     static jam::Array<juce::String>
-    getTableOrigins (const Model& document, const juce::String& manifestOrigin)
-    {
-        jam::Array<juce::String> tableOrigins;
-
-        for (auto* indexRow : document.getTableRows (Id::index))
-        {
-            const auto pathCell { document.getTableValue (*indexRow, Id::symbol) };
-
-            if (juce::File::createFileWithoutCheckingPath (pathCell).hasFileExtension (
-                    Extensions::md)
-                and pathCell.compare (manifestOrigin) != 0)
-                tableOrigins.add (pathCell);
-        }
-
-        return tableOrigins;
-    }
+    getTableOrigins (const Model& document, const juce::String& manifestOrigin);
 
     /**
      * @brief Parses @p text as @p document's own manifest, sourced from
@@ -963,33 +658,7 @@ private:
      * @param directory @p origin's own parent directory.
      */
     static void parse (Model& document, const juce::String& text, const juce::String& origin,
-        const juce::File& directory)
-    {
-        document.directory = directory;
-        document.manifestOrigin = origin;
-
-        document.appendChildren (jam::MarkdownDocument::parse (text, origin));
-
-        parse (document, directory, getTableOrigins (document, origin));
-        addDescriptions (document);
-
-        for (auto* table : *document.root)
-            if (jam::MarkdownDocument::isTable (*table))
-                table->add<bool> (Id::wiring,
-                    not table->isTag (Id::index) and table->contains (Id::path)
-                        and table->get<juce::String> (Id::path)->compare (document.manifestOrigin) == 0
-                        and document.getTableCell (*table, Id::structure, Id::headerRow) != nullptr);
-
-        for (auto* table : *document.root)
-            if (jam::MarkdownDocument::isTable (*table))
-            {
-                const auto* headerRow { getTableHeaderRow (*table) };
-
-                for (auto* row : *table)
-                    if (row != headerRow and not isTableBorder (*row))
-                        addRow (document, *row);
-            }
-    }
+        const juce::File& directory);
 
     /**
      * @brief Returns @p row's own per-depth map-bullet count and blank-bullet
@@ -1007,30 +676,7 @@ private:
      *          depth's own blank-valued bullet count.
      */
     static std::pair<jam::Array<int>, jam::Array<int>> getExcess (const Element* listCell,
-        const Element* structureCell, const Model& document, const Element& row)
-    {
-        jam::Array<int> counts;
-        jam::Array<int> blanks;
-        jam::Array<int> structureCounts;
-
-        if (listCell != nullptr)
-            addListCount (*listCell, 0, counts, blanks, document, row);
-
-        if (structureCell != nullptr)
-            addListCount (*structureCell, 0, structureCounts, document, row);
-
-        counts.resize (juce::jmax (counts.size(), structureCounts.size()));
-        structureCounts.resize (counts.size());
-        blanks.resize (counts.size());
-
-        jam::Array<int> excess;
-        excess.resize (counts.size());
-
-        for (int level { 0 }; level < counts.size(); ++level)
-            excess.set (level, juce::jmax (0, counts.at (level) - structureCounts.at (level)));
-
-        return { std::move (excess), std::move (blanks) };
-    }
+        const Element* structureCell, const Model& document, const Element& row);
 
     /**
      * @brief Stamps @p row's cells with their resolved values, then walks
@@ -1042,41 +688,7 @@ private:
      * @param document The model @p row belongs to.
      * @param row      The row stamped.
      */
-    static void addRow (Model& document, Element& row)
-    {
-        if (const auto* headerRow { document.getTableHeaderRow (*row.parent) })
-            document.addValues (*headerRow, row);
-
-        auto* listCell { row.getChildByID (Id::list) };
-        auto* structureCell { row.getChildByID (Id::structure) };
-        auto* separatorCell { row.getChildByID (Id::separator) };
-
-        if (listCell != nullptr)
-            addBindings (*listCell, document, row);
-
-        if (structureCell != nullptr)
-            addBindings (*structureCell, document, row);
-
-        if (separatorCell != nullptr)
-            addBindings (*separatorCell, document, row);
-
-        auto [excess, blanks] { getExcess (listCell, structureCell, document, row) };
-
-        jam::Array<int> shapeOrdinals;
-        jam::Array<int> listShapeOrdinals;
-        jam::Array<int> separatorShapeOrdinals;
-        jam::Array<int> structureExcess;
-        jam::Array<int> rowJoinExcess { 1 };
-
-        if (structureCell != nullptr)
-            addColumn (*structureCell, structureExcess, shapeOrdinals, document, row);
-        if (listCell != nullptr)
-            addColumn (*listCell, excess, listShapeOrdinals, document, row);
-        if (separatorCell != nullptr)
-            addColumn (*separatorCell, rowJoinExcess, separatorShapeOrdinals, document, row);
-
-        addMaps (document, row, blanks, shapeOrdinals);
-    }
+    static void addRow (Model& document, Element& row);
 
     /**
      * @brief Stamps @p cell's own structure lines through addLines(),
@@ -1093,15 +705,7 @@ private:
      * @param row           The row @p cell belongs to.
      */
     static void addColumn (Element& cell, jam::Array<int>& excess,
-        jam::Array<int>& shapeOrdinals, const Model& document, const Element& row)
-    {
-        jam::Array<int> ordinals;
-        jam::Array<int> descriptionOrdinals, mapOrdinal, paragraphOwner;
-        int lineIndex { 0 };
-
-        addLines (cell, 0, ordinals, shapeOrdinals, descriptionOrdinals, mapOrdinal, excess, lineIndex,
-            document, row, paragraphOwner);
-    }
+        jam::Array<int>& shapeOrdinals, const Model& document, const Element& row);
 
     /**
      * @brief Stamps every table with its own header-adjacent @c description
@@ -1111,41 +715,7 @@ private:
      *
      * @param document The model whose top-level blocks are walked.
      */
-    static void addDescriptions (Model& document)
-    {
-        Element* precedingBlock { nullptr };
-        bool precedingBoundToTable { false };
-
-        for (auto* child : document)
-        {
-            if (isBlockType (*child, map::BlockType::table))
-            {
-                juce::String description;
-
-                if (precedingBoundToTable)
-                    description = precedingBlock->getAllSubText();
-
-                child->add<juce::String> (Id::description, description);
-            }
-
-            const auto isNamedFence { isBlockType (*child, map::BlockType::codeBlock)
-                                      and child->contains (Id::info)
-                                      and child->get<juce::String> (Id::info)->isNotEmpty() };
-
-            const auto boundToNextTable { child->nextSibling != nullptr
-                                          and isBlockType (*child->nextSibling, map::BlockType::table)
-                                          and (isBlockType (*child, map::BlockType::paragraph)
-                                               or isBlockType (*child, map::BlockType::codeBlock))
-                                          and child->get<juce::String> (Id::path)->compare (
-                                                  *child->nextSibling->get<juce::String> (Id::path)) == 0 };
-
-            if (isNamedFence and not boundToNextTable)
-                child->add<juce::String> (Id::description, child->getAllSubText());
-
-            precedingBlock = child;
-            precedingBoundToTable = boundToNextTable;
-        }
-    }
+    static void addDescriptions (Model& document);
 
     /**
      * @brief Parses every one of @p tableOrigins' own data files, in
@@ -1159,24 +729,7 @@ private:
      * @param tableOrigins The data files' own relative paths to parse.
      */
     static void parse (Model& document, const juce::File& parent,
-                       const jam::Array<juce::String>& tableOrigins)
-    {
-        jam::Array<jam::MarkdownDocument> parsedTables;
-        parsedTables.resize (tableOrigins.size());
-
-        Jobs::run (tableOrigins.size(),
-            [&parent, &tableOrigins, &parsedTables] (int index)
-            {
-                const auto& origin { tableOrigins.at (index) };
-                const auto file { parent.getChildFile (origin) };
-
-                parsedTables.at (index) = jam::MarkdownDocument::parse (
-                    file.loadFileAsString(), origin);
-            });
-
-        for (auto& table : parsedTables)
-            document.appendChildren (std::move (table));
-    }
+                       const jam::Array<juce::String>& tableOrigins);
 
     /**
      * @brief Stamps every binding item under @p scope with its resolved
@@ -1188,11 +741,7 @@ private:
      * @param document The model @p row belongs to.
      * @param row      The row @p scope belongs to.
      */
-    static void addBindings (Element& scope, const Model& document, const Element& row)
-    {
-        juce::String precedingBinding;
-        addBindings (scope, precedingBinding, document, row);
-    }
+    static void addBindings (Element& scope, const Model& document, const Element& row);
 
     /**
      * @brief Stamps every binding item under @p scope with its resolved
@@ -1208,33 +757,7 @@ private:
      * @param row               The row @p scope belongs to.
      */
     static void
-    addBindings (Element& scope, juce::String& precedingBinding, const Model& document, const Element& row)
-    {
-        static const auto listMarker { getReservedName (Id::list) };
-
-        for (auto* block : scope)
-        {
-            if (block->isTag (Id::p) and document.isShape (row, block->getAllSubText()))
-                precedingBinding.clear();
-
-            if (block->isTag (Id::ul))
-                for (auto* item : *block)
-                {
-                    const auto valueView { document.getValueView (*item) };
-                    auto value { jam::Strings::fromView (valueView) };
-
-                    if (value.isEmpty() and item->id != listMarker)
-                        value = jam::Format::toCamelCase (precedingBinding);
-
-                    item->add<juce::String> (Id::value, value);
-
-                    precedingBinding = document.isShape (row, value) ? juce::String{} : value;
-                }
-
-            if (block->isTag (Id::blockquote))
-                addBindings (*block, precedingBinding, document, row);
-        }
-    }
+    addBindings (Element& scope, juce::String& precedingBinding, const Model& document, const Element& row);
 
     /**
      * @brief Counts @p scope's own @c list bullets per blockquote depth,
@@ -1249,11 +772,7 @@ private:
      * @param row      The row @p scope belongs to.
      */
     static void
-    addListCount (const Element& scope, int indent, jam::Array<int>& counts, const Model& document, const Element& row)
-    {
-        jam::Array<int> blanks;
-        addListCount (scope, indent, counts, blanks, document, row);
-    }
+    addListCount (const Element& scope, int indent, jam::Array<int>& counts, const Model& document, const Element& row);
 
     /**
      * @brief Counts @p scope's own @c list bullets per blockquote depth
@@ -1270,44 +789,22 @@ private:
      * @param row      The row @p scope belongs to.
      */
     static void addListCount (const Element& scope, int indent, jam::Array<int>& counts, jam::Array<int>& blanks,
-        const Model& document, const Element& row)
-    {
-        static const auto listMarker { getReservedName (Id::list) };
-
-        if (indent == counts.size())
-            counts.resize (indent + 1);
-
-        if (indent == blanks.size())
-            blanks.resize (indent + 1);
-
-        for (auto* block : scope)
-        {
-            if (block->isTag (Id::ul))
-                for (auto* item : *block)
-                    if (item->id == listMarker
-                        and not document.isColumnAddress (row, *item->get<juce::String> (Id::value)))
-                    {
-                        ++counts.at (indent);
-
-                        if (item->get<juce::String> (Id::value)->isEmpty())
-                            ++blanks.at (indent);
-                    }
-
-            if (block->isTag (Id::blockquote))
-                addListCount (*block, indent + 1, counts, blanks, document, row);
-        }
-    }
+        const Model& document, const Element& row);
 
     /**
      * @brief Stamps one list-column @p item with its structure-line
      *        addressing -- an expansion @c list bullet with level,
      *        ordinal, and a fresh @c shape ordinal; a description bullet
      *        with level, ordinal, and its enclosing shape's ordinal; a
-     *        shape-valued binding with level and its enclosing paragraph's
-     *        own ordinal, shared with the shape line above it; any other
-     *        bullet with its enclosing paragraph's own ordinal -- and,
+     *        wrapper -- a shape-valued binding -- with level, @c owner
+     *        (its parent paragraph's ordinal), and its own new @c shape
+     *        ordinal; any other binding with its binding owner's ordinal
+     *        as @c shape -- and,
      *        when @p item's own value is a shape address, with its
      *        resolved template path and info.
+     *
+     * A wrapper sets its depth's binding owner to its own ordinal, thus the
+     * bindings after it belong to the wrapper.
      *
      * A @c list bullet counts as an expansion once its own position
      * among @p indent's map-eligible bullets reaches @p excess's map
@@ -1330,52 +827,17 @@ private:
      * @param document        The model @p row belongs to.
      * @param row             The row @p item belongs to.
      * @param paragraphOwner  Each depth's own last shape-paragraph
-     *                        ordinal, the owner a binding or shape-valued
-     *                        binding at that depth is stamped with.
+     *                        ordinal, the @c owner a wrapper at that depth
+     *                        is stamped with.
+     * @param bindingOwner    Each depth's own nearest shape paragraph or
+     *                        wrapper ordinal, the @c shape a plain binding
+     *                        at that depth is stamped with. A wrapper sets
+     *                        it to its own ordinal.
      */
     static void addItem (Element& item, int indent, jam::Array<int>& ordinals,
         jam::Array<int>& descriptionOrdinals, jam::Array<int>& mapOrdinal, const jam::Array<int>& excess,
-        int& lineIndex, const Model& document, const Element& row, const jam::Array<int>& paragraphOwner)
-    {
-        static const auto listMarker { getReservedName (Id::list) };
-        static const auto descriptionMarker { getReservedName (Id::description) };
-
-        const auto blockText { *item.get<juce::String> (Id::value) };
-        const auto isShapeValue { document.isShape (row, blockText) };
-
-        if (item.id == listMarker)
-        {
-            const auto isColumn { document.isColumnAddress (row, blockText) };
-            if (isColumn or mapOrdinal.at (indent) >= excess.at (indent))
-            {
-                item.add<int> (Id::level, indent);
-                item.add<int> (Id::line, ordinals.at (indent)++);
-                item.add<int> (Id::shape, lineIndex);
-                ++lineIndex;
-            }
-            if (not isColumn) ++mapOrdinal.at (indent);
-        }
-        else if (item.id == descriptionMarker)
-        {
-            item.add<int> (Id::level, indent);
-            item.add<int> (Id::line, descriptionOrdinals.at (indent)++);
-            item.add<int> (Id::shape, lineIndex - 1);
-        }
-        else if (isShapeValue)
-        {
-            item.add<int> (Id::level, indent);
-            item.add<int> (Id::shape, paragraphOwner.at (indent));
-        }
-        else
-            item.add<int> (Id::shape, paragraphOwner.at (indent));
-
-        if (isShapeValue)
-        {
-            item.add<juce::String> (Id::templatePath,
-                document.getValue (row, jam::Format::getPreColon (blockText).trim()));
-            item.add<juce::String> (Id::info, jam::Format::getPostColon (blockText).trim());
-        }
-    }
+        int& lineIndex, const Model& document, const Element& row, const jam::Array<int>& paragraphOwner,
+        jam::Array<int>& bindingOwner);
 
     /**
      * @brief Stamps @p block with its structure-line addressing -- level,
@@ -1390,26 +852,16 @@ private:
      *                       by one when @p block is stamped.
      * @param paragraphOwner Each depth's own last shape-paragraph ordinal,
      *                       set to @p block's own ordinal when stamped.
+     *                       A wrapper is stamped @c owner with it.
+     * @param bindingOwner   Each depth's own nearest shape paragraph or
+     *                       wrapper ordinal, set to @p block's own ordinal
+     *                       when stamped.
      * @param document       The model @p row belongs to.
      * @param row            The row @p block belongs to.
      */
     static void addParagraph (Element& block, int indent, jam::Array<int>& shapeOrdinals, int& lineIndex,
-        jam::Array<int>& paragraphOwner, const Model& document, const Element& row)
-    {
-        const auto blockText { block.getAllSubText() };
-
-        if (document.isShape (row, blockText))
-        {
-            block.add<int> (Id::level, indent);
-            block.add<int> (Id::line, shapeOrdinals.at (indent)++);
-            block.add<juce::String> (Id::templatePath,
-                document.getValue (row, jam::Format::getPreColon (blockText).trim()));
-            block.add<juce::String> (Id::info, jam::Format::getPostColon (blockText).trim());
-            block.add<int> (Id::shape, lineIndex);
-            paragraphOwner.set (indent, lineIndex);
-            ++lineIndex;
-        }
-    }
+        jam::Array<int>& paragraphOwner, jam::Array<int>& bindingOwner, const Model& document,
+        const Element& row);
 
     /**
      * @brief Walks @p cell's own paragraphs, list items, and nested
@@ -1437,34 +889,18 @@ private:
      * @param document        The model @p row belongs to.
      * @param row             The row @p cell belongs to.
      * @param paragraphOwner  Each depth's own last shape-paragraph
-     *                        ordinal, advanced by every stamped paragraph
-     *                        and passed through to addItem().
+     *                        ordinal, set by every stamped paragraph and
+     *                        passed through to addItem(). A wrapper is
+     *                        stamped @c owner with it.
+     * @param bindingOwner    Each depth's own nearest shape paragraph or
+     *                        wrapper ordinal, the owner a plain binding is
+     *                        stamped with. A paragraph or wrapper sets it
+     *                        to its own ordinal.
      */
     static void addLines (Element& cell, int indent, jam::Array<int>& ordinals,
         jam::Array<int>& shapeOrdinals, jam::Array<int>& descriptionOrdinals, jam::Array<int>& mapOrdinal,
         jam::Array<int>& excess, int& lineIndex, const Model& document, const Element& row,
-        jam::Array<int>& paragraphOwner)
-    {
-        if (indent == ordinals.size()) ordinals.resize (indent + 1);
-        if (indent == shapeOrdinals.size()) shapeOrdinals.resize (indent + 1);
-        if (indent == descriptionOrdinals.size()) descriptionOrdinals.resize (indent + 1);
-        if (indent == mapOrdinal.size()) mapOrdinal.resize (indent + 1);
-        if (indent == excess.size()) excess.resize (indent + 1);
-        if (indent == paragraphOwner.size()) paragraphOwner.resize (indent + 1);
-
-        for (auto* block : cell)
-        {
-            if (block->isTag (Id::p))
-                addParagraph (*block, indent, shapeOrdinals, lineIndex, paragraphOwner, document, row);
-            if (block->isTag (Id::ul))
-                for (auto* item : *block)
-                    addItem (*item, indent, ordinals, descriptionOrdinals, mapOrdinal, excess, lineIndex,
-                        document, row, paragraphOwner);
-            if (block->isTag (Id::blockquote))
-                addLines (*block, indent + 1, ordinals, shapeOrdinals, descriptionOrdinals, mapOrdinal,
-                    excess, lineIndex, document, row, paragraphOwner);
-        }
-    }
+        jam::Array<int>& paragraphOwner, jam::Array<int>& bindingOwner);
 
     /**
      * @brief Stamps every @c >-less @c list bullet under @p scope with
@@ -1487,39 +923,7 @@ private:
      *                       blank-valued bullet.
      */
     static void addMaps (const Model& document, const Element& row, Element& scope, int indent,
-        const jam::Array<int>& blanks, const jam::Array<int>& paragraphCount, jam::Array<int>& group)
-    {
-        static const auto listMarker { getReservedName (Id::list) };
-
-        if (indent == group.size())
-            group.resize (indent + 1);
-
-        for (auto* block : scope)
-        {
-            if (block->isTag (Id::ul))
-                for (auto* item : *block)
-                    if (item->id == listMarker and not item->contains (Id::line))
-                    {
-                        const auto groupCount { (indent < blanks.size() ? blanks.at (indent) : 0) + 1 };
-                        const auto totalParagraphs {
-                            indent < paragraphCount.size() ? paragraphCount.at (indent) : 0
-                        };
-                        const auto owner { totalParagraphs >= groupCount
-                                               ? totalParagraphs - groupCount + group.at (indent)
-                                               : -1 };
-
-                        if (owner >= 0)
-                            if (auto* paragraph { document.getParagraph (row, indent, owner) })
-                                item->add<int> (Id::shape, *paragraph->get<int> (Id::shape));
-
-                        if (item->get<juce::String> (Id::value)->isEmpty())
-                            ++group.at (indent);
-                    }
-
-            if (block->isTag (Id::blockquote))
-                addMaps (document, row, *block, indent + 1, blanks, paragraphCount, group);
-        }
-    }
+        const jam::Array<int>& blanks, const jam::Array<int>& paragraphCount, jam::Array<int>& group);
 
     /**
      * @brief Stamps every @c >-less @c list-column map bullet under
@@ -1533,14 +937,29 @@ private:
      * @param paragraphCount Each depth's own shape-paragraph count.
      */
     static void addMaps (const Model& document, Element& row, const jam::Array<int>& blanks,
-        const jam::Array<int>& paragraphCount)
-    {
-        if (auto* listCell { row.getChildByID (Id::list) })
-        {
-            jam::Array<int> group;
-            addMaps (document, row, *listCell, 0, blanks, paragraphCount, group);
-        }
-    }
+        const jam::Array<int>& paragraphCount);
+
+    /**
+     * @brief Stamps each description bullet in @p scope with the @c owner
+     *        ordinal of its paired shape line, then descends into each
+     *        blockquote. The description bullet at ordinal k pairs with the
+     *        k-th shape line at the same depth in @p structureCell. A shape
+     *        line is a shape paragraph or a wrapper.
+     *
+     * @param structureCell The structure cell that holds the shape lines.
+     * @param scope         The list column scope whose bullets are stamped.
+     * @param indent        The blockquote depth of @p scope.
+     */
+    static void addDescriptionReferences (const Element& structureCell, Element& scope, int indent);
+
+    /**
+     * @brief Stamps every description bullet in @p row's list column with
+     *        the @c owner ordinal of its paired shape line, through the
+     *        recursive overload.
+     *
+     * @param row The row whose description bullets are stamped.
+     */
+    static void addDescriptionReferences (Element& row);
 
     /**
      * @brief Returns @p cell's backtick code child, searched depth-first.
@@ -1549,22 +968,7 @@ private:
      * @returns @p cell's code child, or @c nullptr when it carries none --
      *          a cell's literality is this pointer's mere existence.
      */
-    static const Element* getLiteral (const Element& cell)
-    {
-        const Element* codeChild { nullptr };
-
-        cell.applyFunctionRecursively (
-            [&codeChild] (const Element& node) -> bool
-            {
-                if (codeChild == nullptr
-                    and (node.isTag (Id::code) or isBlockType (node, map::BlockType::codeBlock)))
-                    codeChild = &node;
-
-                return codeChild == nullptr;
-            });
-
-        return codeChild;
-    }
+    static const Element* getLiteral (const Element& cell);
 
     /**
      * @brief Answers whether @p cell owns a fenced block among its own
@@ -1576,14 +980,7 @@ private:
      * @param cell The cell tested for a fenced direct child.
      * @returns @c true when @p cell owns a fenced direct child.
      */
-    bool isFencedCell (const Element& cell) const
-    {
-        for (auto* child : cell)
-            if (isFencedBlock (*child))
-                return true;
-
-        return false;
-    }
+    bool isFencedCell (const Element& cell) const;
 
     /**
      * @brief Returns @p cell's own authored text -- its literal child,
@@ -1603,23 +1000,7 @@ private:
      * @returns @p cell's own authored text, resolved in preference order.
      */
     juce::String getAuthoredText (const Element& cell, const Element* literal, bool isDescriptionColumn,
-        bool isDescriptionProse, const juce::String& transform) const
-    {
-        if (literal != nullptr and not isDescriptionProse)
-        {
-            juce::String text { literal->getAllSubText() };
-
-            if (Transforms::contains (transform))
-                text = Transforms::getTransformed (transform, text, {});
-
-            return isDescriptionColumn ? text : jam::Format::toLiteral (text);
-        }
-
-        if (isDescriptionProse)
-            return getRawText (cell, jam::Document::getSource());
-
-        return cell.getAllSubText();
-    }
+        bool isDescriptionProse, const juce::String& transform) const;
 
     /**
      * @brief Returns @p value with every newline removed, when
@@ -1650,13 +1031,7 @@ private:
      * @returns @p value with every newline removed when reflowed and
      *          unfenced, or @p value unchanged otherwise.
      */
-    juce::String getJoinedValue (const Element& headerCell, const Element& cell, const juce::String& value) const
-    {
-        if (reflowWidths.contains (headerCell.id) and not isFencedCell (cell))
-            return value.removeCharacters (juce::String::charToString (Chars::newline));
-
-        return value;
-    }
+    juce::String getJoinedValue (const Element& headerCell, const Element& cell, const juce::String& value) const;
 
     /**
      * @brief Stamps @p cell with its resolved value -- its own authored
@@ -1684,32 +1059,7 @@ private:
      * @param row        The row @p cell belongs to.
      * @param cell       The cell stamped with its resolved value.
      */
-    void addValue (const Element& headerCell, const Element& row, Element& cell)
-    {
-        juce::String transform;
-
-        if (auto* formatCell { cell.nextSibling })
-            if (formatCell->id == Id::format)
-                transform = formatCell->getAllSubText();
-
-        const auto* literal { getLiteral (cell) };
-        const auto isDescriptionColumn { headerCell.id == Id::description or headerCell.id == Id::brief };
-        const auto isDescriptionProse { isDescriptionColumn
-                                    and (literal == nullptr
-                                         or cell.getAllSubText().compare (
-                                                literal->getAllSubText()) != 0) };
-
-        auto value { getJoinedValue (headerCell, cell,
-            getAuthoredText (cell, literal, isDescriptionColumn, isDescriptionProse, transform)) };
-
-        if (not isDescriptionColumn and headerCell.id != Id::alias and isAddress (value))
-            value = getValue (row, value);
-
-        if (literal == nullptr and Transforms::contains (transform))
-            value = Transforms::getTransformed (transform, value, {});
-
-        cell.add<juce::String> (Id::value, value);
-    }
+    void addValue (const Element& headerCell, const Element& row, Element& cell);
 
     /**
      * @brief Stamps every one of @p row's cells with its resolved value,
@@ -1719,11 +1069,7 @@ private:
      * @param headerRow @p row's table's header row.
      * @param row       The row whose cells are stamped.
      */
-    void addValues (const Element& headerRow, Element& row)
-    {
-        for (auto* cell : row)
-            addValue (*headerRow.getChildByID (cell->id), row, *cell);
-    }
+    void addValues (const Element& headerRow, Element& row);
 
     /**
      * @brief Resolves @p declaredPath's own unnamed table -- its one
@@ -1735,28 +1081,7 @@ private:
      *          declares no table, or more than one and none matches its
      *          own file stem.
      */
-    const Element* getUnnamedTable (const juce::String& declaredPath) const
-    {
-        jam::Array<const Element*> fileTables;
-
-        for (auto* candidate : *this)
-            if (isBlockType (*candidate, map::BlockType::table) and not candidate->isTag (Id::index))
-                if (candidate->contains (Id::path)
-                    and candidate->get<juce::String> (Id::path)->compare (declaredPath) == 0)
-                    fileTables.add (candidate);
-
-        if (fileTables.size() == 1)
-            return fileTables.at (0);
-
-        const auto fileStem { juce::File::createFileWithoutCheckingPath (declaredPath)
-                                  .getFileNameWithoutExtension() };
-
-        for (auto* candidate : fileTables)
-            if (candidate->id == juce::Identifier (jam::Format::toValidID (fileStem)))
-                return candidate;
-
-        return nullptr;
-    }
+    const Element* getUnnamedTable (const juce::String& declaredPath) const;
 
     /**
      * @brief Resolves @p declaredPath's own table -- @p tableName's own
@@ -1770,23 +1095,7 @@ private:
      *                     stem-matching table.
      * @returns The resolved table, or @c nullptr when none resolves.
      */
-    const Element* getTable (const juce::String& declaredPath, const juce::String& tableName) const
-    {
-        if (tableName.isNotEmpty())
-        {
-            const juce::Identifier tableId { jam::Format::toValidID (tableName) };
-
-            for (auto* candidate : *this)
-                if (candidate->id == tableId)
-                    if (candidate->contains (Id::path)
-                        and candidate->get<juce::String> (Id::path)->compare (declaredPath) == 0)
-                        return candidate;
-
-            return nullptr;
-        }
-
-        return getUnnamedTable (declaredPath);
-    }
+    const Element* getTable (const juce::String& declaredPath, const juce::String& tableName) const;
 
     /**
      * The manifest file's own parent directory, stamped at parse() -- the

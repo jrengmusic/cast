@@ -733,8 +733,9 @@ and the source lines after it are its own to consume.
 
 A shape's arity is its count of `:::[list]:::` occurrences (§7). A shape consumes the
 next _arity_ source lines, in order. Each consumed source consumes its own arity
-first. Thus the template declares the nesting, and the author never authors it. To
-supply **more** sources than the row's shapes demand is fatal (§10.1). To supply
+first. Thus the template declares the nesting, and the author never authors it. The
+walk starts at the row's own shape. A source line that this walk never reaches
+renders nowhere, and it is fatal (§10.1). To supply
 fewer is legal: the authored sources fill a shape's **trailing** slots, and the
 leading unfilled slots render empty and elide (§6.5). An under-supplied shape is the
 authored way to use part of a template.
@@ -742,12 +743,12 @@ authored way to use part of a template.
 Column addresses under an item source (§6.5) feed that item shape's inline slots. An item
 shape with one `:::[list]:::` receives every column value, joined by its separator line.
 An item shape with two or more slots gives slot _k_ the _k_-th column value. Fewer values
-fill the trailing slots, and the leading slots render empty. More values than slots is the
-over-supply fatal above.
+fill the trailing slots, and the leading slots render empty. More values than slots is
+fatal (§10.1).
 
-A wrapper (§6.1) counts like a shape line, not like a source. It adds its own arity
-to the row's demand and supplies nothing — it fills a named token, never a
-`:::[list]:::` slot.
+A wrapper (§6.1) counts like a shape line, not like a source. The source lines that
+it consumes are its own: the walk of the shape above it skips them, wherever the
+wrapper sits. It fills a named token, never a `:::[list]:::` slot.
 
 `> ` count is indentation, and nothing else: one tab (four spaces) per `>`. This is
 the **absolute** column — measured from column 0 of the output file — at which that
@@ -766,7 +767,7 @@ and takes its value from, in order:
 
 1. the binding of that name (§6.1) — for an item shape, the source row's own binding
 2. the shape's **maps** — the row of that name in each map table, first declared
-  first (below)
+  first (below). A wrapper reads the maps of the paragraph that owns it
 3. the column of that name — on the manifest row, or, for an item shape, on the
   source row
 4. the table documentation (§5.4), for the name `[description]` at shape level
@@ -855,8 +856,8 @@ table that the shape's own sources address, in authored order. When no source
 addresses a table, it falls back to the documentation of the row's own table.
 
 To match the template, the tables and the expression is the author's responsibility.
-The engine reads the expression and generates. Its one check is the count: a row
-that supplies more sources than its shapes demand is fatal (§6.4, §10.1).
+The engine reads the expression and generates. Its one check is the walk: a source
+line that no shape consumes is fatal (§6.4, §10.1).
 
 ### 6.6 Separator
 
@@ -1402,7 +1403,8 @@ These, and nothing else:
 | index `symbol` cell empty                                                                                         | §4.1       |
 | output row declares no structure                                                                                  | §6.3       |
 | same-file output rows not contiguous                                                                              | §6.7       |
-| a row supplies more sources than its shapes demand                                                                | §6.4       |
+| a source line that no shape consumes                                                                              | §6.4       |
+| an item shape fed more column addresses than its `:::[list]:::` slots                                             | §6.4       |
 | a structure or separator `- [list]:` line without its list-column line of the same ordinal, the row join excepted | §6.5, §6.6 |
 | duplicate binding name among one shape's bindings                                                                 | §6.1       |
 | a description reference naming neither a table nor a fence                                                        | §5.4       |
@@ -1492,11 +1494,7 @@ The engine implements superseded rules. Each is debt against this document:
 - each line's paired source walked at every read in place of stamped once at parse
   (§11.1) — template id, indentation and line are stamped
 - per-call containers materialised where the document already holds the answer
-  (§11.1): selector row collection, wrapper private-scope collection, item
-  replacement and width maps, merge-group key arrays
-- a wrapper's binding scope (§6.1) recovered positionally at read in place of held
-  as one stamped ownership truth — a wrapper item is owned by its parent and owns
-  its own chain, and the two roles currently share one stamp with a position
-  tiebreak
+  (§11.1): selector row collection, item replacement and width maps, merge-group key
+  arrays
 - the template files' own token scan duplicated across the template pool and the
   marker primitives — layering keeps them apart
