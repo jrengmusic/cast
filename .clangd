@@ -2,7 +2,8 @@ CompileFlags:
   CompilationDatabase: /Users/jreng/Documents/Poems/dev/cast
   Remove: [--target=*]
   Add:
-    - -DCAST_COMMIT=\"702a8e7\"
+    - -DCAST_COMMIT=\"0db8789\"
+    - -DDEBUG=1
     - -DDONT_SET_USING_JUCE_NAMESPACE=1
     - -DHAVE_FREETYPE
     - -DHAVE_UNISTD_H
@@ -40,10 +41,9 @@ CompileFlags:
     - -DJUCE_TARGET_HAS_BINARY_DATA=1
     - -DJUCE_USE_CURL=0
     - -DJUCE_WEB_BROWSER=0
-    - -DNDEBUG=1
     - -DVMA_VULKAN_VERSION=1002000
-    - -D_NDEBUG=1
-    - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Release/cast_artefacts/JuceLibraryCode
+    - -D_DEBUG=1
+    - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Debug/cast_artefacts/JuceLibraryCode
     - -I/Users/jreng/Documents/Poems/dev/cast/../jam
     - -I/Users/jreng/Documents/Poems/dev/cast/Source/generated
     - -I/Users/jreng/Documents/Poems/dev/cast/../jam/jam_freetype/freetype/include
@@ -60,12 +60,11 @@ CompileFlags:
     - -I/Users/jreng/.cache/cast/juce/053b3bec8f6b662f7207f80658d00e0d90e9a36211196a8d8d846129c46ab2ef/modules/juce_audio_processors_headless/format_types/LV2_SDK/lilv
     - -I/Users/jreng/.cache/cast/juce/053b3bec8f6b662f7207f80658d00e0d90e9a36211196a8d8d846129c46ab2ef/modules/juce_audio_processors_headless/format_types/LV2_SDK/lilv/src
     - -I/Users/jreng/Documents/Poems/dev/cast/../jam/jam_web/.
-    - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Release/juce_binarydata_jam_vulkan_ShaderData/JuceLibraryCode
-    - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Release/juce_binarydata_cast_BinaryData/JuceLibraryCode
+    - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Debug/juce_binarydata_jam_vulkan_ShaderData/JuceLibraryCode
+    - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Debug/juce_binarydata_cast_BinaryData/JuceLibraryCode
     - -isystem
     - /Users/jreng/Documents/Poems/dev/cast/../../Vulkan/macOS/include
     - -std=c++17
-    - -flto=thin
     - -arch
     - arm64
     - -mmacosx-version-min=11.0
@@ -75,13 +74,14 @@ CompileFlags:
     - -Wno-sign-conversion
     - -Wno-switch-enum
     - -Wno-implicit-float-conversion
-    - -O3
+    - -O0
+    - -g
     - -Winvalid-pch
     - -Xclang
     - -emit-pch
     - -include
     - -Xclang
-    - /Users/jreng/Documents/Poems/dev/cast/Builds/Release/CMakeFiles/cast.dir/cmake_pch_arm64.hxx
+    - /Users/jreng/Documents/Poems/dev/cast/Builds/Debug/CMakeFiles/cast.dir/cmake_pch_arm64.hxx
     - -x
     - c++-header
 Diagnostics:

@@ -11,11 +11,9 @@ void printHelp (const juce::String& helpText)
     jam::terminal::GraphicsEngine engine { *stdout };
     jam::StyleManager styleManager { { BinaryData::fetcher }, config };
     jam::StyleMarkdown styleMarkdown;
-    juce::LookAndFeel::setDefaultLookAndFeel (&styleMarkdown);
 
     const auto lineHeight { styleMarkdown.getMetrics<float> (map::MarkdownStyleSheet::lineHeight) };
     styleMarkdown.setCellSize (static_cast<float> (jam::AttributedChar::narrowColumns), lineHeight);
-    engine.setPalette (styleMarkdown);
 
     const auto winsize { engine.getWinsize() };
     const auto maxLineWidth { styleMarkdown.getMetrics<float> (map::MarkdownStyleSheet::maxLineWidth) };
@@ -25,6 +23,7 @@ void printHelp (const juce::String& helpText)
     const auto verticalScale { 1.0f / lineHeight };
 
     jam::MarkdownComponent component;
+    component.setLookAndFeel (&styleMarkdown);
     component.setBounds (0, 0, width, 0);
     component.setDocument (jam::MarkdownDocument::parse (helpText, files::castHelp));
 
@@ -37,6 +36,4 @@ void printHelp (const juce::String& helpText)
         juce::Graphics g { context };
         component.getViewedComponent()->paintEntireComponent (g, false);
     }
-
-    juce::LookAndFeel::setDefaultLookAndFeel (nullptr);
 }
