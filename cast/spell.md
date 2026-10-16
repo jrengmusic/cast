@@ -11,6 +11,8 @@
 | @comments        | comments.md                                  |
 | @code            | ../../jam/cast/code.cast                     |
 | @project-info    | ../project-info.md                           |
+| @modules         | ../../jam/user-modules-info.md               |
+| @juce            | ../../jam/cast/juce.cast                     |
 | @signing         | signing.md                                   |
 | @Identifiers     | ../Source/generated/Identifiers.h            |
 | @Text            | ../Source/generated/Text.h                   |
@@ -50,7 +52,6 @@
 | - [list]: @project-info:release:stage=        | - [list]: @semicolon      | - [list]: @cmake:mac                          |                  |
 | - [list]: @project-info:release:stage=linker  | - [list]: @semicolon      | - [list]: @cmake:win                          |                  |
 | - [list]: @project-info:debug:stage=          | - [list]: @semicolon      | - [list]: @cmake:mac                          |                  |
-| - [list]: @project-info:patch                 |                           | - [list]: @cmake:patch                        |                  |
 | - [list]: @project-info:user module           |                           | - [list]: @cmake:module                       |                  |
 | - [list]: @project-info:source glob           |                           | - [list]: @cmake:glob-pattern                 |                  |
 | - [list]: @project-info:macro                 |                           | - [list]: @cmake:value                        |                  |
@@ -76,6 +77,8 @@
 |                                               |                           | - qa-copy: @cmake:qa-copy                     |                  |
 |                                               |                           | - productbuild: @cmake:productbuild           |                  |
 |                                               |                           | - makensis: @cmake:makensis                   |                  |
+|                                               |                           | - patched-juce: @juce:patched-juce            |                  |
+| - [list]: @modules:submodule:module=patch     |                           | - [list]: @juce:patch                         |                  |
 +-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
 | - [list]: @project-info:cmake                 |                           | @installer:distribution                       | @Distribution    |
 | - [list]: @project-info:project info          |                           |                                               |                  |
