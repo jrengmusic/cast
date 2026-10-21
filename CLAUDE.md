@@ -10,13 +10,13 @@
 
 ## Current State
 
-**Last Sprint:** release-lane — GitHub release lane for cast, whatdbg, ggwp, stamp, END and archetype/{cli,app}: macOS pkg (productbuild, notarized), Windows NSIS installer (x64, arm64, signtool), generated `gh.cmake` (`cmake -P`, last toolchain row) creates or appends to release `v<versionString>`, generated `RELEASE.md`; END dmg lane replaced; placeholder installer artwork ✅ (2026-10-05)
+**Last Sprint:** wrapper-owns-chain — wrapper owns its chain (`owner`, `chain`, `bindingOwner` stamped once at creation); one object, one TU (every `Source/*.h` except `Jobs.h` split into header + `.cpp`); `isSourceCountValid` is a walk-based check; seven sync gates moved from Validator to `Sync`; `Model::addChains` runs after validation ✅ (2026-10-16)
 
-**Sprint before:** pack-link-preset-attach — `cast --pack <archive> <item> [--link=<name>=<target>] …`: the link is an optional option word after its item; a `--link` before the first item, a second `--link` on one item, or an empty name or target is the `failPackArguments` fatal; one `ArgumentList` source (`getPackPaths`, `isLinkValid`, `getPackRows`); Windows cast build fixed (`pascal` macro, `juce::Array` brace init); jfs `cmake.cast` passes no empty list elements, so the Windows zip packs; KANJUT `PresetSelector` attach loads the preset again (`sendNotificationSync`), a pick while dirty loads, `Selector` navigation does nothing at the list edge; CODING.md platform macro and brace rules; doxygen zero warnings ✅ (2026-10-02)
+**Sprint before:** --help-0.48s — `--help` at 0.48 s warm through the jam contract audit; plain-cell escapes kept ✅ (2026-10-14)
 
-**Previous Sprint:** build-sh — one cross-platform `build.sh`, `build.bat` deleted, stale macOS binary diagnosed ✅ (2026-09-28)
+**Previous Sprint:** --help-subsecond — `--help` measured to subsecond through jam ✅ (2026-10-13)
 
-**Active Work:** None — ARCHITECT runs the release lane per host and restores the six archetype stubs (see carol/SPRINT-LOG.md State for Continuation)
+**Active Work:** Not verified (carol/SPRINT-LOG.md, last sprint State for Continuation): every project manifest regenerated with the new binary is byte-identical to the previous output; a signed build with the current `CMakeLists.txt` is unconfirmed; `Source/generated/` regeneration for `Id::owner` / `Id::chain` before a clean build. Open from the release-lane sprint (2026-10-05): ARCHITECT runs the release lane per host, and the six archetype stubs (`archetype/{cli,app}/{project-info.md,cast/spell.md,cast/signing.md}`) are still to be restored after the `cast INIT.md <dir> --no-format` overwrite incident
 
 **Active ODE:** None
 
@@ -33,7 +33,8 @@
 | **main.cpp** | CLI entry point | Program dispatch, help/version output |
 | **Processor.h** | Orchestrator | Owns Model + TemplateDocument + Writer; `generate()` (validate → write → run `## toolchain` rows), `format()` (canonicalize origin .md files, parallel via Jobs) |
 | **Model.h** | Master document | Manifest parse → parallel per-file table parse → splice into ONE MarkdownDocument; value/table/alias resolution |
-| **Validator.h** | Manifest + table gates | Structure, source-count, address, format, index, hazard fatals — the only gate |
+| **Validator.h** | Manifest + table gates | Structure, source-count (walk-based), address, format, index, hazard fatals |
+| **Sync.h** | Sync gates | `isRootsDistinct`, `isInfoPresent`, `isComposedComplete`, `isKernelPresent`, `isPrefixDeclared`, `isSubmoduleListed`, `isCorresponding` — no dependency on Validator.h |
 | **Writer.h** | Output rendering | One job per output-file group; write-if-different; failure collection |
 | **Shapes.h** | Shape replacements | `:::[list]:::` expansion, bindings, depth indent, row merge law |
 | **Items.h** | Item rendering | Source discovery (cells/@address/column/binding), padding law, column-aligned rendering |

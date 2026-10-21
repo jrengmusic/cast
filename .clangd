@@ -2,7 +2,7 @@ CompileFlags:
   CompilationDatabase: /Users/jreng/Documents/Poems/dev/cast
   Remove: [--target=*]
   Add:
-    - -DCAST_COMMIT=\"0db8789\"
+    - -DCAST_COMMIT=\"039ad9f\"
     - -DDEBUG=1
     - -DDONT_SET_USING_JUCE_NAMESPACE=1
     - -DHAVE_FREETYPE
@@ -47,18 +47,18 @@ CompileFlags:
     - -I/Users/jreng/Documents/Poems/dev/cast/../jam
     - -I/Users/jreng/Documents/Poems/dev/cast/Source/generated
     - -I/Users/jreng/Documents/Poems/dev/cast/../jam/jam_freetype/freetype/include
-    - -I/Users/jreng/.cache/cast/juce/053b3bec8f6b662f7207f80658d00e0d90e9a36211196a8d8d846129c46ab2ef/modules/juce_graphics/fonts/harfbuzz
-    - -I/Users/jreng/.cache/cast/juce/053b3bec8f6b662f7207f80658d00e0d90e9a36211196a8d8d846129c46ab2ef/modules
+    - -I/Users/jreng/.cache/cast/juce/b9a5c30ac3c5cc43c961073d20513a40ca634c79ef0a5d59faf4fa6b19493afd/modules/juce_graphics/fonts/harfbuzz
+    - -I/Users/jreng/.cache/cast/juce/b9a5c30ac3c5cc43c961073d20513a40ca634c79ef0a5d59faf4fa6b19493afd/modules
     - -I/Users/jreng/Documents/Poems/dev/cast/../jam/jam_style/.
-    - -I/Users/jreng/.cache/cast/juce/053b3bec8f6b662f7207f80658d00e0d90e9a36211196a8d8d846129c46ab2ef/modules/juce_audio_processors_headless/format_types/VST3_SDK
-    - -I/Users/jreng/.cache/cast/juce/053b3bec8f6b662f7207f80658d00e0d90e9a36211196a8d8d846129c46ab2ef/modules/juce_audio_processors_headless/format_types/LV2_SDK
-    - -I/Users/jreng/.cache/cast/juce/053b3bec8f6b662f7207f80658d00e0d90e9a36211196a8d8d846129c46ab2ef/modules/juce_audio_processors_headless/format_types/LV2_SDK/lv2
-    - -I/Users/jreng/.cache/cast/juce/053b3bec8f6b662f7207f80658d00e0d90e9a36211196a8d8d846129c46ab2ef/modules/juce_audio_processors_headless/format_types/LV2_SDK/serd
-    - -I/Users/jreng/.cache/cast/juce/053b3bec8f6b662f7207f80658d00e0d90e9a36211196a8d8d846129c46ab2ef/modules/juce_audio_processors_headless/format_types/LV2_SDK/sord
-    - -I/Users/jreng/.cache/cast/juce/053b3bec8f6b662f7207f80658d00e0d90e9a36211196a8d8d846129c46ab2ef/modules/juce_audio_processors_headless/format_types/LV2_SDK/sord/src
-    - -I/Users/jreng/.cache/cast/juce/053b3bec8f6b662f7207f80658d00e0d90e9a36211196a8d8d846129c46ab2ef/modules/juce_audio_processors_headless/format_types/LV2_SDK/sratom
-    - -I/Users/jreng/.cache/cast/juce/053b3bec8f6b662f7207f80658d00e0d90e9a36211196a8d8d846129c46ab2ef/modules/juce_audio_processors_headless/format_types/LV2_SDK/lilv
-    - -I/Users/jreng/.cache/cast/juce/053b3bec8f6b662f7207f80658d00e0d90e9a36211196a8d8d846129c46ab2ef/modules/juce_audio_processors_headless/format_types/LV2_SDK/lilv/src
+    - -I/Users/jreng/.cache/cast/juce/b9a5c30ac3c5cc43c961073d20513a40ca634c79ef0a5d59faf4fa6b19493afd/modules/juce_audio_processors_headless/format_types/VST3_SDK
+    - -I/Users/jreng/.cache/cast/juce/b9a5c30ac3c5cc43c961073d20513a40ca634c79ef0a5d59faf4fa6b19493afd/modules/juce_audio_processors_headless/format_types/LV2_SDK
+    - -I/Users/jreng/.cache/cast/juce/b9a5c30ac3c5cc43c961073d20513a40ca634c79ef0a5d59faf4fa6b19493afd/modules/juce_audio_processors_headless/format_types/LV2_SDK/lv2
+    - -I/Users/jreng/.cache/cast/juce/b9a5c30ac3c5cc43c961073d20513a40ca634c79ef0a5d59faf4fa6b19493afd/modules/juce_audio_processors_headless/format_types/LV2_SDK/serd
+    - -I/Users/jreng/.cache/cast/juce/b9a5c30ac3c5cc43c961073d20513a40ca634c79ef0a5d59faf4fa6b19493afd/modules/juce_audio_processors_headless/format_types/LV2_SDK/sord
+    - -I/Users/jreng/.cache/cast/juce/b9a5c30ac3c5cc43c961073d20513a40ca634c79ef0a5d59faf4fa6b19493afd/modules/juce_audio_processors_headless/format_types/LV2_SDK/sord/src
+    - -I/Users/jreng/.cache/cast/juce/b9a5c30ac3c5cc43c961073d20513a40ca634c79ef0a5d59faf4fa6b19493afd/modules/juce_audio_processors_headless/format_types/LV2_SDK/sratom
+    - -I/Users/jreng/.cache/cast/juce/b9a5c30ac3c5cc43c961073d20513a40ca634c79ef0a5d59faf4fa6b19493afd/modules/juce_audio_processors_headless/format_types/LV2_SDK/lilv
+    - -I/Users/jreng/.cache/cast/juce/b9a5c30ac3c5cc43c961073d20513a40ca634c79ef0a5d59faf4fa6b19493afd/modules/juce_audio_processors_headless/format_types/LV2_SDK/lilv/src
     - -I/Users/jreng/Documents/Poems/dev/cast/../jam/jam_web/.
     - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Debug/juce_binarydata_jam_vulkan_ShaderData/JuceLibraryCode
     - -I/Users/jreng/Documents/Poems/dev/cast/Builds/Debug/juce_binarydata_cast_BinaryData/JuceLibraryCode

@@ -1426,9 +1426,9 @@ int main (int argc, char* argv[])
 
     if (isTerminalOutput() and not isFormatOnly (argc, argv) and not isPackFlag (argc, argv))
     {
-        std::string erase;
+        juce::MemoryOutputStream erase;
         jam::terminal::appendEraseScreen (erase);
-        fwrite (erase.data(), sizeof (char), erase.size(), stdout);
+        fwrite (erase.getData(), sizeof (char), erase.getDataSize(), stdout);
         fflush (stdout);
     }
 

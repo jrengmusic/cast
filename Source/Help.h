@@ -6,16 +6,13 @@
  * @brief Renders the HELP.md text to stdout through the terminal graphics
  *        context.
  *
- * Loads the markdown and mermaid stylesheets into one config tree and parses
- * @p helpText as markdown. The width, in cells, is the column count of the
- * terminal device when the device is known. Otherwise it is the smallest whole
- * number of cells that holds `maxLineWidth` plus the margin on both sides.
- * The function tells the style the cell size: one narrow column wide and one
- * `lineHeight` tall. The vertical scale of the engine is 1 / `lineHeight`.
- * The component is laid out once at the width. The row count is the content
- * height of the component times the vertical scale, rounded up to a whole
- * row. The function paints the component to stdout through the terminal
- * graphics context.
+ * The function loads the markdown and mermaid stylesheets into one style manager and parses
+ * @p helpText as markdown. The width, in cells, is the column width of the markdown
+ * style: the `maxLineWidth` metric plus the `margin` metric on both sides, rounded up. The component
+ * is laid out once at that width. The row count is the height of the viewed component.
+ * The function prepares a terminal graphics engine for that grid and paints the viewed component
+ * through a terminal graphics context. The engine then writes the frame to a memory stream, and the function
+ * writes the stream to stdout.
  *
  * @pre The JUCE GUI initialiser scope is open.
  *
