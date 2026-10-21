@@ -161,7 +161,6 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 | juceWebBrowser                     | JUCE_WEB_BROWSER=0                                                   | WebBrowserComponent support                                   |
 | juceUseCurl                        | JUCE_USE_CURL=0                                                      | libcurl for http on Linux                                     |
 | win32LeanAndMean                   | `$<$<PLATFORM_ID:Windows>:WIN32_LEAN_AND_MEAN=1>`                    | Exclude rarely used Windows headers                           |
-| nominmax                           | `$<$<PLATFORM_ID:Windows>:NOMINMAX=1>`                               | No Windows min/max macros                                     |
 | win32Ie                            | `$<$<PLATFORM_ID:Windows>:_WIN32_IE=0x0A00>`                         | Windows IE platform version                                   |
 | juceCoreIncludeNativeHeaders       | `$<$<PLATFORM_ID:Windows>:JUCE_CORE_INCLUDE_NATIVE_HEADERS=1>`       | Native platform headers in juce_core                          |
 | juceGraphicsIncludeDirect2dHelpers | `$<$<PLATFORM_ID:Windows>:JUCE_GRAPHICS_INCLUDE_DIRECT2D_HELPERS=1>` | Direct2D helper visibility, from the framework patch          |

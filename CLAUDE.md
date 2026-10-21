@@ -91,7 +91,7 @@
 - `cast_BinaryData` embeds `Source/HELP.md` and `Source/resources/cast-output.md` (`project-info.md` `## binary`)
 
 **Release:**
-- `cast cast/spell.md` (default flow) on each host: macOS universal, Windows x64, Windows arm64 (Windows: from the MSVC shell of the host architecture, NSIS + EnVar plugin + `gh` on PATH)
+- `cast cast/spell.md` (default flow) on each host: macOS universal, Windows x64, Windows arm64 (Windows: from the MSVC shell of the host architecture, NSIS + `gh` on PATH)
 - Release build: macOS `pkgbuild` → `productbuild` → `productsign` → notarize → staple; Windows makensis signs `cast.exe`, the installer and the uninstaller with the `identityWindows` thumbprint
 - Archive: `../Release/cast v<version> <platform>.<format>` (`## pack`; Windows platform word gets `x64` / `arm64` from `CMAKE_CXX_COMPILER_ARCHITECTURE_ID`)
 - Last toolchain row `cmake -P gh.cmake`: creates the GitHub release `v<versionString>` of `jrengmusic/cast` with `RELEASE.md` as notes, or uploads with `--clobber` to the existing one
