@@ -68,8 +68,6 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 +-----------------------------+----------------------------------------------------------+------------------------------------------+
 | userModulePath              | @user-module                                             | User module root                         |
 +-----------------------------+----------------------------------------------------------+------------------------------------------+
-| vulkanPath                  | ${CMAKE_CURRENT_SOURCE_DIR}/../../Vulkan                 | Vulkan SDK root                          |
-+-----------------------------+----------------------------------------------------------+------------------------------------------+
 | installDirectory            | $ENV{HOME}/.local/bin                                    | Installed binary directory               |
 +-----------------------------+----------------------------------------------------------+------------------------------------------+
 | bundleIdentifier            | com.jrengmusic.cast                                      | JUCE BUNDLE_ID                           |
@@ -132,7 +130,6 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 | @user-module | jam_pdf               | Clean-room PDF document model, writer and graphics context                                       |
 | @user-module | jam_data_structures   | ValueTree management and data model utilities — model, parameters, JSON conversion               |
 | @user-module | jam_animation         | Foundation animation classes (Animator, AnimationBase, AnimationScrollingText)                   |
-| @user-module | jam_vulkan            | Vulkan rendering backend                                                                         |
 | @user-module | jam_web               | HTML authored-subset and CSS Syntax Level 3 subset tokenizers and parsers                        |
 | @user-module | jam_style             | JAM Style — LookAndFeel base + ColourScheme-backed colour registry                               |
 | @user-module | jam_gui               | GUI foundation — Window, Modal, Glass                                                            |
@@ -165,7 +162,6 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 | juceCoreIncludeNativeHeaders       | `$<$<PLATFORM_ID:Windows>:JUCE_CORE_INCLUDE_NATIVE_HEADERS=1>`       | Native platform headers in juce_core                          |
 | juceGraphicsIncludeDirect2dHelpers | `$<$<PLATFORM_ID:Windows>:JUCE_GRAPHICS_INCLUDE_DIRECT2D_HELPERS=1>` | Direct2D helper visibility, from the framework patch          |
 | juceCoreIncludeComSmartPtr         | `$<$<PLATFORM_ID:Windows>:JUCE_CORE_INCLUDE_COM_SMART_PTR=1>`        | Windows COM smart pointer helpers                             |
-| vmaVulkanVersion                   | VMA_VULKAN_VERSION=1002000                                           | Vulkan version for Vulkan Memory Allocator                    |
 | haveFreetype                       | HAVE_FREETYPE                                                        | FreeType font backend, consumed by juce_graphics_Harfbuzz.cpp |
 | haveUnistdH                        | `$<$<NOT:$<PLATFORM_ID:Windows>>:HAVE_UNISTD_H>`                     | POSIX unistd.h present, non-Windows                           |
 +------------------------------------+----------------------------------------------------------------------+---------------------------------------------------------------+
