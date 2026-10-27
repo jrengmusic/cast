@@ -1,6 +1,7 @@
 /**
  * @file main.cpp
- * @brief `cast` CLI entry point: banner/help rendering and manifest dispatch.
+ * @brief `cast` CLI entry point: banner/help rendering and dispatch of
+ *        the manifest, format, sync, and pack requests.
  */
 
 #include <JuceHeader.h>
@@ -383,9 +384,26 @@ static juce::String getOutputDirectory (int argc, char* argv[])
 }
 
 /**
- * @brief Resolves @p argv's own manifest file against the current working
- *        directory -- the argument at getManifestIndex(), or, absent one,
- *        the default @c spell.md file name.
+ * @brief Answers whether @p argv declares a manifest argument at the
+ *        position getManifestIndex() names.
+ *
+ * @param argc The CLI argument count.
+ * @param argv The CLI argument vector.
+ * @returns @c true when the manifest argument exists.
+ */
+static bool isManifestDeclared (int argc, char* argv[])
+{
+    return getArgumentIndex (argc, argv, getManifestIndex (argc, argv)) < argc;
+}
+
+/**
+ * @brief Resolves the manifest argument of @p argv at getManifestIndex()
+ *        against the current working directory, then follows a symbolic
+ *        link to its target with juce::File::getLinkedTarget().
+ *
+ * A path that is not a link comes back unchanged on macOS and Linux.
+ *
+ * @pre isManifestDeclared() is @c true.
  *
  * @param argc The CLI argument count.
  * @param argv The CLI argument vector.
@@ -395,10 +413,9 @@ static juce::File getDocumentFile (int argc, char* argv[])
 {
     const auto manifestIndex { getArgumentIndex (argc, argv, getManifestIndex (argc, argv)) };
 
-    return manifestIndex < argc
-               ? juce::File::getCurrentWorkingDirectory().getChildFile (
-                     juce::String::fromUTF8 (argv[manifestIndex]))
-               : juce::File::getCurrentWorkingDirectory().getChildFile (files::cast);
+    jassert (manifestIndex < argc);
+
+    return juce::File::getCurrentWorkingDirectory().getChildFile (juce::String::fromUTF8 (argv[manifestIndex])).getLinkedTarget();
 }
 
 /**
@@ -877,6 +894,10 @@ static bool isPackFlag (int argc, char* argv[])
  * @brief Validates every one of @p files against its own resolved style,
  *        without writing -- the first pass of an in-place run.
  *
+ * Each file path resolves to the target of a symbolic link before the
+ * directory is derived. The style file search and the Processor directory
+ * start at the target's directory.
+ *
  * @param lineWrap  The @c --line-wrap value, read once by main().
  * @param files     The files to validate.
  * @param stylePath An explicit @c --style=file:\<path\> path, or an empty
@@ -890,7 +911,7 @@ static int runFormatValidation (int lineWrap, const jam::Strings& files, const j
 
     for (const auto& name : files)
     {
-        const auto file { workingDirectory.getChildFile (name) };
+        const auto file { workingDirectory.getChildFile (name).getLinkedTarget() };
         const auto directory { file.getParentDirectory() };
         const auto styleFile { getStyleFile (stylePath, getNearestStyleFile (directory)) };
 
@@ -915,6 +936,10 @@ static int runFormatValidation (int lineWrap, const jam::Strings& files, const j
  * @brief Reformats every one of @p files in place, per file's own
  *        resolved style.
  *
+ * Each file path resolves to the target of a symbolic link before the
+ * directory is derived. The style file search and the Processor directory
+ * start at the target's directory.
+ *
  * @param lineWrap  The @c --line-wrap value, read once by main().
  * @param stylePath An explicit @c --style=file:\<path\> path, or an empty
  *                  string to resolve each file's own nearest style file.
@@ -928,7 +953,7 @@ static juce::Result runFormatWrite (int lineWrap, const juce::String& stylePath,
 
     for (const auto& name : files)
     {
-        const auto file { workingDirectory.getChildFile (name) };
+        const auto file { workingDirectory.getChildFile (name).getLinkedTarget() };
         const auto directory { file.getParentDirectory() };
         const auto styleFile { getStyleFile (stylePath, getNearestStyleFile (directory)) };
 
@@ -987,6 +1012,10 @@ static int runFormatInPlace (int lineWrap, const juce::ArgumentList& arguments, 
  * @brief Resolves @p input's own origin, directory, and style, then
  *        returns its canonicalized text.
  *
+ * A file input path resolves to the target of a symbolic link before the
+ * directory is derived. The style file search and the Processor directory
+ * start at the target's directory.
+ *
  * @param lineWrap      The @c --line-wrap value, read once by main().
  * @param stylePath     An explicit @c --style=file:\<path\> path, or an
  *                      empty string to resolve @p input's own nearest
@@ -1002,7 +1031,7 @@ static std::pair<juce::Result, juce::String> getFormattedText (int lineWrap, con
 {
     const auto workingDirectory { juce::File::getCurrentWorkingDirectory() };
     const auto assumedFile { workingDirectory.getChildFile (assumeFilename) };
-    const auto inputFile { workingDirectory.getChildFile (input) };
+    const auto inputFile { workingDirectory.getChildFile (input).getLinkedTarget() };
     const auto directory { isStandardInput (input)
                            ? (assumeFilename.isNotEmpty() ? assumedFile.getParentDirectory() : workingDirectory)
                            : inputFile.getParentDirectory() };
@@ -1372,6 +1401,10 @@ static int runPackArguments (int argc, char* argv[])
  * @brief Dispatches @p argv's own version, help, format, or document
  *        request.
  *
+ * When @p argv declares no manifest, prints the banner and the guide and
+ * returns @c 0, the same as the help request. A declared manifest that does
+ * not exist goes to runDocumentNotFound().
+ *
  * @param argc     The CLI argument count.
  * @param argv     The CLI argument vector.
  * @param lineWrap The @c --line-wrap value, read once by main().
@@ -1395,13 +1428,19 @@ static int runCommandLine (int argc, char* argv[], int lineWrap)
     if (isFormatOnly (argc, argv))
         return runFormat (argc, argv, lineWrap);
 
-    const auto documentFile { getDocumentFile (argc, argv) };
+    if (isManifestDeclared (argc, argv))
+    {
+        const auto documentFile { getDocumentFile (argc, argv) };
 
-    if (documentFile.existsAsFile())
-        return runDocument (lineWrap, documentFile, isSkipFormat (argc, argv),
-            getOutputDirectory (argc, argv), getToolchainArgument (argc, argv));
+        if (documentFile.existsAsFile())
+            return runDocument (lineWrap, documentFile, isSkipFormat (argc, argv),
+                getOutputDirectory (argc, argv), getToolchainArgument (argc, argv));
 
-    return runDocumentNotFound (documentFile);
+        return runDocumentNotFound (documentFile);
+    }
+
+    printBannerAndHelp();
+    return 0;
 }
 
 /**
@@ -1427,7 +1466,7 @@ int main (int argc, char* argv[])
     if (isTerminalOutput() and not isFormatOnly (argc, argv) and not isPackFlag (argc, argv))
     {
         juce::MemoryOutputStream erase;
-        jam::terminal::appendEraseScreen (erase);
+        jam::TerminalBuffer::writeEraseScreen (erase);
         fwrite (erase.getData(), sizeof (char), erase.getDataSize(), stdout);
         fflush (stdout);
     }

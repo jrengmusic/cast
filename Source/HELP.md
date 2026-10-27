@@ -2,7 +2,7 @@
 
 **Version 0.1.0** — this guide tracks SPEC version 0.9.
 
-You see this guide because you ran `cast --help`, or because `cast` could not find a `spell.md` in the current directory.
+You see this guide because you ran `cast` with no manifest or `cast --help`, or because the manifest that you named was not found.
 
 CAST reads your data (tables), your shapes (templates), and your wiring (the manifest), and writes files. It knows nothing about any programming language. It resolves references, iterates rows, and replaces tokens — nothing else.
 
@@ -14,8 +14,9 @@ This guide tells you how to use CAST. `SPEC.md` fixes the rules that this guide 
 
 Arguments select what runs. They never carry generation rules.
 
-- `cast` — find `spell.md` here, format each declared markdown file, regenerate each declared output, then run the default-flow `## toolchain` rows
-- `cast <path>/spell.md` — the same, with a specific manifest
+- `cast` — show this guide, the same as `cast --help`
+- `cast <path>/spell.md` — format each declared markdown file, regenerate each declared output, then run the default-flow `## toolchain` rows
+- A manifest path, or a `--format` input path, that is a symbolic link resolves to its target. The manifest directory is the directory of the target.
 - `cast spell.md <directory>` — write each declared output under that directory in place of the declared paths
 - `cast --format -i spell.md` — format only, in place: the manifest and each markdown file that its index declares; no generation
 - `cast spell.md --no-format` or `cast --no-format spell.md` — generate only, no formatting

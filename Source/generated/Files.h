@@ -27,7 +27,6 @@ namespace files
 
 /** @brief File and directory names CAST reads and writes: manifest, help, banner, style files, stdin name, sync info. */
 
-extern const juce::String cast;               ///< Generation manifest.
 extern const juce::String castDirectory;      ///< Sync style directory under a target root.
 extern const juce::String castFormat;         ///< Style file name, searched first.
 extern const juce::String castFormatAlternate;///< Style file name, searched second.

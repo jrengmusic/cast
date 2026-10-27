@@ -10,9 +10,10 @@
  * @p helpText as markdown. The width, in cells, is the column width of the markdown
  * style: the `maxLineWidth` metric plus the `margin` metric on both sides, rounded up. The component
  * is laid out once at that width. The row count is the height of the viewed component.
- * The function prepares a terminal graphics engine for that grid and paints the viewed component
- * through a terminal graphics context. The engine then writes the frame to a memory stream, and the function
- * writes the stream to stdout.
+ * The function prepares a terminal buffer for that grid, with the row count as transit room.
+ * It paints the viewed component through a terminal graphics context. The context takes the `Colours` of the style manager.
+ * `buffer.writeToStream (frame, styleMarkdown)` then writes the frame as VT bytes to a memory stream.
+ * The function writes the stream to stdout.
  *
  * @pre The JUCE GUI initialiser scope is open.
  *

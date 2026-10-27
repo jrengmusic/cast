@@ -6,8 +6,8 @@ void printHelp (const juce::String& helpText)
     jam::Typeface typeface;
 
     juce::MemoryOutputStream frame;
-    jam::terminal::GraphicsEngine engine;
-    const jam::GlyphArrangement glyphArrangement { jam::terminal::GraphicsEngine::getCellLookup(), jam::terminal::GraphicsEngine::getCellMeasure() };
+    jam::TerminalBuffer buffer;
+    const jam::GlyphArrangement glyphArrangement { jam::TerminalBuffer::getCellLookup(), jam::TerminalBuffer::getCellMeasure() };
     jam::StyleManager styleManager { { BinaryData::fetcher }, jam::Strings { files::markdownStyleSheet, files::mermaidStyleSheet } };
     jam::StyleMarkdown styleMarkdown;
 
@@ -21,14 +21,15 @@ void printHelp (const juce::String& helpText)
     const auto rows { component.getViewedComponent()->getHeight() };
 
     {
-        engine.prepare (columnWidth, rows);
+        buffer.prepare (columnWidth, rows, rows);
 
-        jam::terminal::GraphicsContext context { engine };
+        jam::TerminalGraphicsContext context { buffer, *jam::Colours::getInstance() };
         juce::Graphics g { context };
         component.getViewedComponent()->paintEntireComponent (g, false);
     }
 
-    engine.process (frame, frame, 0);
+    buffer.process();
+    buffer.writeToStream (frame, styleMarkdown);
 
     fwrite (frame.getData(), sizeof (char), frame.getDataSize(), stdout);
 }

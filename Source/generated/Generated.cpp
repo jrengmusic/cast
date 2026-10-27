@@ -110,7 +110,6 @@ namespace files
 
 /** @brief File and directory names CAST reads and writes: manifest, help, banner, style files, stdin name, sync info. */
 
-const juce::String cast                { juce::String::fromUTF8 ("spell.md") };
 const juce::String castDirectory       { juce::String::fromUTF8 ("cast") };
 const juce::String castFormat          { juce::String::fromUTF8 (".cast-format") };
 const juce::String castFormatAlternate { juce::String::fromUTF8 ("_cast-format") };

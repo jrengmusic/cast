@@ -15,7 +15,6 @@
 +---------+---------------------+------------------------+-------------------------------------------+
 | type    | name                | value                  | description                               |
 +=========+=====================+========================+===========================================+
-| @string | cast                | `spell.md`             | Generation manifest.                      |
 | @string | castDirectory       | `cast`                 | Sync style directory under a target root. |
 | @string | castFormat          | `.cast-format`         | Style file name, searched first.          |
 | @string | castFormatAlternate | `_cast-format`         | Style file name, searched second.         |
