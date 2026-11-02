@@ -16,9 +16,10 @@ Arguments select what runs. They never carry generation rules.
 
 - `cast` — show this guide, the same as `cast --help`
 - `cast <path>/spell.md` — format each declared markdown file, regenerate each declared output, then run the default-flow `## toolchain` rows
-- A manifest path, or a `--format` input path, that is a symbolic link resolves to its target. The manifest directory is the directory of the target.
+- A manifest path, a `--format` input path or a `--tables` input path that is a symbolic link resolves to its target. The manifest directory is the directory of the target.
 - `cast spell.md <directory>` — write each declared output under that directory in place of the declared paths
 - `cast --format -i spell.md` — format only, in place: the manifest and each markdown file that its index declares; no generation
+- `cast --tables a.md b.md` — print the tables of each file as JSON; nothing changes (see --tables)
 - `cast spell.md --no-format` or `cast --no-format spell.md` — generate only, no formatting
 - `cast spell.md --<word>` — after format and generate, run only the `## toolchain`
   rows whose `argument` cell equals `word`; the default-flow rows do not run
@@ -53,6 +54,25 @@ Flag words match exactly: `--line-wrap=40` or `--format=x` is an unknown flag.
 A manifest with `-i` formats the manifest and each markdown file that its index declares. A manifest without `-i` prints the manifest file only. A file argument wins over stdin. The flags read in any position.
 
 On success the exit is 0 and stdout holds only the canonical text, LF line ends, UTF-8 — no success line, no screen clear. On failure the exit is non-zero, stdout is empty, and stderr holds the diagnostic; for stdin without `--assume-filename`, the file part is `<stdin>`. `-i` with stdin is fatal. Any other dash argument is an unknown flag, and is fatal.
+
+### --tables — the tables of a markdown file, as JSON
+
+`cast --tables` reads any markdown file with the cast reader and prints its tables. It formats nothing, writes no file, and runs no `## toolchain` row. A manifest on the line is a markdown file like each other file.
+
+```
+cast --tables [--style=file:<path>] [--assume-filename=<path>] [<file> ...]
+```
+
+- `cast --tables a.md b.md` — one JSON array on stdout, one object for each file, in argument order
+- `cast --tables` or `cast --tables -` — read stdin
+- `--style=file:<path>` and `--assume-filename=<path>` — the same as on the `--format` line; the style file names the columns whose rows join
+- The engine also parses each `.md` file that the index of the file declares, thus a cross-file address has its target; only the tables of the file itself print
+
+Each file object holds `file` (the argument as given; for stdin, `<stdin>` or the `--assume-filename` name) and `tables`, in authored order. `## index` is a table like each other table. Each table object holds `name` (the heading text, empty when no heading comes before the table), `columns` (the column names, as authored) and `rows` (one object for each body row, column name to value).
+
+A value is the datum of the cell: the plain text, the bytes of a code span, or the content of a fence. No `toLiteral` and no `format` operation applies. A plain cell whose whole text is an `@alias` that the index of the file declares resolves to the datum of its symbol. Each other address prints as authored. A code-span cell, a fenced cell, a `description` or `brief` cell, and a cell of an `alias` column print as authored.
+
+On success the exit is 0 and stdout holds only the JSON array, on one line, then LF. Each character above `U+007F` is a `\u` escape. On failure the exit is non-zero, stdout is empty, and stderr holds the diagnostic. The fatals are the input fatals of `--format`, a malformed table, the index fatals, a duplicate entry in an `alias` column, and the address fatals — in the file and in each `.md` file that its index declares. Any other dash argument — `-i`, `--line-wrap`, `--format`, `--no-format`, `--<word>` — is an unknown flag, and is fatal.
 
 ---
 

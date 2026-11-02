@@ -48,7 +48,6 @@ transform operations a format cell may declare (§8).
 | @id     | rowSpacing       | `row-spacing`        | --pack layout option word.                                  |
 | @id     | syncBoundary     | `boundary`           | Sync identity-row boundary column key.                      |
 | @id     | brief            | `brief`              | Brief documentation key.                                    |
-| @id     | command          | `command`            | Toolchain table command column.                             |
 | @id     | filePrefix       | `filePrefix`         | Sync composed identity key — file-name prefix.              |
 | @id     | flag             | `flag`               | Toolchain table flag column.                                |
 | @string | fromCodepoint    | `from codepoint`     | Codepoint decode operation.                                 |
@@ -65,11 +64,13 @@ transform operations a format cell may declare (§8).
 | @id     | noFormat         | `no-format`          | Formatless-column marker.                                   |
 | @id     | owner            | `owner`              | Wrapper's parent shape ordinal.                             |
 | @id     | placeholder      | `placeholder`        | Placeholder token name.                                     |
+| @id     | rows             | `rows`               | --tables JSON output key.                                   |
 | @id     | separator        | `separator`          | Separator column key.                                       |
 | @id     | structure        | `structure`          | Structure column key.                                       |
 | @id     | submodule        | `submodule`          | Sync info-file submodule table name.                        |
 | @id     | symbol           | `symbol`             | Index symbol column key.                                    |
 | @id     | sync             | `sync`               | --sync CLI flag word.                                       |
+| @id     | tables           | `tables`             | --tables CLI flag word and JSON output key.                 |
 | @id     | templatePath     | `template`           | Template file path stamp.                                   |
 | @string | toCamel          | `to camel`           | camelCase operation.                                        |
 | @string | toCodepoint      | `to codepoint`       | Codepoint encode operation.                                 |

@@ -57,6 +57,14 @@ const juce::String& Model::getManifestOrigin() const noexcept
 
 juce::String Model::getValue (juce::StringRef file, juce::StringRef alias) const
 {
+    if (const auto* symbolCell { getSymbolCell (file, alias) }; symbolCell != nullptr)
+        return *symbolCell->get<juce::String> (Id::value);
+
+    return {};
+}
+
+const Model::Element* Model::getSymbolCell (juce::StringRef file, juce::StringRef alias) const
+{
     if (alias.isNotEmpty() and *alias.text == Chars::at)
     {
         const juce::String aliasText { alias };
@@ -72,14 +80,14 @@ juce::String Model::getValue (juce::StringRef file, juce::StringRef alias) const
                     {
                         if (auto* symbolCell {
                                 getTableCell (*table, Id::symbol, juce::Identifier (aliasText)) })
-                            return *symbolCell->get<juce::String> (Id::value);
+                            return symbolCell;
                     }
                 }
             }
         }
     }
 
-    return {};
+    return nullptr;
 }
 
 juce::String Model::getValue (const Element& row, const juce::String& alias) const
@@ -117,6 +125,11 @@ juce::Identifier Model::getReservedName (const juce::Identifier& word)
 bool Model::isAddress (const juce::String& value) noexcept
 {
     return value.startsWithChar (Chars::at);
+}
+
+bool Model::isDescriptionColumn (const juce::Identifier& column) noexcept
+{
+    return column == Id::description or column == Id::brief;
 }
 
 juce::String Model::getStructure (const Element& scope) const
@@ -487,15 +500,16 @@ void Model::parse (Model& document, const juce::String& text, const juce::String
                     and table->get<juce::String> (Id::path)->compare (document.manifestOrigin) == 0
                     and document.getTableCell (*table, Id::structure, Id::headerRow) != nullptr);
 
-    for (auto* table : *document.root)
-        if (jam::MarkdownDocument::isTable (*table))
-        {
-            const auto* headerRow { getTableHeaderRow (*table) };
+    for (const auto isIndexTable : { true, false })
+        for (auto* table : *document.root)
+            if (jam::MarkdownDocument::isTable (*table) and table->isTag (Id::index) == isIndexTable)
+            {
+                const auto* headerRow { getTableHeaderRow (*table) };
 
-            for (auto* row : *table)
-                if (row != headerRow and not isTableBorder (*row))
-                    addRow (document, *row);
-        }
+                for (auto* row : *table)
+                    if (row != headerRow and not isTableBorder (*row))
+                        addRow (document, *row);
+            }
 }
 
 std::pair<jam::Array<int>, jam::Array<int>> Model::getExcess (const Element* listCell,
@@ -910,23 +924,36 @@ bool Model::isFencedCell (const Element& cell) const
     return false;
 }
 
-juce::String Model::getAuthoredText (const Element& cell, const Element* literal, bool isDescriptionColumn,
-    bool isDescriptionProse, const juce::String& transform) const
+bool Model::isDescriptionProse (const Element& headerCell, const Element& cell, const Element* literal)
 {
-    if (literal != nullptr and not isDescriptionProse)
-    {
-        juce::String text { literal->getAllSubText() };
+    return isDescriptionColumn (headerCell.id)
+           and (literal == nullptr or cell.getAllSubText().compare (literal->getAllSubText()) != 0);
+}
 
-        if (Transforms::contains (transform))
-            text = Transforms::getTransformed (transform, text, {});
+juce::String Model::getAuthoredText (const Element& headerCell, const Element& cell, const Element* literal) const
+{
+    if (isDescriptionProse (headerCell, cell, literal))
+        return getJoinedValue (headerCell, cell, getRawText (cell, jam::Document::getSource()));
 
-        return isDescriptionColumn ? text : jam::Format::toLiteral (text);
-    }
+    if (literal != nullptr)
+        return getJoinedValue (headerCell, cell, literal->getAllSubText());
 
-    if (isDescriptionProse)
-        return getRawText (cell, jam::Document::getSource());
+    return getJoinedValue (headerCell, cell, cell.getAllSubText());
+}
 
-    return cell.getAllSubText();
+juce::String Model::getAuthoredText (const Element& headerCell, const Element& row, const Element& cell) const
+{
+    const auto* literal { getLiteral (cell) };
+    const auto text { getAuthoredText (headerCell, cell, literal) };
+
+    if (literal == nullptr and not isDescriptionColumn (headerCell.id) and headerCell.id != Id::alias)
+        if (const auto* symbolCell { getSymbolCell (*row.parent->get<juce::String> (Id::path), text) }; symbolCell != nullptr)
+        {
+            const auto* symbolHeaderCell { getTableHeaderRow (*symbolCell->parent->parent)->getChildByID (Id::symbol) };
+            return getAuthoredText (*symbolHeaderCell, *symbolCell, getLiteral (*symbolCell));
+        }
+
+    return text;
 }
 
 juce::String Model::getJoinedValue (const Element& headerCell, const Element& cell, const juce::String& value) const
@@ -946,20 +973,16 @@ void Model::addValue (const Element& headerCell, const Element& row, Element& ce
             transform = formatCell->getAllSubText();
 
     const auto* literal { getLiteral (cell) };
-    const auto isDescriptionColumn { headerCell.id == Id::description or headerCell.id == Id::brief };
-    const auto isDescriptionProse { isDescriptionColumn
-                                and (literal == nullptr
-                                     or cell.getAllSubText().compare (
-                                            literal->getAllSubText()) != 0) };
+    auto value { getAuthoredText (headerCell, cell, literal) };
 
-    auto value { getJoinedValue (headerCell, cell,
-        getAuthoredText (cell, literal, isDescriptionColumn, isDescriptionProse, transform)) };
-
-    if (not isDescriptionColumn and headerCell.id != Id::alias and isAddress (value))
+    if (literal == nullptr and not isDescriptionColumn (headerCell.id) and headerCell.id != Id::alias and isAddress (value))
         value = getValue (row, value);
 
-    if (literal == nullptr and Transforms::contains (transform))
+    if (Transforms::contains (transform) and (literal == nullptr or not isDescriptionProse (headerCell, cell, literal)))
         value = Transforms::getTransformed (transform, value, {});
+
+    if (literal != nullptr and not isDescriptionColumn (headerCell.id))
+        value = jam::Format::toLiteral (value);
 
     cell.add<juce::String> (Id::value, value);
 }

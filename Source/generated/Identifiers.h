@@ -61,7 +61,6 @@ extern const juce::Identifier pack;            ///< --pack CLI flag word.
 extern const juce::Identifier rowSpacing;      ///< --pack layout option word.
 extern const juce::Identifier syncBoundary;    ///< Sync identity-row boundary column key.
 extern const juce::Identifier brief;           ///< Brief documentation key.
-extern const juce::Identifier command;         ///< Toolchain table command column.
 extern const juce::Identifier filePrefix;      ///< Sync composed identity key — file-name prefix.
 extern const juce::Identifier flag;            ///< Toolchain table flag column.
 extern const juce::String     fromCodepoint;   ///< Codepoint decode operation.
@@ -78,11 +77,13 @@ extern const juce::Identifier noBanner;        ///< Banner-suppressing fence-pre
 extern const juce::Identifier noFormat;        ///< Formatless-column marker.
 extern const juce::Identifier owner;           ///< Wrapper's parent shape ordinal.
 extern const juce::Identifier placeholder;     ///< Placeholder token name.
+extern const juce::Identifier rows;            ///< --tables JSON output key.
 extern const juce::Identifier separator;       ///< Separator column key.
 extern const juce::Identifier structure;       ///< Structure column key.
 extern const juce::Identifier submodule;       ///< Sync info-file submodule table name.
 extern const juce::Identifier symbol;          ///< Index symbol column key.
 extern const juce::Identifier sync;            ///< --sync CLI flag word.
+extern const juce::Identifier tables;          ///< --tables CLI flag word and JSON output key.
 extern const juce::Identifier templatePath;    ///< Template file path stamp.
 extern const juce::String     toCamel;         ///< camelCase operation.
 extern const juce::String     toCodepoint;     ///< Codepoint encode operation.

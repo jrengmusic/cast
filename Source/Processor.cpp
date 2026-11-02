@@ -47,6 +47,17 @@ std::pair<juce::Result, juce::String> Processor::getText (const jam::MarkdownWri
     return { juce::Result::ok(), formatter.getText (*model, model->getManifestOrigin()) };
 }
 
+std::pair<juce::Result, juce::String> Processor::getText (const JsonWriter& tablesWriter, const juce::String& file) const
+{
+    if (const auto result { validator.isValid (*model) }; not result.wasOk())
+        return { result, {} };
+
+    if (const auto result { Validator::isValid (*model) }; not result.wasOk())
+        return { result, {} };
+
+    return { juce::Result::ok(), tablesWriter.getText (*model, model->getManifestOrigin(), file) };
+}
+
 juce::Result Processor::run (const juce::String& toolchainArgument)
 {
     const auto isToolchainArgumentGiven { toolchainArgument.isNotEmpty() };

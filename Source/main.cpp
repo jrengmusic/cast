@@ -1,7 +1,7 @@
 /**
  * @file main.cpp
  * @brief `cast` CLI entry point: banner/help rendering and dispatch of
- *        the manifest, format, sync, and pack requests.
+ *        the manifest, format, tables, sync, and pack requests.
  */
 
 #include <JuceHeader.h>
@@ -51,6 +51,16 @@ static const juce::String& getFormatFlag()
 {
     static const juce::String formatFlag { Id::doubleDash + Id::format.toString() };
     return formatFlag;
+}
+
+/**
+ * @brief The `--tables` flag word.
+ * @returns The `--tables` flag text.
+ */
+static const juce::String& getTablesFlag()
+{
+    static const juce::String tablesFlag { Id::doubleDash + Id::tables.toString() };
+    return tablesFlag;
 }
 
 /**
@@ -277,6 +287,19 @@ static juce::String getPostFlagArgument (int argc, char* argv[])
 static bool isFormatOnly (int argc, char* argv[])
 {
     return juce::ArgumentList { argc, argv }.containsOption (getFormatFlag());
+}
+
+/**
+ * @brief Answers whether @p argv declares the @c --tables flag, at any
+ *        position on the line.
+ *
+ * @param argc The CLI argument count.
+ * @param argv The CLI argument vector.
+ * @returns @c true when @p argv declares @c --tables.
+ */
+static bool isTablesFlag (int argc, char* argv[])
+{
+    return juce::ArgumentList { argc, argv }.containsOption (getTablesFlag());
 }
 
 /**
@@ -586,18 +609,19 @@ static bool isInPlace (const juce::ArgumentList& arguments)
 }
 
 /**
- * @brief Returns the first dash argument in @p arguments outside the
- *        @c --format grammar -- exactly @c --format, @c -i,
- *        @c --line-wrap, or @c -, a @c --style=file[:\<path\>] value, or a
+ * @brief Returns the first option in @p arguments that is not in @p flags,
+ *        and is not a @c --style=file[:\<path\>] value or an
  *        @c --assume-filename=\<path\> value.
  *
  * @param arguments The parsed command-line arguments.
- * @returns The first unknown flag's own text, or an empty string when
- *          every dash argument matches the @c --format grammar.
+ * @param flags     The option words the calling grammar accepts. runFormat()
+ *                  passes its @c --format grammar, and runTables() its
+ *                  @c --tables grammar.
+ * @returns The first unknown option's own text, or an empty string when
+ *          every option is accepted.
  */
-static juce::String getUnknownFlag (const juce::ArgumentList& arguments)
+static juce::String getUnknownFlag (const juce::ArgumentList& arguments, const jam::Strings& flags)
 {
-    static const jam::Strings formatFlags { getFormatFlag(), getInPlaceFlag(), getLineWrapFlag(), getStandardInputArgument() };
     static const juce::String styleFileFlag { getStyleFlag() + juce::String::charToString (Chars::equals) + Id::file.toString() };
 
     for (const auto& argument : arguments.arguments)
@@ -606,7 +630,7 @@ static juce::String getUnknownFlag (const juce::ArgumentList& arguments)
                                      and (argument.text.compare (styleFileFlag) == 0
                                           or argument.text.startsWith (styleFileFlag + juce::String::charToString (Chars::colon))) };
 
-        if (argument.isOption() and not formatFlags.contains (argument.text, false) and not isStyleArgument
+        if (argument.isOption() and not flags.contains (argument.text, false) and not isStyleArgument
             and not argument.text.startsWith (getAssumeFilenameFlag() + juce::String::charToString (Chars::equals)))
             return argument.text;
     }
@@ -617,7 +641,7 @@ static juce::String getUnknownFlag (const juce::ArgumentList& arguments)
 /**
  * @brief Answers whether @p input is the lone @c - stdin argument.
  *
- * @param input One @c --format input argument.
+ * @param input One @c --format or @c --tables input argument.
  * @returns @c true when @p input is the stdin argument.
  */
 static bool isStandardInput (const juce::String& input)
@@ -626,14 +650,17 @@ static bool isStandardInput (const juce::String& input)
 }
 
 /**
- * @brief Returns every @c --format file argument in @p arguments, in
- *        order -- every argument that is not an option, or that is the
- *        stdin argument, skipping the @c --line-wrap value.
+ * @brief Returns the input arguments of @p arguments, in authored order:
+ *        every argument that is not an option, the stdin argument included,
+ *        skipping the value that follows the last @c --line-wrap.
+ *
+ * When no input argument is authored, the stdin argument is the only input.
  *
  * @param arguments The parsed command-line arguments.
- * @returns @p arguments' own file arguments, in authored order.
+ * @returns @p arguments' own input arguments, in authored order, or the
+ *          stdin argument alone when none is authored.
  */
-static jam::Strings getFormatFiles (const juce::ArgumentList& arguments)
+static jam::Strings getInputFiles (const juce::ArgumentList& arguments)
 {
     jam::Strings files;
     auto lineWrapIndex { invalidFlagValue };
@@ -654,6 +681,9 @@ static jam::Strings getFormatFiles (const juce::ArgumentList& arguments)
                 files.add (argument.text);
         }
     }
+
+    if (files.size() == 0)
+        files.add (getStandardInputArgument());
 
     return files;
 }
@@ -755,8 +785,8 @@ static int getLineWrap (int lineWrap, const Model& style)
 
 /**
  * @brief Resolves @p styleFile into a style Model and, when it validates,
- *        the reflow widths and writer it declares, then invokes
- *        @p function with them.
+ *        the reflow widths it declares and a formatter built from them,
+ *        then invokes @p function with both.
  *
  * @pre The JUCE GUI initialiser scope is open.
  *
@@ -766,7 +796,7 @@ static int getLineWrap (int lineWrap, const Model& style)
  * @param lineWrap  The @c --line-wrap value, read once by main(); used
  *                  when positive, the style's own line wrap otherwise.
  * @param styleFile The style file to parse and validate.
- * @param function  The callable invoked with the resolved writer and
+ * @param function  The callable invoked with the resolved formatter and
  *                  reflow widths.
  * @returns @p function's own result, or the style's own validation
  *          failure.
@@ -1009,25 +1039,37 @@ static int runFormatInPlace (int lineWrap, const juce::ArgumentList& arguments, 
 }
 
 /**
- * @brief Resolves @p input's own origin, directory, and style, then
- *        returns its canonicalized text.
+ * @brief Resolves @p input's own origin, directory, and style, parses
+ *        @p input into a Processor, and returns the text that @p getText
+ *        produces for it.
  *
  * A file input path resolves to the target of a symbolic link before the
  * directory is derived. The style file search and the Processor directory
- * start at the target's directory.
+ * start at the target's directory. A stdin input takes its directory and
+ * origin from @p assumeFilename when it is given, and from the working
+ * directory and the stdin origin name otherwise.
  *
- * @param lineWrap      The @c --line-wrap value, read once by main().
- * @param stylePath     An explicit @c --style=file:\<path\> path, or an
- *                      empty string to resolve @p input's own nearest
- *                      style file.
- * @param assumeFilename The @c --assume-filename value, read for the
- *                      stdin input only.
- * @param input         One @c --format input argument.
- * @returns The style's own validation or read result, paired with the
- *          canonicalized text on success.
+ * @tparam Function A callable invoked as
+ *                  @c getText(processor,formatter,file), returning
+ *                  std::pair<juce::Result, juce::String>. @c file is the
+ *                  origin for stdin, and @p input as authored otherwise.
+ * @param lineWrap       The @c --line-wrap value, read once by main(); used
+ *                       when positive, the style's own line wrap otherwise.
+ * @param stylePath      An explicit @c --style=file:\<path\> path, or an
+ *                       empty string to resolve @p input's own nearest style
+ *                       file.
+ * @param assumeFilename The @c --assume-filename value, read for the stdin
+ *                       input only.
+ * @param input          One input argument: a file path or the stdin
+ *                       argument.
+ * @param getText        The callable invoked once the Processor is built.
+ * @returns The result of the style, the input read, or @p getText, paired
+ *          with the text @p getText returned. The text is empty when the
+ *          style or the input read fails.
  */
-static std::pair<juce::Result, juce::String> getFormattedText (int lineWrap, const juce::String& stylePath,
-    const juce::String& assumeFilename, const juce::String& input)
+template <typename Function>
+static std::pair<juce::Result, juce::String> getProcessedText (int lineWrap, const juce::String& stylePath,
+    const juce::String& assumeFilename, const juce::String& input, Function&& getText)
 {
     const auto workingDirectory { juce::File::getCurrentWorkingDirectory() };
     const auto assumedFile { workingDirectory.getChildFile (assumeFilename) };
@@ -1038,32 +1080,32 @@ static std::pair<juce::Result, juce::String> getFormattedText (int lineWrap, con
     const auto origin { isStandardInput (input)
                         ? (assumeFilename.isNotEmpty() ? assumedFile.getFileName() : juce::String (files::standardInput))
                         : inputFile.getRelativePathFrom (directory) };
-    juce::String canonicalText;
+    juce::String outputText;
 
     const auto result { runStyled (lineWrap, getStyleFile (stylePath, getNearestStyleFile (directory)),
-        [&input, &origin, &directory, &canonicalText] (const jam::MarkdownWriter& formatter, const jam::HashMap<juce::Identifier, int>& reflowWidths)
+        [&input, &origin, &directory, &outputText, &getText] (const jam::MarkdownWriter& formatter, const jam::HashMap<juce::Identifier, int>& reflowWidths)
         {
             const auto [textResult, text] { getInputText (input) };
 
             if (textResult.wasOk())
             {
                 Processor processor { text, origin, directory, reflowWidths };
-                const auto [processResult, processedText] { processor.getText (formatter) };
-                canonicalText = processedText;
+                const auto [processResult, processedText] { getText (processor, formatter, isStandardInput (input) ? origin : input) };
+                outputText = processedText;
                 return processResult;
             }
 
             return textResult;
         }) };
 
-    return { result, canonicalText };
+    return { result, outputText };
 }
 
 /**
  * @brief Writes every one of @p texts to stdout, in binary mode on
  *        Windows.
  *
- * @param texts The canonicalized texts to write, in order.
+ * @param texts The texts to write, in order.
  */
 static void writeTexts (const jam::Strings& texts)
 {
@@ -1076,18 +1118,25 @@ static void writeTexts (const jam::Strings& texts)
 }
 
 /**
- * @brief Renders every one of @p files, or one stdin input when @p files
- *        is empty, to stdout, per input's own nearest style file, once
- *        every file and any explicit style path exist.
+ * @brief Runs getProcessedText() over every one of @p files, in order, and
+ *        collects the texts, once every file and any explicit style path
+ *        exist.
  *
+ * Opens its own JUCE GUI initialiser scope. The first failure returns with
+ * an empty list.
+ *
+ * @tparam Function The callable passed through to getProcessedText().
  * @param lineWrap  The @c --line-wrap value, read once by main().
- * @param arguments The parsed command-line arguments, read for
- *                  @c --style and @c --assume-filename.
- * @param files     The files to render, or empty for one stdin input.
- * @returns @c 0 when every input renders successfully, or @c 1 after
- *          printing the first failure's error message.
+ * @param arguments The parsed command-line arguments, read for @c --style
+ *                  and @c --assume-filename.
+ * @param files     The inputs to process, in order.
+ * @param getText   The callable passed through to getProcessedText().
+ * @returns juce::Result::ok() paired with one text per input, in order, or
+ *          the first failure paired with an empty list.
  */
-static int runFormatOutput (int lineWrap, const juce::ArgumentList& arguments, const jam::Strings& files)
+template <typename Function>
+static std::pair<juce::Result, jam::Strings> getProcessedTexts (int lineWrap, const juce::ArgumentList& arguments,
+    const jam::Strings& files, Function&& getText)
 {
     juce::ScopedJuceInitialiser_GUI libraryInitialiser;
 
@@ -1100,24 +1149,50 @@ static int runFormatOutput (int lineWrap, const juce::ArgumentList& arguments, c
     {
         jam::Strings texts;
 
-        for (const auto& input : files.size() > 0 ? files : jam::Strings { getStandardInputArgument() })
+        for (const auto& input : files)
         {
-            const auto [formatResult, text] { getFormattedText (lineWrap, stylePath, assumeFilename, input) };
+            const auto [processResult, text] { getProcessedText (lineWrap, stylePath, assumeFilename, input, getText) };
 
-            if (not formatResult.wasOk())
-            {
-                printError (formatResult.getErrorMessage());
-                return 1;
-            }
+            if (not processResult.wasOk())
+                return { processResult, {} };
 
             texts.add (text);
         }
 
+        return { juce::Result::ok(), std::move (texts) };
+    }
+
+    return { filesFound.wasOk() ? styleFound : filesFound, {} };
+}
+
+/**
+ * @brief Renders every one of @p files to stdout, through
+ *        Processor::getText(), per input's own nearest style file, once
+ *        every file and any explicit style path exist.
+ *
+ * The files come from getInputFiles(), which supplies the stdin argument
+ * when the command line names no file.
+ *
+ * @param lineWrap  The @c --line-wrap value, read once by main().
+ * @param arguments The parsed command-line arguments, read for
+ *                  @c --style and @c --assume-filename.
+ * @param files     The inputs to render, in order.
+ * @returns @c 0 when every input renders successfully, or @c 1 after
+ *          printing the first failure's error message.
+ */
+static int runFormatOutput (int lineWrap, const juce::ArgumentList& arguments, const jam::Strings& files)
+{
+    const auto [formatResult, texts] { getProcessedTexts (lineWrap, arguments, files,
+        [] (const Processor& processor, const jam::MarkdownWriter& formatter, const juce::String&)
+        { return processor.getText (formatter); }) };
+
+    if (formatResult.wasOk())
+    {
         writeTexts (texts);
         return 0;
     }
 
-    printError (filesFound.wasOk() ? styleFound.getErrorMessage() : filesFound.getErrorMessage());
+    printError (formatResult.getErrorMessage());
     return 1;
 }
 
@@ -1134,14 +1209,15 @@ static int runFormatOutput (int lineWrap, const juce::ArgumentList& arguments, c
  */
 static int runFormat (int argc, char* argv[], int lineWrap)
 {
+    static const jam::Strings formatFlags { getFormatFlag(), getInPlaceFlag(), getLineWrapFlag(), getStandardInputArgument() };
+
     const juce::ArgumentList arguments { argc, argv };
-    const auto unknownFlag { getUnknownFlag (arguments) };
+    const auto unknownFlag { getUnknownFlag (arguments, formatFlags) };
 
     if (unknownFlag.isEmpty())
     {
-        const auto files { getFormatFiles (arguments) };
-        const auto isInPlaceInput { isInPlace (arguments)
-                                    and (files.size() == 0 or files.contains (getStandardInputArgument(), false)) };
+        const auto files { getInputFiles (arguments) };
+        const auto isInPlaceInput { isInPlace (arguments) and files.contains (getStandardInputArgument(), false) };
 
         if (not isInPlaceInput)
             return isInPlace (arguments) ? runFormatInPlace (lineWrap, arguments, files)
@@ -1150,6 +1226,63 @@ static int runFormat (int argc, char* argv[], int lineWrap)
         printError (text::Diagnostics::failInPlaceInput);
         return 1;
     }
+
+    printError (unknownFlag + Id::diagnosticSeparator + text::Diagnostics::failFlagUnknown);
+    return 1;
+}
+
+/**
+ * @brief Renders every one of @p files to stdout as JSON, through
+ *        Processor::getText(JsonWriter, file), as one JSON array.
+ *
+ * The output is the per-input JSON objects, comma-separated, inside one
+ * pair of brackets, followed by a newline. The style still resolves through
+ * runStyled(), because its reflow widths tell the Model which column rows
+ * to join into one value. The JSON callable does not use the formatter.
+ *
+ * @param arguments The parsed command-line arguments, read for @c --style
+ *                  and @c --assume-filename.
+ * @param files     The inputs to render, in order.
+ * @returns @c 0 when every input renders successfully, or @c 1 after
+ *          printing the first failure's error message.
+ */
+static int runTablesOutput (const juce::ArgumentList& arguments, const jam::Strings& files)
+{
+    const auto [tablesResult, texts] { getProcessedTexts (absentFlagValue, arguments, files,
+        [] (const Processor& processor, const jam::MarkdownWriter&, const juce::String& file)
+        { return processor.getText (JsonWriter {}, file); }) };
+
+    if (tablesResult.wasOk())
+    {
+        writeTexts (jam::Strings { juce::String::charToString (Chars::openBracket)
+                                   + texts.joinIntoString (juce::String::charToString (Chars::comma))
+                                   + Chars::closeBracket + Chars::newline });
+        return 0;
+    }
+
+    printError (tablesResult.getErrorMessage());
+    return 1;
+}
+
+/**
+ * @brief Dispatches a @c --tables line: rejects an option outside the
+ *        @c --tables grammar, then runs runTablesOutput() over
+ *        getInputFiles().
+ *
+ * @param argc The CLI argument count.
+ * @param argv The CLI argument vector.
+ * @returns @c 0 when the tables run succeeds, or @c 1 after printing the
+ *          first failure's error message.
+ */
+static int runTables (int argc, char* argv[])
+{
+    static const jam::Strings tablesFlags { getTablesFlag(), getStandardInputArgument() };
+
+    const juce::ArgumentList arguments { argc, argv };
+    const auto unknownFlag { getUnknownFlag (arguments, tablesFlags) };
+
+    if (unknownFlag.isEmpty())
+        return runTablesOutput (arguments, getInputFiles (arguments));
 
     printError (unknownFlag + Id::diagnosticSeparator + text::Diagnostics::failFlagUnknown);
     return 1;
@@ -1403,7 +1536,8 @@ static int runPackArguments (int argc, char* argv[])
  *
  * When @p argv declares no manifest, prints the banner and the guide and
  * returns @c 0, the same as the help request. A declared manifest that does
- * not exist goes to runDocumentNotFound().
+ * not exist goes to runDocumentNotFound(). main() dispatches the pack, sync,
+ * and tables requests before this function is reached.
  *
  * @param argc     The CLI argument count.
  * @param argv     The CLI argument vector.
@@ -1444,16 +1578,20 @@ static int runCommandLine (int argc, char* argv[], int lineWrap)
 }
 
 /**
- * @brief `cast`'s own entry point -- sets up UTF-8 console output, clears
- *        the terminal outside a `--format` or `--pack` run, then
- *        dispatches @p argv to runPackArguments() for `--pack`, to
- *        runSyncArguments() for `--sync`, and to runCommandLine()
- *        otherwise.
+ * @brief `cast`'s own entry point -- sets the Windows console to UTF-8,
+ *        clears the terminal unless the run is a `--format`, `--pack`, or
+ *        `--tables` run, then dispatches @p argv to runPackArguments() for
+ *        `--pack`, to runSyncArguments() for `--sync`, to runTables() for
+ *        `--tables`, and to runCommandLine() otherwise.
+ *
+ * An invalid `--line-wrap` value fails with a flag-value error before
+ * runCommandLine() is reached. The `--pack`, `--sync`, and `--tables` runs
+ * return before that check.
  *
  * @param argc The argument count.
  * @param argv The argument vector.
  * @returns The dispatched function's own result, or @c 1 after printing
- *          the failure when the `--line-wrap` value is invalid.
+ *          the flag-value error.
  */
 int main (int argc, char* argv[])
 {
@@ -1463,7 +1601,7 @@ int main (int argc, char* argv[])
 
     const auto lineWrap { getFlagValue (argc, argv, getLineWrapFlag(), absentFlagValue) };
 
-    if (isTerminalOutput() and not isFormatOnly (argc, argv) and not isPackFlag (argc, argv))
+    if (isTerminalOutput() and not isFormatOnly (argc, argv) and not isPackFlag (argc, argv) and not isTablesFlag (argc, argv))
     {
         juce::MemoryOutputStream erase;
         jam::TerminalBuffer::writeEraseScreen (erase);
@@ -1476,6 +1614,9 @@ int main (int argc, char* argv[])
 
     if (isSyncFlag (argc, argv))
         return runSyncArguments (argc, argv, lineWrap);
+
+    if (isTablesFlag (argc, argv))
+        return runTables (argc, argv);
 
     if (lineWrap != invalidFlagValue)
         return runCommandLine (argc, argv, lineWrap);

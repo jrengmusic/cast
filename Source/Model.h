@@ -84,11 +84,11 @@ public:
      *
      * @param file  The file whose index @p alias is resolved against.
      * @param alias The @-sigiled alias to resolve.
-     * @returns @p alias's resolved symbol -- the matching index row's
-     *          @c symbol cell's own resolved value, formatted through the
-     *          index's @c format column when it declares one -- or an
-     *          empty string when @p alias is not an @-sigiled identifier
-     *          or is absent from @p file's index.
+     * @returns @p alias's symbol cell's own stamped value -- the value
+     *          addValue() sets from that cell's authored text and the
+     *          @c format cell that follows it -- or an empty string when
+     *          getSymbolCell() finds no row for @p alias in @p file's
+     *          index.
      */
     juce::String getValue (juce::StringRef file, juce::StringRef alias) const;
 
@@ -124,6 +124,23 @@ public:
     juce::String getColumnValue (const Element& row, const juce::Identifier& column) const;
 
     /**
+     * @brief Returns @p cell's authored text, as the tables output prints it.
+     *
+     * A plain cell -- one with no literal, outside the description and brief
+     * columns and the alias column -- whose whole text is an @-sigiled alias
+     * declared in the row's file's index reads the authored text of that
+     * alias's symbol cell, one level only. Every other cell reads its own
+     * authored text. Neither path applies the format transform or toLiteral().
+     *
+     * @param headerCell The header cell naming @p cell's column.
+     * @param row        The row @p cell belongs to; its file's index resolves
+     *                   the alias.
+     * @param cell       The cell whose text is read.
+     * @returns The authored text.
+     */
+    juce::String getAuthoredText (const Element& headerCell, const Element& row, const Element& cell) const;
+
+    /**
      * @brief Answers whether @p value is a shape address -- @-sigiled,
      *        and resolving through @p row's own file's index to a symbol
      *        naming a @c .cast file.
@@ -152,6 +169,18 @@ public:
      * @returns @c true when @p value starts with the @ sigil.
      */
     static bool isAddress (const juce::String& value) noexcept;
+
+    /**
+     * @brief Answers whether @p column is a description column -- the
+     *        @c description or the @c brief column.
+     *
+     * Cells of a description column hold prose. They never resolve an
+     * @-sigiled alias, and they never receive toLiteral() escaping.
+     *
+     * @param column The column identifier tested.
+     * @returns @c true when @p column is @c description or @c brief.
+     */
+    static bool isDescriptionColumn (const juce::Identifier& column) noexcept;
 
     /**
      * @brief Returns @p scope's own shape line's resolved template file
@@ -649,8 +678,13 @@ private:
     /**
      * @brief Parses @p text as @p document's own manifest, sourced from
      *        @p origin under @p directory, splices in every data file its
-     *        index declares, stamps every table's own @c wiring, then
-     *        stamps every row through addRow().
+     *        index declares, stamps every table's own @c description and
+     *        @c wiring, then stamps every row through addRow().
+     *
+     * Index tables are stamped before every other table. An @-sigiled cell
+     * resolves through getValue(), which reads the symbol cell's stamped
+     * @c value, so every index row carries its value before any row names
+     * an alias.
      *
      * @param document  The model parsed into.
      * @param text      The manifest source text to parse.
@@ -661,19 +695,25 @@ private:
         const juce::File& directory);
 
     /**
-     * @brief Returns @p row's own per-depth map-bullet count and blank-bullet
-     *        count -- @p listCell's own list-bullet count in excess of
-     *        @p structureCell's own shape count at each depth, and, from
-     *        @p listCell alone, each depth's own blank-valued bullet count.
+     * @brief Measures, per blockquote depth, how many of the first list-column
+     *        bullets are map bullets rather than expansion lines, and how many
+     *        list-column bullets are empty-valued.
+     *
+     * The first N non-address list bullets at a depth are map bullets, where N
+     * is that depth's excess: addItem() gives a map bullet no structure line.
+     * Without this count addItem() cannot tell a map bullet from an expansion
+     * line. Column-address bullets are never counted, and a missing structure
+     * cell subtracts nothing.
      *
      * @param listCell      @p row's own @c list cell, or @c nullptr when
      *                      absent.
-     * @param structureCell @p row's own @c structure cell, or @c nullptr
-     *                      when absent.
+     * @param structureCell @p row's own @c structure cell, or @c nullptr when
+     *                      absent.
      * @param document      The model @p row belongs to.
-     * @param row           The row whose columns are counted.
-     * @returns Each depth's own map-bullet excess, paired with each
-     *          depth's own blank-valued bullet count.
+     * @param row           The row whose bullets are counted.
+     * @return The pair of each depth's own map-bullet excess, the list-cell
+     *         count less the structure-cell count clamped at zero, and each
+     *         depth's own empty-valued list-bullet count.
      */
     static std::pair<jam::Array<int>, jam::Array<int>> getExcess (const Element* listCell,
         const Element* structureCell, const Model& document, const Element& row);
@@ -962,13 +1002,32 @@ private:
     static void addDescriptionReferences (Element& row);
 
     /**
-     * @brief Returns @p cell's backtick code child, searched depth-first.
+     * @brief Returns @p cell's literal child, searched depth-first -- the
+     *        first inline code child or code block.
      *
-     * @param cell The cell searched for a code child.
-     * @returns @p cell's code child, or @c nullptr when it carries none --
+     * @param cell The cell searched for a literal child.
+     * @returns @p cell's literal child, or @c nullptr when it carries none --
      *          a cell's literality is this pointer's mere existence.
      */
     static const Element* getLiteral (const Element& cell);
+
+    /**
+     * @brief Answers whether @p cell holds description prose: its header
+     *        names a description column, and either it carries no literal
+     *        or its own text differs from its literal's text.
+     *
+     * A prose cell is read as its raw source text, which keeps its own line
+     * breaks, and a literal prose cell skips the format transform in
+     * addValue(). A cell whose text is exactly its literal's text is not
+     * prose.
+     *
+     * @param headerCell The header cell naming @p cell's column.
+     * @param cell       The cell tested.
+     * @param literal    @p cell's literal child from getLiteral(), or
+     *                   @c nullptr.
+     * @returns @c true when @p cell holds description prose.
+     */
+    static bool isDescriptionProse (const Element& headerCell, const Element& cell, const Element* literal);
 
     /**
      * @brief Answers whether @p cell owns a fenced block among its own
@@ -983,77 +1042,65 @@ private:
     bool isFencedCell (const Element& cell) const;
 
     /**
-     * @brief Returns @p cell's own authored text -- its literal child,
-     *        transformed and formatted for its column kind, its stamped
-     *        description prose, or its own subtext, in that order of
-     *        preference.
+     * @brief Returns @p value with every newline removed when @p headerCell
+     *        names a column in reflowWidths and @p cell owns no fenced
+     *        direct child.
      *
-     * @param cell            The cell whose authored text is read.
-     * @param literal         @p cell's own backtick code child, or
-     *                        @c nullptr when it carries none.
-     * @param isDescriptionColumn Whether @p cell belongs to a @c description or
-     *                        @c brief column.
-     * @param isDescriptionProse  Whether @p cell's own description column carries
-     *                        prose rather than a literal.
-     * @param transform       @p cell's own @c format cell's transform
-     *                        name, applied to a literal's text.
-     * @returns @p cell's own authored text, resolved in preference order.
-     */
-    juce::String getAuthoredText (const Element& cell, const Element* literal, bool isDescriptionColumn,
-        bool isDescriptionProse, const juce::String& transform) const;
-
-    /**
-     * @brief Returns @p value with every newline removed, when
-     *        @p headerCell names a column reflowWidths declares and
-     *        @p cell owns no fenced direct child (isFencedCell()) --
-     *        undoing jam's row-wrap of a grid-table cell's own one-line
-     *        value. A fence's own newlines are authored lines, kept as
-     *        is.
+     * The writer wraps the cells of a reflowed column to the column width,
+     * and a wrapped cell carries its wrap as newlines inside the cell. This
+     * removes them to recover the one-line value. A fenced cell keeps its
+     * newlines, because the writer renders a fenced cell verbatim.
      *
-     * Runs on getAuthoredText()'s own raw return, before addValue()'s
-     * own later @c getValue() resolution and @c Transforms::getTransformed()
-     * call. For a literal cell (backtick or fence), getAuthoredText()
-     * already ran @c jam::Format::toLiteral() on its text internally, and
-     * a fenced cell is excluded here, so this call is a no-op on both --
-     * a backtick span's own wrap newline is already folded to nothing by
-     * jam inside the cell, leaving nothing to remove either way. For a
-     * plain, unfenced cell, getAuthoredText() returns raw, unescaped
-     * text, so this is the one point a row-wrapped value's real newlines
-     * are still present to remove -- before a @c toLiteral-named
-     * transform (Transforms.h) could later escape one into the
-     * two-character sequence @c \\n, past this function's own reach.
+     * The join runs in getAuthoredText(), before the format transform in
+     * addValue(), so a transform that rewrites the text cannot turn a
+     * newline into another character before the join removes it.
      *
      * @param headerCell @p cell's own header cell, naming its column.
-     * @param cell       @p value's own cell, tested for a fenced direct
-     *                   child.
-     * @param value      @p cell's own authored text, straight from
-     *                   getAuthoredText(), possibly row-wrapped.
+     * @param cell       The cell tested for a fenced direct child.
+     * @param value      @p cell's authored text, from getAuthoredText().
      * @returns @p value with every newline removed when reflowed and
      *          unfenced, or @p value unchanged otherwise.
      */
     juce::String getJoinedValue (const Element& headerCell, const Element& cell, const juce::String& value) const;
 
     /**
-     * @brief Stamps @p cell with its resolved value -- its own authored
-     *        literal or description prose, joined into one line through
-     *        getJoinedValue() first when @p headerCell names a
-     *        reflowWidths column, then resolved through getValue() when
-     *        the joined result is an @-sigiled reference outside the
-     *        @c alias, @c description and @c brief columns, then transformed by
-     *        @p cell's own @c format cell when present.
+     * @brief Returns @p cell's authored text -- its literal's text, its raw
+     *        source text when it is description prose, or its own text --
+     *        joined through getJoinedValue().
      *
-     * The join runs first, on getAuthoredText()'s own raw return --
-     * see getJoinedValue() for the per-cell-kind order this depends on:
-     * a literal cell's own text is already toLiteral-escaped inside
-     * getAuthoredText() by the time the join sees it (a no-op there,
-     * fenced or not), while a plain cell's text still carries its real,
-     * row-wrapped newlines at this point -- removed here, before this
-     * function's own @c Transforms::getTransformed() call below could
-     * otherwise escape one away under a @c toLiteral-named transform.
+     * The text is not alias-resolved, transformed, or escaped. addValue()
+     * applies those steps.
      *
-     * A blank cell resolves to an empty string, always -- it renders
-     * nothing and elides in templates like an absent trailing value.
-     * There is no inheritance from a preceding cell.
+     * @param headerCell The header cell naming @p cell's column.
+     * @param cell       The cell read.
+     * @param literal    @p cell's literal child from getLiteral(), or
+     *                   @c nullptr.
+     * @returns The joined authored text.
+     */
+    juce::String getAuthoredText (const Element& headerCell, const Element& cell, const Element* literal) const;
+
+    /**
+     * @brief Stamps @p cell with its resolved value, the value that
+     *        generation reads through @c Id::value.
+     *
+     * The steps run in this order:
+     *
+     * -# The authored text, from getAuthoredText(), joined through
+     *    getJoinedValue().
+     * -# For a plain cell outside the description, brief, and alias columns,
+     *    an @-sigiled value resolves through getValue(). An alias yields its
+     *    index symbol's value. Any other @-sigiled value yields an empty
+     *    string, because the index holds no row with that id.
+     * -# The format cell, the sibling directly after @p cell, names a
+     *    transform. The transform applies when Transforms::contains()
+     *    holds, and not to a literal prose cell.
+     * -# A literal cell outside the description and brief columns is escaped
+     *    with jam::Format::toLiteral().
+     *
+     * A blank cell has no authored text, so its value is the empty string
+     * before the transform step. The value reads only @p cell, its format
+     * sibling, and its row's own file's index, so no value passes from one
+     * cell to another.
      *
      * @param headerCell @p cell's own header cell, naming its column.
      * @param row        The row @p cell belongs to.
@@ -1082,6 +1129,21 @@ private:
      *          own file stem.
      */
     const Element* getUnnamedTable (const juce::String& declaredPath) const;
+
+    /**
+     * @brief Returns the symbol cell of the index row named @p alias, in the
+     *        index table whose path is @p file.
+     *
+     * An alias that does not start with the @ sigil, or that is not a valid
+     * juce::Identifier, names no row.
+     *
+     * @param file  The file whose index is searched, matched against each
+     *              index table's path.
+     * @param alias The @-sigiled alias.
+     * @returns The index row's symbol cell, or @c nullptr when @p alias names
+     *          no row of that index.
+     */
+    const Element* getSymbolCell (juce::StringRef file, juce::StringRef alias) const;
 
     /**
      * @brief Resolves @p declaredPath's own table -- @p tableName's own

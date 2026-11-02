@@ -57,7 +57,6 @@ namespace Id
     const juce::Identifier rowSpacing       { juce::String::fromUTF8 ("row-spacing") };
     const juce::Identifier syncBoundary     { juce::String::fromUTF8 ("boundary") };
     const juce::Identifier brief            { juce::String::fromUTF8 ("brief") };
-    const juce::Identifier command          { juce::String::fromUTF8 ("command") };
     const juce::Identifier filePrefix       { juce::String::fromUTF8 ("filePrefix") };
     const juce::Identifier flag             { juce::String::fromUTF8 ("flag") };
     const juce::String     fromCodepoint    { juce::String::fromUTF8 ("from codepoint") };
@@ -74,11 +73,13 @@ namespace Id
     const juce::Identifier noFormat         { juce::String::fromUTF8 ("no-format") };
     const juce::Identifier owner            { juce::String::fromUTF8 ("owner") };
     const juce::Identifier placeholder      { juce::String::fromUTF8 ("placeholder") };
+    const juce::Identifier rows             { juce::String::fromUTF8 ("rows") };
     const juce::Identifier separator        { juce::String::fromUTF8 ("separator") };
     const juce::Identifier structure        { juce::String::fromUTF8 ("structure") };
     const juce::Identifier submodule        { juce::String::fromUTF8 ("submodule") };
     const juce::Identifier symbol           { juce::String::fromUTF8 ("symbol") };
     const juce::Identifier sync             { juce::String::fromUTF8 ("sync") };
+    const juce::Identifier tables           { juce::String::fromUTF8 ("tables") };
     const juce::Identifier templatePath     { juce::String::fromUTF8 ("template") };
     const juce::String     toCamel          { juce::String::fromUTF8 ("to camel") };
     const juce::String     toCodepoint      { juce::String::fromUTF8 ("to codepoint") };

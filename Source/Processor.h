@@ -5,18 +5,22 @@
 #include "Validator.h"
 #include "Toolchain.h"
 #include "Writer.h"
+#include "JsonWriter.h"
 
 /**
  * @struct Processor
  * @brief Owns the parsed Model, the pool of parsed template files in its
  *        TemplateDocument, and the Writer for one manifest, and drives
- *        generation and origin-file canonicalization through them.
+ *        generation, origin-file canonicalization, and the tables output
+ *        through them.
  *
  * Processor parses the manifest and its declared template files once at
  * construction. generate() then validates the manifest and writes its
  * declared outputs; format() re-canonicalizes every origin file the
- * manifest declares, in parallel, write-if-different. The toolchain rows
- * run through Toolchain.
+ * manifest declares, in parallel, write-if-different. getText() returns the
+ * manifest origin's canonical text through a formatter, or its own tables as
+ * JSON through a JsonWriter, and writes nothing. The toolchain rows run
+ * through Toolchain.
  */
 struct Processor
 {
@@ -69,14 +73,32 @@ struct Processor
 
     /**
      * @brief Returns the manifest origin's own canonical text, paired with
-     *        the manifest's own structural validation result.
+     *        the result of the markdown validation that gates it.
      *
      * @param formatter The formatter the manifest origin's canonical text
      *                  is read from.
-     * @returns The manifest's own structural validation result, paired
-     *          with its origin's canonical text.
+     * @returns juce::Result::ok() paired with the canonical text when the
+     *          markdown validation passes, or the failure paired with an
+     *          empty string.
      */
     std::pair<juce::Result, juce::String> getText (const jam::MarkdownWriter& formatter) const;
+
+    /**
+     * @brief Returns the manifest origin's own tables as JSON text, encoded
+     *        through @p tablesWriter, paired with the validation that gates
+     *        them.
+     *
+     * The markdown validation of format() runs first, then the Model-only
+     * checks of Validator::isValid(const Model&). Either failure returns
+     * that failure paired with an empty string.
+     *
+     * @param tablesWriter The writer that encodes the tables.
+     * @param file         The file name written into the JSON output.
+     * @returns juce::Result::ok() paired with the JSON text when both checks
+     *          pass, or the first failing check's result paired with an
+     *          empty string.
+     */
+    std::pair<juce::Result, juce::String> getText (const JsonWriter& tablesWriter, const juce::String& file) const;
 
 private:
     /**

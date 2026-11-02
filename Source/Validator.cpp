@@ -17,6 +17,17 @@ juce::Result Validator::isValid (const Model& model, const TemplateDocument& tem
     return isManifest (model, templateDocument);
 }
 
+juce::Result Validator::isValid (const Model& model)
+{
+    if (const auto result { isIndex (model) }; not result.wasOk())
+        return result;
+
+    if (const auto result { isUniqueAlias (model) }; not result.wasOk())
+        return result;
+
+    return isReference (model);
+}
+
 juce::Result Validator::isIndex (const Model& model)
 {
     for (auto* indexTable : model.getTables (Id::index))
@@ -510,7 +521,7 @@ juce::Result Validator::isReference (const Model& model)
         [&model] (const Element& table, const Element& row, const juce::Identifier& column,
             const juce::String& entryValue) -> juce::Result
         {
-            if (column != Id::description and column != Id::brief and Model::isAddress (entryValue))
+            if (not Model::isDescriptionColumn (column) and Model::isAddress (entryValue))
                 return hasTable (model, table, row, column, entryValue);
 
             return juce::Result::ok();

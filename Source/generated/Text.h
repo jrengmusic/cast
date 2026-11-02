@@ -77,7 +77,7 @@ struct Diagnostics
     static constexpr const char* const failFormatColumn       { "format column not declared"                                                                                 };///< A style-file ## format table's header row declares no name or width column.
     static constexpr const char* const failFormatWidth        { "format width must be a positive integer"                                                                    };///< A style-file ## format width cell is not a positive integer.
     static constexpr const char* const failInPlaceInput       { "cannot use -i when reading from stdin"                                                                      };///< A --format line with -i that reads stdin.
-    static constexpr const char* const failFlagUnknown        { "unknown flag"                                                                                               };///< A dash argument on a --format line that is not a format flag word.
+    static constexpr const char* const failFlagUnknown        { "unknown flag"                                                                                               };///< A dash argument on a --format or --tables line that is not a flag word of that line.
     static constexpr const char* const failStandardInput      { "standard input cannot be read"                                                                              };///< Stdin could not be read.
     static constexpr const char* const done                   { "Fine."                                                                                                      };///< Every step of the run succeeded.
 };

@@ -36,6 +36,7 @@ The engine hardcodes these items and no other items:
   §2.2)
 - the `--format` flag words `-i`, `--style=file`, `--style=file:`, `--assume-filename=`, the stdin
   argument `-`, and the stdin file name `<stdin>` (§2.1)
+- the `--tables` flag word and its output keys `file`, `tables`, `name`, `columns` and `rows` (§2.1)
 - the manifest-syntax table name (§5.4)
 - the operation keywords
 - the sync file name `user-modules-info.md`, its table names `identity`, `module`, and `ignore`, the
@@ -89,6 +90,7 @@ The command line selects what runs. The command line never carries a generation 
 
 ```
 cast --format [-i] [--style=file:<path>] [--assume-filename=<path>] [--line-wrap n] [<file> ...]
+cast --tables [--style=file:<path>] [--assume-filename=<path>] [<file> ...]
 cast <manifest> [<directory> | --no-format | --<word>] [--line-wrap n]
 cast --sync [--style=file:<path>] <source-root> <target-root>
 cast --pack <archive> [--<layout-key>=<n> ...] [--background=<path>] <item> [--link=<name>=<target>] [...]
@@ -97,7 +99,7 @@ cast --help
 ```
 
 - No manifest: the command shows the guide, the same as `--help`. A run needs a manifest path.
-- A manifest path or a `--format` input path that is a symbolic link resolves to its target. The manifest directory is the directory of the target.
+- A manifest path, a `--format` input path or a `--tables` input path that is a symbolic link resolves to its target. The manifest directory is the directory of the target.
 - `<manifest>`: a manifest path. The flag reads before or after it.
 - `--line-wrap n`: a value pair, in any position on the line. It composes with `--format`,
   `--no-format` and the manifest argument. It overrides the `line-wrap` row of the resolved style
@@ -165,6 +167,45 @@ Stdout carries LF line ends only, on every host. Input and output are UTF-8.
 `--line-wrap`, is an unknown flag (§10.1). A flag word matches exactly: `--line-wrap=40` and
 `--format=x` are unknown flags. `--assume-filename=<path>` applies to the stdin input only — no
 argument, or the argument `-`. The `--no-format` line takes one manifest, one flag, nothing else.
+
+**The `--tables` line** prints the tables of markdown files as JSON, for a caller that reads cast data
+with the cast reader. It changes nothing: it formats nothing, writes no file, and runs no
+`## toolchain` row. A manifest on the line is a markdown file like each other file, and no
+generation occurs.
+
+1. Each file argument resolves against the working directory. Any markdown file is an input.
+2. No file argument: the engine reads stdin. A file argument `-` also reads stdin. Stdin and a file
+   argument together: the engine reads the file argument.
+3. The engine parses each file with the reader of §3. The style search (§6.11) runs as on the
+   `--format` line, with `--style=file:<path>` and `--assume-filename=<path>`, because the style
+   file names the columns whose rows join (§3.2). The engine also parses each `.md` file that the
+   index of the file declares (§2), thus a cross-file address has its target. Only the tables of the
+   file itself print.
+4. Stdout holds one JSON array, then one LF. The array holds one object for each input, in argument
+   order:
+   - `file` — the argument as the caller gave it. For stdin, the file name of the `--format` rule 8.
+   - `tables` — each table of the file, in authored order. `## index` is a table like each other
+     table. Two tables with one heading both print.
+5. Each table object holds:
+   - `name` — the heading text, as authored. It is empty when no heading comes before the table.
+   - `columns` — the column names, as authored, in authored order.
+   - `rows` — the body rows, in authored order. Each row is an object that maps each column name
+     to the value of its cell.
+6. The value of a cell is its datum: the plain text, the bytes of a code span, or the content of a
+   fence (§3.2, §5.1). No `toLiteral` and no `format` operation applies (§8, §9). A plain cell whose
+   whole text is an `@alias` that the index of the file declares resolves to the datum of its symbol
+   (§4.1). Each other address prints as authored. A code-span cell, a fenced cell, a `description`
+   cell, a `brief` cell and a cell of an `alias` column print as authored.
+7. The JSON is one line. Each string escapes by the JSON rules, and each character above `U+007F` is
+   a `\u` escape.
+8. Success: exit 0. Stdout holds only the JSON array.
+9. Failure: a non-zero exit. Stdout is empty. Stderr holds the diagnostic (§10). The fatals are the
+   input fatals of the `--format` line, a malformed table (§3.3), the index fatals (§4.1, §4.4), a
+   duplicate entry in an `alias` column (§5.3), and the §4.4 fatals of each address. They apply to
+   the file and to each `.md` file that its index declares.
+
+On a `--tables` line, a dash argument that this paragraph does not name is an unknown flag (§10.1).
+Thus `-i`, `--line-wrap`, `--format`, `--no-format` and `--<word>` are fatal on the line.
 
 ### 2.2 Sync
 
@@ -1297,7 +1338,7 @@ These, and nothing else:
 | two rows of one archive that give its root one name                                                                                             | §6.12      |
 | an archive or its stage folder that cannot be written or removed, or `.DS_Store` records that exceed one node                                   | §6.12      |
 | a `--<word>` CLI argument matching no toolchain row's `argument` cell                                                                           | §6.9       |
-| malformed table, during formatting only                                                                                                         | §3.3       |
+| malformed table, during formatting and on a `--tables` line only                                                                                | §3.3       |
 | index `symbol` cell empty                                                                                                                       | §4.1       |
 | output row declares no structure                                                                                                                | §6.3       |
 | same-file output rows not contiguous                                                                                                            | §6.7       |
@@ -1322,10 +1363,10 @@ These, and nothing else:
 | sync source root equals target root                                                                                                             | §2.2       |
 | a `--sync` line without exactly two roots, with or without one `--style=file:<path>`                                                            | §2.1       |
 | a sync source file that cannot be read                                                                                                          | §2.2       |
-| the manifest file, a `--format` file argument, or a `--style=file:<path>` file does not exist                                                   | §2.1       |
+| the manifest file, a `--format` or `--tables` file argument, or a `--style=file:<path>` file does not exist                                     | §2.1       |
 | a `--line-wrap` value below 1, or a flag value that is not an integer                                                                           | §2.1       |
 | `-i` on a `--format` line that reads stdin                                                                                                      | §2.1       |
-| a dash argument on a `--format` line that §2.1 does not name                                                                                    | §2.1       |
+| a dash argument on a `--format` or `--tables` line that §2.1 does not name                                                                      | §2.1       |
 | stdin that cannot be read                                                                                                                       | §2.1       |
 | a style-file `## format` header row declaring no `name` or no `width` column                                                                    | §6.11      |
 | a style-file `## format` `width` cell that is not a positive integer                                                                            | §6.11      |

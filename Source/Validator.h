@@ -9,7 +9,9 @@
  * @struct Validator
  * @brief Applies every manifest-level fatal to a parsed Model and
  *        TemplateDocument -- index integrity, uniqueness, formatting,
- *        structure, placeholders, and reference resolution.
+ *        structure, placeholders, and reference resolution -- and, through
+ *        the Model-only isValid(), the index, uniqueness, and reference
+ *        subset that the tables output runs.
  *
  * Validator extends jam::MarkdownValidator with cast's own manifest checks;
  * it owns no state and reports the first violation found, in check order.
@@ -46,6 +48,20 @@ struct Validator : jam::MarkdownValidator
      *          failing check's result.
      */
     static juce::Result isValid (const Model& model, const TemplateDocument& templateDocument);
+
+    /**
+     * @brief Runs the Model-only checks against @p model: index integrity,
+     *        alias uniqueness, and reference resolution, in that order,
+     *        stopping at the first failure.
+     *
+     * The template and structure checks of isValid(const Model&,
+     * const TemplateDocument&) do not run here.
+     *
+     * @param model The parsed manifest and its data tables.
+     * @returns juce::Result::ok() when every check passes, or the first
+     *          failing check's result.
+     */
+    static juce::Result isValid (const Model& model);
 
     /**
      * @brief Invokes @p function once per bullet found by walking
@@ -405,18 +421,22 @@ struct Validator : jam::MarkdownValidator
     static juce::Result isPaired (const Model& model);
 
     /**
-     * @brief Checks that every @-sigiled binding across @p model's
-     *        @c structure, @c separator, and @c list scopes, and every
-     *        @-sigiled non-wiring cell outside the @c description and
-     *        @c brief columns, resolves through hasTable() --
-     *        a shape address is exempt, resolved instead by
-     *        Validator::isStructure(). A @c separator or @c list description
-     *        binding is exempt -- it is item prose, validated instead by
-     *        isPaired(). A @c structure description binding is not exempt --
-     *        it is the file-documentation binding, validated here like any
-     *        other address.
+     * @brief Checks that every @-sigiled entry resolves through hasTable().
      *
-     * @param model The model whose bindings and cells are checked.
+     * The entries are the bullets of an output table's @c structure,
+     * @c separator, and @c list columns, and the cells of a non-index table
+     * outside those three columns and outside the description and brief
+     * columns (Model::isDescriptionColumn()). A cell is checked on its raw
+     * text, Model::getRawText().
+     *
+     * A bullet whose value is a shape address (Model::isShape()) is not
+     * checked here. A description bullet in the @c separator or @c list
+     * column is not checked here either: isPaired() checks it as a
+     * description reference, to a table or to a named fence. A description
+     * bullet in the @c structure column is checked like
+     * any other bullet.
+     *
+     * @param model The model whose bullets and cells are checked.
      * @returns juce::Result::ok() when every @-sigiled entry resolves,
      *          or the first failing entry's result.
      */
@@ -702,7 +722,8 @@ struct Validator : jam::MarkdownValidator
     /**
      * @brief Runs every manifest-level check against @p model and
      *        @p templateDocument, in declared order, stopping at the
-     *        first failure -- the one driver isValid() reads through.
+     *        first failure -- the one driver isValid(const Model&,
+     *        const TemplateDocument&) reads through.
      *
      * @param model            The parsed manifest and its data tables.
      * @param templateDocument The parsed template file the manifest wires
