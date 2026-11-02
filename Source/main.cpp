@@ -175,8 +175,10 @@ static const juce::String& getAssumeFilenameFlag()
 }
 
 /**
- * @brief The lone `-` argument that reads stdin.
- * @returns The `-` argument text.
+ * @brief The stdin argument: the input that getInputFiles() adds when the
+ *        line names no file argument. A `-` that the caller types is an
+ *        unknown flag.
+ * @returns The stdin argument text.
  */
 static const juce::String& getStandardInputArgument()
 {
@@ -639,7 +641,7 @@ static juce::String getUnknownFlag (const juce::ArgumentList& arguments, const j
 }
 
 /**
- * @brief Answers whether @p input is the lone @c - stdin argument.
+ * @brief Answers whether @p input is the stdin argument.
  *
  * @param input One @c --format or @c --tables input argument.
  * @returns @c true when @p input is the stdin argument.
@@ -651,8 +653,8 @@ static bool isStandardInput (const juce::String& input)
 
 /**
  * @brief Returns the input arguments of @p arguments, in authored order:
- *        every argument that is not an option, the stdin argument included,
- *        skipping the value that follows the last @c --line-wrap.
+ *        every argument that is not an option, skipping the value that
+ *        follows the last @c --line-wrap.
  *
  * When no input argument is authored, the stdin argument is the only input.
  *
@@ -677,7 +679,7 @@ static jam::Strings getInputFiles (const juce::ArgumentList& arguments)
         {
             const auto argument { arguments[index] };
 
-            if (not argument.isOption() or isStandardInput (argument.text))
+            if (not argument.isOption())
                 files.add (argument.text);
         }
     }
@@ -717,18 +719,21 @@ static std::pair<juce::Result, juce::String> getStandardInputText()
 }
 
 /**
- * @brief Returns @p input's own decoded text -- stdin's own text for the
- *        stdin argument, or @p input's own file loaded from the current
- *        working directory.
+ * @brief Returns @p input's own text: the stdin text for the stdin argument,
+ *        or the text of @p input's own file, loaded from the current working
+ *        directory.
  *
- * @param input One @c --format input argument.
- * @returns juce::Result::ok() paired with the decoded text, or a failure
- *          naming the read error paired with an empty string.
+ * @param input             One input argument: a file path or the stdin argument.
+ * @param standardInputText The stdin read result, read once by
+ *                          getProcessedTexts() before dispatch.
+ * @returns For the stdin argument, @p standardInputText. Otherwise
+ *          juce::Result::ok() paired with the text that
+ *          juce::File::loadFileAsString() returns for the file.
  */
-static std::pair<juce::Result, juce::String> getInputText (const juce::String& input)
+static std::pair<juce::Result, juce::String> getInputText (const juce::String& input, const std::pair<juce::Result, juce::String>& standardInputText)
 {
     if (isStandardInput (input))
-        return getStandardInputText();
+        return standardInputText;
 
     const juce::File inputFile { juce::File::getCurrentWorkingDirectory().getChildFile (input) };
     return { juce::Result::ok(), inputFile.loadFileAsString() };
@@ -1062,6 +1067,9 @@ static int runFormatInPlace (int lineWrap, const juce::ArgumentList& arguments, 
  *                       input only.
  * @param input          One input argument: a file path or the stdin
  *                       argument.
+ * @param standardInputText The stdin read result, read once by
+ *                          getProcessedTexts() before dispatch. A stdin input
+ *                          uses it. A file input does not.
  * @param getText        The callable invoked once the Processor is built.
  * @returns The result of the style, the input read, or @p getText, paired
  *          with the text @p getText returned. The text is empty when the
@@ -1069,7 +1077,7 @@ static int runFormatInPlace (int lineWrap, const juce::ArgumentList& arguments, 
  */
 template <typename Function>
 static std::pair<juce::Result, juce::String> getProcessedText (int lineWrap, const juce::String& stylePath,
-    const juce::String& assumeFilename, const juce::String& input, Function&& getText)
+    const juce::String& assumeFilename, const juce::String& input, const std::pair<juce::Result, juce::String>& standardInputText, Function&& getText)
 {
     const auto workingDirectory { juce::File::getCurrentWorkingDirectory() };
     const auto assumedFile { workingDirectory.getChildFile (assumeFilename) };
@@ -1083,9 +1091,9 @@ static std::pair<juce::Result, juce::String> getProcessedText (int lineWrap, con
     juce::String outputText;
 
     const auto result { runStyled (lineWrap, getStyleFile (stylePath, getNearestStyleFile (directory)),
-        [&input, &origin, &directory, &outputText, &getText] (const jam::MarkdownWriter& formatter, const jam::HashMap<juce::Identifier, int>& reflowWidths)
+        [&input, &standardInputText, &origin, &directory, &outputText, &getText] (const jam::MarkdownWriter& formatter, const jam::HashMap<juce::Identifier, int>& reflowWidths)
         {
-            const auto [textResult, text] { getInputText (input) };
+            const auto [textResult, text] { getInputText (input, standardInputText) };
 
             if (textResult.wasOk())
             {
@@ -1105,25 +1113,36 @@ static std::pair<juce::Result, juce::String> getProcessedText (int lineWrap, con
  * @brief Writes every one of @p texts to stdout, in binary mode on
  *        Windows.
  *
- * @param texts The texts to write, in order.
+ * @param texts     The per-input texts, in input order.
+ * @param separator The bytes written between two consecutive texts. An empty
+ *                  separator writes the texts back to back.
  */
-static void writeTexts (const jam::Strings& texts)
+static void writeTexts (const jam::Array<std::string, juce::CriticalSection>& texts, const std::string& separator)
 {
 #ifdef _WIN32
     _setmode (_fileno (stdout), _O_BINARY);
 #endif
 
-    for (const auto& text : texts)
-        fwrite (text.toRawUTF8(), 1, text.getNumBytesAsUTF8(), stdout);
+    for (int index { 0 }; index < texts.size(); ++index)
+    {
+        if (index > 0)
+            fwrite (separator.data(), 1, separator.size(), stdout);
+
+        const auto& text { texts.at (index) };
+        fwrite (text.data(), 1, text.size(), stdout);
+    }
 }
 
 /**
- * @brief Runs getProcessedText() over every one of @p files, in order, and
- *        collects the texts, once every file and any explicit style path
- *        exist.
+ * @brief Runs getProcessedText() over every one of @p files and collects the
+ *        texts, once every file and any explicit style path exist.
  *
- * Opens its own JUCE GUI initialiser scope. The first failure returns with
- * an empty list.
+ * Opens its own JUCE GUI initialiser scope. When @p files names the stdin
+ * argument, stdin is read once on the calling thread before dispatch. The
+ * per-input work runs in parallel through Jobs::run(). Each job writes only
+ * its own slot of the text array and of the failure array, so the texts keep
+ * input order. On failure, the result is the first failure by input order,
+ * paired with an empty list.
  *
  * @tparam Function The callable passed through to getProcessedText().
  * @param lineWrap  The @c --line-wrap value, read once by main().
@@ -1135,7 +1154,7 @@ static void writeTexts (const jam::Strings& texts)
  *          the first failure paired with an empty list.
  */
 template <typename Function>
-static std::pair<juce::Result, jam::Strings> getProcessedTexts (int lineWrap, const juce::ArgumentList& arguments,
+static std::pair<juce::Result, jam::Array<std::string, juce::CriticalSection>> getProcessedTexts (int lineWrap, const juce::ArgumentList& arguments,
     const jam::Strings& files, Function&& getText)
 {
     juce::ScopedJuceInitialiser_GUI libraryInitialiser;
@@ -1144,25 +1163,31 @@ static std::pair<juce::Result, jam::Strings> getProcessedTexts (int lineWrap, co
     const auto assumeFilename { getAssumeFilename (arguments) };
     const auto filesFound { isFound (files) };
     const auto styleFound { isFound (stylePath) };
+    jam::Array<std::string, juce::CriticalSection> processedTexts;
 
     if (filesFound.wasOk() and styleFound.wasOk())
     {
-        jam::Strings texts;
+        const auto standardInputText { files.contains (getStandardInputArgument(), false) ? getStandardInputText() : std::pair { juce::Result::ok(), juce::String() } };
+        jam::Array<std::string, juce::CriticalSection> processFailures;
+        processedTexts.resize (files.size());
+        processFailures.resize (files.size());
 
-        for (const auto& input : files)
-        {
-            const auto [processResult, text] { getProcessedText (lineWrap, stylePath, assumeFilename, input, getText) };
+        Jobs::run (files.size(),
+            [&files, &stylePath, &assumeFilename, &standardInputText, &processedTexts, &processFailures, &getText, lineWrap] (int index)
+            {
+                const auto [processResult, text] { getProcessedText (lineWrap, stylePath, assumeFilename, files.at (index), standardInputText, getText) };
+                processedTexts.at (index) = text.toStdString();
+                processFailures.at (index) = processResult.getErrorMessage().toStdString();
+            });
 
-            if (not processResult.wasOk())
-                return { processResult, {} };
+        for (const auto& error : processFailures)
+            if (not error.empty())
+                return { juce::Result::fail (juce::String (error)), decltype (processedTexts) {} };
 
-            texts.add (text);
-        }
-
-        return { juce::Result::ok(), std::move (texts) };
+        return { juce::Result::ok(), std::move (processedTexts) };
     }
 
-    return { filesFound.wasOk() ? styleFound : filesFound, {} };
+    return { filesFound.wasOk() ? styleFound : filesFound, decltype (processedTexts) {} };
 }
 
 /**
@@ -1188,7 +1213,7 @@ static int runFormatOutput (int lineWrap, const juce::ArgumentList& arguments, c
 
     if (formatResult.wasOk())
     {
-        writeTexts (texts);
+        writeTexts (texts, {});
         return 0;
     }
 
@@ -1209,7 +1234,7 @@ static int runFormatOutput (int lineWrap, const juce::ArgumentList& arguments, c
  */
 static int runFormat (int argc, char* argv[], int lineWrap)
 {
-    static const jam::Strings formatFlags { getFormatFlag(), getInPlaceFlag(), getLineWrapFlag(), getStandardInputArgument() };
+    static const jam::Strings formatFlags { getFormatFlag(), getInPlaceFlag(), getLineWrapFlag() };
 
     const juce::ArgumentList arguments { argc, argv };
     const auto unknownFlag { getUnknownFlag (arguments, formatFlags) };
@@ -1254,9 +1279,10 @@ static int runTablesOutput (const juce::ArgumentList& arguments, const jam::Stri
 
     if (tablesResult.wasOk())
     {
-        writeTexts (jam::Strings { juce::String::charToString (Chars::openBracket)
-                                   + texts.joinIntoString (juce::String::charToString (Chars::comma))
-                                   + Chars::closeBracket + Chars::newline });
+        fputc (static_cast<int> (Chars::openBracket), stdout);
+        writeTexts (texts, std::string (1, static_cast<char> (Chars::comma)));
+        fputc (static_cast<int> (Chars::closeBracket), stdout);
+        fputc (static_cast<int> (Chars::newline), stdout);
         return 0;
     }
 
@@ -1276,7 +1302,7 @@ static int runTablesOutput (const juce::ArgumentList& arguments, const jam::Stri
  */
 static int runTables (int argc, char* argv[])
 {
-    static const jam::Strings tablesFlags { getTablesFlag(), getStandardInputArgument() };
+    static const jam::Strings tablesFlags { getTablesFlag() };
 
     const juce::ArgumentList arguments { argc, argv };
     const auto unknownFlag { getUnknownFlag (arguments, tablesFlags) };

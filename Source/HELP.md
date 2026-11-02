@@ -45,9 +45,9 @@ cast --format [-i] [--style=file:<path>] [--assume-filename=<path>] [--line-wrap
 
 - `cast --format a.md` — write the canonical text of `a.md` to stdout; the file does not change
 - `cast --format -i a.md b.md` — write each file in place, write-if-different; stdout stays empty
-- `cast --format` or `cast --format -` — read stdin, write stdout
+- `cast --format` — read stdin, write stdout
 - `--style=file:<path>` — use this style file, any name; `--style=file` searches, the default
-- `--assume-filename=<path>` — the stdin input only (no file argument, or `-`): start the style search at this path; a diagnostic names its file
+- `--assume-filename=<path>` — the stdin input only (no file argument): start the style search at this path; a diagnostic names its file
 
 Flag words match exactly: `--line-wrap=40` or `--format=x` is an unknown flag.
 
@@ -64,7 +64,7 @@ cast --tables [--style=file:<path>] [--assume-filename=<path>] [<file> ...]
 ```
 
 - `cast --tables a.md b.md` — one JSON array on stdout, one object for each file, in argument order
-- `cast --tables` or `cast --tables -` — read stdin
+- `cast --tables` — read stdin
 - `--style=file:<path>` and `--assume-filename=<path>` — the same as on the `--format` line; the style file names the columns whose rows join
 - The engine also parses each `.md` file that the index of the file declares, thus a cross-file address has its target; only the tables of the file itself print
 

@@ -34,8 +34,8 @@ The engine hardcodes these items and no other items:
 - the style file names `.cast-format` and `_cast-format`, its `## format` table name, its columns
   `name` and `width`, the reserved row name `line-wrap`, and the sync style directory `cast` (§6.11,
   §2.2)
-- the `--format` flag words `-i`, `--style=file`, `--style=file:`, `--assume-filename=`, the stdin
-  argument `-`, and the stdin file name `<stdin>` (§2.1)
+- the `--format` flag words `-i`, `--style=file`, `--style=file:`, `--assume-filename=`, and the stdin
+  file name `<stdin>` (§2.1)
 - the `--tables` flag word and its output keys `file`, `tables`, `name`, `columns` and `rows` (§2.1)
 - the manifest-syntax table name (§5.4)
 - the operation keywords
@@ -143,8 +143,7 @@ read in any position. The flag words are clang-format's words:
 | `--style=file`             | Search for the style file (§6.11). The default.       |
 | `--assume-filename=<path>` | Stdin only: the path where the style search starts.   |
 
-1. No file argument: the engine reads stdin and writes the canonical text to stdout. A file argument
-   `-` also reads stdin.
+1. No file argument: the engine reads stdin and writes the canonical text to stdout.
 2. File arguments, no `-i`: the engine writes the canonical text of each file to stdout, in argument
    order. The files on disk do not change.
 3. File arguments and `-i`: the engine writes each file in place, write-if-different. Stdout stays
@@ -166,7 +165,7 @@ Stdout carries LF line ends only, on every host. Input and output are UTF-8.
 `--<word>`: on a `--format` line, a dash argument that the table above does not name, other than
 `--line-wrap`, is an unknown flag (§10.1). A flag word matches exactly: `--line-wrap=40` and
 `--format=x` are unknown flags. `--assume-filename=<path>` applies to the stdin input only — no
-argument, or the argument `-`. The `--no-format` line takes one manifest, one flag, nothing else.
+file argument. The `--no-format` line takes one manifest, one flag, nothing else.
 
 **The `--tables` line** prints the tables of markdown files as JSON, for a caller that reads cast data
 with the cast reader. It changes nothing: it formats nothing, writes no file, and runs no
@@ -174,8 +173,8 @@ with the cast reader. It changes nothing: it formats nothing, writes no file, an
 generation occurs.
 
 1. Each file argument resolves against the working directory. Any markdown file is an input.
-2. No file argument: the engine reads stdin. A file argument `-` also reads stdin. Stdin and a file
-   argument together: the engine reads the file argument.
+2. No file argument: the engine reads stdin. Stdin and a file argument together: the engine reads
+   the file argument.
 3. The engine parses each file with the reader of §3. The style search (§6.11) runs as on the
    `--format` line, with `--style=file:<path>` and `--assume-filename=<path>`, because the style
    file names the columns whose rows join (§3.2). The engine also parses each `.md` file that the
