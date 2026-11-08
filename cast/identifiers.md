@@ -22,7 +22,6 @@ transform operations a format cell may declare (§8).
 +=========+==================+======================+=============================================================+
 | @id     | argument         | `argument`           | Toolchain table argument column.                            |
 | @id     | assumeFilename   | `assume-filename`    | --assume-filename CLI flag word — stdin style search start. |
-| @id     | background       | `background`         | --pack background option word.                              |
 | @string | backgroundPrefix | `.background`        | Dmg background image file-name prefix.                      |
 | @id     | banner           | `banner`             | Banner artwork key.                                         |
 | @id     | bannerClose      | `bannerClose`        |                                                             |

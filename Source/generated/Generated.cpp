@@ -31,7 +31,6 @@ namespace Id
 
     const juce::Identifier argument         { juce::String::fromUTF8 ("argument") };
     const juce::Identifier assumeFilename   { juce::String::fromUTF8 ("assume-filename") };
-    const juce::Identifier background       { juce::String::fromUTF8 ("background") };
     const juce::String     backgroundPrefix { juce::String::fromUTF8 (".background") };
     const juce::Identifier banner           { juce::String::fromUTF8 ("banner") };
     const juce::Identifier bannerClose      { juce::String::fromUTF8 ("bannerClose") };

@@ -35,7 +35,6 @@ namespace Id
 
 extern const juce::Identifier argument;        ///< Toolchain table argument column.
 extern const juce::Identifier assumeFilename;  ///< --assume-filename CLI flag word — stdin style search start.
-extern const juce::Identifier background;      ///< --pack background option word.
 extern const juce::String     backgroundPrefix;///< Dmg background image file-name prefix.
 extern const juce::Identifier banner;          ///< Banner artwork key.
 extern const juce::Identifier bannerClose;
