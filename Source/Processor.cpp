@@ -92,7 +92,7 @@ jam::Strings Processor::getOrigins() const
 
     for (auto* block : *model->getRoot())
     {
-        const auto origin { *block->get<juce::String> (Id::path) };
+        const auto& origin { *block->get<juce::String> (Id::path) };
         origins.addIfNotAlreadyThere (origin, false);
     }
 
@@ -136,11 +136,12 @@ juce::Result Processor::runToolchainRow (const Model::Element& row)
 {
     const auto& command { model->getValue (row, Id::command) };
 
-    const auto flag { model->getValue (row, Id::flag) };
+    const auto& flag { model->getValue (row, Id::flag) };
     const auto arguments { Toolchain::getToolchainArguments (command, flag) };
     const auto diagnosticLine { flag.isNotEmpty()
                                     ? command + Chars::space + flag
                                     : command };
+    const auto workingDirectory { model->getFile (row).getParentDirectory() };
 
-    return Toolchain::runProcess (arguments, diagnosticLine);
+    return Toolchain::runProcess (arguments, workingDirectory, diagnosticLine);
 }

@@ -143,7 +143,7 @@ juce::Result Pack::toDmg (const juce::ArgumentList& arguments, const juce::File&
         const auto staged { addStage (arguments, stage, archive, items, triples) };
 
         return staged.wasOk()
-                   ? Toolchain::runProcess (imageArguments, imageArguments.joinIntoString (juce::String::charToString (Chars::space)))
+                   ? Toolchain::runProcess (imageArguments, juce::File::getCurrentWorkingDirectory(), imageArguments.joinIntoString (juce::String::charToString (Chars::space)))
                    : staged;
     });
    #else

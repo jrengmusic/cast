@@ -31,8 +31,11 @@ struct Processor
      *
      * @param text         The manifest text to parse.
      * @param origin       The manifest's own origin path.
-     * @param directory    The manifest's own directory, resolving every
-     *                     path the manifest declares.
+     * @param directory    The manifest's own directory. It resolves every
+     *                     path the manifest declares, and it is the working
+     *                     folder of each @c ## toolchain row in the manifest
+     *                     file. A row in another declared file runs in that
+     *                     file's folder, which this directory resolves.
      * @param reflowWidths The style's own @c name/@c width pairs, stamped
      *                     onto the parsed Model at creation.
      */
@@ -159,6 +162,11 @@ private:
     /**
      * @brief Runs @p row's own @c command, followed by its @c flag when it
      *        declares one, through Toolchain::runProcess().
+     *
+     * The process runs in the folder of the file that holds the table of
+     * @p row, given by @c Model::getFile (row). A row of the manifest file
+     * runs in the folder of the manifest. A row of a data file runs in the
+     * folder of that file.
      *
      * The command line in a failure is the @c command, followed by the
      * @c flag when the row declares one.

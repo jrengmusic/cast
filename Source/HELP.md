@@ -536,7 +536,7 @@ The `@` sigil law (a `@`-sigiled value is a reference, never data) separates thi
 
 ### toolchain — commands after the write
 
-`## toolchain` is an optional table, `| argument | command | flag |`, reserved by name — not by file. CAST looks it up across each file that the manifest's index declares. Thus a project that keeps its codegen manifest and its toolchain data apart declares `## toolchain` in the data file, not `spell.md` itself. Its rows run after each output has written, in authored order, one child process per row. A failed row fails the run — never the writes already on disk.
+`## toolchain` is an optional table, `| argument | command | flag |`, reserved by name — not by file. CAST looks it up across each file that the manifest's index declares. Thus a project that keeps its codegen manifest and its toolchain data apart declares `## toolchain` in the data file, not `spell.md` itself. Its rows run after each output has written, in authored order, one child process per row. Each row runs in the directory of the file that declares its `## toolchain` table. Thus a relative path in the command or flag cell resolves against that file. A failed row fails the run — never the writes already on disk.
 
 `argument` is optional and, when declared, selects which rows run. A blank `argument` cell marks a default-flow row. `cast spell.md`, with no trailing flag, runs only those. `cast spell.md --<word>` runs only the rows whose `argument` cell equals `word` — a `word` that matches no row is fatal.
 
@@ -553,6 +553,8 @@ The `@` sigil law (a `@`-sigiled value is a reference, never data) separates thi
 | debug    | cmake   | --build Builds/Debug                                     |
 +----------+---------+----------------------------------------------------------+
 ```
+
+These rows assume that the table is in a file at the project root, for example `project-info.md`.
 
 `cast spell.md` configures and builds `Builds/Ninja` in Release. `cast spell.md --debug` configures and builds `Builds/Debug` in Debug — the two default-flow rows do not run.
 
@@ -612,7 +614,7 @@ The view shows icons of `icon-size` points, with no toolbar, no status bar, no s
 
 Thus the same inputs, with the same attributes, give the same zip bytes. An archive with more than 65535 entries or more than 4 GiB of bytes cannot be written, and that is fatal. The write is write-if-different.
 
-**Dmg.** A `.dmg` archive is valid on macOS only. On each other host it is fatal. CAST makes a new stage folder beside the archive. The stage never replaces a folder that already exists. CAST clones each item into the stage, writes the icon of each clone, adds each link, clones the background image to `.background.<ext>` in the stage when `--background` is given, and writes the `.DS_Store` of the stage. Then it runs one child process by the toolchain law:
+**Dmg.** A `.dmg` archive is valid on macOS only. On each other host it is fatal. CAST makes a new stage folder beside the archive. The stage never replaces a folder that already exists. CAST clones each item into the stage, writes the icon of each clone, adds each link, clones the background image to `.background.<ext>` in the stage when `--background` is given, and writes the `.DS_Store` of the stage. Then it runs one child process in the working directory, by the toolchain law:
 
 ```
 hdiutil create -ov -srcfolder <stage> -volname <name> -fs HFS+ -format UDZO <archive>

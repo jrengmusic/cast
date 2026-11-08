@@ -936,9 +936,10 @@ equals `word`, byte-exactly, run. The default-flow rows do not run. A `--<word>`
 row's `argument` cell, across each declared `## toolchain` table, is fatal (§10.1), and the
 diagnostic names `word`.
 
-The command resolves through the caller's environment. PATH, the working directory, and everything
-else that the process inherits are the caller's responsibility. The engine adds no resolution, no
-shell, and no quoting of its own.
+The command resolves through the caller's environment. PATH and everything else that the process
+inherits are the caller's responsibility. The row runs in the directory of the file that declares
+its `## toolchain` table. A relative path in the command cell or the flag cell thus resolves
+against that file. The engine adds no resolution, no shell, and no quoting of its own.
 
 A row whose process cannot start, or exits nonzero, fails the run. The diagnostic carries the row's
 own command text. The rows after it do not run. The declared outputs are already on disk when the
@@ -1072,7 +1073,8 @@ GiB of bytes cannot be written (§10.1). The write is write-if-different.
 makes a new stage folder beside the archive. The stage never replaces a folder that already exists.
 It clones each item into the stage, writes the icon of each clone, adds each link, clones the
 background image to `.background.<ext>` in the stage when `--background` is given, and writes the
-`.DS_Store` of the stage. Then it runs one child process by the toolchain law (§6.9):
+`.DS_Store` of the stage. Then it runs one child process in the working directory, by the toolchain
+law (§6.9):
 
 ```
 hdiutil create -ov -srcfolder <stage> -volname <name> -fs HFS+ -format UDZO <archive>

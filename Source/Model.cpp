@@ -90,10 +90,14 @@ const Model::Element* Model::getSymbolCell (juce::StringRef file, juce::StringRe
     return nullptr;
 }
 
+const juce::String& Model::getOrigin (const Element& row)
+{
+    return *row.parent->get<juce::String> (Id::path);
+}
+
 juce::String Model::getValue (const Element& row, const juce::String& alias) const
 {
-    const auto origin { *row.parent->get<juce::String> (Id::path) };
-    return getValue (origin, alias);
+    return getValue (getOrigin (row), alias);
 }
 
 const juce::String& Model::getValue (const Element& row, const juce::Identifier& column) const
@@ -347,6 +351,11 @@ juce::File Model::getFile (juce::StringRef relativePath) const
     return directory.getChildFile (relativePath);
 }
 
+juce::File Model::getFile (const Element& row) const
+{
+    return getFile (getOrigin (row));
+}
+
 juce::String Model::getFileName (juce::StringRef path) const
 {
     return path.isNotEmpty() ? getFile (path).getFileName() : juce::String{};
@@ -367,7 +376,7 @@ const Model::Element* Model::getTable (const Element& row, juce::StringRef refer
         return getTable (declaredPath, tableName);
     }
 
-    return getTable (*row.parent->get<juce::String> (Id::path),
+    return getTable (getOrigin (row),
                      sourceName.trimCharactersAtStart (atText));
 }
 
@@ -947,7 +956,7 @@ juce::String Model::getAuthoredText (const Element& headerCell, const Element& r
     const auto text { getAuthoredText (headerCell, cell, literal) };
 
     if (literal == nullptr and not isDescriptionColumn (headerCell.id) and headerCell.id != Id::alias)
-        if (const auto* symbolCell { getSymbolCell (*row.parent->get<juce::String> (Id::path), text) }; symbolCell != nullptr)
+        if (const auto* symbolCell { getSymbolCell (getOrigin (row), text) }; symbolCell != nullptr)
         {
             const auto* symbolHeaderCell { getTableHeaderRow (*symbolCell->parent->parent)->getChildByID (Id::symbol) };
             return getAuthoredText (*symbolHeaderCell, *symbolCell, getLiteral (*symbolCell));

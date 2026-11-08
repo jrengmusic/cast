@@ -486,6 +486,20 @@ public:
     juce::File getFile (juce::StringRef relativePath) const;
 
     /**
+     * @brief Returns the file that holds the table of @p row, so that a row
+     *        reads the folder of its own file.
+     *
+     * A table declared in a data file keeps the path of that file, relative
+     * to the manifest's own directory. A row of that table therefore has the
+     * data file, not the manifest, as its file.
+     *
+     * @param row The row whose table's file is returned.
+     * @returns The file that holds the table of @p row, resolved against the
+     *          manifest's own directory.
+     */
+    juce::File getFile (const Element& row) const;
+
+    /**
      * @brief Returns the file name of @p path, resolved against the
      *        manifest's own directory.
      *
@@ -606,6 +620,19 @@ public:
     static int getOwner (const Element& item);
 
 private:
+    /**
+     * @brief Returns the origin path of the table that holds @p row.
+     *
+     * The table holds the origin. Each root block of the document carries its
+     * origin, stamped by jam::MarkdownDocument::parse(), and a row reads the
+     * origin from its parent, the table.
+     *
+     * @param row The row whose table's origin is returned.
+     * @returns The origin path of the table that holds @p row, relative to the
+     *          manifest's own directory.
+     */
+    static const juce::String& getOrigin (const Element& row);
+
     /**
      * @brief Returns @p column's own first list item under @p row matching
      * @p predicate -- the one scan getSource(), getSeparator(),
