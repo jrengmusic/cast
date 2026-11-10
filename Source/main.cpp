@@ -1630,7 +1630,7 @@ int main (int argc, char* argv[])
     if (isTerminalOutput() and not isFormatOnly (argc, argv) and not isPackFlag (argc, argv) and not isTablesFlag (argc, argv))
     {
         juce::MemoryOutputStream erase;
-        jam::TerminalBuffer::writeEraseScreen (erase);
+        jam::TerminalEncoder::writeEraseScreen (erase);
         fwrite (erase.getData(), sizeof (char), erase.getDataSize(), stdout);
         fflush (stdout);
     }
