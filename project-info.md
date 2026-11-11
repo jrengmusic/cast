@@ -186,6 +186,13 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 | styleSheet | Source/style.css                | Stylesheet, embedded as BinaryData |
 +------------+---------------------------------+------------------------------------+
 
+## library
+
++------+-------+-------------+
+| name | value | description |
++======+=======+=============+
++------+-------+-------------+
+
 ## toolchain
 
 +----------+---------+----------------------------------------------------------------------------+

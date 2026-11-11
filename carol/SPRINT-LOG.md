@@ -111,6 +111,43 @@
 
 ## SPRINT HISTORY
 
+## Sprint: windows-conformance — cmake.cast Gains the `## library` Lane and ccache; Every CLI Uses cast's Templates ✅
+
+**Date:** 2026-11-12
+**Duration:** not measured (one session)
+
+### Agents Participated
+- COUNSELOR: jam Windows fixes (logged in jam), diagnosis of the `(columns)` report, template and wiring edits, validation of each return by read, two AskUserQuestion rulings, this log.
+- Engineer (sonnet): byte copies of `cmake.cast`/`installer.cast` to scout, whatdbg, ling; the `## library` tables and wiring rows.
+- Pathfinder (haiku): binary identity (`Get-FileHash` of `~/.local/bin/cast.exe` vs `Builds/Release/.../cast.exe`), `--tables`/`--format` reproduction runs, `git diff --no-index` of the scaffold against whatdbg.
+
+### Files Modified (3 total)
+- `cast/cmake.cast:38-43` — eve's ccache block, verbatim from `eve/cast/cmake.cast:53-58`: `find_program(CAST_CCACHE ccache NO_CACHE REQUIRED)` and `CMAKE_<LANG>_COMPILER_LAUNCHER` for each enabled language. ARCHITECT: *"ensure whatdbg, cast, scout all using ccache? check eve as reference"*.
+- `cast/cmake.cast:156-158` — a third `:::[list]:::` in `target_link_libraries` PRIVATE: the `## library` lane. ARCHITECT ruling: *"Add a lane to cmake.cast"*; table name *"## library"*. Feeds through the existing `value` fence.
+- `cast/spell.md:61` — wiring row `@project-info:library` → `@cmake:value`, after `user module` → `link` (SPEC §6.5: slots pair by ordinal, so every project wires the row).
+- `project-info.md:189` — `## library` table, header only (cast links no project library).
+
+### Alignment Check
+- [x] BLESSED principles followed
+- [x] NAMES.md adhered (`## library` ratified by ARCHITECT under Rule -1)
+- [x] MANIFESTO.md principles applied
+
+### Problems Solved
+- No data lane linked a project library (whatdbg's `liblldb`): new `## library` lane, one template, byte-identical in cast, scout, whatdbg, ling (SHA-256 `baa9146c…f23e`).
+- ccache in every CLI through the one shared template.
+- `cast: text.md:25 (columns)` reported once by ARCHITECT: not reproduced. `--tables cast/spell.md` ×8, `--tables spell` ×3, `--format cast/text.md` all exit 0; ARCHITECT's rerun passed. The installed and built binaries are the same (SHA-256 `217FBC51…678A`).
+
+### State for Continuation
+- A header-only `## library` table has not been confirmed in a cast run of cast itself: run `cast spell` in cast and check `CMakeLists.txt` `target_link_libraries`.
+- The one-time `(columns)` failure has no cause found. The only parallel step before that rule is `Model.cpp:640-648` (`Jobs::run` over `jam::MarkdownDocument::parse`). No non-const static was found in `jam_markdown/document/`; `jam_core` not read.
+- `find_program(... REQUIRED)` makes ccache mandatory on every host, the Macs included.
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None
+
 ## Sprint: toolchain-working-directory — A `## toolchain` Row Runs in the Directory of Its Table's File; jam Windows Resolves a Path Executable and Quotes by the Microsoft Parse Rules ✅
 
 **Date:** 2026-11-09

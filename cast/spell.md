@@ -58,6 +58,7 @@
 | - [list]: @project-info:include               |                           | - [list]: @cmake:value                        |                  |
 | - [list]: @project-info:juce module           |                           | - [list]: @cmake:value                        |                  |
 | - [list]: @project-info:user module           |                           | - [list]: @cmake:link                         |                  |
+| - [list]: @project-info:library               |                           | - [list]: @cmake:value                        |                  |
 | - [list]: @project-info:binary                |                           | - [list]: @cmake:value                        |                  |
 | - [list]: @project-info:pack                  |                           | - [list]: @cmake:pack-value                   |                  |
 |                                               |                           | - strip: @cmake:strip                         |                  |
