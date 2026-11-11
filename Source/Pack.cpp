@@ -13,13 +13,21 @@ juce::Result Pack::toArchive (const juce::ArgumentList& arguments, const juce::F
 {
     jassert (triples.size() > 0 and triples.size() % tripleSize == 0);
 
-    static const jam::Function::Map<juce::String, juce::Result> archiveFormats {
+    static const jam::Function::Map<juce::String, jam::Function::pointerCapacity, juce::Result (const juce::ArgumentList&, const juce::File&, const juce::Array<juce::File>&, const juce::StringArray&)> archiveFormats {
         []()
         {
-            jam::Function::Map<juce::String, juce::Result> formats;
+            jam::Function::Map<juce::String, jam::Function::pointerCapacity, juce::Result (const juce::ArgumentList&, const juce::File&, const juce::Array<juce::File>&, const juce::StringArray&)> formats;
 
-            formats.add<const juce::ArgumentList&, const juce::File&, const juce::Array<juce::File>&, const juce::StringArray&> (Id::zip, &Pack::toZip);
-            formats.add<const juce::ArgumentList&, const juce::File&, const juce::Array<juce::File>&, const juce::StringArray&> (Id::dmg, &Pack::toDmg);
+            formats.add (Id::zip,
+                [] (const juce::String&, const juce::ArgumentList& arguments, const juce::File& archive, const juce::Array<juce::File>& items, const juce::StringArray& triples)
+                {
+                    return toZip (arguments, archive, items, triples);
+                });
+            formats.add (Id::dmg,
+                [] (const juce::String&, const juce::ArgumentList& arguments, const juce::File& archive, const juce::Array<juce::File>& items, const juce::StringArray& triples)
+                {
+                    return toDmg (arguments, archive, items, triples);
+                });
 
             return formats;
         }()

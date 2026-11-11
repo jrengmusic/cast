@@ -218,128 +218,140 @@ bool Transforms::containsWholeWord (const juce::String& text, const juce::String
     return getNextWholeWordMatch (text, word, 0) >= 0;
 }
 
-void Transforms::addCaseTransforms (jam::Function::Map<juce::String, juce::String>& map)
+void Transforms::addCaseTransforms (jam::Function::Map<juce::String, jam::Function::pointerCapacity, juce::String (const juce::String&, const juce::String&)>& map)
 {
-    map.add<const juce::String&, const juce::String&> (
+    map.add (
         jam::Format::toCamelCase (Id::toUpper),
-        [] (const juce::String& input, const juce::String&)
+        [] (const juce::String&, const juce::String& input, const juce::String&)
         {
             return input.toUpperCase();
         });
-    map.add<const juce::String&, const juce::String&> (
+    map.add (
         jam::Format::toCamelCase (Id::toTitle),
-        [] (const juce::String& input, const juce::String&)
+        [] (const juce::String&, const juce::String& input, const juce::String&)
         {
             return jam::Format::toTitleCase (input);
         });
-    map.add<const juce::String&, const juce::String&> (
+    map.add (
         jam::Format::toCamelCase (Id::toKebab),
-        [] (const juce::String& input, const juce::String&)
+        [] (const juce::String&, const juce::String& input, const juce::String&)
         {
             return jam::Format::toKebabCase (input);
         });
-    map.add<const juce::String&, const juce::String&> (
+    map.add (
         jam::Format::toCamelCase (Id::toPascal),
-        [] (const juce::String& input, const juce::String&)
+        [] (const juce::String&, const juce::String& input, const juce::String&)
         {
             return jam::Format::toPascalCase (input);
         });
-    map.add<const juce::String&, const juce::String&> (
+    map.add (
         jam::Format::toCamelCase (Id::toCamel),
-        [] (const juce::String& input, const juce::String&)
+        [] (const juce::String&, const juce::String& input, const juce::String&)
         {
             return jam::Format::toCamelCase (input);
         });
-    map.add<const juce::String&, const juce::String&> (
+    map.add (
         jam::Format::toCamelCase (Id::toSnake),
-        [] (const juce::String& input, const juce::String&)
+        [] (const juce::String&, const juce::String& input, const juce::String&)
         {
             return jam::Format::toSnakeCase (input);
         });
-    map.add<const juce::String&, const juce::String&> (
+    map.add (
         jam::Format::toCamelCase (Id::toScreamingSnake),
-        [] (const juce::String& input, const juce::String&)
+        [] (const juce::String&, const juce::String& input, const juce::String&)
         {
             return jam::Format::toScreamingSnakeCase (input);
         });
 }
 
-void Transforms::addEncodingTransforms (jam::Function::Map<juce::String, juce::String>& map)
+void Transforms::addEncodingTransforms (jam::Function::Map<juce::String, jam::Function::pointerCapacity, juce::String (const juce::String&, const juce::String&)>& map)
 {
-    map.add<const juce::String&, const juce::String&> (
+    map.add (
         jam::Format::toCamelCase (Id::toUTF8),
-        [] (const juce::String& input, const juce::String&)
+        [] (const juce::String&, const juce::String& input, const juce::String&)
         {
             return jam::Format::toUTF8 (input);
         });
-    map.add<const juce::String&, const juce::String&> (
+    map.add (
         jam::Format::toCamelCase (Id::fromUTF8),
-        [] (const juce::String& input, const juce::String&)
+        [] (const juce::String&, const juce::String& input, const juce::String&)
         {
             const std::string_view text { input.getCharPointer().getAddress() };
             const auto result { jam::Format::fromUTF8 (text) };
 
             return jam::Strings::fromView (result);
         });
-    map.add<const juce::String&, const juce::String&> (
+    map.add (
         jam::Format::toCamelCase (Id::toLiteral),
-        [] (const juce::String& input, const juce::String&)
+        [] (const juce::String&, const juce::String& input, const juce::String&)
         {
             return jam::Format::toLiteral (input);
         });
-    map.add<const juce::String&, const juce::String&> (
+    map.add (
         jam::Format::toCamelCase (Id::toHex),
-        [] (const juce::String& input, const juce::String&)
+        [] (const juce::String&, const juce::String& input, const juce::String&)
         {
             return jam::Format::toHex (input);
         });
-    map.add<const juce::String&, const juce::String&> (
+    map.add (
         jam::Format::toCamelCase (Id::toCodepoint),
-        [] (const juce::String& input, const juce::String&)
+        [] (const juce::String&, const juce::String& input, const juce::String&)
         {
             return jam::Format::toCodepoint (input);
         });
-    map.add<const juce::String&, const juce::String&> (
+    map.add (
         jam::Format::toCamelCase (Id::fromCodepoint),
-        [] (const juce::String& input, const juce::String&)
+        [] (const juce::String&, const juce::String& input, const juce::String&)
         {
             return jam::Format::fromCodepoint (input);
         });
 }
 
-void Transforms::addTextTransforms (jam::Function::Map<juce::String, juce::String>& map)
+void Transforms::addTextTransforms (jam::Function::Map<juce::String, jam::Function::pointerCapacity, juce::String (const juce::String&, const juce::String&)>& map)
 {
-    map.add<const juce::String&, const juce::String&> (
+    map.add (
         jam::Format::toCamelCase (Id::join),
-        [] (const juce::String& input, const juce::String&)
+        [] (const juce::String&, const juce::String& input, const juce::String&)
         {
             return jam::Format::join (input);
         });
-    map.add<const juce::String&, const juce::String&> (
+    map.add (
         jam::Format::toCamelCase (Id::toFileName),
-        [] (const juce::String& input, const juce::String&)
+        [] (const juce::String&, const juce::String& input, const juce::String&)
         {
             return static_cast<juce::String (*) (const juce::String&)> (
                 &jam::Format::toFileName) (input);
         });
 }
 
-void Transforms::addCommentTransforms (jam::Function::Map<juce::String, juce::String>& map)
+void Transforms::addCommentTransforms (jam::Function::Map<juce::String, jam::Function::pointerCapacity, juce::String (const juce::String&, const juce::String&)>& map)
 {
-    map.add<const juce::String&, const juce::String&> (
-        jam::Format::toCamelCase (Id::toComment), &Transforms::toComment);
-    map.add<const juce::String&, const juce::String&> (
-        jam::Format::toCamelCase (Id::toCommentBlock), &Transforms::toCommentBlock);
-    map.add<const juce::String&, const juce::String&> (
-        jam::Format::toCamelCase (Id::brief), &Transforms::toBrief);
+    map.add (
+        jam::Format::toCamelCase (Id::toComment),
+        [] (const juce::String&, const juce::String& input, const juce::String& extension)
+        {
+            return toComment (input, extension);
+        });
+    map.add (
+        jam::Format::toCamelCase (Id::toCommentBlock),
+        [] (const juce::String&, const juce::String& input, const juce::String& extension)
+        {
+            return toCommentBlock (input, extension);
+        });
+    map.add (
+        jam::Format::toCamelCase (Id::brief),
+        [] (const juce::String&, const juce::String& input, const juce::String& extension)
+        {
+            return toBrief (input, extension);
+        });
 }
 
-const jam::Function::Map<juce::String, juce::String>& Transforms::getTransforms() noexcept
+const jam::Function::Map<juce::String, jam::Function::pointerCapacity, juce::String (const juce::String&, const juce::String&)>& Transforms::getTransforms() noexcept
 {
-    static const jam::Function::Map<juce::String, juce::String> transforms {
+    static const jam::Function::Map<juce::String, jam::Function::pointerCapacity, juce::String (const juce::String&, const juce::String&)> transforms {
         []()
         {
-            jam::Function::Map<juce::String, juce::String> map;
+            jam::Function::Map<juce::String, jam::Function::pointerCapacity, juce::String (const juce::String&, const juce::String&)> map;
 
             addCaseTransforms (map);
             addEncodingTransforms (map);

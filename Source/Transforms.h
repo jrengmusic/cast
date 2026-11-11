@@ -242,7 +242,7 @@ private:
      *
      * @param map The transform registry the case transforms are added to.
      */
-    static void addCaseTransforms (jam::Function::Map<juce::String, juce::String>& map);
+    static void addCaseTransforms (jam::Function::Map<juce::String, jam::Function::pointerCapacity, juce::String (const juce::String&, const juce::String&)>& map);
 
     /**
      * @brief Registers the encoding transforms -- @c toLiteral, @c toUTF8,
@@ -252,7 +252,7 @@ private:
      * @param map The transform registry the encoding transforms are added
      *            to.
      */
-    static void addEncodingTransforms (jam::Function::Map<juce::String, juce::String>& map);
+    static void addEncodingTransforms (jam::Function::Map<juce::String, jam::Function::pointerCapacity, juce::String (const juce::String&, const juce::String&)>& map);
 
     /**
      * @brief Registers the text transforms -- @c join and @c toFileName --
@@ -260,7 +260,7 @@ private:
      *
      * @param map The transform registry the text transforms are added to.
      */
-    static void addTextTransforms (jam::Function::Map<juce::String, juce::String>& map);
+    static void addTextTransforms (jam::Function::Map<juce::String, jam::Function::pointerCapacity, juce::String (const juce::String&, const juce::String&)>& map);
 
     /**
      * @brief Registers the comment transforms -- @c toComment,
@@ -269,7 +269,7 @@ private:
      * @param map The transform registry the comment transforms are added
      *            to.
      */
-    static void addCommentTransforms (jam::Function::Map<juce::String, juce::String>& map);
+    static void addCommentTransforms (jam::Function::Map<juce::String, jam::Function::pointerCapacity, juce::String (const juce::String&, const juce::String&)>& map);
 
     /**
      * @brief The registry mapping every known transform's camel-cased name
@@ -279,5 +279,5 @@ private:
      *
      * @returns The transform registry.
      */
-    static const jam::Function::Map<juce::String, juce::String>& getTransforms() noexcept;
+    static const jam::Function::Map<juce::String, jam::Function::pointerCapacity, juce::String (const juce::String&, const juce::String&)>& getTransforms() noexcept;
 };
