@@ -111,6 +111,45 @@
 
 ## SPRINT HISTORY
 
+## Sprint: columns-dangling-view — `(columns)` on Windows Was a View Read After `addSource` Moved the Source; JUCE 8.0.17 Patch Hunk ✅
+
+**Date:** 2026-11-12
+**Duration:** not measured (one session)
+
+### Agents Participated
+- COUNSELOR: diagnosis from the log evidence, read of the parse path, the fix and the removal of the diagnostics (inside the locked step, 1–2 lines each), the patch hunk edit, validation by read, and this log.
+- Pathfinder (haiku): binary identity (SHA-256 of `~/.local/bin/cast.exe` against each build artefact), the 60-run and 100-run `cast --tables spell.md` loops in `jam/cast`, the read of `%TEMP%\cast.log`, and `git status`/`git diff` of cast and jam.
+
+### Files Modified (3 total, in jam and cast)
+- `jam/jam_markdown/document/jam_MarkdownBlockParser.cpp:2153, 2164` — `addGridTableContentLine` counts the cells of `rowLine` before it flushes the previous row. Before the fix, it counted after the flush. `rowLine` (`:2147`) is a `std::string_view` into the `Document` source (`sourceText` binds to `newDocument.getSource()`, `:9`). The flush (`addAccumulatedRow`/`addAccumulatedHeaderRow`, `:2159-2161`) runs `addTableCell`. For a cell with an escaped `\\` or `\|`, `addTableCell` calls `document.addSource` (`:1607`), which runs `source.append` (`jam_Document.cpp:268`). The append can reallocate the source, so `getNumCells (rowLine)` read freed memory.
+- `jam/patch/juce-plugin-host-type-hook.patch:49-56` — the last hunk is now `@@ -329,6 +333,7 @@` with the `Renoise` block as context, so the `END` line applies to JUCE 8.0.17 (`juce_PluginHostType.cpp`). The mixed line endings of the file stay as they were: CRLF on content lines, LF on `@@` lines. ARCHITECT: *"Fix 11, rerun configure"*.
+- `cast/Source/main.cpp` — a temporary `jam::debug::Log::Scope` (`#if JUCE_DEBUG`) was added and removed in this sprint. The net change is zero. The `[BlockParser]` `Log::write` lines in `addGridRowLine` were removed too. That function is the same as HEAD.
+- Not written by this sprint: `cast/project-info.md:56` and `cast/CMakeLists.txt:123` (`juceVersion` 8.0.14 → 8.0.17, ARCHITECT: *"i changed juceVersion to 8.0.17 now"*); `cast/CMakeLists.txt:53-58` (the ccache block, generated from `cast/cmake.cast:38-43`, sprint windows-conformance).
+
+### Alignment Check
+- [x] BLESSED principles followed (**D**: the non-determinism had a cause, a view held across a state update. The fix reads the data before the update and adds no guard.)
+- [x] NAMES.md adhered (`numCells` is the parameter name of `addGridRowLine`, `:2125`)
+- [x] MANIFESTO.md principles applied
+- [ ] Auditor sweep not run. The change is two lines with no new name. Every line was checked by read (`:2125-2166`, git diff).
+
+### Problems Solved
+- `cast: core.md:556 (columns)` and `mermaid.md:1945 (columns)` came from the dangling `rowLine` above. Each failing row comes after a row with an escaped character: `core.md:555` (`\\\|`) and `mermaid.md:1943-1944` (`[\\`, `\\]`). Evidence: `cast.log` showed `[BlockParser] header mismatch … 1 4 | state …`, which is 1 cell counted on a row with 5 pipes. The Debug heap fills freed memory, so the Debug build failed 60/60. Release usually still reads the old bytes, so it failed 1/60. This is the cause of the one-time `text.md:25 (columns)` that sprint windows-conformance left open.
+- Verification: the Debug build with the fix (SHA-256 `c04c30a8…`, linked 05:46:52, after the edits at 05:44) passed 100/100 runs. The output was byte-identical (md5 `5483ced4…`).
+- The JUCE patch `juce-plugin-host-type-hook.patch` failed `--check` on 8.0.17 (`juce_PluginHostType.cpp:319`). After the edit, configure ran and the EVE build passed.
+
+### State for Continuation
+- `~/.local/bin/cast.exe` is the Debug build (`c04c30a8…`). `~/.local/bin/cast.old` is the Release build (`c151fe40…`). The Debug install ran last. Check with `sha256sum` before a cast run depends on Release.
+- The Release build with the fix (`Builds/Release/cast_artefacts/Release/cast.exe`, 05:46:32) was not run in the loop.
+- No other `std::string_view` into `sourceText` was found held across `addSource` in `jam_MarkdownBlockParser.cpp`. The other grid-table readers use the `const std::string&` (`:2074`, `:2083`, `:1870-1878`). A view held across `addSource` in other parsers (`jam_MermaidDiagram.cpp:159`, `jam_Document.cpp:520`) was not read.
+- EVE is next: the static-initialization crash in `jam::blockSteps` (`jam_gui.cpp`, `Identifier` copy from a null source), and `-Xclang -fno-pch-timestamp` set only `if(APPLE)` (`eve/CMakeLists.txt:333-335`).
+- No log entries were rotated (the log keeps more than 5 sprints; the same as the earlier entries).
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None
+
 ## Sprint: windows-conformance — cmake.cast Gains the `## library` Lane and ccache; Every CLI Uses cast's Templates ✅
 
 **Date:** 2026-11-12
