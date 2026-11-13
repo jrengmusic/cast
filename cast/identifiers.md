@@ -32,7 +32,6 @@ transform operations a format cell may declare (§8).
 | @id     | blockOpen        | `blockOpen`          |                                                             |
 | @id     | bundleColumn     | `bundle-column`      | --pack layout option word.                                  |
 | @id     | chain            | `chain`              | Owning wrapper's shape ordinal of a private element.        |
-| @id     | comment          | `comment`            |                                                             |
 | @id     | date             | `date`               | Reserved date token name.                                   |
 | @string | dmg              | `dmg`                | Dmg archive extension.                                      |
 | @id     | doubleDash       | `--`                 | Double-dash delimiter.                                      |
