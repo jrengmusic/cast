@@ -33,15 +33,6 @@ struct JsonWriter
 
 private:
     /**
-     * @brief Encodes @p text as a JSON string literal.
-     *
-     * @param text The text to encode.
-     * @returns @p text in double quotes, with the escapes that
-     *          juce::JSON::escapeString() applies.
-     */
-    static juce::String getString (const juce::String& text);
-
-    /**
      * @brief Encodes @p table as one JSON object: its name, its columns, and
      *        one object per row.
      *
@@ -51,7 +42,7 @@ private:
      *                or @c nullptr when none precedes it.
      * @returns A JSON object with name, columns, and rows members.
      */
-    static juce::String getTable (const Model& model, const Model::Element& table, const Model::Element* heading);
+    static void appendTable (std::string& json, const Model& model, const Model::Element& table, const Model::Element* heading);
 
     /**
      * @brief Encodes @p row as one JSON object, keyed by each header cell's
@@ -62,5 +53,5 @@ private:
      * @param row       The row encoded.
      * @returns A JSON object with one member for each cell of @p row.
      */
-    static juce::String getRow (const Model& model, const Model::Element& headerRow, const Model::Element& row);
+    static void appendRow (std::string& json, const Model& model, const Model::Element& headerRow, const Model::Element& row);
 };

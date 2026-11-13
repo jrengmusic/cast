@@ -1,7 +1,7 @@
 #include "Processor.h"
 
-Processor::Processor (const juce::String& text, const juce::String& origin, const juce::File& directory, const jam::HashMap<juce::Identifier, int>& reflowWidths)
-    : model (Model::parse (text, origin, directory, reflowWidths))
+Processor::Processor (const juce::String& text, const juce::File& documentFile, const jam::HashMap<juce::Identifier, int>& reflowWidths)
+    : model (Model::fromString (text, documentFile, reflowWidths))
     , templateDocument (*model)
     , writer (*model, templateDocument)
 {

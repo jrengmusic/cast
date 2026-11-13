@@ -23,6 +23,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 
 cmake_host_system_information(RESULT CAST_TOTAL_MEMORY QUERY TOTAL_PHYSICAL_MEMORY)
 cmake_host_system_information(RESULT CAST_LOGICAL_CORES QUERY NUMBER_OF_LOGICAL_CORES)
+cmake_host_system_information(RESULT CAST_HOST_PROCESSOR QUERY OS_PLATFORM)
 math(EXPR CAST_COMPILE_JOBS "${CAST_TOTAL_MEMORY} / 1280")
 
 if(CAST_COMPILE_JOBS GREATER CAST_LOGICAL_CORES)
@@ -139,6 +140,7 @@ set(CAST_JUCE_PATCHES
 "${CAST_USER_MODULE_PATH}/patch/juce-plugin-window-focus-hook.patch"        # VST2 and AU host plugin windows take keyboard focus and make the plugin view first responder; applies after juce-plugin-transparency-hook.patch
 "${CAST_USER_MODULE_PATH}/patch/juce-mouse-event-hook.patch"                # Host mouse event callback before a peer's components; applies after juce-key-pressed-hook.patch
 "${CAST_USER_MODULE_PATH}/patch/juce-plugin-editor-once-hook.patch"         # VST2 plugin client opens the editor that effEditGetRect created, so the editor is built once; applies after juce-plugin-transparency-hook.patch
+"${CAST_USER_MODULE_PATH}/patch/juce-plugin-window-size-hook.patch"         # VST2 host child window takes the plugin's effEditGetRect size in physical pixels on Windows; applies after juce-plugin-transparency-hook.patch
 )
 
 if(WIN32)
@@ -234,7 +236,7 @@ juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_document")         # Uni
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_freetype")         # Vendored FreeType font rasterization library
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_graphics")         # Graphics utilities, blur, shadows, colours, fonts, mesh
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_pdf")              # Clean-room PDF document model, writer and graphics context
-juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_data_structures")  # ValueTree management and data model utilities — model, parameters, JSON conversion
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_data_structures")  # ValueTree management and data model utilities — model, parameters
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_animation")        # Foundation animation classes (Animator, AnimationBase, AnimationScrollingText)
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_web")              # HTML authored-subset and CSS Syntax Level 3 subset tokenizers and parsers
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_style")            # JAM Style — LookAndFeel base + ColourScheme-backed colour registry
@@ -271,6 +273,10 @@ ${CMAKE_CURRENT_SOURCE_DIR}/Source/*.h
 target_sources(${PROJECT_NAME} PRIVATE ${CAST_SOURCE_FILES})
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:<JuceHeader.h$<ANGLE-R>>")
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(${PROJECT_NAME} PRIVATE "SHELL:-Xclang -fno-pch-timestamp")
+endif()
 
 file(GLOB CAST_MODULE_SOURCES
     "${CAST_JUCE_PATH}/modules/*/*.cpp"

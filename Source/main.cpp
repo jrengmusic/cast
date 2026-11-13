@@ -809,7 +809,7 @@ static int getLineWrap (int lineWrap, const Model& style)
 template <typename Function>
 static juce::Result runStyled (int lineWrap, const juce::File& styleFile, Function&& function)
 {
-    const auto style { Model::parse (styleFile) };
+    const auto style { Model::load (styleFile) };
     const auto result { Validator::isFormat (*style) };
 
     if (result.wasOk())
@@ -863,9 +863,7 @@ static int runDocument (int lineWrap, const juce::File& documentFile, bool skipF
         [&documentFile, skipFormat, &outputDirectory, &toolchainArgument]
         (const jam::MarkdownWriter& formatter, const jam::HashMap<juce::Identifier, int>& reflowWidths)
         {
-            Processor processor { documentFile.loadFileAsString(),
-                documentFile.getRelativePathFrom (documentFile.getParentDirectory()),
-                documentFile.getParentDirectory(), reflowWidths };
+            Processor processor { documentFile.loadFileAsString(), documentFile, reflowWidths };
 
             if (skipFormat)
                 return processor.generate (outputDirectory, toolchainArgument);
@@ -951,9 +949,9 @@ static int runFormatValidation (int lineWrap, const jam::Strings& files, const j
         const auto styleFile { getStyleFile (stylePath, getNearestStyleFile (directory)) };
 
         const auto formatResult { runStyled (lineWrap, styleFile,
-            [&file, &directory] (const jam::MarkdownWriter& formatter, const jam::HashMap<juce::Identifier, int>& reflowWidths)
+            [&file] (const jam::MarkdownWriter& formatter, const jam::HashMap<juce::Identifier, int>& reflowWidths)
             {
-                Processor processor { file.loadFileAsString(), file.getRelativePathFrom (directory), directory, reflowWidths };
+                Processor processor { file.loadFileAsString(), file, reflowWidths };
                 return processor.getText (formatter).first;
             }) };
 
@@ -993,9 +991,9 @@ static juce::Result runFormatWrite (int lineWrap, const juce::String& stylePath,
         const auto styleFile { getStyleFile (stylePath, getNearestStyleFile (directory)) };
 
         const auto formatResult { runStyled (lineWrap, styleFile,
-            [&file, &directory] (const jam::MarkdownWriter& formatter, const jam::HashMap<juce::Identifier, int>& reflowWidths)
+            [&file] (const jam::MarkdownWriter& formatter, const jam::HashMap<juce::Identifier, int>& reflowWidths)
             {
-                Processor processor { file.loadFileAsString(), file.getRelativePathFrom (directory), directory, reflowWidths };
+                Processor processor { file.loadFileAsString(), file, reflowWidths };
                 return processor.format (formatter);
             }) };
 
@@ -1082,23 +1080,18 @@ static std::pair<juce::Result, juce::String> getProcessedText (int lineWrap, con
     const auto workingDirectory { juce::File::getCurrentWorkingDirectory() };
     const auto assumedFile { workingDirectory.getChildFile (assumeFilename) };
     const auto inputFile { workingDirectory.getChildFile (input).getLinkedTarget() };
-    const auto directory { isStandardInput (input)
-                           ? (assumeFilename.isNotEmpty() ? assumedFile.getParentDirectory() : workingDirectory)
-                           : inputFile.getParentDirectory() };
-    const auto origin { isStandardInput (input)
-                        ? (assumeFilename.isNotEmpty() ? assumedFile.getFileName() : juce::String (files::standardInput))
-                        : inputFile.getRelativePathFrom (directory) };
+    const auto documentFile { isStandardInput (input) ? (assumeFilename.isNotEmpty() ? assumedFile : workingDirectory.getChildFile (files::standardInput)) : inputFile };
     juce::String outputText;
 
-    const auto result { runStyled (lineWrap, getStyleFile (stylePath, getNearestStyleFile (directory)),
-        [&input, &standardInputText, &origin, &directory, &outputText, &getText] (const jam::MarkdownWriter& formatter, const jam::HashMap<juce::Identifier, int>& reflowWidths)
+    const auto result { runStyled (lineWrap, getStyleFile (stylePath, getNearestStyleFile (documentFile.getParentDirectory())),
+        [&input, &standardInputText, &documentFile, &outputText, &getText] (const jam::MarkdownWriter& formatter, const jam::HashMap<juce::Identifier, int>& reflowWidths)
         {
             const auto [textResult, text] { getInputText (input, standardInputText) };
 
             if (textResult.wasOk())
             {
-                Processor processor { text, origin, directory, reflowWidths };
-                const auto [processResult, processedText] { getText (processor, formatter, isStandardInput (input) ? origin : input) };
+                Processor processor { text, documentFile, reflowWidths };
+                const auto [processResult, processedText] { getText (processor, formatter, isStandardInput (input) ? documentFile.getFileName() : input) };
                 outputText = processedText;
                 return processResult;
             }

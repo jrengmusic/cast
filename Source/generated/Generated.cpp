@@ -74,7 +74,6 @@ namespace Id
     const juce::Identifier placeholder      { juce::String::fromUTF8 ("placeholder") };
     const juce::Identifier rows             { juce::String::fromUTF8 ("rows") };
     const juce::Identifier separator        { juce::String::fromUTF8 ("separator") };
-    const juce::Identifier structure        { juce::String::fromUTF8 ("structure") };
     const juce::Identifier submodule        { juce::String::fromUTF8 ("submodule") };
     const juce::Identifier symbol           { juce::String::fromUTF8 ("symbol") };
     const juce::Identifier sync             { juce::String::fromUTF8 ("sync") };

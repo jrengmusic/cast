@@ -65,7 +65,6 @@ transform operations a format cell may declare (§8).
 | @id     | placeholder      | `placeholder`        | Placeholder token name.                                     |
 | @id     | rows             | `rows`               | --tables JSON output key.                                   |
 | @id     | separator        | `separator`          | Separator column key.                                       |
-| @id     | structure        | `structure`          | Structure column key.                                       |
 | @id     | submodule        | `submodule`          | Sync info-file submodule table name.                        |
 | @id     | symbol           | `symbol`             | Index symbol column key.                                    |
 | @id     | sync             | `sync`               | --sync CLI flag word.                                       |

@@ -78,7 +78,6 @@ extern const juce::Identifier owner;           ///< Wrapper's parent shape ordin
 extern const juce::Identifier placeholder;     ///< Placeholder token name.
 extern const juce::Identifier rows;            ///< --tables JSON output key.
 extern const juce::Identifier separator;       ///< Separator column key.
-extern const juce::Identifier structure;       ///< Structure column key.
 extern const juce::Identifier submodule;       ///< Sync info-file submodule table name.
 extern const juce::Identifier symbol;          ///< Index symbol column key.
 extern const juce::Identifier sync;            ///< --sync CLI flag word.

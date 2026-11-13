@@ -25,21 +25,18 @@
 struct Processor
 {
     /**
-     * @brief Parses @p text into a Model and every @c .cast file its index
-     *        declares into a TemplateDocument, and constructs the Writer
-     *        that renders through them.
+     * @brief Builds the Model from @p text and @p documentFile through
+     *        Model::fromString, then the TemplateDocument over that Model, and
+     *        the Writer that renders through both.
      *
      * @param text         The manifest text to parse.
-     * @param origin       The manifest's own origin path.
-     * @param directory    The manifest's own directory. It resolves every
-     *                     path the manifest declares, and it is the working
-     *                     folder of each @c ## toolchain row in the manifest
-     *                     file. A row in another declared file runs in that
-     *                     file's folder, which this directory resolves.
+     * @param documentFile The manifest file that @p text belongs to. Its parent
+     *                     directory resolves every path the manifest declares,
+     *                     and its file name is the manifest origin.
      * @param reflowWidths The style's own @c name/@c width pairs, stamped
      *                     onto the parsed Model at creation.
      */
-    Processor (const juce::String& text, const juce::String& origin, const juce::File& directory, const jam::HashMap<juce::Identifier, int>& reflowWidths);
+    Processor (const juce::String& text, const juce::File& documentFile, const jam::HashMap<juce::Identifier, int>& reflowWidths);
 
     /**
      * @brief Validates the parsed manifest's full structure through

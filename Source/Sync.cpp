@@ -14,8 +14,8 @@ juce::Result Sync::run (const juce::File& sourceRoot, const juce::File& targetRo
     if (const auto result { isInfoPresent (targetInfoFile) }; not result.wasOk())
         return result;
 
-    const auto sourceInfo { Model::parse (sourceInfoFile) };
-    const auto targetInfo { Model::parse (targetInfoFile) };
+    const auto sourceInfo { Model::load (sourceInfoFile) };
+    const auto targetInfo { Model::load (targetInfoFile) };
 
     if (const auto result {
             isComposedComplete (sourceInfoFile, targetInfoFile, *sourceInfo, *targetInfo) };
@@ -457,8 +457,10 @@ juce::String Sync::getNewlineNormalized (const juce::String& text)
 
 juce::String Sync::getCanonicalMarkdown (const juce::String& text, const jam::MarkdownWriter& formatter)
 {
-    const auto document { jam::MarkdownDocument::parse (text) };
-    return formatter.getText (document);
+    if (const auto document { jam::MarkdownDocument::parse (text) }; document != nullptr)
+        return formatter.getText (*document);
+
+    return text;
 }
 
 juce::String Sync::getKernelScopeName (const juce::String& relativePath)

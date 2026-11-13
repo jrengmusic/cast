@@ -2,79 +2,77 @@
 
 juce::String JsonWriter::getText (const Model& model, const juce::String& origin, const juce::String& file) const
 {
-    auto text { juce::String::charToString (Chars::openBrace) + getString (Id::file.toString()) + Chars::colon
-                + getString (file) + Chars::comma + getString (Id::tables.toString()) + Chars::colon
-                + Chars::openBracket };
+    std::string json;
     const Model::Element* heading { nullptr };
 
-    for (auto* block : *model.getRoot())
-        if (block->get<juce::String> (Id::path)->compare (origin) == 0)
+    jam::JsonWriter::appendObject (json, [&model, &origin, &file, &heading] (std::string& object)
+    {
+        jam::JsonWriter::appendKey (object, Id::file);
+        jam::JsonWriter::appendString (object, jam::Strings::getView (file));
+        jam::JsonWriter::appendKey (object, Id::tables);
+
+        jam::JsonWriter::appendArray (object, [&model, &origin, &heading] (std::string& tables)
         {
-            if (*block->get<int> (Id::type) == map::BlockType::heading)
-                heading = block;
+            for (auto* block : *model.getRoot())
+                if (block->get<juce::String> (Id::path)->compare (origin) == 0)
+                {
+                    if (*block->get<int> (Id::type) == map::BlockType::heading)
+                        heading = block;
 
-            if (Model::isTable (*block))
-            {
-                if (not text.endsWithChar (Chars::openBracket))
-                    text += Chars::comma;
+                    if (Model::isTable (*block))
+                    {
+                        jam::JsonWriter::appendSeparator (tables);
+                        appendTable (tables, model, *block, heading);
+                    }
+                }
+        });
+    });
 
-                text += getTable (model, *block, heading);
-            }
-        }
-
-    return text + Chars::closeBracket + Chars::closeBrace;
+    return jam::Strings::fromView (json);
 }
 
-juce::String JsonWriter::getString (const juce::String& text)
-{
-    static const auto quoteText { juce::String::charToString (Chars::doubleQuote) };
-
-    return quoteText + juce::JSON::escapeString (text) + quoteText;
-}
-
-juce::String JsonWriter::getTable (const Model& model, const Model::Element& table, const Model::Element* heading)
+void JsonWriter::appendTable (std::string& json, const Model& model, const Model::Element& table, const Model::Element* heading)
 {
     const auto* headerRow { Model::getTableHeaderRow (table) };
-    auto text { juce::String::charToString (Chars::openBrace) + getString (Id::name.toString()) + Chars::colon
-                + getString (heading != nullptr ? *heading->get<juce::String> (Id::id) : juce::String {})
-                + Chars::comma + getString (Id::columns.toString()) + Chars::colon + Chars::openBracket };
 
-    for (auto* headerCell : *headerRow)
+    jam::JsonWriter::appendObject (json, [&model, &table, heading, headerRow] (std::string& object)
     {
-        if (not text.endsWithChar (Chars::openBracket))
-            text += Chars::comma;
+        jam::JsonWriter::appendKey (object, Id::name);
+        jam::JsonWriter::appendString (object, jam::Strings::getView (heading != nullptr ? *heading->get<juce::String> (Id::id) : juce::String {}));
+        jam::JsonWriter::appendKey (object, Id::columns);
 
-        text += getString (headerCell->getAllSubText());
-    }
+        jam::JsonWriter::appendArray (object, [headerRow] (std::string& columns)
+        {
+            for (auto* headerCell : *headerRow)
+            {
+                jam::JsonWriter::appendSeparator (columns);
+                jam::JsonWriter::appendString (columns, jam::Strings::getView (headerCell->getAllSubText()));
+            }
+        });
 
-    text += juce::String::charToString (Chars::closeBracket) + Chars::comma + getString (Id::rows.toString())
-            + Chars::colon + Chars::openBracket;
+        jam::JsonWriter::appendKey (object, Id::rows);
 
-    for (auto* row : model.getTableRows (table))
-    {
-        if (not text.endsWithChar (Chars::openBracket))
-            text += Chars::comma;
-
-        text += getRow (model, *headerRow, *row);
-    }
-
-    return text + Chars::closeBracket + Chars::closeBrace;
+        jam::JsonWriter::appendArray (object, [&model, &table, headerRow] (std::string& rows)
+        {
+            for (auto* row : model.getTableRows (table))
+            {
+                jam::JsonWriter::appendSeparator (rows);
+                appendRow (rows, model, *headerRow, *row);
+            }
+        });
+    });
 }
 
-juce::String JsonWriter::getRow (const Model& model, const Model::Element& headerRow, const Model::Element& row)
+void JsonWriter::appendRow (std::string& json, const Model& model, const Model::Element& headerRow, const Model::Element& row)
 {
-    auto text { juce::String::charToString (Chars::openBrace) };
-
-    for (auto* cell : row)
+    jam::JsonWriter::appendObject (json, [&model, &headerRow, &row] (std::string& object)
     {
-        const auto* headerCell { headerRow.getChildByID (cell->id) };
+        for (auto* cell : row)
+        {
+            const auto* headerCell { headerRow.getChildByID (cell->id) };
 
-        if (not text.endsWithChar (Chars::openBrace))
-            text += Chars::comma;
-
-        text += getString (headerCell->getAllSubText()) + Chars::colon
-                + getString (model.getAuthoredText (*headerCell, row, *cell));
-    }
-
-    return text + Chars::closeBrace;
+            jam::JsonWriter::appendKey (object, jam::Strings::getView (headerCell->getAllSubText()));
+            jam::JsonWriter::appendString (object, jam::Strings::getView (model.getAuthoredText (*headerCell, row, *cell)));
+        }
+    });
 }

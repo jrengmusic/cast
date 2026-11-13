@@ -2,7 +2,7 @@ CompileFlags:
   CompilationDatabase: /Users/jreng/Documents/Poems/dev/cast
   Remove: [--target=*]
   Add:
-    - -DCAST_COMMIT=\"da53757\"
+    - -DCAST_COMMIT=\"9307b24\"
     - -DDONT_SET_USING_JUCE_NAMESPACE=1
     - -DHAVE_FREETYPE
     - -DHAVE_UNISTD_H

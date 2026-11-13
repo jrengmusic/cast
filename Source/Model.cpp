@@ -1,25 +1,13 @@
 #include "Model.h"
 
-std::unique_ptr<Model> Model::parse (const juce::File& documentFile)
+std::unique_ptr<Model> Model::load (const juce::File& documentFile)
 {
-    auto document { std::make_unique<Model>() };
-
-    if (documentFile.existsAsFile())
-        parse (*document, documentFile.loadFileAsString(),
-            documentFile.getRelativePathFrom (documentFile.getParentDirectory()),
-            documentFile.getParentDirectory());
-
-    return document;
+    return std::make_unique<Model> (documentFile.loadFileAsString(), documentFile, jam::HashMap<juce::Identifier, int> {});
 }
 
-std::unique_ptr<Model> Model::parse (const juce::String& text, const juce::String& origin,
-    const juce::File& directory, const jam::HashMap<juce::Identifier, int>& reflowWidths)
+std::unique_ptr<Model> Model::fromString (const juce::String& text, const juce::File& documentFile, const jam::HashMap<juce::Identifier, int>& reflowWidths)
 {
-    auto document { std::make_unique<Model>() };
-    document->reflowWidths = reflowWidths;
-    parse (*document, text, origin, directory);
-
-    return document;
+    return std::make_unique<Model> (text, documentFile, reflowWidths);
 }
 
 jam::HashMap<juce::Identifier, int> Model::getReflowWidths() const
@@ -50,9 +38,9 @@ int Model::getLineWrap() const
     return jam::MarkdownWriter::defaultLineWrap;
 }
 
-const juce::String& Model::getManifestOrigin() const noexcept
+juce::String Model::getManifestOrigin() const noexcept
 {
-    return manifestOrigin;
+    return documentFile.getFileName();
 }
 
 juce::String Model::getValue (juce::StringRef file, juce::StringRef alias) const
@@ -348,7 +336,7 @@ bool Model::isRegionRow (const Element& row) const
 
 juce::File Model::getFile (juce::StringRef relativePath) const
 {
-    return directory.getChildFile (relativePath);
+    return documentFile.getParentDirectory().getChildFile (relativePath);
 }
 
 juce::File Model::getFile (const Element& row) const
@@ -491,33 +479,32 @@ Model::getTableOrigins (const Model& document, const juce::String& manifestOrigi
     return tableOrigins;
 }
 
-void Model::parse (Model& document, const juce::String& text, const juce::String& origin,
-    const juce::File& directory)
+Model::Model (const juce::String& text, const juce::File& newDocumentFile, const jam::HashMap<juce::Identifier, int>& newReflowWidths)
+    : documentFile { newDocumentFile }
+    , reflowWidths (newReflowWidths)
 {
-    document.directory = directory;
-    document.manifestOrigin = origin;
+    if (const auto parsedDocument { jam::MarkdownDocument::parse (text, getManifestOrigin()) }; parsedDocument != nullptr)
+        appendChildren (std::move (*parsedDocument));
 
-    document.appendChildren (jam::MarkdownDocument::parse (text, origin));
+    addTables (documentFile.getParentDirectory(), getTableOrigins (*this, getManifestOrigin()));
+    addDescriptions (*this);
 
-    parse (document, directory, getTableOrigins (document, origin));
-    addDescriptions (document);
-
-    for (auto* table : *document.root)
+    for (auto* table : *root)
         if (jam::MarkdownDocument::isTable (*table))
             table->add<bool> (Id::wiring,
                 not table->isTag (Id::index) and table->contains (Id::path)
-                    and table->get<juce::String> (Id::path)->compare (document.manifestOrigin) == 0
-                    and document.getTableCell (*table, Id::structure, Id::headerRow) != nullptr);
+                    and table->get<juce::String> (Id::path)->compare (getManifestOrigin()) == 0
+                    and getTableCell (*table, Id::structure, Id::headerRow) != nullptr);
 
     for (const auto isIndexTable : { true, false })
-        for (auto* table : *document.root)
+        for (auto* table : *root)
             if (jam::MarkdownDocument::isTable (*table) and table->isTag (Id::index) == isIndexTable)
             {
                 const auto* headerRow { getTableHeaderRow (*table) };
 
                 for (auto* row : *table)
                     if (row != headerRow and not isTableBorder (*row))
-                        addRow (document, *row);
+                        addRow (*this, *row);
             }
 }
 
@@ -631,10 +618,9 @@ void Model::addDescriptions (Model& document)
     }
 }
 
-void Model::parse (Model& document, const juce::File& parent,
-                   const jam::Array<juce::String>& tableOrigins)
+void Model::addTables (const juce::File& parent, const jam::Array<juce::String>& tableOrigins)
 {
-    jam::Array<jam::MarkdownDocument> parsedTables;
+    jam::Array<std::unique_ptr<jam::MarkdownDocument>> parsedTables;
     parsedTables.resize (tableOrigins.size());
 
     Jobs::run (tableOrigins.size(),
@@ -648,7 +634,8 @@ void Model::parse (Model& document, const juce::File& parent,
         });
 
     for (auto& table : parsedTables)
-        document.appendChildren (std::move (table));
+        if (table != nullptr)
+            appendChildren (std::move (*table));
 }
 
 void Model::addBindings (Element& scope, const Model& document, const Element& row)

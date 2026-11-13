@@ -8,13 +8,15 @@ TemplateDocument::TemplateDocument (const Model& model)
 
         if (juce::File::createFileWithoutCheckingPath (symbol).hasFileExtension (Extensions::cast))
         {
-            documents.emplace (symbol,
-                jam::MarkdownDocument::parse (model.getFile (symbol).loadFileAsString(), symbol));
+            if (const auto document { jam::MarkdownDocument::parse (model.getFile (symbol).loadFileAsString(), symbol) }; document != nullptr)
+            {
+                documents.emplace (symbol, std::move (*document));
 
-            for (auto* block : *documents.at (symbol).getRoot())
-                if (block->contains (Id::type)
-                    and *block->get<int> (Id::type) == map::BlockType::codeBlock)
-                    addStamps (*block);
+                for (auto* block : *documents.at (symbol).getRoot())
+                    if (block->contains (Id::type)
+                        and *block->get<int> (Id::type) == map::BlockType::codeBlock)
+                        addStamps (*block);
+            }
         }
     }
 }

@@ -10,7 +10,7 @@
  *        one addressable jam::MarkdownDocument, plus the row and reference
  *        lookups the rest of the engine reads it through.
  *
- * A Model is built once, by parse(), from a manifest file and the data
+ * A Model is built once, by load() or fromString(), from a manifest file and the data
  * files its index declares -- every table lands in the one document tree,
  * addressed by table id and (parent, id) as jam::MarkdownDocument already
  * provides. Model adds no second copy of that tree; it only answers
@@ -21,37 +21,51 @@
 class Model : public jam::MarkdownDocument
 {
 public:
-    /** Constructs an empty model with no parsed tables. */
-    Model() = default;
-
     /** Brings the base class's header-row lookup into Model's own scope. */
     using jam::MarkdownDocument::getTableHeaderRow;
 
     /**
-     * @brief Parses @p documentFile as the manifest and every data file its
-     *        index declares, the data files parsed in parallel through
-     *        Jobs::run(), and returns the resulting Model.
+     * @brief Loads @p documentFile as the manifest of a new Model, with every
+     *        data file its index declares.
      *
-     * @param documentFile The manifest file to parse.
-     * @returns The parsed Model, empty when @p documentFile does not exist
-     *          as a file.
+     * The file text and the file are given to the constructor. A missing file
+     * gives empty text, so the Model holds no tables.
+     *
+     * @param documentFile The manifest file to load.
+     * @returns The new Model.
      */
-    static std::unique_ptr<Model> parse (const juce::File& documentFile);
+    static std::unique_ptr<Model> load (const juce::File& documentFile);
 
     /**
-     * @brief Parses @p text as a manifest sourced from @p origin, under
-     *        @p directory, with @p reflowWidths set on the returned Model
-     *        before parsing.
+     * @brief Builds a Model from @p text, the source of @p documentFile, with
+     *        @p reflowWidths set on it before @p text is parsed.
      *
      * @param text         The manifest source text to parse.
-     * @param origin       @p text's own relative path.
-     * @param directory    @p origin's own parent directory.
+     * @param documentFile The file @p text belongs to. Its parent directory
+     *                     resolves every relative path, and its file name is
+     *                     the manifest origin.
      * @param reflowWidths The column widths set on the returned Model
      *                     before parsing.
-     * @returns The parsed Model.
+     * @returns The Model built from @p text.
      */
-    static std::unique_ptr<Model> parse (const juce::String& text, const juce::String& origin,
-        const juce::File& directory, const jam::HashMap<juce::Identifier, int>& reflowWidths);
+    static std::unique_ptr<Model> fromString (const juce::String& text, const juce::File& documentFile, const jam::HashMap<juce::Identifier, int>& reflowWidths);
+
+    /**
+     * @brief Parses @p text as the manifest of @p newDocumentFile, then splices in
+     *        every data file its index declares and stamps every row.
+     *
+     * The text is parsed by jam::MarkdownDocument::parse with the manifest origin
+     * as its origin. addTables() adds each data file, and addDescriptions() stamps
+     * the table descriptions. Each table is stamped with its wiring flag. Index
+     * tables are stamped before every other table, and each row is stamped
+     * through addRow().
+     *
+     * @param text            The manifest source text to parse.
+     * @param newDocumentFile The manifest file. Its parent directory resolves the
+     *                        data files.
+     * @param newReflowWidths The column widths set on the Model before parsing.
+     */
+    Model (const juce::String& text, const juce::File& newDocumentFile, const jam::HashMap<juce::Identifier, int>& newReflowWidths);
 
     /**
      * @brief Returns every @c ## format row's own resolved @c name mapped
@@ -72,11 +86,12 @@ public:
     int getLineWrap() const;
 
     /**
-     * @brief Returns the manifest's own relative path, stamped at parse().
+     * @brief Returns the file name of the manifest, the origin given to the
+     *        manifest's parse.
      *
-     * @returns manifestOrigin.
+     * @returns The file name of @c documentFile.
      */
-    const juce::String& getManifestOrigin() const noexcept;
+    juce::String getManifestOrigin() const noexcept;
 
     /**
      * @brief Resolves @p alias against @p file's index, when @p alias is
@@ -425,7 +440,7 @@ public:
 
     /**
      * @brief Answers whether @p table is an output table -- reads @p table's
-     *        own @c wiring stamp, set once at parse() for every table:
+     *        own @c wiring stamp, set once in the constructor for every table:
      *        declared in the manifest's own file, not the index, and
      *        carrying a @c structure column on its header row.
      *
@@ -703,25 +718,6 @@ private:
     getTableOrigins (const Model& document, const juce::String& manifestOrigin);
 
     /**
-     * @brief Parses @p text as @p document's own manifest, sourced from
-     *        @p origin under @p directory, splices in every data file its
-     *        index declares, stamps every table's own @c description and
-     *        @c wiring, then stamps every row through addRow().
-     *
-     * Index tables are stamped before every other table. An @-sigiled cell
-     * resolves through getValue(), which reads the symbol cell's stamped
-     * @c value, so every index row carries its value before any row names
-     * an alias.
-     *
-     * @param document  The model parsed into.
-     * @param text      The manifest source text to parse.
-     * @param origin    @p text's own relative path.
-     * @param directory @p origin's own parent directory.
-     */
-    static void parse (Model& document, const juce::String& text, const juce::String& origin,
-        const juce::File& directory);
-
-    /**
      * @brief Measures, per blockquote depth, how many of the first list-column
      *        bullets are map bullets rather than expansion lines, and how many
      *        list-column bullets are empty-valued.
@@ -787,16 +783,13 @@ private:
     /**
      * @brief Parses every one of @p tableOrigins' own data files, in
      *        parallel through Jobs::run(), and splices each parsed
-     *        document into @p document.
+     *        document into this Model.
      *
-     * @param document     The model each parsed data file is spliced
-     *                     into.
      * @param parent       The directory @p tableOrigins' own relative
      *                     paths are resolved against.
      * @param tableOrigins The data files' own relative paths to parse.
      */
-    static void parse (Model& document, const juce::File& parent,
-                       const jam::Array<juce::String>& tableOrigins);
+    void addTables (const juce::File& parent, const jam::Array<juce::String>& tableOrigins);
 
     /**
      * @brief Stamps every binding item under @p scope with its resolved
@@ -1187,22 +1180,15 @@ private:
     const Element* getTable (const juce::String& declaredPath, const juce::String& tableName) const;
 
     /**
-     * The manifest file's own parent directory, stamped at parse() -- the
-     * directory getFile() resolves every relative path against.
+     * The manifest file. Its parent directory resolves every relative path, and
+     * its file name is the manifest origin.
      */
-    juce::File directory;
-
-    /**
-     * The manifest file's own relative path, stamped at parse() -- the
-     * origin every table declared in the manifest's own file compares
-     * against for the manifest-origin exemption.
-     */
-    juce::String manifestOrigin;
+    const juce::File documentFile;
 
     /**
      * The column widths the reader joins by, set at creation.
      */
-    jam::HashMap<juce::Identifier, int> reflowWidths;
+    const jam::HashMap<juce::Identifier, int> reflowWidths;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Model)

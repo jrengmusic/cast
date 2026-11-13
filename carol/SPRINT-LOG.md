@@ -111,6 +111,45 @@
 
 ## SPRINT HISTORY
 
+## Sprint: model-loads — Model Loads, Document Parses; JSON Through jam::JsonDocument ✅
+
+**Date:** 2026-11-14
+**Duration:** one session, from 2026-11-13 00:18 UTC. Not measured. `jam/carol/SPRINT-LOG.md` Sprint 187 is the primary record.
+**Scope:** `jam/PLAN-json.md`, `jam/PLAN-document-contract.md`. ARCHITECT on Model: *"Model should not parse. what to parse? parse is Document job"*; *"Model should load, fromXml, etc"*.
+
+### Agents Participated
+- COUNSELOR: delegation, the read of each return, this log.
+- Engineer (sonnet): the Model restructure, the call sites, the cast self-host run, the KANJUT sync.
+- Pathfinder (haiku): reads, the doxygen pass.
+
+### Files Modified
+- `Source/Model.h`, `.cpp` — `Model::load (const juce::File&)` (`.cpp:3-6`) and `Model::fromString (text, documentFile, reflowWidths)` (`:8-11`) return `std::make_unique<Model>`. The public constructor parses through `jam::MarkdownDocument::parse`. `const juce::File documentFile` replaces `directory` and `manifestOrigin`; `reflowWidths` is `const`. The default constructor, the out-parameter `parse` overloads and the raw `new` are removed.
+- `Source/Processor.h`, `.cpp` — the constructor takes `(text, const juce::File& documentFile, reflowWidths)`; `std::unique_ptr<Model> model`.
+- `Source/main.cpp` — callers pass the file; `getProcessedText` uses one `documentFile`.
+- `Source/JsonWriter.h`, `.cpp` — writes through `jam::JsonWriter`.
+- `Source/Sync.cpp:458-464` — `getCanonicalMarkdown` keeps the text when the parse returns nullptr.
+- `Source/TemplateDocument.cpp`, `Source/Writer.cpp`, `Source/Help.cpp` — callers of the pointer-returning parse.
+- `cast/identifiers.md`, `Source/generated/*` — one identifier removed; cast output.
+- `project-info.md`, `CMakeLists.txt` — `jam_data_structures` description, the `juce-plugin-window-size-hook.patch` row, `-fno-pch-timestamp` under Clang. `.clangd`, `compile_commands.json` — tool output.
+
+### Alignment Check
+- [x] BLESSED principles followed
+- [x] NAMES.md adhered
+- [x] MANIFESTO.md principles applied
+
+### Problems Solved
+- Model parsed its own text. Document parses; Model loads.
+- A missing file gives a Model with no tables. The self-host run, `echo '# t' | cast --format`, `cast --help` and the KANJUT sync exit 0.
+
+### State for Continuation
+- `cast --sync` copies kernel rows only (`Sync.cpp:436-447`) and deletes nothing (`Sync.h:15`). A table that jam moves from a kernel file to a provision file leaves the target's provision spell pointing at the old file (KANJUT `spell.md`, fixed by hand this session).
+
+### Debts Paid
+- None
+
+### Debts Deferred
+- None
+
 ## Sprint: columns-dangling-view — `(columns)` on Windows Was a View Read After `addSource` Moved the Source; JUCE 8.0.17 Patch Hunk ✅
 
 **Date:** 2026-11-12

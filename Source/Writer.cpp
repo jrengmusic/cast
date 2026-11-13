@@ -326,7 +326,7 @@ juce::String Writer::getBanner (const juce::String& extension, const juce::Strin
     const auto& syntax { map::commentSyntax.at (extension) };
     juce::String banner;
 
-    if (auto* bannerBlock { document.getCodeBlock (Id::banner) })
+    if (auto* bannerBlock { document->getCodeBlock (Id::banner) })
     {
         banner << (syntax.get (Id::bannerOpen).isNotEmpty()
                        ? syntax.get (Id::bannerOpen)
