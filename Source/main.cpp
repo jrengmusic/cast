@@ -8,7 +8,6 @@
 #include "Processor.h"
 #include "Sync.h"
 #include "Pack.h"
-#include "Help.h"
 
 #ifdef _WIN32
 #include <io.h>
@@ -826,7 +825,7 @@ static juce::Result runStyled (int lineWrap, const juce::File& styleFile, Functi
 /**
  * @brief Prints the banner and help text to stdout.
  *
- * Opens its own JUCE GUI initialiser scope, because printHelp() renders
+ * Opens its own JUCE GUI initialiser scope, because jam::TerminalPage renders
  * through the terminal graphics context.
  */
 static void printBannerAndHelp()
@@ -836,7 +835,11 @@ static void printBannerAndHelp()
 
     printBanner();
     printf ("%s", newlineText.toRawUTF8());
-    printHelp (BinaryData::getString (files::castHelp));
+    jam::TerminalPage page { { BinaryData::fetcher }, jam::Strings { files::styleSheet } };
+    page.setDocument (std::move (*jam::MarkdownDocument::parse (BinaryData::getString (files::castHelp), files::castHelp)));
+    juce::MemoryOutputStream frame;
+    page.writeToStream (frame);
+    fwrite (frame.getData(), sizeof (char), frame.getDataSize(), stdout);
 }
 
 /**

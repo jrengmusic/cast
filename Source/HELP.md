@@ -1,6 +1,6 @@
 # CAST: Codegen Annotated Source of Truth
 
-**Version 0.1.0** — this guide tracks SPEC version 0.9.
+**Version 0.0.1** — this guide tracks SPEC version 0.9.
 
 You see this guide because you ran `cast` with no manifest or `cast --help`, or because the manifest that you named was not found.
 

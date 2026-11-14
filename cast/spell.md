@@ -130,114 +130,6 @@
 |                                               |                           | - valueType: @string                          |                  |
 |                                               |                           | > - [list]: @code:utf8-entry                  |                  |
 +-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
-| > - [list]: @comments:clang comment           | - [list]: @code:linebreak | @code:namespace                               | @GeneratedSource |
-|                                               |                           | - name: map                                   |                  |
-|                                               |                           |                                               |                  |
-|                                               |                           | @code:hash-map-definition                     |                  |
-|                                               |                           | - name: clangComment                          |                  |
-|                                               |                           | - keyType: @id                                |                  |
-|                                               |                           | - valueType: @string                          |                  |
-|                                               |                           | > - [list]: @code:map-entry                   |                  |
-+-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
-| > - [list]: @comments:cmake comment           | - [list]: @code:linebreak | @code:namespace                               | @GeneratedSource |
-|                                               |                           | - name: map                                   |                  |
-|                                               |                           |                                               |                  |
-|                                               |                           | @code:hash-map-definition                     |                  |
-|                                               |                           | - name: cmakeComment                          |                  |
-|                                               |                           | - keyType: @id                                |                  |
-|                                               |                           | - valueType: @string                          |                  |
-|                                               |                           | > - [list]: @code:map-entry                   |                  |
-+-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
-| > - [list]: @comments:css comment             | - [list]: @code:linebreak | @code:namespace                               | @GeneratedSource |
-|                                               |                           | - name: map                                   |                  |
-|                                               |                           |                                               |                  |
-|                                               |                           | @code:hash-map-definition                     |                  |
-|                                               |                           | - name: cssComment                            |                  |
-|                                               |                           | - keyType: @id                                |                  |
-|                                               |                           | - valueType: @string                          |                  |
-|                                               |                           | > - [list]: @code:map-entry                   |                  |
-+-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
-| > - [list]: @comments:gomod comment           | - [list]: @code:linebreak | @code:namespace                               | @GeneratedSource |
-|                                               |                           | - name: map                                   |                  |
-|                                               |                           |                                               |                  |
-|                                               |                           | @code:hash-map-definition                     |                  |
-|                                               |                           | - name: gomodComment                          |                  |
-|                                               |                           | - keyType: @id                                |                  |
-|                                               |                           | - valueType: @string                          |                  |
-|                                               |                           | > - [list]: @code:map-entry                   |                  |
-+-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
-| > - [list]: @comments:html comment            | - [list]: @code:linebreak | @code:namespace                               | @GeneratedSource |
-|                                               |                           | - name: map                                   |                  |
-|                                               |                           |                                               |                  |
-|                                               |                           | @code:hash-map-definition                     |                  |
-|                                               |                           | - name: htmlComment                           |                  |
-|                                               |                           | - keyType: @id                                |                  |
-|                                               |                           | - valueType: @string                          |                  |
-|                                               |                           | > - [list]: @code:map-entry                   |                  |
-+-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
-| > - [list]: @comments:lua comment             | - [list]: @code:linebreak | @code:namespace                               | @GeneratedSource |
-|                                               |                           | - name: map                                   |                  |
-|                                               |                           |                                               |                  |
-|                                               |                           | @code:hash-map-definition                     |                  |
-|                                               |                           | - name: luaComment                            |                  |
-|                                               |                           | - keyType: @id                                |                  |
-|                                               |                           | - valueType: @string                          |                  |
-|                                               |                           | > - [list]: @code:map-entry                   |                  |
-+-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
-| > - [list]: @comments:mermaid comment         | - [list]: @code:linebreak | @code:namespace                               | @GeneratedSource |
-|                                               |                           | - name: map                                   |                  |
-|                                               |                           |                                               |                  |
-|                                               |                           | @code:hash-map-definition                     |                  |
-|                                               |                           | - name: mermaidComment                        |                  |
-|                                               |                           | - keyType: @id                                |                  |
-|                                               |                           | - valueType: @string                          |                  |
-|                                               |                           | > - [list]: @code:map-entry                   |                  |
-+-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
-| > - [list]: @comments:python comment          | - [list]: @code:linebreak | @code:namespace                               | @GeneratedSource |
-|                                               |                           | - name: map                                   |                  |
-|                                               |                           |                                               |                  |
-|                                               |                           | @code:hash-map-definition                     |                  |
-|                                               |                           | - name: pythonComment                         |                  |
-|                                               |                           | - keyType: @id                                |                  |
-|                                               |                           | - valueType: @string                          |                  |
-|                                               |                           | > - [list]: @code:map-entry                   |                  |
-+-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
-| > - [list]: @comments:ruby comment            | - [list]: @code:linebreak | @code:namespace                               | @GeneratedSource |
-|                                               |                           | - name: map                                   |                  |
-|                                               |                           |                                               |                  |
-|                                               |                           | @code:hash-map-definition                     |                  |
-|                                               |                           | - name: rubyComment                           |                  |
-|                                               |                           | - keyType: @id                                |                  |
-|                                               |                           | - valueType: @string                          |                  |
-|                                               |                           | > - [list]: @code:map-entry                   |                  |
-+-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
-| > - [list]: @comments:shell comment           | - [list]: @code:linebreak | @code:namespace                               | @GeneratedSource |
-|                                               |                           | - name: map                                   |                  |
-|                                               |                           |                                               |                  |
-|                                               |                           | @code:hash-map-definition                     |                  |
-|                                               |                           | - name: shellComment                          |                  |
-|                                               |                           | - keyType: @id                                |                  |
-|                                               |                           | - valueType: @string                          |                  |
-|                                               |                           | > - [list]: @code:map-entry                   |                  |
-+-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
-| > - [list]: @comments:sql comment             | - [list]: @code:linebreak | @code:namespace                               | @GeneratedSource |
-|                                               |                           | - name: map                                   |                  |
-|                                               |                           |                                               |                  |
-|                                               |                           | @code:hash-map-definition                     |                  |
-|                                               |                           | - name: sqlComment                            |                  |
-|                                               |                           | - keyType: @id                                |                  |
-|                                               |                           | - valueType: @string                          |                  |
-|                                               |                           | > - [list]: @code:map-entry                   |                  |
-+-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
-| > - [list]: @comments:comment syntax          | - [list]: @code:linebreak | @code:namespace                               | @GeneratedSource |
-|                                               |                           | - name: map                                   |                  |
-|                                               |                           |                                               |                  |
-|                                               |                           | @code:hash-map-definition                     |                  |
-|                                               |                           | - name: commentSyntax                         |                  |
-|                                               |                           | - keyType: @string                            |                  |
-|                                               |                           | - valueType: @commentMap                      |                  |
-|                                               |                           | > - [list]: @code:map-entry                   |                  |
-+-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
 | > - [list]: @comments:manifest syntax         | - [list]: @code:linebreak | @code:namespace                               | @GeneratedSource |
 |                                               |                           | - name: map                                   |                  |
 |                                               |                           |                                               |                  |
@@ -272,113 +164,137 @@
 |                                               |                           | - keyType: @string                            |                  |
 |                                               |                           | - valueType: @string                          |                  |
 +-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
-|                                               | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
+| > - [list]: @comments:clang comment           | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
 |                                               |                           | - macro: #pragma once                         |                  |
 |                                               |                           | - name: map                                   |                  |
+|                                               |                           | - [description]: @headers:brief               |                  |
 |                                               |                           |                                               |                  |
-|                                               |                           | @code:hash-map                                |                  |
-|                                               |                           | - name: clangComment                          |                  |
+|                                               |                           | @code:shared-hash-map                         |                  |
+|                                               |                           | - name: ClangComment                          |                  |
 |                                               |                           | - keyType: @id                                |                  |
 |                                               |                           | - valueType: @string                          |                  |
+|                                               |                           | > - [list]: @code:map-entry                   |                  |
 +-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
-|                                               | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
+| > - [list]: @comments:cmake comment           | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
 |                                               |                           | - macro: #pragma once                         |                  |
 |                                               |                           | - name: map                                   |                  |
+|                                               |                           | - [description]: @headers:brief               |                  |
 |                                               |                           |                                               |                  |
-|                                               |                           | @code:hash-map                                |                  |
-|                                               |                           | - name: cmakeComment                          |                  |
+|                                               |                           | @code:shared-hash-map                         |                  |
+|                                               |                           | - name: CmakeComment                          |                  |
 |                                               |                           | - keyType: @id                                |                  |
 |                                               |                           | - valueType: @string                          |                  |
+|                                               |                           | > - [list]: @code:map-entry                   |                  |
 +-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
-|                                               | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
+| > - [list]: @comments:css comment             | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
 |                                               |                           | - macro: #pragma once                         |                  |
 |                                               |                           | - name: map                                   |                  |
+|                                               |                           | - [description]: @headers:brief               |                  |
 |                                               |                           |                                               |                  |
-|                                               |                           | @code:hash-map                                |                  |
-|                                               |                           | - name: cssComment                            |                  |
+|                                               |                           | @code:shared-hash-map                         |                  |
+|                                               |                           | - name: CssComment                            |                  |
 |                                               |                           | - keyType: @id                                |                  |
 |                                               |                           | - valueType: @string                          |                  |
+|                                               |                           | > - [list]: @code:map-entry                   |                  |
 +-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
-|                                               | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
+| > - [list]: @comments:gomod comment           | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
 |                                               |                           | - macro: #pragma once                         |                  |
 |                                               |                           | - name: map                                   |                  |
+|                                               |                           | - [description]: @headers:brief               |                  |
 |                                               |                           |                                               |                  |
-|                                               |                           | @code:hash-map                                |                  |
-|                                               |                           | - name: gomodComment                          |                  |
+|                                               |                           | @code:shared-hash-map                         |                  |
+|                                               |                           | - name: GomodComment                          |                  |
 |                                               |                           | - keyType: @id                                |                  |
 |                                               |                           | - valueType: @string                          |                  |
+|                                               |                           | > - [list]: @code:map-entry                   |                  |
 +-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
-|                                               | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
+| > - [list]: @comments:html comment            | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
 |                                               |                           | - macro: #pragma once                         |                  |
 |                                               |                           | - name: map                                   |                  |
+|                                               |                           | - [description]: @headers:brief               |                  |
 |                                               |                           |                                               |                  |
-|                                               |                           | @code:hash-map                                |                  |
-|                                               |                           | - name: htmlComment                           |                  |
+|                                               |                           | @code:shared-hash-map                         |                  |
+|                                               |                           | - name: HtmlComment                           |                  |
 |                                               |                           | - keyType: @id                                |                  |
 |                                               |                           | - valueType: @string                          |                  |
+|                                               |                           | > - [list]: @code:map-entry                   |                  |
 +-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
-|                                               | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
+| > - [list]: @comments:lua comment             | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
 |                                               |                           | - macro: #pragma once                         |                  |
 |                                               |                           | - name: map                                   |                  |
+|                                               |                           | - [description]: @headers:brief               |                  |
 |                                               |                           |                                               |                  |
-|                                               |                           | @code:hash-map                                |                  |
-|                                               |                           | - name: luaComment                            |                  |
+|                                               |                           | @code:shared-hash-map                         |                  |
+|                                               |                           | - name: LuaComment                            |                  |
 |                                               |                           | - keyType: @id                                |                  |
 |                                               |                           | - valueType: @string                          |                  |
+|                                               |                           | > - [list]: @code:map-entry                   |                  |
 +-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
-|                                               | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
+| > - [list]: @comments:mermaid comment         | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
 |                                               |                           | - macro: #pragma once                         |                  |
 |                                               |                           | - name: map                                   |                  |
+|                                               |                           | - [description]: @headers:brief               |                  |
 |                                               |                           |                                               |                  |
-|                                               |                           | @code:hash-map                                |                  |
-|                                               |                           | - name: mermaidComment                        |                  |
+|                                               |                           | @code:shared-hash-map                         |                  |
+|                                               |                           | - name: MermaidComment                        |                  |
 |                                               |                           | - keyType: @id                                |                  |
 |                                               |                           | - valueType: @string                          |                  |
+|                                               |                           | > - [list]: @code:map-entry                   |                  |
 +-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
-|                                               | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
+| > - [list]: @comments:python comment          | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
 |                                               |                           | - macro: #pragma once                         |                  |
 |                                               |                           | - name: map                                   |                  |
+|                                               |                           | - [description]: @headers:brief               |                  |
 |                                               |                           |                                               |                  |
-|                                               |                           | @code:hash-map                                |                  |
-|                                               |                           | - name: pythonComment                         |                  |
+|                                               |                           | @code:shared-hash-map                         |                  |
+|                                               |                           | - name: PythonComment                         |                  |
 |                                               |                           | - keyType: @id                                |                  |
 |                                               |                           | - valueType: @string                          |                  |
+|                                               |                           | > - [list]: @code:map-entry                   |                  |
 +-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
-|                                               | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
+| > - [list]: @comments:ruby comment            | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
 |                                               |                           | - macro: #pragma once                         |                  |
 |                                               |                           | - name: map                                   |                  |
+|                                               |                           | - [description]: @headers:brief               |                  |
 |                                               |                           |                                               |                  |
-|                                               |                           | @code:hash-map                                |                  |
-|                                               |                           | - name: rubyComment                           |                  |
+|                                               |                           | @code:shared-hash-map                         |                  |
+|                                               |                           | - name: RubyComment                           |                  |
 |                                               |                           | - keyType: @id                                |                  |
 |                                               |                           | - valueType: @string                          |                  |
+|                                               |                           | > - [list]: @code:map-entry                   |                  |
 +-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
-|                                               | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
+| > - [list]: @comments:shell comment           | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
 |                                               |                           | - macro: #pragma once                         |                  |
 |                                               |                           | - name: map                                   |                  |
+|                                               |                           | - [description]: @headers:brief               |                  |
 |                                               |                           |                                               |                  |
-|                                               |                           | @code:hash-map                                |                  |
-|                                               |                           | - name: shellComment                          |                  |
+|                                               |                           | @code:shared-hash-map                         |                  |
+|                                               |                           | - name: ShellComment                          |                  |
 |                                               |                           | - keyType: @id                                |                  |
 |                                               |                           | - valueType: @string                          |                  |
+|                                               |                           | > - [list]: @code:map-entry                   |                  |
 +-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
-|                                               | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
+| > - [list]: @comments:sql comment             | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
 |                                               |                           | - macro: #pragma once                         |                  |
 |                                               |                           | - name: map                                   |                  |
+|                                               |                           | - [description]: @headers:brief               |                  |
 |                                               |                           |                                               |                  |
-|                                               |                           | @code:hash-map                                |                  |
-|                                               |                           | - name: sqlComment                            |                  |
+|                                               |                           | @code:shared-hash-map                         |                  |
+|                                               |                           | - name: SqlComment                            |                  |
 |                                               |                           | - keyType: @id                                |                  |
 |                                               |                           | - valueType: @string                          |                  |
+|                                               |                           | > - [list]: @code:map-entry                   |                  |
 +-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
-|                                               | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
+| > - [list]: @comments:comment syntax          | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
 |                                               |                           | - macro: #pragma once                         |                  |
 |                                               |                           | - name: map                                   |                  |
+|                                               |                           | - [description]: @headers:brief               |                  |
 |                                               |                           |                                               |                  |
-|                                               |                           | @code:hash-map                                |                  |
-|                                               |                           | - name: commentSyntax                         |                  |
+|                                               |                           | @code:shared-hash-map                         |                  |
+|                                               |                           | - name: CommentSyntax                         |                  |
 |                                               |                           | - keyType: @string                            |                  |
 |                                               |                           | - valueType: @commentMap                      |                  |
+|                                               |                           | > - [list]: @code:map-entry                   |                  |
 +-----------------------------------------------+---------------------------+-----------------------------------------------+------------------+
 |                                               | - [list]: @code:linebreak | @code:namespace                               | @HashMaps        |
 |                                               |                           | - macro: #pragma once                         |                  |

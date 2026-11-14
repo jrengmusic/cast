@@ -41,7 +41,6 @@ namespace Id
     const juce::Identifier blockOpen        { juce::String::fromUTF8 ("blockOpen") };
     const juce::Identifier bundleColumn     { juce::String::fromUTF8 ("bundle-column") };
     const juce::Identifier chain            { juce::String::fromUTF8 ("chain") };
-    const juce::Identifier comment          { juce::String::fromUTF8 ("comment") };
     const juce::Identifier date             { juce::String::fromUTF8 ("date") };
     const juce::String     dmg              { juce::String::fromUTF8 ("dmg") };
     const juce::Identifier doubleDash       { juce::String::fromUTF8 ("--") };
@@ -133,115 +132,6 @@ const jam::HashMap<juce::String, juce::String> banner
     { juce::String::fromUTF8 ("oceanBlue"),        juce::String::fromUTF8 ("\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88    \xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88  \xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88    \xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88  \xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88    \xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88      \xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88    ") },
     { juce::String::fromUTF8 ("swimmer"),          juce::String::fromUTF8 ("\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88  \xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88    \xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88  \xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88      \xe2\x96\x88\xe2\x96\x88\xe2\x96\x88\xe2\x96\x88    ") },
     { juce::String::fromUTF8 ("wayBeyondTheBlue"), juce::String::fromUTF8 ("\xe2\x96\x91\xe2\x96\x91\xe2\x96\x91\xe2\x96\x91\xe2\x96\x91\xe2\x96\x91\xe2\x96\x91\xe2\x96\x91\xe2\x96\x91\xe2\x96\x91\xe2\x96\x91\xe2\x96\x91  \xe2\x96\x91\xe2\x96\x91\xe2\x96\x91\xe2\x96\x91    \xe2\x96\x91\xe2\x96\x91\xe2\x96\x91\xe2\x96\x91  \xe2\x96\x91\xe2\x96\x91\xe2\x96\x91\xe2\x96\x91\xe2\x96\x91\xe2\x96\x91\xe2\x96\x91\xe2\x96\x91\xe2\x96\x91\xe2\x96\x91\xe2\x96\x91\xe2\x96\x91      \xe2\x96\x91\xe2\x96\x91\xe2\x96\x91\xe2\x96\x91    ") },
-};
-const jam::HashMap<juce::Identifier, juce::String> clangComment
-{
-    { Id::comment,     "///<" },
-    { Id::brief,       "@brief" },
-    { Id::blockOpen,   "/**" },
-    { Id::blockLine,   " *" },
-    { Id::blockClose,  "*/" },
-    { Id::bannerOpen,  "/*******************************************************************************" },
-    { Id::bannerClose, "********************************************************************************/" },
-};
-const jam::HashMap<juce::Identifier, juce::String> cmakeComment
-{
-    { Id::comment,     "#" },
-    { Id::blockOpen,   "#[[" },
-    { Id::blockClose,  "]]" },
-    { Id::bannerOpen,  "#[[*****************************************************************************" },
-    { Id::bannerClose, "******************************************************************************]]" },
-};
-const jam::HashMap<juce::Identifier, juce::String> cssComment
-{
-    { Id::blockOpen,   "/*" },
-    { Id::blockClose,  "*/" },
-    { Id::bannerOpen,  "/*******************************************************************************" },
-    { Id::bannerClose, "********************************************************************************/" },
-};
-const jam::HashMap<juce::Identifier, juce::String> gomodComment
-{
-    { Id::comment, "//" },
-};
-const jam::HashMap<juce::Identifier, juce::String> htmlComment
-{
-    { Id::blockOpen,   "<!--" },
-    { Id::blockClose,  "-->" },
-    { Id::bannerOpen,  "<!--" },
-    { Id::bannerClose, "-->" },
-};
-const jam::HashMap<juce::Identifier, juce::String> luaComment
-{
-    { Id::comment,     "---" },
-    { Id::blockOpen,   "--[[" },
-    { Id::blockClose,  "]]" },
-    { Id::bannerOpen,  "--[[" },
-    { Id::bannerClose, "]]" },
-};
-const jam::HashMap<juce::Identifier, juce::String> mermaidComment
-{
-    { Id::comment, "%%" },
-};
-const jam::HashMap<juce::Identifier, juce::String> pythonComment
-{
-    { Id::comment,     "#" },
-    { Id::blockOpen,   "\"\"\"" },
-    { Id::blockClose,  "\"\"\"" },
-    { Id::bannerOpen,  "\"\"\"" },
-    { Id::bannerClose, "\"\"\"" },
-};
-const jam::HashMap<juce::Identifier, juce::String> rubyComment
-{
-    { Id::comment,     "#" },
-    { Id::blockOpen,   "=begin" },
-    { Id::blockClose,  "=end" },
-    { Id::bannerOpen,  "=begin" },
-    { Id::bannerClose, "=end" },
-};
-const jam::HashMap<juce::Identifier, juce::String> shellComment
-{
-    { Id::comment, "#" },
-};
-const jam::HashMap<juce::Identifier, juce::String> sqlComment
-{
-    { Id::comment,     "--" },
-    { Id::blockOpen,   "/*" },
-    { Id::blockClose,  "*/" },
-    { Id::bannerOpen,  "/*" },
-    { Id::bannerClose, "*/" },
-};
-const jam::HashMap<juce::String, jam::HashMap<juce::Identifier, juce::String>> commentSyntax
-{
-    { ".h",       clangComment },
-    { ".cpp",     clangComment },
-    { ".c",       clangComment },
-    { ".js",      clangComment },
-    { ".ts",      clangComment },
-    { ".jsx",     clangComment },
-    { ".tsx",     clangComment },
-    { ".java",    clangComment },
-    { ".go",      clangComment },
-    { ".rs",      clangComment },
-    { ".rust",    clangComment },
-    { ".cmake",   cmakeComment },
-    { ".css",     cssComment },
-    { ".mod",     gomodComment },
-    { ".html",    htmlComment },
-    { ".xml",     htmlComment },
-    { ".lua",     luaComment },
-    { ".mmd",     mermaidComment },
-    { ".mermaid", mermaidComment },
-    { ".py",      pythonComment },
-    { ".python",  pythonComment },
-    { ".rb",      rubyComment },
-    { ".ruby",    rubyComment },
-    { ".sh",      shellComment },
-    { ".bash",    shellComment },
-    { ".shell",   shellComment },
-    { ".toml",    shellComment },
-    { ".sql",     sqlComment },
-    { ".yaml",    shellComment },
-    { ".yml",     shellComment },
 };
 const jam::HashMap<juce::String, juce::String> manifestSyntax
 {

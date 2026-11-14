@@ -2,7 +2,9 @@
 
 juce::String Transforms::toComment (const juce::String& input, const juce::String& extension)
 {
-    const auto& syntax { map::commentSyntax.at (extension) };
+    static const jam::SharedInstance<map::CommentSyntax> commentSyntax { std::in_place };
+
+    const auto& syntax { commentSyntax->at (extension) };
     const auto comment { syntax.get (Id::comment) };
     const auto joined { input.replaceCharacter (Chars::newline, Chars::space) };
 
@@ -74,7 +76,9 @@ Transforms::toCommentBlock (const juce::String& input, const juce::String& exten
     static const auto spaceText { juce::String::charToString (Chars::space) };
     static const auto newlineText { juce::String::charToString (Chars::newline) };
 
-    const auto& syntax { map::commentSyntax.at (extension) };
+    static const jam::SharedInstance<map::CommentSyntax> commentSyntax { std::in_place };
+
+    const auto& syntax { commentSyntax->at (extension) };
     const auto blockOpen { syntax.get (Id::blockOpen) };
     jam::Strings blockLines;
 
@@ -112,7 +116,9 @@ Transforms::toCommentBlock (const juce::String& input, const juce::String& exten
 
 juce::String Transforms::toBrief (const juce::String& input, const juce::String& extension)
 {
-    const auto& syntax { map::commentSyntax.at (extension) };
+    static const jam::SharedInstance<map::CommentSyntax> commentSyntax { std::in_place };
+
+    const auto& syntax { commentSyntax->at (extension) };
     const auto blockOpen { syntax.get (Id::blockOpen) };
 
     if (blockOpen.isEmpty())
@@ -127,6 +133,7 @@ juce::String Transforms::toBrief (const juce::String& input, const juce::String&
 juce::String Transforms::getCommentSyntaxKey (const juce::String& file)
 {
     static const auto dotText { juce::String::charToString (Chars::dot) };
+    static const jam::SharedInstance<map::CommentSyntax> commentSyntax { std::in_place };
 
     const auto outputFile { juce::File::createFileWithoutCheckingPath (file) };
 
@@ -140,7 +147,7 @@ juce::String Transforms::getCommentSyntaxKey (const juce::String& file)
 
     const auto extension { outputFile.getFileExtension() };
 
-    if (map::commentSyntax.contains (extension))
+    if (commentSyntax->contains (extension))
         return extension;
 
     return dotText + Extensions::h;

@@ -46,7 +46,7 @@ elseif(WIN32)
 endif()
 
 project(cast
-    VERSION "0.1.0"
+    VERSION "0.0.1"
     LANGUAGES C CXX
     DESCRIPTION "Codegen Annotated Source of Truth"
 )
@@ -244,12 +244,13 @@ juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_gui")              # GUI
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_mermaid_diagram")  # Clean-room native mermaid diagram parsing over jam::Document producing the semantic Element tree
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_markdown_graphics")# Markdown and mermaid materialisation, layout and view component
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_terminal")         # VT read-side engine, TTY, protocol vocabulary, keyboard encoding
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_tui")              # Terminal user interface components, painted through the terminal graphics context
 
 message(STATUS "CAST: user modules added from ${CMAKE_CURRENT_SOURCE_DIR}/../jam")
 
 juce_add_console_app(${PROJECT_NAME}
     PRODUCT_NAME "cast"
-    VERSION "0.1.0"
+    VERSION "0.0.1"
     BUILD_VERSION "0.1.0"
     BUNDLE_ID "com.jrengmusic.cast"
     COMPANY_NAME "JRENG"
@@ -329,6 +330,7 @@ jam_gui
 jam_mermaid_diagram
 jam_markdown_graphics
 jam_terminal
+jam_tui
     PUBLIC
         juce::juce_recommended_config_flags
 )
@@ -358,7 +360,7 @@ target_link_options(${PROJECT_NAME} PRIVATE
 file(GLOB CAST_BINARY_FILES CONFIGURE_DEPENDS
 Source/HELP.md
 Source/resources/cast-output.md
-Source/style.css
+../jam/jam_tui/page/style.css
 )
 
 juce_add_binary_data(${PROJECT_NAME}_BinaryData

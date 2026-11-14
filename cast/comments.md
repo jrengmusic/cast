@@ -215,46 +215,46 @@ frame, which also serves as the banner frame for `.sql` outputs.
 Maps an output file's extension to the comment frame the `:::[description]:::`
 marker renders in. Transforms.h reads one row per output file to wrap
 authored documentation, and Writer.h reads it to frame the banner. Each
-extension keys one of the `clangComment`, `cmakeComment`, `cssComment`,
-`gomodComment`, `htmlComment`, `luaComment`, `mermaidComment`,
-`pythonComment`, `rubyComment`, `shellComment` or `sqlComment` maps above.
-An extension absent from this table falls back to `clangComment`.
+extension keys one of the `ClangComment`, `CmakeComment`, `CssComment`,
+`GomodComment`, `HtmlComment`, `LuaComment`, `MermaidComment`,
+`PythonComment`, `RubyComment`, `ShellComment` or `SqlComment` maps above.
+An extension absent from this table falls back to `ClangComment`.
 ```
 
-+------------+----------------+
-| key        | value          |
-+============+================+
-| `.h`       | clangComment   |
-| `.cpp`     | clangComment   |
-| `.c`       | clangComment   |
-| `.js`      | clangComment   |
-| `.ts`      | clangComment   |
-| `.jsx`     | clangComment   |
-| `.tsx`     | clangComment   |
-| `.java`    | clangComment   |
-| `.go`      | clangComment   |
-| `.rs`      | clangComment   |
-| `.rust`    | clangComment   |
-| `.cmake`   | cmakeComment   |
-| `.css`     | cssComment     |
-| `.mod`     | gomodComment   |
-| `.html`    | htmlComment    |
-| `.xml`     | htmlComment    |
-| `.lua`     | luaComment     |
-| `.mmd`     | mermaidComment |
-| `.mermaid` | mermaidComment |
-| `.py`      | pythonComment  |
-| `.python`  | pythonComment  |
-| `.rb`      | rubyComment    |
-| `.ruby`    | rubyComment    |
-| `.sh`      | shellComment   |
-| `.bash`    | shellComment   |
-| `.shell`   | shellComment   |
-| `.toml`    | shellComment   |
-| `.sql`     | sqlComment     |
-| `.yaml`    | shellComment   |
-| `.yml`     | shellComment   |
-+------------+----------------+
++------------+-------------------+
+| key        | value             |
++============+===================+
+| `.h`       | ClangComment {}   |
+| `.cpp`     | ClangComment {}   |
+| `.c`       | ClangComment {}   |
+| `.js`      | ClangComment {}   |
+| `.ts`      | ClangComment {}   |
+| `.jsx`     | ClangComment {}   |
+| `.tsx`     | ClangComment {}   |
+| `.java`    | ClangComment {}   |
+| `.go`      | ClangComment {}   |
+| `.rs`      | ClangComment {}   |
+| `.rust`    | ClangComment {}   |
+| `.cmake`   | CmakeComment {}   |
+| `.css`     | CssComment {}     |
+| `.mod`     | GomodComment {}   |
+| `.html`    | HtmlComment {}    |
+| `.xml`     | HtmlComment {}    |
+| `.lua`     | LuaComment {}     |
+| `.mmd`     | MermaidComment {} |
+| `.mermaid` | MermaidComment {} |
+| `.py`      | PythonComment {}  |
+| `.python`  | PythonComment {}  |
+| `.rb`      | RubyComment {}    |
+| `.ruby`    | RubyComment {}    |
+| `.sh`      | ShellComment {}   |
+| `.bash`    | ShellComment {}   |
+| `.shell`   | ShellComment {}   |
+| `.toml`    | ShellComment {}   |
+| `.sql`     | SqlComment {}     |
+| `.yaml`    | ShellComment {}   |
+| `.yml`     | ShellComment {}   |
++------------+-------------------+
 
 ## manifest syntax
 

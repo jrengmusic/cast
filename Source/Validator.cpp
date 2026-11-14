@@ -882,6 +882,8 @@ juce::Result Validator::isFencePrefix (const Model& model)
                     structureScope->applyFunctionRecursively (
                         [&failingLine, &noBanner] (const Element& candidate) -> bool
                         {
+                            static const jam::SharedInstance<map::CommentSyntax> commentSyntax { std::in_place };
+
                             if (failingLine == nullptr and candidate.contains (Id::templatePath))
                             {
                                 const auto& fenceName { *candidate.get<juce::String> (Id::info) };
@@ -892,7 +894,7 @@ juce::Result Validator::isFencePrefix (const Model& model)
 
                                     if (word.isEmpty()
                                         or (word.compare (noBanner) != 0
-                                            and not map::commentSyntax.contains (
+                                            and not commentSyntax->contains (
                                                 dotText + word)))
                                         failingLine = &candidate;
                                 }

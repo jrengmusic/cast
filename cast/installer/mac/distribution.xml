@@ -32,5 +32,5 @@
     <choice id="com.jrengmusic.cast" title="cast" start_selected="true">
         <pkg-ref id="com.jrengmusic.cast"/>
     </choice>
-    <pkg-ref id="com.jrengmusic.cast" version="0.1.0" onConclusion="none">cast.pkg</pkg-ref>
+    <pkg-ref id="com.jrengmusic.cast" version="0.0.1" onConclusion="none">cast.pkg</pkg-ref>
 </installer-gui-script>

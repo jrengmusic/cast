@@ -323,7 +323,9 @@ juce::String Writer::getBanner (const juce::String& extension, const juce::Strin
     static const auto document { jam::MarkdownDocument::parse (
         BinaryData::getString (files::castOutput)) };
 
-    const auto& syntax { map::commentSyntax.at (extension) };
+    static const jam::SharedInstance<map::CommentSyntax> commentSyntax { std::in_place };
+
+    const auto& syntax { commentSyntax->at (extension) };
     juce::String banner;
 
     if (auto* bannerBlock { document->getCodeBlock (Id::banner) })
