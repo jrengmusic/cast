@@ -111,8 +111,9 @@ namespace files
 const juce::String castDirectory       { juce::String::fromUTF8 ("cast") };
 const juce::String castFormat          { juce::String::fromUTF8 (".cast-format") };
 const juce::String castFormatAlternate { juce::String::fromUTF8 ("_cast-format") };
-const juce::String castHelp            { juce::String::fromUTF8 ("HELP.md") };
+const juce::String castHelp            { juce::String::fromUTF8 ("HELP.frame") };
 const juce::String castOutput          { juce::String::fromUTF8 ("cast-output.md") };
+const juce::String screenErase         { juce::String::fromUTF8 ("erase.frame") };
 const juce::String standardInput       { juce::String::fromUTF8 ("<stdin>") };
 const juce::String userModulesInfo     { juce::String::fromUTF8 ("user-modules-info.md") };
 

@@ -132,28 +132,37 @@ juce::Result Pack::toZip (const juce::ArgumentList& arguments, const juce::File&
         if (hasLink (triples, row))
             links.set (getLinkName (triples, row), getLinkTarget (triples, row));
 
-   #if JUCE_MAC
-    return toStage (archive, items, [&archive, &links] (const juce::File&, const juce::Array<juce::File>& stagedItems)
-    {
-        return ZipWriter::toFile (archive, stagedItems, links);
-    });
-   #else
     return ZipWriter::toFile (archive, items, links);
-   #endif
 }
 
 juce::Result Pack::toDmg (const juce::ArgumentList& arguments, const juce::File& archive, const juce::Array<juce::File>& items, const juce::StringArray& triples)
 {
    #if JUCE_MAC
-    return toStage (archive, items, [&arguments, &archive, &items, &triples] (const juce::File& stage, const juce::Array<juce::File>&)
-    {
-        const auto imageArguments { getImageArguments (stage, archive) };
-        const auto staged { addStage (arguments, stage, archive, items, triples) };
+    const auto stage { archive.getSiblingFile (archive.getFileNameWithoutExtension()).getNonexistentSibling (false) };
+    const auto stageFailure { juce::Result::fail (stage.getFullPathName() + Id::diagnosticSeparator
+                                                  + text::Diagnostics::failOutputWrite) };
 
-        return staged.wasOk()
-                   ? Toolchain::runProcess (imageArguments, juce::File::getCurrentWorkingDirectory(), imageArguments.joinIntoString (juce::String::charToString (Chars::space)))
-                   : staged;
-    });
+    if (stage.createDirectory().wasOk())
+    {
+        const auto stagedItems (getStagedItems (stage, items));
+        juce::Result created { addStageItems (items, stagedItems) };
+
+        if (created.wasOk())
+            created = addStage (arguments, stage, archive, items, triples);
+
+        if (created.wasOk())
+        {
+            const auto imageArguments { getImageArguments (stage, archive) };
+
+            created = Toolchain::runProcess (imageArguments, juce::File::getCurrentWorkingDirectory(), imageArguments.joinIntoString (juce::String::charToString (Chars::space)));
+        }
+
+        const auto removed { stage.deleteRecursively() };
+
+        return created.wasOk() ? (removed ? juce::Result::ok() : stageFailure) : created;
+    }
+
+    return stageFailure;
    #else
     juce::ignoreUnused (arguments, items, triples);
 

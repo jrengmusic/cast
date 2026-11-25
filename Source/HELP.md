@@ -590,10 +590,11 @@ The view shows icons of `icon-size` points, with no toolbar, no status bar, no s
 
 **Background.** `--background=<path>` names the background image. Without it, the background is white. A background file that does not exist is fatal. A layout option or `--background` with a `.zip` archive is fatal.
 
-**Icon.** Each bundle shows its own icon after the archive is extracted. No format is named.
+**Icon.** Each bundle shows its own icon after the archive is extracted, except in a macOS zip. No format is named.
 
 - On Windows, the build puts the icon on the bundle: `desktop.ini`, `Plugin.ico` and the System attribute on the folder. The zip records them.
-- On macOS, CAST packs both formats from a stage. CAST clones each item into the stage. When the clone has an XML `Contents/Info.plist` with a `CFBundleIconFile` key, CAST writes a custom Finder icon on the clone:
+- A zip records no Finder information and no resource fork. On macOS, CAST writes the zip from the items, and a bundle in a macOS zip has no custom icon.
+- On macOS, CAST packs the dmg from a stage. CAST clones each item into the stage. When the clone has an XML `Contents/Info.plist` with a `CFBundleIconFile` key, CAST writes a custom Finder icon on the clone:
   1. The file `Icon\r` in the bundle root, with an empty data fork.
   2. Its resource fork: one `icns` resource, ID -16455, that holds the bytes of `Contents/Resources/<CFBundleIconFile>` unchanged.
   3. Its Finder information: the invisible flag.
@@ -607,7 +608,6 @@ The view shows icons of `icon-size` points, with no toolbar, no status bar, no s
 - On a host with no Unix mode, a file records 0644, and a folder and a symbolic link record 0755.
 - A link entry records 0755 on each host.
 - On Windows, the low byte of the external attributes of each entry records its ReadOnly, Hidden, System and Directory attribute bits.
-- On macOS, each entry with Finder information or a resource fork adds one AppleDouble entry, `__MACOSX/<parent>/._<name>`, after the entries of its item. The AppleDouble holds the Finder information and the resource fork, with no other extended attribute. An AppleDouble entry records 0644.
 - A symbolic link entry holds its target text and is stored. Each other file is deflated.
 - Each entry records the time 1980-01-01 00:00, the first value of the zip time field.
 - CAST walks each folder in the order of the entry names, compared by code point with case.

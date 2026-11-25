@@ -831,15 +831,12 @@ static juce::Result runStyled (int lineWrap, const juce::File& styleFile, Functi
 static void printBannerAndHelp()
 {
     static const auto newlineText { juce::String::charToString (Chars::newline) };
-    juce::ScopedJuceInitialiser_GUI juceInitialiser;
 
     printBanner();
     printf ("%s", newlineText.toRawUTF8());
-    jam::TerminalPage page { { BinaryData::fetcher }, jam::Strings { files::styleSheet } };
-    page.setDocument (std::move (*jam::MarkdownDocument::parse (BinaryData::getString (files::castHelp), files::castHelp)));
-    juce::MemoryOutputStream frame;
-    page.writeToStream (frame);
-    fwrite (frame.getData(), sizeof (char), frame.getDataSize(), stdout);
+    const auto [data, size] { BinaryData::fetcher (files::castHelp.toRawUTF8()) };
+    assert (data != nullptr);
+    fwrite (data, sizeof (char), static_cast<size_t> (size), stdout);
 }
 
 /**
@@ -1625,9 +1622,9 @@ int main (int argc, char* argv[])
 
     if (isTerminalOutput() and not isFormatOnly (argc, argv) and not isPackFlag (argc, argv) and not isTablesFlag (argc, argv))
     {
-        juce::MemoryOutputStream erase;
-        jam::TerminalEncoder::writeEraseScreen (erase);
-        fwrite (erase.getData(), sizeof (char), erase.getDataSize(), stdout);
+        const auto [data, size] { BinaryData::fetcher (files::screenErase.toRawUTF8()) };
+        assert (data != nullptr);
+        fwrite (data, sizeof (char), static_cast<size_t> (size), stdout);
         fflush (stdout);
     }
 

@@ -108,12 +108,16 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 
 ## juce module
 
-+-----------+-----------------+
-| name      | value           |
-+===========+=================+
-| core      | juce_core       |
-| guiBasics | juce_gui_basics |
-+-----------+-----------------+
++-----------------+-----------------------+
+| name            | value                 |
++=================+=======================+
+| core            | juce_core             |
+| dataStructures  | juce_data_structures  |
+| events          | juce_events           |
+| graphics        | juce_graphics         |
+| guiBasics       | juce_gui_basics       |
+| audioProcessors | juce_audio_processors |
++-----------------+-----------------------+
 
 ## user module
 
@@ -121,12 +125,10 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 | root         | name                  | description                                                                                      |
 +==============+=======================+==================================================================================================+
 | @user-module | jam_core              | JAM Core                                                                                         |
-| @user-module | jam_subprocess        | JUCE-based subprocess launcher with streaming output and byte-cap truncation                     |
-| @user-module | jam_markdown          | Clean-room native CommonMark + GFM markdown parsing/rendering                                    |
 | @user-module | jam_document          | Universal line break and reflow (UAX #14)                                                        |
+| @user-module | jam_markdown          | Clean-room native CommonMark + GFM markdown parsing/rendering                                    |
 | @user-module | jam_freetype          | Vendored FreeType font rasterization library                                                     |
 | @user-module | jam_graphics          | Graphics utilities, blur, shadows, colours, fonts, mesh                                          |
-| @user-module | jam_pdf               | Clean-room PDF document model, writer and graphics context                                       |
 | @user-module | jam_data_structures   | ValueTree management and data model utilities — model, parameters                                |
 | @user-module | jam_animation         | Foundation animation classes (Animator, AnimationBase, AnimationScrollingText)                   |
 | @user-module | jam_web               | HTML authored-subset and CSS Syntax Level 3 subset tokenizers and parsers                        |
@@ -137,6 +139,34 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 | @user-module | jam_terminal          | VT read-side engine, TTY, protocol vocabulary, keyboard encoding                                 |
 | @user-module | jam_tui               | Terminal user interface components, painted through the terminal graphics context                |
 +--------------+-----------------------+--------------------------------------------------------------------------------------------------+
+
+## program module
+
++-------------------+----------------------+
+| name              | value                |
++===================+======================+
+| core              | juce_core            |
+| dataStructures    | juce_data_structures |
+| events            | juce_events          |
+| graphics          | juce_graphics        |
+| guiBasics         | juce_gui_basics      |
+| jamCore           | jam_core             |
+| jamDocument       | jam_document         |
+| jamFreetype       | jam_freetype         |
+| jamGraphics       | jam_graphics         |
+| jamDataStructures | jam_data_structures  |
+| jamStyle          | jam_style            |
+| jamMarkdown       | jam_markdown         |
+| jamSubprocess     | jam_subprocess       |
++-------------------+----------------------+
+
+## program user module
+
++--------------+----------------+------------------------------------------------------------------------------+
+| root         | name           | description                                                                  |
++==============+================+==============================================================================+
+| @user-module | jam_subprocess | JUCE-based subprocess launcher with streaming output and byte-cap truncation |
++--------------+----------------+------------------------------------------------------------------------------+
 
 ## source glob
 
@@ -177,15 +207,22 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 | harfbuzz   | `${CAST_JUCE_PATH}/modules/juce_graphics/fonts/harfbuzz` |                                           |
 +------------+----------------------------------------------------------+-------------------------------------------+
 
+## help
+
++------------+-------------------------------+------------------------------------+
+| name       | value                         | description                        |
++============+===============================+====================================+
+| help       | Source/HELP.md                | Help document source               |
+| styleSheet | ../jam/jam_tui/page/style.css | Stylesheet, embedded as BinaryData |
++------------+-------------------------------+------------------------------------+
+
 ## binary
 
-+------------+---------------------------------+------------------------------------+
-| name       | value                           | description                        |
-+============+=================================+====================================+
-| help       | Source/HELP.md                  | Help document source               |
-| castOutput | Source/resources/cast-output.md | Output document resource           |
-| styleSheet | ../jam/jam_tui/page/style.css   | Stylesheet, embedded as BinaryData |
-+------------+---------------------------------+------------------------------------+
++------------+---------------------------------+--------------------------+
+| name       | value                           | description              |
++============+=================================+==========================+
+| castOutput | Source/resources/cast-output.md | Output document resource |
++------------+---------------------------------+--------------------------+
 
 ## library
 

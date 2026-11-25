@@ -32,6 +32,7 @@ extern const juce::String castFormat;         ///< Style file name, searched fir
 extern const juce::String castFormatAlternate;///< Style file name, searched second.
 extern const juce::String castHelp;           ///< Rendered help text.
 extern const juce::String castOutput;         ///< Banner artwork source.
+extern const juce::String screenErase;        ///< Screen erase sequence.
 extern const juce::String standardInput;      ///< Stdin file name in a diagnostic.
 extern const juce::String userModulesInfo;    ///< Sync root info file name.
 

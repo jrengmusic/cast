@@ -22,12 +22,12 @@ juce::Result ZipWriter::toFile (const juce::File& archive, const juce::Array<juc
 juce::uint32 ZipWriter::getChecksum (const juce::MemoryBlock& content)
 {
     static constexpr auto checksumTable { getChecksumTable() };
-    juce::uint32 checksum { 0xffffffff };
+    juce::uint32 checksum { (std::numeric_limits<juce::uint32>::max)() };
 
     for (const auto byte : content)
-        checksum = checksumTable.at ((checksum ^ static_cast<juce::uint8> (byte)) & 0xffu) ^ (checksum >> 8);
+        checksum = checksumTable.at ((checksum ^ static_cast<juce::uint8> (byte)) & (std::numeric_limits<juce::uint8>::max)()) ^ (checksum >> std::numeric_limits<juce::uint8>::digits);
 
-    return checksum ^ 0xffffffff;
+    return checksum ^ (std::numeric_limits<juce::uint32>::max)();
 }
 
 juce::uint32 ZipWriter::getMode (const juce::File& entry)
@@ -177,49 +177,6 @@ void ZipWriter::addFileEntry (juce::MemoryOutputStream& archive, juce::MemoryOut
               entry.existsAsFile() and not entry.isSymbolicLink(), getAttributes (entry));
 }
 
-#if JUCE_MAC
-juce::String ZipWriter::getAppleDoubleName (const juce::String& entryName)
-{
-    const auto trimmedName { entryName.endsWithChar (Chars::slash) ? entryName.dropLastCharacters (1) : entryName };
-    const auto slashIndex { trimmedName.lastIndexOfChar (Chars::slash) };
-    return appleDoubleFolder + trimmedName.substring (0, slashIndex + 1) + appleDoublePrefix
-           + trimmedName.substring (slashIndex + 1);
-}
-
-int ZipWriter::addAppleDoubleEntries (juce::MemoryOutputStream& archive, juce::MemoryOutputStream& directory,
-                                      const juce::Array<juce::File>& entries, const juce::File& item)
-{
-    int added { 0 };
-
-    for (const auto& entry : entries)
-    {
-        if (const auto appleDouble { AppleDoubleWriter::getAppleDouble (entry) })
-        {
-            addEntry (archive, directory, getAppleDoubleName (getEntryName (entry, item)), *appleDouble, true,
-                      fileMode << modeShift);
-            ++added;
-        }
-    }
-
-    return added;
-}
-#endif
-
-int ZipWriter::addItemEntries (juce::MemoryOutputStream& archive, juce::MemoryOutputStream& directory, const juce::File& item)
-{
-    const auto entries (getEntries (item));
-    int added { entries.size() };
-
-    for (const auto& entry : entries)
-        addFileEntry (archive, directory, entry, item);
-
-   #if JUCE_MAC
-    added += addAppleDoubleEntries (archive, directory, entries, item);
-   #endif
-
-    return added;
-}
-
 juce::MemoryBlock ZipWriter::getEndRecord (int count, size_t directorySize, size_t directoryOffset)
 {
     juce::MemoryOutputStream record;
@@ -242,7 +199,12 @@ std::optional<juce::MemoryBlock> ZipWriter::getArchive (const juce::Array<juce::
 
     for (const auto& item : items)
     {
-        count += addItemEntries (archive, directory, item);
+        const auto entries (getEntries (item));
+
+        for (const auto& entry : entries)
+            addFileEntry (archive, directory, entry, item);
+
+        count += entries.size();
     }
 
     for (const auto& linkName : links.getAllKeys())

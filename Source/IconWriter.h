@@ -27,9 +27,6 @@ struct IconWriter
      */
     static juce::Result toBundle (const juce::File& bundle);
 
-    /** Size of the Finder information attribute, in bytes. */
-    static constexpr size_t finderInfoSize { 32 };
-
 private:
     /**
      * @brief Reads the icon file name from an @c Info.plist.
@@ -91,7 +88,7 @@ private:
      * @param value         The attribute bytes.
      * @returns True when the attribute is set.
      */
-    static bool applyAttribute (const juce::File& file, const char* attributeName, const juce::MemoryBlock& value);
+    static bool setAttribute (const juce::File& file, const char* attributeName, const juce::MemoryBlock& value);
 
     /** Name of the icon file in the bundle root. */
     static constexpr const char* iconFileName { "Icon\r" };
@@ -118,7 +115,7 @@ private:
     /** Offset of the type list from the start of the map, in bytes. */
     static constexpr short typeListOffset { 28 };
     /** Offset of the name list from the start of the map, in bytes. It equals the map length, so the list is empty. */
-    static constexpr short nameListOffset { 50 };
+    static constexpr short nameListOffset { static_cast<short> (mapLength) };
     /** Offset of the reference list from the start of the type list, in bytes. */
     static constexpr short referenceListOffset { 10 };
     /** Resource identifier of the custom icon. */
@@ -129,6 +126,8 @@ private:
     static constexpr short lastEntryIndex { 0 };
     /** Offset of the Finder flags in the Finder information, in bytes. */
     static constexpr size_t finderFlagsOffset { 8 };
+    /** Size of the Finder information attribute, in bytes. */
+    static constexpr size_t finderInfoSize { 32 };
     /** Finder flag that marks a folder with a custom icon. */
     static constexpr juce::uint16 customIconFlag { 0x0400 };
     /** Finder flag that hides a file. */

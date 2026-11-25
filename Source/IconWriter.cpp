@@ -56,10 +56,10 @@ juce::Result IconWriter::toIconFile (const juce::File& bundle, const juce::File&
 
         if (iconFile.deleteFile()
             and iconFile.create().wasOk()
-            and applyAttribute (iconFile, XATTR_RESOURCEFORK_NAME, getResourceFork (iconData))
-            and applyAttribute (iconFile, XATTR_FINDERINFO_NAME, getFinderInfo (invisibleFlag)))
+            and setAttribute (iconFile, XATTR_RESOURCEFORK_NAME, getResourceFork (iconData))
+            and setAttribute (iconFile, XATTR_FINDERINFO_NAME, getFinderInfo (invisibleFlag)))
         {
-            if (applyAttribute (bundle, XATTR_FINDERINFO_NAME, getFinderInfo (customIconFlag)))
+            if (setAttribute (bundle, XATTR_FINDERINFO_NAME, getFinderInfo (customIconFlag)))
                 return juce::Result::ok();
 
             return juce::Result::fail (bundle.getFullPathName() + Id::diagnosticSeparator
@@ -120,7 +120,7 @@ juce::MemoryBlock IconWriter::getFinderInfo (juce::uint16 finderFlags)
     return finderInfo.getMemoryBlock();
 }
 
-bool IconWriter::applyAttribute (const juce::File& file, const char* attributeName, const juce::MemoryBlock& value)
+bool IconWriter::setAttribute (const juce::File& file, const char* attributeName, const juce::MemoryBlock& value)
 {
     return setxattr (file.getFullPathName().toRawUTF8(), attributeName, value.getData(), value.getSize(), 0,
                      XATTR_NOFOLLOW) == 0;

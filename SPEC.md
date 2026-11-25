@@ -1044,10 +1044,13 @@ symbolic link. Its name is the link name, and its target is the link target text
 engine does not resolve it. The link is the drag-and-drop install target of the item on the same
 row. Two rows that give the root one name, as an item file name or a link name, are fatal (§10.1).
 
-**Icon.** Each bundle shows its own icon after the archive is extracted. The engine names no format.
-On Windows, the build puts the icon on the bundle: `desktop.ini`, `Plugin.ico` and the System
-attribute on the folder. The zip records them. On macOS, the engine packs both formats from a stage.
-It clones each item into the stage. When the clone has an XML `Contents/Info.plist` with a
+**Icon.** Each bundle shows its own icon after the archive is extracted, except in a macOS zip. The
+engine names no format. On Windows, the build puts the icon on the bundle: `desktop.ini`,
+`Plugin.ico` and the System attribute on the folder. The zip records them. A zip records no Finder
+information and no resource fork. ARCHITECT: *"`__MACOSX/<parent>/._<name>`, << this should not be
+written at all."* Thus on macOS the engine writes the zip from the items, and a bundle in a macOS
+zip has no custom icon. On macOS, the engine packs the dmg from a stage. It clones each item into
+the stage. When the clone has an XML `Contents/Info.plist` with a
 `CFBundleIconFile` key, the engine writes a custom Finder icon on the clone. The file `Icon\r` in
 the bundle root gets an empty data fork and a resource fork with one `icns` resource, ID -16455.
 That resource holds the bytes of `Contents/Resources/<CFBundleIconFile>` unchanged. The Finder
@@ -1059,11 +1062,8 @@ not exist is fatal (§10.1). The build artefacts stay unchanged.
 version-made-by field and the Unix mode of its file, folder or symbolic link. On a host with no Unix
 mode, a file records 0644, and a folder and a symbolic link record 0755. A `link` entry records 0755
 on each host. On Windows, the low byte of the external attributes of each entry records its
-ReadOnly, Hidden, System and Directory attribute bits. On macOS, each entry with Finder information
-or a resource fork adds one AppleDouble entry, `__MACOSX/<parent>/._<name>`, after the entries of
-its item. The AppleDouble is version 2, with the Finder information entry and the resource fork
-entry, and an `ATTR` header with no extended attribute. An AppleDouble entry records 0644. A
-symbolic link entry holds its target text and is stored. Each other file is deflated. Each entry
+ReadOnly, Hidden, System and Directory attribute bits. A symbolic link entry holds its target
+text and is stored. Each other file is deflated. Each entry
 records the time 1980-01-01 00:00, the first value of the zip time field. The engine walks each
 folder in the order of the entry names, compared by code point with case. Thus the same inputs, with
 the same attributes, give the same zip bytes. An archive with more than 65535 entries or more than 4

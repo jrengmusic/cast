@@ -13,8 +13,8 @@
  * The extension of the archive selects the format. A @c zip archive goes
  * through ZipWriter. A @c dmg archive goes through a stage folder beside the
  * archive, a @c .DS_Store file written by BinaryWriter, and one @c hdiutil
- * process on macOS. On macOS, both formats pack from a stage, and each staged
- * bundle gets its icon from IconWriter. Pack keeps no state.
+ * process on macOS. On macOS, a dmg packs from a stage, and each staged bundle
+ * gets its icon from IconWriter. Pack keeps no state.
  */
 struct Pack
 {
@@ -118,8 +118,7 @@ private:
      * @brief Writes a zip archive through ZipWriter.
      *
      * Fails when the command line has a layout option or @c --background.
-     * Those options apply to a @c dmg archive only. On macOS, the items are
-     * cloned into a stage and ZipWriter packs the staged items.
+     * Those options apply to a @c dmg archive only.
      *
      * @param arguments The command line.
      * @param archive   The zip file to write.
@@ -133,56 +132,25 @@ private:
     /**
      * @brief Writes a disk image.
      *
-     * On macOS, the function makes a new stage folder beside @p archive,
-     * fills it, runs @c hdiutil, and deletes the stage. The items come from
-     * toStage(). On another host, it fails.
+     * On macOS, the function creates a stage folder beside @p archive. The name
+     * of the stage is the name of the archive without its extension, numbered
+     * when that name is in use. The function clones each item into the stage
+     * and writes the icon of each bundle. It then adds the links, the background
+     * image and the @c .DS_Store file, and runs @c hdiutil on the stage. The
+     * stage is deleted after @c hdiutil. On another host, it fails.
      *
      * @param arguments The command line, for the layout options and
      *                  @c --background.
      * @param archive   The disk image to write.
      * @param items     The item files.
      * @param triples   The rows, flat.
-     * @returns Ok, or the failure. A stage that cannot be deleted is a
-     *          failure.
+     * @returns Ok, or the failure. When the stage cannot be created, the
+     *          failure names the stage. When the image step succeeds and the
+     *          stage cannot be deleted, the failure names the stage.
      */
     static juce::Result toDmg (const juce::ArgumentList& arguments, const juce::File& archive, const juce::Array<juce::File>& items, const juce::StringArray& triples);
 
    #if JUCE_MAC
-    /**
-     * @brief Makes a stage, clones the items into it, and runs a callable on
-     *        the stage.
-     *
-     * The stage is a new folder beside @p archive. Each staged item gets its
-     * icon. The function deletes the stage after the callable returns.
-     *
-     * @tparam ArchiveStage The callable type. It takes the stage folder and
-     *                      the staged items, and returns a juce::Result.
-     * @param archive      The archive. The stage folder is named after it.
-     * @param items        The item files.
-     * @param archiveStage The callable that packs the stage.
-     * @returns The result of @p archiveStage, or the failure when the stage
-     *          cannot be made, filled, or deleted.
-     */
-    template <typename ArchiveStage>
-    static juce::Result toStage (const juce::File& archive, const juce::Array<juce::File>& items, ArchiveStage&& archiveStage)
-    {
-        const auto stage { archive.getSiblingFile (archive.getFileNameWithoutExtension()).getNonexistentSibling (false) };
-        const auto stageFailure { juce::Result::fail (stage.getFullPathName() + Id::diagnosticSeparator
-                                                      + text::Diagnostics::failOutputWrite) };
-
-        if (stage.createDirectory().wasOk())
-        {
-            const auto stagedItems (getStagedItems (stage, items));
-            const auto staged { addStageItems (items, stagedItems) };
-            const auto created { staged.wasOk() ? archiveStage (stage, stagedItems) : staged };
-            const auto removed { stage.deleteRecursively() };
-
-            return created.wasOk() ? (removed ? juce::Result::ok() : stageFailure) : created;
-        }
-
-        return stageFailure;
-    }
-
     /**
      * @brief Returns the @c hdiutil command line that creates a
      *        compressed image with the file system HFS+.

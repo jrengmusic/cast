@@ -128,8 +128,8 @@ find_package(Git REQUIRED)
 set(CAST_JUCE_PATCHES
 "${CAST_USER_MODULE_PATH}/patch/juce-cached-image-factory-hook.patch"       # External CachedComponentImage factory
 "${CAST_USER_MODULE_PATH}/patch/juce-direct2d-helpers-visibility-hook.patch"# Direct2D helpers visibility gate
-"${CAST_USER_MODULE_PATH}/patch/juce-image-subsection-hook.patch"           # Root image and subsection bounds hooks
-"${CAST_USER_MODULE_PATH}/patch/juce-vulkan-engine-hook.patch"              # External graphics context factory for Vulkan
+"${CAST_USER_MODULE_PATH}/patch/juce-image-subsection-hook.patch"           # Root image, subsection bounds, and virtual ImagePixelData listener hooks
+"${CAST_USER_MODULE_PATH}/patch/juce-vulkan-engine-hook.patch"              # External graphics context factory for Vulkan; HWNDComponentPeer skips Win32 WS_EX_LAYERED while externalContextFactory is active and restores layered state on fallback to the default renderer; invalidates and validates with RDW_NOCHILDREN so child windows keep their pending paint
 "${CAST_USER_MODULE_PATH}/patch/juce-paint-update-rect-hook.patch"          # OS dirty rectangle before native paint; applies after juce-vulkan-engine-hook.patch
 "${CAST_USER_MODULE_PATH}/patch/juce-attributed-text-hook.patch"            # Attributed text virtual on LowLevelGraphicsContext; applies after juce-vulkan-engine-hook.patch
 "${CAST_USER_MODULE_PATH}/patch/juce-adhoc-sign-hook.patch"                 # No ad-hoc signature on the VST3 bundle
@@ -137,10 +137,15 @@ set(CAST_JUCE_PATCHES
 "${CAST_USER_MODULE_PATH}/patch/juce-plugin-transparency-hook.patch"        # Plugin editor wrappers (VST2, VST3) transparent when the host is END; host plugin windows transparent; applies after juce-vulkan-engine-hook.patch
 "${CAST_USER_MODULE_PATH}/patch/juce-key-pressed-hook.patch"                # Host key press callback before a peer's components; applies after juce-plugin-transparency-hook.patch
 "${CAST_USER_MODULE_PATH}/patch/juce-plugin-host-type-hook.patch"           # END registered as a known PluginHostType host: HostType END, isEND(), description, host file name detection
-"${CAST_USER_MODULE_PATH}/patch/juce-plugin-window-focus-hook.patch"        # VST2 and AU host plugin windows take keyboard focus and make the plugin view first responder; applies after juce-plugin-transparency-hook.patch
-"${CAST_USER_MODULE_PATH}/patch/juce-mouse-event-hook.patch"                # Host mouse event callback before a peer's components; applies after juce-key-pressed-hook.patch
+"${CAST_USER_MODULE_PATH}/patch/juce-plugin-window-focus-hook.patch"        # VST2 host plugin windows take keyboard focus and hand focus to the native plugin view (macOS first responder, Windows SetFocus, Linux XEmbedComponent), and AU host plugin windows make the plugin view first responder; HWNDComponentPeer treats a focused child HWND as focused and skips focus loss on child-HWND focus handoff; adds handleFocusLoss after SetFocus on Windows and clears mouseActivateFlags in WM_KILLFOCUS; applies after juce-plugin-transparency-hook.patch
+"${CAST_USER_MODULE_PATH}/patch/juce-mouse-event-hook.patch"                # Host mouse event callback before a peer's components; click grab only when no external mouse callback is set or the peer is focused; applies after juce-key-pressed-hook.patch
 "${CAST_USER_MODULE_PATH}/patch/juce-plugin-editor-once-hook.patch"         # VST2 plugin client opens the editor that effEditGetRect created, so the editor is built once; applies after juce-plugin-transparency-hook.patch
 "${CAST_USER_MODULE_PATH}/patch/juce-plugin-window-size-hook.patch"         # VST2 host child window takes the plugin's effEditGetRect size in physical pixels on Windows; applies after juce-plugin-transparency-hook.patch
+"${CAST_USER_MODULE_PATH}/patch/juce-value-tree-synchroniser-hook.patch"    # Listener exclusion for ValueTree senders: juce_ValueTree.cpp, juce_ValueTree.h, juce_ValueTreeSynchroniser.cpp, juce_ValueTreeSynchroniser.h; child and remove-property senders take a listener to exclude; ValueTree gains removePropertyExcludingListener, addChildExcludingListener, removeChildExcludingListener, moveChildExcludingListener; ValueTreeSynchroniser gains applyChange that excludes itself
+"${CAST_USER_MODULE_PATH}/patch/juce-posix-file-hook.patch"                 # POSIX file, link, folder, home and CPU-count functions on macOS when JUCE_USE_FOUNDATION=0: juce_Files_mac.mm, juce_Strings_mac.mm, juce_SystemStats_mac.mm, juce_core.h; read-only maps of MemoryMappedFile that give no fault when JUCE_USE_RESILIENT_MAPPING=1: juce_SharedCode_posix.h
+"${CAST_USER_MODULE_PATH}/patch/juce-sha256-hook.patch"                     # SHA-256 on the ARMv8 hash instructions.
+"${CAST_USER_MODULE_PATH}/patch/juce-posix-event-hook.patch"                # JUCE's POSIX message loop on macOS when JUCE_USE_FOUNDATION=0 and juce_gui_basics is not linked: juce_events.h, juce_events.cpp, juce_MessageManager.cpp, juce_ApplicationBase.cpp, juce_ScopedLowPowerModeDisabler.cpp, juce_Memory.h, juce_SharedCode_posix.h
+"${CAST_USER_MODULE_PATH}/patch/juce-child-process-hook.patch"              # ChildProcessManager singleton defined in its .cpp, so that a translation unit that includes juce_events.h has no initializer: juce_ChildProcessManager.h, juce_ChildProcessManager.cpp
 )
 
 if(WIN32)
@@ -230,12 +235,10 @@ endif()
 message(STATUS "CAST: JUCE ${CAST_FOUND_JUCE_VERSION} patched at ${CAST_JUCE_PATH}")
 
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_core")             # JAM Core
-juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_subprocess")       # JUCE-based subprocess launcher with streaming output and byte-cap truncation
-juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_markdown")         # Clean-room native CommonMark + GFM markdown parsing/rendering
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_document")         # Universal line break and reflow (UAX #14)
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_markdown")         # Clean-room native CommonMark + GFM markdown parsing/rendering
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_freetype")         # Vendored FreeType font rasterization library
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_graphics")         # Graphics utilities, blur, shadows, colours, fonts, mesh
-juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_pdf")              # Clean-room PDF document model, writer and graphics context
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_data_structures")  # ValueTree management and data model utilities — model, parameters
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_animation")        # Foundation animation classes (Animator, AnimationBase, AnimationScrollingText)
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_web")              # HTML authored-subset and CSS Syntax Level 3 subset tokenizers and parsers
@@ -245,6 +248,8 @@ juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_mermaid_diagram")  # Cle
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_markdown_graphics")# Markdown and mermaid materialisation, layout and view component
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_terminal")         # VT read-side engine, TTY, protocol vocabulary, keyboard encoding
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_tui")              # Terminal user interface components, painted through the terminal graphics context
+
+juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_subprocess")# JUCE-based subprocess launcher with streaming output and byte-cap truncation
 
 message(STATUS "CAST: user modules added from ${CMAKE_CURRENT_SOURCE_DIR}/../jam")
 
@@ -288,7 +293,7 @@ file(GLOB CAST_MODULE_SOURCES
 
 set_source_files_properties(${CAST_MODULE_SOURCES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 
-target_compile_definitions(${PROJECT_NAME} PUBLIC
+set(CAST_COMPILE_DEFINITIONS
     CAST_COMMIT="${CAST_COMMIT_HASH}"
 DONT_SET_USING_JUCE_NAMESPACE=1
 JUCE_DONT_DECLARE_PROJECTINFO=1
@@ -304,24 +309,28 @@ HAVE_FREETYPE
 "$<$<NOT:$<PLATFORM_ID:Windows>>:HAVE_UNISTD_H>"
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE
+target_compile_definitions(${PROJECT_NAME} PUBLIC ${CAST_COMPILE_DEFINITIONS})
+
+set(CAST_INCLUDE_DIRECTORIES
 ${CMAKE_CURRENT_SOURCE_DIR}/../jam
 ${CMAKE_CURRENT_SOURCE_DIR}/Source/generated
 "${CAST_USER_MODULE_PATH}/jam_freetype/freetype/include"
 "${CAST_JUCE_PATH}/modules/juce_graphics/fonts/harfbuzz"
 )
 
-target_link_libraries(${PROJECT_NAME}
-    PRIVATE
+target_include_directories(${PROJECT_NAME} PRIVATE ${CAST_INCLUDE_DIRECTORIES})
+
+set(CAST_HELP_MODULES
 juce_core
+juce_data_structures
+juce_events
+juce_graphics
 juce_gui_basics
 jam_core
-jam_subprocess
-jam_markdown
 jam_document
+jam_markdown
 jam_freetype
 jam_graphics
-jam_pdf
 jam_data_structures
 jam_animation
 jam_web
@@ -331,6 +340,23 @@ jam_mermaid_diagram
 jam_markdown_graphics
 jam_terminal
 jam_tui
+)
+
+target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+juce_core
+juce_data_structures
+juce_events
+juce_graphics
+juce_gui_basics
+jam_core
+jam_document
+jam_freetype
+jam_graphics
+jam_data_structures
+jam_style
+jam_markdown
+jam_subprocess
     PUBLIC
         juce::juce_recommended_config_flags
 )
@@ -357,15 +383,74 @@ target_link_options(${PROJECT_NAME} PRIVATE
     $<$<CONFIG:Release>:${CAST_RELEASE_LINK_FLAGS}>
 )
 
-file(GLOB CAST_BINARY_FILES CONFIGURE_DEPENDS
+file(GLOB CAST_HELP_FILES CONFIGURE_DEPENDS
 Source/HELP.md
-Source/resources/cast-output.md
 ../jam/jam_tui/page/style.css
+)
+
+juce_add_binary_data(${PROJECT_NAME}_HelpDocuments
+    NAMESPACE "BinaryData"
+    SOURCES
+        ${CAST_HELP_FILES}
+)
+
+juce_add_console_app(${PROJECT_NAME}_HelpFrames
+    PRODUCT_NAME "${PROJECT_NAME}_HelpFrames"
+    COMPANY_NAME "JRENG"
+    NEEDS_CURL OFF
+    NEEDS_WEB_BROWSER OFF
+    NEEDS_WEBVIEW2 OFF
+    NEEDS_STORE_KIT OFF
+)
+
+juce_generate_juce_header(${PROJECT_NAME}_HelpFrames)
+
+target_sources(${PROJECT_NAME}_HelpFrames PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/help/HelpFrames.cpp"
+)
+
+target_compile_definitions(${PROJECT_NAME}_HelpFrames PRIVATE ${CAST_COMPILE_DEFINITIONS})
+target_include_directories(${PROJECT_NAME}_HelpFrames PRIVATE ${CAST_INCLUDE_DIRECTORIES})
+
+target_link_libraries(${PROJECT_NAME}_HelpFrames
+    PRIVATE
+        ${CAST_HELP_MODULES}
+        ${PROJECT_NAME}_HelpDocuments
+        juce::juce_recommended_config_flags
+)
+
+set(CAST_FRAME_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/frames")
+file(MAKE_DIRECTORY "${CAST_FRAME_DIRECTORY}")
+set(CAST_ERASE_FRAME "erase.frame")
+set(CAST_FRAME_FILES "${CAST_FRAME_DIRECTORY}/${CAST_ERASE_FRAME}")
+
+foreach(CAST_HELP_FILE ${CAST_HELP_FILES})
+    get_filename_component(CAST_DOCUMENT_EXTENSION "${CAST_HELP_FILE}" LAST_EXT)
+
+    if(CAST_DOCUMENT_EXTENSION STREQUAL ".md")
+        get_filename_component(CAST_DOCUMENT_NAME "${CAST_HELP_FILE}" NAME)
+        get_filename_component(CAST_DOCUMENT_STEM "${CAST_HELP_FILE}" NAME_WLE)
+        list(APPEND CAST_DOCUMENT_NAMES "${CAST_DOCUMENT_NAME}")
+        list(APPEND CAST_FRAME_FILES "${CAST_FRAME_DIRECTORY}/${CAST_DOCUMENT_STEM}.frame")
+    endif()
+endforeach()
+
+add_custom_command(
+    OUTPUT ${CAST_FRAME_FILES}
+    COMMAND ${PROJECT_NAME}_HelpFrames "${CAST_FRAME_DIRECTORY}" "${CAST_ERASE_FRAME}" ${CAST_DOCUMENT_NAMES}
+    DEPENDS ${PROJECT_NAME}_HelpFrames ${CAST_HELP_FILES}
+    COMMENT "CAST: help frames"
+    VERBATIM
+)
+
+file(GLOB CAST_BINARY_FILES CONFIGURE_DEPENDS
+Source/resources/cast-output.md
 )
 
 juce_add_binary_data(${PROJECT_NAME}_BinaryData
     NAMESPACE "BinaryData"
     SOURCES
+        ${CAST_FRAME_FILES}
         ${CAST_BINARY_FILES}
 )
 

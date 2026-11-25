@@ -18,8 +18,9 @@
 | @string | castDirectory       | `cast`                 | Sync style directory under a target root. |
 | @string | castFormat          | `.cast-format`         | Style file name, searched first.          |
 | @string | castFormatAlternate | `_cast-format`         | Style file name, searched second.         |
-| @string | castHelp            | `HELP.md`              | Rendered help text.                       |
+| @string | castHelp            | `HELP.frame`           | Rendered help text.                       |
 | @string | castOutput          | `cast-output.md`       | Banner artwork source.                    |
+| @string | screenErase         | `erase.frame`          | Screen erase sequence.                    |
 | @string | standardInput       | `<stdin>`              | Stdin file name in a diagnostic.          |
 | @string | userModulesInfo     | `user-modules-info.md` | Sync root info file name.                 |
 +---------+---------------------+------------------------+-------------------------------------------+
