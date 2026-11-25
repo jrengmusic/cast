@@ -483,8 +483,9 @@ Model::Model (const juce::String& text, const juce::File& newDocumentFile, const
     : documentFile { newDocumentFile }
     , reflowWidths (newReflowWidths)
 {
-    if (const auto parsedDocument { jam::MarkdownDocument::parse (text, getManifestOrigin()) }; parsedDocument != nullptr)
-        appendChildren (std::move (*parsedDocument));
+    const auto textView { jam::Strings::getView (text) };
+    Document::parse (textView.data(), static_cast<int> (textView.size()));
+    addOrigin (getManifestOrigin());
 
     addTables (documentFile.getParentDirectory(), getTableOrigins (*this, getManifestOrigin()));
     addDescriptions (*this);

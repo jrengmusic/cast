@@ -85,7 +85,7 @@ if(APPLE)
 -Wno-shadow;-Wno-unused-parameter;-Wno-float-equal;-Wno-sign-conversion;-Wno-switch-enum;-Wno-implicit-float-conversion;-O3;-flto=thin
     )
     set(CAST_RELEASE_LINK_FLAGS
--dead_strip
+-dead_strip;-Wl,-dead_strip_dylibs;-Wl,-exported_symbol,_main
     )
     set(CAST_DEBUG_COMPILE_FLAGS
 -Wno-shadow;-Wno-unused-parameter;-Wno-float-equal;-Wno-sign-conversion;-Wno-switch-enum;-Wno-implicit-float-conversion;-O0;-g
@@ -240,7 +240,6 @@ juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_markdown")         # Cle
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_freetype")         # Vendored FreeType font rasterization library
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_graphics")         # Graphics utilities, blur, shadows, colours, fonts, mesh
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_data_structures")  # ValueTree management and data model utilities — model, parameters
-juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_animation")        # Foundation animation classes (Animator, AnimationBase, AnimationScrollingText)
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_web")              # HTML authored-subset and CSS Syntax Level 3 subset tokenizers and parsers
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_style")            # JAM Style — LookAndFeel base + ColourScheme-backed colour registry
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_gui")              # GUI foundation — Window, Modal, Glass
@@ -252,6 +251,16 @@ juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_tui")              # Ter
 juce_add_module("${CMAKE_CURRENT_SOURCE_DIR}/../jam/jam_subprocess")# JUCE-based subprocess launcher with streaming output and byte-cap truncation
 
 message(STATUS "CAST: user modules added from ${CMAKE_CURRENT_SOURCE_DIR}/../jam")
+
+set(CAST_CORE_FRAMEWORKS "")
+
+if(APPLE)
+    get_target_property(CAST_CORE_LINK_ITEMS juce_core INTERFACE_LINK_LIBRARIES)
+    set(CAST_CORE_FRAMEWORKS "${CAST_CORE_LINK_ITEMS}")
+    list(FILTER CAST_CORE_FRAMEWORKS INCLUDE REGEX "^-framework")
+    list(FILTER CAST_CORE_LINK_ITEMS EXCLUDE REGEX "^-framework")
+    set_target_properties(juce_core PROPERTIES INTERFACE_LINK_LIBRARIES "${CAST_CORE_LINK_ITEMS}")
+endif()
 
 juce_add_console_app(${PROJECT_NAME}
     PRODUCT_NAME "cast"
@@ -300,7 +309,10 @@ JUCE_DONT_DECLARE_PROJECTINFO=1
 JUCE_STRICT_REFCOUNTEDPOINTER=1
 JUCE_WEB_BROWSER=0
 JUCE_USE_CURL=0
+JUCE_USE_FOUNDATION=0
+JUCE_USE_RESILIENT_MAPPING=1
 "$<$<PLATFORM_ID:Windows>:WIN32_LEAN_AND_MEAN=1>"
+"$<$<PLATFORM_ID:Windows>:NOMINMAX=1>"
 "$<$<PLATFORM_ID:Windows>:_WIN32_IE=0x0A00>"
 "$<$<PLATFORM_ID:Windows>:JUCE_CORE_INCLUDE_NATIVE_HEADERS=1>"
 "$<$<PLATFORM_ID:Windows>:JUCE_GRAPHICS_INCLUDE_DIRECT2D_HELPERS=1>"
@@ -326,13 +338,13 @@ juce_data_structures
 juce_events
 juce_graphics
 juce_gui_basics
+juce_audio_processors
 jam_core
 jam_document
 jam_markdown
 jam_freetype
 jam_graphics
 jam_data_structures
-jam_animation
 jam_web
 jam_style
 jam_gui
@@ -345,17 +357,11 @@ jam_tui
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
 juce_core
-juce_data_structures
 juce_events
-juce_graphics
-juce_gui_basics
 jam_core
 jam_document
-jam_freetype
-jam_graphics
-jam_data_structures
-jam_style
 jam_markdown
+jam_web
 jam_subprocess
     PUBLIC
         juce::juce_recommended_config_flags
@@ -415,6 +421,7 @@ target_include_directories(${PROJECT_NAME}_HelpFrames PRIVATE ${CAST_INCLUDE_DIR
 target_link_libraries(${PROJECT_NAME}_HelpFrames
     PRIVATE
         ${CAST_HELP_MODULES}
+        ${CAST_CORE_FRAMEWORKS}
         ${PROJECT_NAME}_HelpDocuments
         juce::juce_recommended_config_flags
 )

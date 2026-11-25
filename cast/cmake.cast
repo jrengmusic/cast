@@ -110,6 +110,16 @@ set(CAST_JUCE_VERSION :::juceVersion:::)
 
 message(STATUS "CAST: user modules added from :::userModulePath:::")
 
+set(CAST_CORE_FRAMEWORKS "")
+
+if(APPLE)
+    get_target_property(CAST_CORE_LINK_ITEMS juce_core INTERFACE_LINK_LIBRARIES)
+    set(CAST_CORE_FRAMEWORKS "${CAST_CORE_LINK_ITEMS}")
+    list(FILTER CAST_CORE_FRAMEWORKS INCLUDE REGEX "^-framework")
+    list(FILTER CAST_CORE_LINK_ITEMS EXCLUDE REGEX "^-framework")
+    set_target_properties(juce_core PROPERTIES INTERFACE_LINK_LIBRARIES "${CAST_CORE_LINK_ITEMS}")
+endif()
+
 :::juceTargetFunction:::(${PROJECT_NAME}
     PRODUCT_NAME ":::productName:::"
     VERSION :::versionString:::
@@ -229,6 +239,7 @@ target_include_directories(${PROJECT_NAME}_HelpFrames PRIVATE ${CAST_INCLUDE_DIR
 target_link_libraries(${PROJECT_NAME}_HelpFrames
     PRIVATE
         ${CAST_HELP_MODULES}
+        ${CAST_CORE_FRAMEWORKS}
         ${PROJECT_NAME}_HelpDocuments
         juce::juce_recommended_config_flags
 )

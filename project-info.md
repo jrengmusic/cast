@@ -130,7 +130,6 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 | @user-module | jam_freetype          | Vendored FreeType font rasterization library                                                     |
 | @user-module | jam_graphics          | Graphics utilities, blur, shadows, colours, fonts, mesh                                          |
 | @user-module | jam_data_structures   | ValueTree management and data model utilities — model, parameters                                |
-| @user-module | jam_animation         | Foundation animation classes (Animator, AnimationBase, AnimationScrollingText)                   |
 | @user-module | jam_web               | HTML authored-subset and CSS Syntax Level 3 subset tokenizers and parsers                        |
 | @user-module | jam_style             | JAM Style — LookAndFeel base + ColourScheme-backed colour registry                               |
 | @user-module | jam_gui               | GUI foundation — Window, Modal, Glass                                                            |
@@ -142,23 +141,17 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 
 ## program module
 
-+-------------------+----------------------+
-| name              | value                |
-+===================+======================+
-| core              | juce_core            |
-| dataStructures    | juce_data_structures |
-| events            | juce_events          |
-| graphics          | juce_graphics        |
-| guiBasics         | juce_gui_basics      |
-| jamCore           | jam_core             |
-| jamDocument       | jam_document         |
-| jamFreetype       | jam_freetype         |
-| jamGraphics       | jam_graphics         |
-| jamDataStructures | jam_data_structures  |
-| jamStyle          | jam_style            |
-| jamMarkdown       | jam_markdown         |
-| jamSubprocess     | jam_subprocess       |
-+-------------------+----------------------+
++---------------+----------------+
+| name          | value          |
++===============+================+
+| core          | juce_core      |
+| events        | juce_events    |
+| jamCore       | jam_core       |
+| jamDocument   | jam_document   |
+| jamMarkdown   | jam_markdown   |
+| jamWeb        | jam_web        |
+| jamSubprocess | jam_subprocess |
++---------------+----------------+
 
 ## program user module
 
@@ -187,7 +180,10 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 | juceStrictRefCountedPointer        | JUCE_STRICT_REFCOUNTEDPOINTER=1                                      | Strict ReferenceCountedObjectPtr casting                      |
 | juceWebBrowser                     | JUCE_WEB_BROWSER=0                                                   | WebBrowserComponent support                                   |
 | juceUseCurl                        | JUCE_USE_CURL=0                                                      | libcurl for http on Linux                                     |
+| juceUseFoundation                  | JUCE_USE_FOUNDATION=0                                                | POSIX file and system functions on macOS, no Foundation       |
+| juceUseResilientMapping            | JUCE_USE_RESILIENT_MAPPING=1                                         | A read-only map of a file that becomes shorter gives no fault |
 | win32LeanAndMean                   | `$<$<PLATFORM_ID:Windows>:WIN32_LEAN_AND_MEAN=1>`                    | Exclude rarely used Windows headers                           |
+| nominmax                           | `$<$<PLATFORM_ID:Windows>:NOMINMAX=1>`                               | No Windows min/max macros                                     |
 | win32Ie                            | `$<$<PLATFORM_ID:Windows>:_WIN32_IE=0x0A00>`                         | Windows IE platform version                                   |
 | juceCoreIncludeNativeHeaders       | `$<$<PLATFORM_ID:Windows>:JUCE_CORE_INCLUDE_NATIVE_HEADERS=1>`       | Native platform headers in juce_core                          |
 | juceGraphicsIncludeDirect2dHelpers | `$<$<PLATFORM_ID:Windows>:JUCE_GRAPHICS_INCLUDE_DIRECT2D_HELPERS=1>` | Direct2D helper visibility, from the framework patch          |
@@ -322,6 +318,11 @@ Every field is a complete literal; nothing downstream derives, concatenates, or 
 | linkTimeCodegen         |                                | /LTCG          | linker | MSVC whole-program link-time codegen     |
 +-------------------------+--------------------------------+----------------+--------+------------------------------------------+
 | deadCodeStripping       | -dead_strip                    | /OPT:REF       | linker | Strip unreferenced functions and data    |
++-------------------------+--------------------------------+----------------+--------+------------------------------------------+
+| deadDylibStripping      | -Wl,-dead_strip_dylibs         |                | linker | Drop the libraries that no live code     |
+|                         |                                |                |        |  references.                             |
++-------------------------+--------------------------------+----------------+--------+------------------------------------------+
+| exportedSymbols         | -Wl,-exported_symbol,_main     |                | linker | Export the entry point only.             |
 +-------------------------+--------------------------------+----------------+--------+------------------------------------------+
 | identicalCodeFolding    |                                | /OPT:ICF       | linker | Fold identical COMDATs                   |
 +-------------------------+--------------------------------+----------------+--------+------------------------------------------+
